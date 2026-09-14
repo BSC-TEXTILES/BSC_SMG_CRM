@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
+    "build": "cd hrms-system && npm install --legacy-peer-deps && npm run build",
+    "postinstall": "npm run build",
     "seed": "node hrms-system/server/scripts/seed.js"
   },
   "dependencies": {
@@ -36,7 +38,7 @@
     "rimraf": "^5.0.5",
     "glob": "^11.0.0"
   },
-  "main": "index.js",
+  "main": "server.js",
   "description": "Enterprise HRMS System",
   "engines": {
     "node": ">=18.0.0"
