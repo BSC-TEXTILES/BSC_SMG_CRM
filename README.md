@@ -1,259 +1,116 @@
-# BSC Candidate CRM — Installation Guide
+# BSC Enterprise Operations Platform
 
-Complete setup guide for deploying the BSC Candidate CRM on **GitHub Pages** (frontend) + **Google Apps Script** (backend) + **Google Sheets** (database).
+Production-ready **Wedding Customer Follow-up CRM + HRMS + Store Operations** platform for
+BSC EXCLUSIVE's three locations — **Belagavi, Davanagere, Shivamogga** — with strict
+branch-level data isolation, JWT authentication, AES-256-GCM encryption at rest and a
+role-governed admin dashboard.
 
----
-
-## File Structure
+## Repository Structure (frontend / backend / database)
 
 ```
-bsc-crm/
-├── index.html                  ← redirects to login.html
-├── login.html
-├── dashboard.html
-├── candidates.html
-├── interview-panel.html
-├── offer-process.html
-├── onboarding.html
-├── employee-exit.html
-├── candidate-entry.html        ← public QR form (no login)
-├── css/
-│   └── shared.css
-├── js/
-│   ├── config.js               ← ★ paste Script URL here
-│   └── shared.js
+BSC_SMG_CRM/
+├── index.js                  # Hostinger/Passenger entry — bootstraps backend/index.js
+├── package.json              # root scripts: start, build, test, seed
+├── frontend/                 # React 18 + TypeScript + Vite + Tailwind SPA
+│   ├── src/
+│   │   ├── components/       # UI library + DevToolsGuard, ErrorBoundary, ConnectivityBanner
+│   │   ├── pages/            # Dashboard, WeddingCRM, Candidates, Settings, …
+│   │   └── services/api.ts   # typed API client + session management
+│   └── vite.config.ts        # vendor chunk splitting for fast loads
 ├── backend/
-│   └── code.gs                 ← Google Apps Script
-└── README.md
+│   ├── index.js              # Express app: REST API + static SPA + Socket.IO
+│   ├── build.js              # builds frontend → backend/dist (+ root mirror)
+│   └── src/
+│       ├── config/           # MySQL pool + self-healing DB initializer
+│       ├── controllers/      # HTTP layer (auth, wedding CRM, candidates, …)
+│       ├── services/         # business logic (authService, …)
+│       ├── routes/           # /api/v1, legacy /api, wedding routes
+│       ├── middleware/       # JWT auth (authenticate/authorize/location filter), uploads
+│       ├── utils/            # crypto (AES-256-GCM), csv, secrets, logger, response
+│       ├── validators/       # input validation
+│       └── scripts/          # seed & migration helpers
+├── database/                 # SQL schema, default data, roles, permissions, indexes
+├── tests/
+│   ├── unit/                 # pure-logic tests (csv, crypto, response, secrets)
+│   ├── whitebox/             # internal logic with mocked DB pool (auth flows)
+│   └── blackbox/             # live HTTP tests against a spawned server
+└── dist/                     # deployable mirror of backend/dist
 ```
 
----
+## Quick Start
 
-## Step 1 — Create the Google Sheet
+```bash
+# 1. Install & build (frontend + backend)
+npm install
 
-1. Go to **[sheets.google.com](https://sheets.google.com)** and create a new blank spreadsheet.
-2. Name it **BSC Candidate CRM**.
-3. Copy the Sheet ID from the URL bar:
-   ```
-   https://docs.google.com/spreadsheets/d/THIS_IS_YOUR_SHEET_ID/edit
-   ```
-4. Keep this tab open — you'll need the ID in Step 2.
+# 2. Configure the database (MySQL 8 / MariaDB)
+cp backend/.env.production.example backend/.env
+#    set DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+#    optionally JWT_SECRET / ENCRYPTION_KEY (auto-generated & persisted if omitted)
 
----
-
-## Step 2 — Set Up Google Apps Script
-
-1. In your Google Sheet, click **Extensions → Apps Script**.
-2. Delete all existing code in the editor.
-3. Open `backend/code.gs` from this project and **paste the entire contents** into the Apps Script editor.
-4. On **line 11**, replace the placeholder with your Sheet ID:
-   ```javascript
-   const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID';  // ← paste here
-   ```
-5. Click **Save** (Ctrl+S).
-
-### Run Setup Function (creates all sheet tabs automatically)
-
-6. In the function dropdown at the top, select **`setupSheets`**.
-7. Click **Run ▶**.
-8. When prompted, click **Review Permissions → Allow**.
-9. Wait for the success alert — all 9 sheet tabs are now created with headers.
-
-> **Default login credentials seeded by setupSheets:**
-> | Username | Password | Role |
-> |---|---|---|
-> | hr@bsctextiles.com | bsc@2026 | HR |
-> | fm@bsctextiles.com | bsc@2026 | Floor Manager |
-> | manager@bsctextiles.com | bsc@2026 | Manager |
-> | admin@bsctextiles.com | bsc@2026 | Admin |
->
-> ⚠️ **Change these passwords immediately** in the Users sheet after first login.
-
----
-
-## Step 3 — Deploy Apps Script as Web App
-
-1. In the Apps Script editor, click **Deploy → New deployment**.
-2. Click the gear icon ⚙ next to "Type" and select **Web app**.
-3. Fill in the settings:
-   - **Description:** BSC CRM v1.0
-   - **Execute as:** Me
-   - **Who has access:** Anyone (even anonymous)
-4. Click **Deploy**.
-5. Copy the **Web app URL** — it looks like:
-   ```
-   https://script.google.com/macros/s/AKfycb.../exec
-   ```
-
----
-
-## Step 4 — Connect Frontend to Backend
-
-1. Open `js/config.js` in this project.
-2. On **line 4**, replace the placeholder with your Web App URL:
-   ```javascript
-   SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_ACTUAL_ID/exec',
-   ```
-3. Save the file.
-
-> **Without this step the app still works** — it uses built-in sample data. Connect the URL when you're ready to use live data.
-
----
-
-## Step 5 — Create `index.html` redirect
-
-Create a file called `index.html` in the root folder with this content:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta http-equiv="refresh" content="0;url=login.html">
-</head>
-<body>Redirecting…</body>
-</html>
+# 3. Run
+npm start                # serves API + SPA on $PORT (default 3000)
+npm run build            # rebuild frontend + refresh dist
+npm test                 # unit + white-box + black-box suites (node --test)
+npm run seed             # seed default users/designations/questions
 ```
 
----
+The database bootstraps itself on first boot (tables, indexes, seed users, performance
+indexes). The app also boots gracefully with the database offline — health stays UP and
+the UI surfaces friendly errors.
 
-## Step 6 — Deploy to GitHub Pages
+## Security Model
 
-1. Create a free account at **[github.com](https://github.com)** if you don't have one.
-2. Click **New Repository**.
-   - Repository name: `bsc-crm` (or any name)
-   - Visibility: **Public** (required for free GitHub Pages)
-   - Click **Create repository**
-3. Upload your files using one of these methods:
+| Aspect | Implementation |
+| --- | --- |
+| Passwords | bcrypt hashes; legacy plaintext rows auto-upgrade on login |
+| Master recovery | `admin@bsctextiles.com` / `admin@2026` — built-in accounts only |
+| Sign-in captcha | Server-generated 4-digit numeric SVG; refreshes every 30 s; auto-reloads on wrong entry; verified server-side |
+| Sessions | Server-managed httpOnly cookie + JWT with a per-deployment secret; **6-hour absolute auto-logout** (`SESSION_HOURS`); location claims come from the DB |
+| Kiosk/cash PINs | Stored as bcrypt hashes, never displayed, no universal backdoor |
+| Location isolation | Branch users only ever see their branch's rows — enforced in SQL |
+| Encryption at rest | AES-256-GCM (`enc:v1:…`) for customer notes & call remarks |
+| Endpoint guards | Admin-only maintenance routes; dispatcher auth whitelist |
+| Brute force | 50 login attempts / 10 min / IP + mandatory captcha |
+| Secrets | None in the frontend bundle — all keys live in `backend/.env` (gitignored) |
+| DevTools shield | **Off by default** — Admin enables in Settings → Security; locks every device with a "turn off Developer Tools" screen and audits detections |
+| Audit trail | Logins, logouts, failed attempts, GPS pings, CRM actions |
 
-### Option A — GitHub Desktop (easiest)
-1. Download **[GitHub Desktop](https://desktop.github.com)**.
-2. Clone your new repository to your computer.
-3. Copy all project files into the cloned folder.
-4. In GitHub Desktop: commit the changes and **Push to origin**.
+## Admin Dashboard
 
-### Option B — Drag & Drop on GitHub.com
-1. Open your repository on GitHub.
-2. Click **Add file → Upload files**.
-3. Drag and drop all project files and folders.
-4. Click **Commit changes**.
+- Operational KPIs from live data (staff, feedback, footfall, diverts).
+- **Authentication Activity** — sign-ins/sign-outs (today & 7 days), active users,
+  last sign-in, and a timestamped event table with IP addresses.
+- Security center — DevTools shield toggle + detection log with timestamps.
+- GPS sign-in trail — devices report their location after login (permission-aware).
 
-4. Enable GitHub Pages:
-   - Go to your repository → **Settings → Pages**
-   - Under **Branch**, select `main` → folder `/` (root)
-   - Click **Save**
+## Wedding Follow-up CRM
 
-5. Your app will be live at:
-   ```
-   https://YOUR_USERNAME.github.io/bsc-crm/
-   ```
-   (Takes 1–3 minutes to go live after first deploy)
+Calling desk (overdue / today / callbacks / upcoming), follow-up calendar, conversion
+funnel & telecaller performance, **CSV bulk import** (strict validation — rows missing a
+name, valid 10-digit mobile or shopping date are skipped and reported), **CSV / Excel /
+PDF export**, and **WhatsApp / Email** actions per customer.
 
----
+## Deployment (Hostinger / Passenger)
 
-## Step 7 — Set Up QR Code for Walk-in Form
+1. Upload the repository; set Passenger startup file to `index.js` (repo root).
+2. `backend/.env` holds DB credentials & secrets (never committed).
+3. `UPLOAD_DIR` should point to a persistent directory outside the app folder.
+4. `npm run build` refreshes `backend/dist`; `tmp/restart.txt` signals Passenger.
 
-The candidate entry form is accessible at:
+## Testing
+
+```bash
+npm test     # 75 tests: unit (crypto/csv/response/secrets/captcha),
+             # white-box (auth internals, CSV import validation, PIN hashing — mocked pool),
+             # black-box (live HTTP: captcha flow, auth, guards, gzip, caching,
+             #            rate limit, security endpoints, CSV import contracts)
 ```
-https://YOUR_USERNAME.github.io/bsc-crm/candidate-entry.html?src=walkin
-```
 
-The `?src=walkin` parameter pre-fills the source as Walk-in.
+## Complete User Manual
 
-**Generate a QR code:**
-1. Go to **[qr-code-generator.com](https://www.qr-code-generator.com)** (free).
-2. Paste your candidate-entry URL.
-3. Download the QR code PNG.
-4. Print and place at the Walk-in counter.
-
-**Other source parameters:**
-| URL Parameter | Source Label |
-|---|---|
-| `?src=walkin` | Walk-in |
-| `?src=ref` | Employee Reference |
-| `?src=online` | Online Apply |
-
----
-
-## Step 8 — Add Interview Questions to Sheet
-
-1. Open the **Interview_Questions** tab in your Google Sheet.
-2. Add questions in this format:
-
-| Designation | Question ID | Question | Type | Max Score | Options |
-|---|---|---|---|---|---|
-| Sales Executive | 1 | Communication skills | score | 10 | |
-| Sales Executive | 2 | Retail experience | score | 15 | |
-| All | 1 | Can join immediately? | select | 0 | Yes,After 1 week,After 1 month |
-
-- **Type = `score`**: Shows a number input (0–Max Score)
-- **Type = `select`**: Shows a dropdown (Options column = comma-separated)
-- **Designation = `All`**: Question appears for every designation
-
----
-
-## Step 9 — Add Staff Logins
-
-1. Open the **Users** tab in your Google Sheet.
-2. Add rows for each staff member:
-
-| Username | Password | Role | Active |
-|---|---|---|---|
-| staff@bsc.com | yourpassword | HR | TRUE |
-| floor1@bsc.com | yourpassword | Floor Manager | TRUE |
-
-- **Role options:** `HR`, `Floor Manager`, `Manager`, `Admin`
-- Set **Active** to `TRUE` to enable login, `FALSE` to disable.
-
-> ⚠️ For production use, consider adding password hashing in `code.gs`. The default implementation uses plain text for simplicity.
-
----
-
-## Updating the App
-
-When you make changes to any HTML/JS/CSS file:
-
-1. Upload the changed files to your GitHub repository (drag & drop or GitHub Desktop).
-2. GitHub Pages automatically updates — usually within 1 minute.
-3. If the Apps Script backend changes, re-deploy: **Deploy → Manage deployments → Create new version**.
-
----
-
-## Page Reference
-
-| Page | URL | Who Can Access |
-|---|---|---|
-| Login | `/login.html` | Everyone |
-| Dashboard | `/dashboard.html` | HR, Admin |
-| Candidates | `/candidates.html` | HR, Admin |
-| Interview Panel | `/interview-panel.html` | HR, Floor Manager, Manager, Admin |
-| Offer Process | `/offer-process.html` | HR, Admin |
-| Onboarding | `/onboarding.html` | HR, Admin |
-| Employee Exit | `/employee-exit.html` | HR, Admin |
-| Entry Form (QR) | `/candidate-entry.html` | Public — no login |
-
----
-
-## Troubleshooting
-
-**"CORS error" when submitting the entry form**
-→ In Apps Script, re-deploy and make sure "Who has access" is set to **Anyone**.
-
-**Changes not showing on GitHub Pages**
-→ Wait 2–3 minutes and hard-refresh your browser (Ctrl+Shift+R).
-
-**Login not working**
-→ Check the Users sheet: confirm username matches exactly (case-insensitive), role matches the role button selected, and Active = TRUE.
-
-**Apps Script says "Script function not found"**
-→ Make sure you pasted the full `code.gs` content and saved before deploying.
-
-**Data not saving to sheet**
-→ Confirm `SHEET_ID` in `code.gs` is correct (no spaces, no quotes around it other than the ones in the code).
-
----
-
-## Support
-
-For issues or customisation, review `js/config.js` for all configurable values, and `backend/code.gs` for all data operations.
-
-*BSC Candidate CRM v1.0 — Built for BSC The Textile Mall*
+`BSC_Complete_User_Manual.pdf` (repo root, 20 pages) — the full walkthrough for every role:
+sign-in with the security code, dashboard, Wedding CRM workflows (calling desk, CSV import,
+exports, WhatsApp/e-mail), store operations, recruitment, administration, the security centre
+and troubleshooting — with screenshots of every screen. Regenerate it after UI changes with
+`docs/manual/build_manual.py` + `docs/manual/merge_manual.py`.

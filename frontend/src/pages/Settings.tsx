@@ -1,0 +1,864 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import Topbar from '../components/Topbar';
+import ToastContainer, { showToast } from '../components/Toast';
+import { API, Auth, UserSession, apiFetch } from '../services/api';
+import { Settings, Users, Eye, EyeOff, HelpCircle, Tag, Plus, Trash2, Key, Shield, Check, X, Lock, ShieldAlert, RefreshCw } from 'lucide-react';
+
+export default function SettingsPage() {
+  const navigate = useNavigate();
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'users' | 'pins' | 'security' | 'visibility' | 'questions' | 'roles'>('users');
+
+  // Users
+  const [users, setUsers] = useState<any[]>([]);
+  const [newName, setNewName] = useState('');
+  const [newUname, setNewUname] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [newRole, setNewRole] = useState('HR');
+  const [newLocationId, setNewLocationId] = useState<string>('2'); // default Davanagere
+  const [locations, setLocations] = useState<any[]>([]);
+
+  // Store Operational PINs
+  const [greeterPin, setGreeterPin] = useState('');
+  const [tvPin, setTvPin] = useState('');
+  const [cashPin, setCashPin] = useState('');
+  const [showGreeterPin, setShowGreeterPin] = useState(false);
+  const [showTvPin, setShowTvPin] = useState(false);
+  const [showCashPin, setShowCashPin] = useState(false);
+  const [savingPins, setSavingPins] = useState(false);
+
+  // Page Visibility
+  const [pageSettings, setPageSettings] = useState<Record<string, boolean>>({});
+
+  // Questions
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [qDesig, setQDesig] = useState('Sales Executive');
+  const [qRound, setQRound] = useState('HR');
+  const [qText, setQText] = useState('');
+  const [qMax, setQMax] = useState(10);
+
+  // Designations
+  const [designations, setDesignations] = useState<string[]>([]);
+  const [newDesigInput, setNewDesigInput] = useState('');
+  const [securityEvents, setSecurityEvents] = useState<any[]>([]);
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [pinStatus, setPinStatus] = useState({ greeter: false, tv: false, cash: false });
+  const [shieldEnabled, setShieldEnabled] = useState(false);
+  const [shieldBusy, setShieldBusy] = useState(false);
+
+  const loadSecurityEvents = useCallback(async () => {
+    setSecurityLoading(true);
+    try {
+      const [evRes, flagRes] = await Promise.all([
+        apiFetch('/security/events'),
+        apiFetch('/security/shield-status').catch(() => ({ enabled: false }))
+      ]);
+      if (evRes && evRes.events) setSecurityEvents(evRes.events);
+      setShieldEnabled(!!(flagRes && flagRes.enabled));
+    } catch {
+      /* panel stays empty — non-fatal */
+    } finally {
+      setSecurityLoading(false);
+    }
+  }, []);
+
+  const handleShieldToggle = async () => {
+    setShieldBusy(true);
+    try {
+      const res = await apiFetch('/security/shield-toggle', {
+        method: 'POST',
+        body: JSON.stringify({ enabled: !shieldEnabled })
+      });
+      if (res && res.success) {
+        setShieldEnabled(res.enabled);
+        showToast(res.enabled
+          ? 'Developer Tools Shield ENABLED — all devices will lock when DevTools open'
+          : 'Developer Tools Shield DISABLED — devices unlock within a minute', 'success');
+        loadSecurityEvents();
+      } else {
+        showToast('Could not update shield setting', 'error');
+      }
+    } catch (e: any) {
+      showToast('Error: ' + (e.message || 'update failed'), 'error');
+    } finally {
+      setShieldBusy(false);
+    }
+  };
+
+  const loadAll = useCallback(async () => {
+    try {
+      const [uData, pData, qData, dData, crmData, locData] = await Promise.all([
+        API.getUsers(),
+        API.getPageSettings(),
+        API.call('getAllInterviewQuestions'),
+        API.getDesignations(),
+        API.getCrmSettings(),
+        API.getLocations().catch(() => ({ locations: [] }))
+      ]);
+
+      if (uData && uData.users) setUsers(uData.users);
+      if (pData) setPageSettings(pData);
+      if (qData && qData.questions) setQuestions(qData.questions);
+      if (dData && dData.designations) setDesignations(dData.designations);
+      if (crmData && crmData.settings) {
+        // PIN values are hashed server-side and never sent to clients - the
+        // fields stay empty and only accept a NEW PIN when the admin types one.
+        setGreeterPin('');
+        setTvPin('');
+        setCashPin('');
+        setPinStatus({
+          greeter: !!crmData.settings.hasGreeterPin,
+          tv: !!crmData.settings.hasTvPin,
+          cash: !!crmData.settings.hasCashPin
+        });
+      }
+      if (locData && locData.locations) setLocations(locData.locations);
+    } catch (err: any) {
+      showToast('Error loading settings', 'error');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!Auth.check()) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    const sess = Auth.get();
+    if (sess?.role !== 'Admin' && sess?.role !== 'Super Admin') {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    setSession(sess);
+    loadAll();
+  }, [navigate, loadAll]);
+
+  // Users Handlers
+  const handleAddUser = async () => {
+    if (!newName.trim() || !newUname.trim() || !newPwd.trim()) {
+      showToast('All fields required', 'error');
+      return;
+    }
+    try {
+      // locationId: null for Global Admin roles, otherwise the selected location
+      const isGlobalRole = newRole === 'Admin' || newRole === 'Super Admin';
+      const locationId = isGlobalRole ? null : (newLocationId ? parseInt(newLocationId) : 2);
+      await API.addUser({ fullName: newName, username: newUname, password: newPwd, role: newRole, locationId });
+      showToast('User added!', 'success');
+      setNewName(''); setNewUname(''); setNewPwd('');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleToggleUser = async (u: any) => {
+    try {
+      await API.updateUser({ username: u.username, active: !u.active });
+      showToast('User status updated', 'success');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleChangeUserRole = async (username: string, role: string) => {
+    try {
+      await API.updateUser({ username, role });
+      showToast(`Updated role for user ${username} to ${role}`, 'success');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error updating role: ' + e.message, 'error');
+    }
+  };
+
+  const handleResetUserPassword = async (username: string) => {
+    const newPassword = window.prompt(`Enter new password for user ${username}:`);
+    if (!newPassword || !newPassword.trim()) return;
+    try {
+      await API.updateUser({ username, password: newPassword.trim() });
+      showToast(`Password for user ${username} updated successfully!`, 'success');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error resetting password: ' + e.message, 'error');
+    }
+  };
+
+  // Page Settings Handlers
+  const handleSaveVisibility = async () => {
+    try {
+      await API.savePageSettings(pageSettings);
+      showToast('Page visibility saved!', 'success');
+    } catch (e: any) {
+      showToast('Error saving visibility', 'error');
+    }
+  };
+
+  // Question Handlers
+  const handleAddQuestion = async () => {
+    if (!qText.trim()) {
+      showToast('Question text required', 'error');
+      return;
+    }
+    try {
+      await API.call('addInterviewQuestion', { desig: qDesig, round: qRound, text: qText, max: qMax });
+      showToast('Question added!', 'success');
+      setQText('');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleDeleteQuestion = async (id: number) => {
+    try {
+      await API.call('deleteInterviewQuestion', { id });
+      showToast('Question deleted!', 'success');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error deleting question', 'error');
+    }
+  };
+
+  // Designation Handlers
+  const handleAddDesig = async () => {
+    if (!newDesigInput.trim()) return;
+    try {
+      await API.addDesignation(newDesigInput.trim());
+      showToast('Designation added!', 'success');
+      setNewDesigInput('');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleDeleteDesig = async (name: string) => {
+    try {
+      await API.deleteDesignation(name);
+      showToast(`Designation ${name} deleted!`, 'success');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error deleting designation', 'error');
+    }
+  };
+
+  const handleSavePins = async () => {
+    // Only PINs with a new value are sent; blank fields mean "unchanged".
+    const payload: Record<string, string> = {};
+    if (greeterPin.trim()) payload.greeterPin = greeterPin.trim();
+    if (tvPin.trim()) payload.tvPin = tvPin.trim();
+    if (cashPin.trim()) payload.cashPin = cashPin.trim();
+    if (Object.keys(payload).length === 0) {
+      showToast('Type a new PIN in at least one field first.', 'error');
+      return;
+    }
+    if (!Object.values(payload).every(v => /^\d{4,8}$/.test(v))) {
+      showToast('PINs must be 4-8 digits.', 'error');
+      return;
+    }
+    setSavingPins(true);
+    try {
+      await API.updateCrmSettings(payload);
+      showToast('Store Operational PINs updated (stored securely)!', 'success');
+      setGreeterPin(''); setTvPin(''); setCashPin('');
+      loadAll();
+    } catch (e: any) {
+      showToast('Error updating PINs: ' + (e.message || 'error'), 'error');
+    } finally {
+      setSavingPins(false);
+    }
+  };
+
+  const tabs = [
+    { key: 'users', label: 'User Accounts & Access', icon: Users },
+    { key: 'pins', label: 'Store Kiosk & Cash PINs', icon: Shield },
+    { key: 'security', label: 'Security & DevTools Shield', icon: ShieldAlert },
+    { key: 'visibility', label: 'Page Visibility Matrix', icon: Eye },
+    { key: 'questions', label: 'Interview Question Bank', icon: HelpCircle },
+    { key: 'roles', label: 'Designations Master', icon: Tag }
+  ];
+
+  useEffect(() => {
+    if (activeTab === 'security') loadSecurityEvents();
+  }, [activeTab, loadSecurityEvents]);
+
+  return (
+    <div className="min-h-screen bg-[#F4F6F9] flex">
+      <ToastContainer />
+      <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
+        <Topbar
+          title="System Settings &amp; Governance"
+          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }]}
+          session={session}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
+
+        <main className="p-4 lg:p-6 space-y-6 flex-1 overflow-y-auto">
+          {/* Header */}
+          <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
+                <Settings className="w-5 h-5 text-[#4E8ABF]" />
+                <span>Enterprise Administration Hub</span>
+              </h2>
+              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Manage user credentials, role permissions, interview evaluation rubrics &amp; company designations.</p>
+            </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-1 overflow-x-auto scrollbar-none text-xs font-bold">
+            {tabs.map(t => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setActiveTab(t.key as any)}
+                  className={`
+                    px-4 py-2.5 rounded-xl transition-all duration-150 flex items-center gap-2 shadow-xs whitespace-nowrap
+                    ${activeTab === t.key 
+                      ? 'bg-[#163B5C] text-white shadow-md font-extrabold' 
+                      : 'bg-white text-[#475569] border border-[#E2E8F0] hover:bg-[#F4F6F9]'}
+                  `}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* TAB 1: USERS */}
+          {activeTab === 'users' && (
+            <div className="space-y-6 animate-fade-in">
+              {/* System Credentials Quick Reference Card */}
+              <div className="card-glass p-5 border-2 border-[#4E8ABF]/30 space-y-3 bg-gradient-to-r from-sky-50/60 to-sky-100/40">
+                <div className="flex items-center justify-between border-b border-[#4E8ABF]/30 pb-2">
+                  <h3 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-[#4E8ABF]" />
+                    <span>Built-in System Accounts Reference</span>
+                  </h3>
+                  <span className="text-[10px] font-black text-[#4E8ABF] bg-amber-200/60 px-2 py-0.5 rounded-full uppercase">
+                    {session?.locationName || 'Multi-Location System'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-semibold">
+                  <div className="p-3 bg-white rounded-xl border border-[#E2E8F0]">
+                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase">System Admin</div>
+                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">admin@bsctextiles.com</div>
+                    <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
+                    </div>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-[#E2E8F0]">
+                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase">HR Specialist</div>
+                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">hr@bsctextiles.com</div>
+                    <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
+                    </div>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-[#E2E8F0]">
+                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase">Store Manager</div>
+                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">manager@bsctextiles.com</div>
+                    <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
+                    </div>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border-2 border-emerald-500/40 bg-emerald-50/50">
+                    <div className="text-[10px] font-black text-emerald-800 uppercase flex items-center justify-between">
+                      <span>Greeter Desk</span>
+                      <span className="px-1.5 py-[2px] rounded bg-emerald-600 text-white font-mono text-[9px]">NEW</span>
+                    </div>
+                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">greeter@bsctextiles.com</div>
+                    <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#5F6E7E] font-medium">
+                  Passwords are never displayed anywhere in the application. They are stored as one-way bcrypt hashes;
+                  use the form below to set or change a user's password.
+                </p>
+              </div>
+
+              <div className="card-glass p-6 space-y-4">
+                <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#4E8ABF]" />
+                  <span>Add New System User Account</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                  <input
+                    type="text"
+                    placeholder="Full Name (e.g. Rahul Sharma)"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="input-modern"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Username / Email"
+                    value={newUname}
+                    onChange={(e) => setNewUname(e.target.value)}
+                    className="input-modern"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Initial Password"
+                    value={newPwd}
+                    onChange={(e) => setNewPwd(e.target.value)}
+                    className="input-modern"
+                  />
+                  <select
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    className="select-modern font-bold"
+                  >
+                    <option value="HR">HR Specialist</option>
+                    <option value="Manager">Store Manager</option>
+                    <option value="Admin">Administrator</option>
+                    <option value="Greeter">Greeter Desk</option>
+                    <option value="Recruiter">Recruiter</option>
+                  </select>
+                  {/* Location Assignment — core of multi-location system */}
+                  <select
+                    value={(newRole === 'Admin' || newRole === 'Super Admin') ? '' : newLocationId}
+                    onChange={(e) => setNewLocationId(e.target.value)}
+                    disabled={newRole === 'Admin' || newRole === 'Super Admin'}
+                    className="select-modern font-bold disabled:opacity-50"
+                    title={(newRole === 'Admin' || newRole === 'Super Admin') ? 'Admins have access to all locations' : 'Select branch location for this user'}
+                  >
+                    {(newRole === 'Admin' || newRole === 'Super Admin') && (
+                      <option value="">🌐 All Locations (Global Admin)</option>
+                    )}
+                    {locations.length > 0 ? locations.map((loc: any) => (
+                      <option key={loc.id} value={loc.id}>📍 {loc.location_name}</option>
+                    )) : (
+                      <>
+                        <option value="1">📍 Belagavi</option>
+                        <option value="2">📍 Davanagere</option>
+                        <option value="3">📍 Shivamogga</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+
+                <div className="flex justify-end">
+                  <button onClick={handleAddUser} className="btn-primary text-xs shadow-md">
+                    Create User Account
+                  </button>
+                </div>
+              </div>
+
+              <div className="card-glass p-5 space-y-4">
+                <h3 className="font-extrabold text-[#163B5C] text-sm tracking-tight">Registered User Accounts &amp; Role Management</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] bg-[#F4F6F9]/60">
+                        <th className="py-3 px-4">Full Name</th>
+                        <th className="py-3 px-4">Username</th>
+                        <th className="py-3 px-4">Location</th>
+                        <th className="py-3 px-4">Assigned Role</th>
+                        <th className="py-3 px-4">Account Status</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E2E8F0]/60">
+                      {users.map(u => (
+                        <tr key={u.username} className="hover:bg-black/5 font-medium">
+                          <td className="py-3.5 px-4 font-extrabold text-[#163B5C]">{u.fullName}</td>
+                          <td className="py-3.5 px-4 text-[#475569] font-mono">{u.username}</td>
+                          <td className="py-3.5 px-4">
+                            {u.location_id === null || u.location_id === undefined ? (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 w-fit">
+                                🌐 All Locations
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#163B5C]/10 text-[#163B5C] flex items-center gap-1 w-fit">
+                                📍 {u.location_name || u.location_code || 'Davanagere'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <select
+                              value={u.role}
+                              onChange={(e) => handleChangeUserRole(u.username, e.target.value)}
+                              className="p-1.5 rounded-xl border border-[#163B5C]/30 bg-white font-bold text-[#163B5C] text-xs shadow-xs"
+                            >
+                              <option value="Admin">Admin</option>
+                              <option value="HR">HR</option>
+                              <option value="Manager">Store Manager</option>
+                              <option value="Greeter">Greeter Desk</option>
+                              <option value="Recruiter">Recruiter</option>
+                              <option value="Interviewer">Interviewer</option>
+                            </select>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                              {u.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleToggleUser(u)}
+                                className={`px-3 py-1.5 rounded-xl border font-bold text-[11px] ${u.active ? 'border-amber-600 text-amber-700 hover:bg-amber-50' : 'border-emerald-600 text-emerald-700 hover:bg-emerald-50'}`}
+                              >
+                                {u.active ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <button
+                                onClick={() => handleResetUserPassword(u.username)}
+                                className="px-3 py-1.5 rounded-xl border border-[#163B5C] text-[#163B5C] font-bold text-[11px] hover:bg-[#163B5C] hover:text-white transition-all flex items-center gap-1 shadow-xs"
+                              >
+                                <Key className="w-3.5 h-3.5" /> Reset Password
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: STORE PINS */}
+          {activeTab === 'pins' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="card-glass p-6 space-y-6">
+                <div>
+                  <h3 className="font-extrabold text-[#163B5C] text-base flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-[#4E8ABF]" />
+                    <span>Store Operational PINs &amp; Access Controls</span>
+                  </h3>
+                  <p className="text-xs text-[#5F6E7E] font-medium mt-1">
+                    Manage security PIN codes for hardware kiosks, TV monitor display, entrance greeter clicker, and daily POS cash settlement desk.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Greeter PIN */}
+                  <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
+                    <div>
+                      <div className="font-extrabold text-sm text-[#163B5C]">Entrance Greeter Kiosk PIN</div>
+                      <div className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">Used by entrance staff on `/greeter` tablet</div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Access PIN Code</label>
+                      <div className="relative">
+                        <input
+                          type={showGreeterPin ? "text" : "password"}
+                          maxLength={6}
+                          value={greeterPin}
+                          placeholder={pinStatus.greeter ? 'Configured - type a new PIN to change' : 'Not configured - factory default 1234'}
+                          onChange={(e) => setGreeterPin(e.target.value)}
+                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-[#163B5C]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowGreeterPin(!showGreeterPin)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showGreeterPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TV Display PIN */}
+                  <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
+                    <div>
+                      <div className="font-extrabold text-sm text-[#163B5C]">Live Store TV Screen PIN</div>
+                      <div className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">Used for launch monitoring on `/tv` monitor</div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Access PIN Code</label>
+                      <div className="relative">
+                        <input
+                          type={showTvPin ? "text" : "password"}
+                          maxLength={6}
+                          value={tvPin}
+                          placeholder={pinStatus.tv ? 'Configured - type a new PIN to change' : 'Not configured - factory default 1234'}
+                          onChange={(e) => setTvPin(e.target.value)}
+                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-[#163B5C]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowTvPin(!showTvPin)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showTvPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cash Settlement PIN */}
+                  <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
+                    <div>
+                      <div className="font-extrabold text-sm text-[#163B5C]">Cash Settlement Desk PIN</div>
+                      <div className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">Used to unlock `/cash-settlement` daily audit</div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Access PIN Code</label>
+                      <div className="relative">
+                        <input
+                          type={showCashPin ? "text" : "password"}
+                          maxLength={6}
+                          value={cashPin}
+                          placeholder={pinStatus.cash ? 'Configured - type a new PIN to change' : 'Not configured - factory default 1234'}
+                          onChange={(e) => setCashPin(e.target.value)}
+                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-[#163B5C]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCashPin(!showCashPin)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                          {showCashPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2 border-t border-[#E2E8F0]">
+                  <button
+                    onClick={handleSavePins}
+                    disabled={savingPins}
+                    className="btn-primary text-xs shadow-md px-6 py-2.5 flex items-center gap-2"
+                  >
+                    {savingPins ? 'Saving Operational PINs…' : 'Save Operational PINs'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: PAGE VISIBILITY */}
+          {activeTab === 'visibility' && (
+            <div className="card-glass p-6 space-y-5 animate-fade-in">
+              <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-3">
+                <div>
+                  <h3 className="font-extrabold text-[#163B5C] text-base">Role-Based Page Visibility Matrix</h3>
+                  <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Control module access permissions per role</p>
+                </div>
+                <button onClick={handleSaveVisibility} className="btn-primary text-xs shadow-md">
+                  Save Visibility Settings
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                {['HR', 'Manager', 'Greeter', 'Recruiter', 'Interviewer'].map(roleName => (
+                  <div key={roleName} className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] space-y-3">
+                    <div className="font-black text-sm text-[#163B5C] border-b border-[#E2E8F0] pb-2 uppercase tracking-wider">{roleName} Access</div>
+                    <div className="space-y-2">
+                      {['dashboard', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'broadcast', 'settings'].map(pageKey => {
+                        const key = `${roleName.toLowerCase()}_${pageKey}`;
+                        const allowed = pageSettings[key] !== false;
+
+                        return (
+                          <label key={pageKey} className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer font-bold text-[#163B5C]">
+                            <span className="capitalize">{pageKey.replace('_', ' ')} Module</span>
+                            <input
+                              type="checkbox"
+                              checked={allowed}
+                              onChange={(e) => setPageSettings({ ...pageSettings, [key]: e.target.checked })}
+                              className="accent-[#163B5C] rounded"
+                            />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: QUESTIONS */}
+          {activeTab === 'questions' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="card-glass p-6 space-y-4">
+                <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider">Add Interview Rubric Question</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                  <select value={qDesig} onChange={(e) => setQDesig(e.target.value)} className="select-modern font-bold">
+                    {designations.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <select value={qRound} onChange={(e) => setQRound(e.target.value)} className="select-modern font-bold">
+                    <option value="HR">HR Round</option>
+                    <option value="Round 2">Round 2 Technical</option>
+                  </select>
+                  <input type="text" placeholder="Question / Evaluation Criteria" value={qText} onChange={(e) => setQText(e.target.value)} className="input-modern sm:col-span-2" />
+                </div>
+                <div className="flex justify-end">
+                  <button onClick={handleAddQuestion} className="btn-primary text-xs shadow-md">
+                    Add Question
+                  </button>
+                </div>
+              </div>
+
+              <div className="card-glass p-5 space-y-4">
+                <h3 className="font-extrabold text-[#163B5C] text-sm">Active Evaluation Questions</h3>
+                <div className="space-y-2 text-xs">
+                  {questions.map((q) => (
+                    <div key={q.id} className="p-3.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-extrabold text-[#163B5C]">{q.question}</div>
+                        <div className="text-[10px] text-[#5F6E7E] font-semibold">{q.designation} · {q.round} · Max Score: {q.max_score || 10}</div>
+                      </div>
+                      <button onClick={() => handleDeleteQuestion(q.id)} className="p-1.5 rounded-lg border border-rose-200 text-rose-600 font-bold hover:bg-rose-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: DESIGNATIONS */}
+          {activeTab === 'roles' && (
+            <div className="card-glass p-6 space-y-5 animate-fade-in">
+              <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider">Company Designations Master List</h3>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  placeholder="New Designation Name (e.g. Floor Manager)"
+                  value={newDesigInput}
+                  onChange={(e) => setNewDesigInput(e.target.value)}
+                  className="input-modern max-w-sm"
+                />
+                <button onClick={handleAddDesig} className="btn-primary text-xs shadow-md">
+                  Add Designation
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2">
+                {designations.map((d) => (
+                  <div key={d} className="p-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] flex items-center justify-between font-bold text-[#163B5C]">
+                    <span>{d}</span>
+                    <button onClick={() => handleDeleteDesig(d)} className="text-rose-600 hover:text-rose-800 p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* TAB 5: SECURITY & DEVTOOLS SHIELD */}
+          {activeTab === 'security' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="card-glass p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                  <div>
+                    <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-[#4E8ABF]" />
+                      <span>Developer Tools Shield</span>
+                    </h3>
+                    <p className="text-xs text-[#5F6E7E] font-medium mt-1">
+                      The shield is <b>off by default</b>. When you enable it, every device actively tracks
+                      browser developer tools: the app locks and shows &ldquo;Please turn off Developer
+                      Tools&rdquo; until they are closed. All detections are recorded below.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <button
+                      onClick={handleShieldToggle}
+                      disabled={shieldBusy}
+                      aria-pressed={shieldEnabled}
+                      className={`relative inline-flex h-8 w-[68px] items-center rounded-full transition-colors duration-200 flex-shrink-0 ${shieldEnabled ? 'bg-emerald-600' : 'bg-[#B6C2D2]'} ${shieldBusy ? 'opacity-60 cursor-wait' : ''}`}
+                      title={shieldEnabled ? 'Shield is ON — click to disable' : 'Shield is OFF — click to enable'}
+                    >
+                      <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ${shieldEnabled ? 'translate-x-[36px]' : 'translate-x-1'}`} />
+                      <span className={`absolute text-[9px] font-black uppercase tracking-wider ${shieldEnabled ? 'left-2.5 text-white' : 'right-2 text-[#475569]'}`}>
+                        {shieldEnabled ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={loadSecurityEvents}
+                      className="btn-primary text-xs shadow-md flex items-center gap-2"
+                      disabled={securityLoading}
+                    >
+                      <RefreshCw className={`w-4 h-4 ${securityLoading ? 'animate-spin' : ''}`} />
+                      <span>{securityLoading ? 'Loading…' : 'Refresh'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Shield Status</div>
+                    <div className={`font-black text-sm mt-1 flex items-center gap-1.5 ${shieldEnabled ? 'text-emerald-700' : 'text-[#5F6E7E]'}`}>
+                      <span className={`w-2 h-2 rounded-full ${shieldEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-[#8896A6]'}`} />
+                      {shieldEnabled ? 'Active on all devices' : 'Disabled (tap the switch to arm)'}
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Detections Logged</div>
+                    <div className="text-[#163B5C] font-black text-sm mt-1">
+                      {securityEvents.filter(e => e.action === 'DEVTOOLS_DETECTED').length} total
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Enforcement</div>
+                    <div className="text-[#163B5C] font-black text-sm mt-1">Block + audit trail</div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead className="bg-[#163B5C] text-white">
+                      <tr>
+                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">When</th>
+                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">User</th>
+                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">Event</th>
+                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px] hidden sm:table-cell">IP Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {securityEvents.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-8 text-center text-[#5F6E7E] font-semibold">
+                            No security events recorded yet — the shield is monitoring silently.
+                          </td>
+                        </tr>
+                      ) : securityEvents.map(ev => (
+                        <tr key={ev.id} className="border-t border-[#E2E8F0] bg-white">
+                          <td className="px-4 py-2.5 font-semibold text-[#1B2A3B] whitespace-nowrap">
+                            {ev.createdAt ? new Date(ev.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                          </td>
+                          <td className="px-4 py-2.5 font-bold text-[#163B5C]">{ev.username || 'Unknown'}</td>
+                          <td className="px-4 py-2.5">
+                            <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
+                              ev.action === 'DEVTOOLS_DETECTED'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              {ev.action === 'DEVTOOLS_DETECTED' ? 'DevTools Opened' : 'DevTools Closed'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 font-mono text-[#5F6E7E] hidden sm:table-cell">{ev.ipAddress || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

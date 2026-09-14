@@ -1,6 +1,6 @@
 node_modules/
 build/
-hrms-system/client/dist/
+frontend/dist/
 .env.local
 .env.development.local
 .env.test.local
@@ -13,12 +13,14 @@ live_html.txt
 .DS_Store
 *.pem
 uploads/
-hrms-system/uploads/
-hrms-system/tmp/
+backend/uploads/
+backend/tmp/
 tmp/
 null
-hrms-system/null
+backend/null
 .env
 .env*
 !.env.production.example
 
+backend/src/config/.runtime-secrets.json
+server-boot.log

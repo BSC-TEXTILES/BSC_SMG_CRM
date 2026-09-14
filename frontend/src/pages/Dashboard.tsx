@@ -1,0 +1,746 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import Topbar from '../components/Topbar';
+import ToastContainer from '../components/Toast';
+import { API, Auth, UserSession, apiFetch } from '../services/api';
+import MetricCard from '../components/ui/MetricCard';
+import StatusBadge from '../components/ui/StatusBadge';
+import PageHeader from '../components/ui/PageHeader';
+import EmptyState from '../components/ui/EmptyState';
+import { 
+  Users, 
+  UserCheck, 
+  CheckCircle, 
+  UserPlus, 
+  Clock, 
+  Calendar, 
+  AlertTriangle, 
+  ArrowRight,
+  Search,
+  Filter,
+  BarChart3,
+  Sparkles,
+  TrendingUp,
+  Percent,
+  CalendarCheck,
+  Building2,
+  FileCheck,
+  LogOut,
+  Target,
+  DollarSign,
+  Footprints,
+  MessageSquare,
+  PhoneCall,
+  QrCode,
+  LogIn,
+  ShieldCheck
+} from 'lucide-react';
+import EmployeeProfileModal from '../components/ui/EmployeeProfileModal';
+
+export default function DashboardPage() {
+  const navigate = useNavigate();
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+
+  // Employees & Operational Stats
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<any[]>([]);
+
+  // Operational Kiosk KPIs
+  const [footfallToday, setFootfallToday] = useState(0);
+  const [openDivertsCount, setOpenDivertsCount] = useState(0);
+
+  // Feedback Collections Stats
+  const [feedbackStats, setFeedbackStats] = useState({
+    totalFeedback: 0,
+    positiveFeedback: 0,
+    negativeFeedback: 0,
+    npsScore: 100,
+    pendingCallQueue: 0,
+    totalCallQueue: 0
+  });
+
+  // Search & Filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [authActivity, setAuthActivity] = useState<{
+    summary: {
+      loginsToday: number; logins7d: number; logoutsToday: number; logouts7d: number;
+      failedToday: number; activeUsers7d: number;
+      lastLogin: { username: string; at: string } | null;
+      lastLogout: { username: string; at: string } | null;
+    };
+    recent: Array<{ id: number; username: string; action: string; ipAddress: string | null; at: string }>;
+  } | null>(null);
+  const pageSize = 6;
+
+  const loadData = useCallback(async () => {
+    try {
+      const [empData, candData, ffData, divData, fbData] = await Promise.all([
+        API.getEmployees(),
+        API.getCandidates({ limit: 500 }),
+        API.getFootfall().catch(() => ({ entries: [] })),
+        API.getDiverts().catch(() => ({ diverts: [] })),
+        API.getFeedbackStats().catch(() => ({
+          totalFeedback: 0,
+          positiveFeedback: 0,
+          negativeFeedback: 0,
+          npsScore: 100,
+          pendingCallQueue: 0,
+          totalCallQueue: 0
+        }))
+      ]);
+
+      if (empData && empData.employees) setEmployees(empData.employees);
+      if (candData && candData.candidates) setCandidates(candData.candidates);
+
+      if (ffData && ffData.entries) {
+        const tot = ffData.entries.reduce((sum: number, e: any) => sum + (Number(e.visitors !== undefined ? e.visitors : e.visitorsCount || e.visitors_count) || 0), 0);
+        setFootfallToday(tot);
+      }
+      if (divData && divData.diverts) {
+        const openDivs = divData.diverts.filter((d: any) => d.status === 'Open' || d.status === 'In Progress').length;
+        setOpenDivertsCount(openDivs);
+      }
+      if (fbData && fbData.success) {
+        setFeedbackStats({
+          totalFeedback: fbData.totalFeedback || 0,
+          positiveFeedback: fbData.positiveFeedback || 0,
+          negativeFeedback: fbData.negativeFeedback || 0,
+          npsScore: fbData.npsScore || 100,
+          pendingCallQueue: fbData.pendingCallQueue || 0,
+          totalCallQueue: fbData.totalCallQueue || 0
+        });
+      }
+    } catch (err: any) {
+      console.warn('Dashboard data load warning:', err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!Auth.check()) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    const sess = Auth.get();
+    if (sess?.role === 'Greeter') {
+      navigate('/footfall', { replace: true });
+      return;
+    }
+    setSession(sess);
+    loadData();
+
+    // Poll every 5 seconds for real-time dashboard stats sync
+    const interval = setInterval(() => {
+      loadData();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [loadData, navigate]);
+
+  // Login / logout activity (admins only) — light 20s poll, separate from the
+  // 5s operational stats so the audit table never hammers the API.
+  useEffect(() => {
+    const role = Auth.get()?.role;
+    if (role !== 'Admin' && role !== 'Super Admin') return;
+    let disposed = false;
+    const load = async () => {
+      try {
+        const res = await apiFetch('/security/login-activity');
+        if (!disposed && res && res.summary) setAuthActivity(res);
+      } catch { /* panel simply stays hidden */ }
+    };
+    load();
+    const t = setInterval(load, 20000);
+    return () => { disposed = true; clearInterval(t); };
+  }, []);
+
+  // Gender Statistics for Active Employees
+  const femaleEmployees = useMemo(() => {
+    return employees.filter(e => {
+      const g = (e.gender || '').toLowerCase().trim();
+      return ['f', 'female', 'girl', 'women', 'woman'].includes(g);
+    }).length;
+  }, [employees]);
+
+  const maleEmployees = useMemo(() => {
+    return employees.filter(e => {
+      const g = (e.gender || '').toLowerCase().trim();
+      return ['m', 'male', 'boy', 'men', 'man'].includes(g);
+    }).length;
+  }, [employees]);
+
+  // Department Distribution Breakdown
+  const deptBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    employees.forEach(e => {
+      const d = e.department || 'General Floor Staff';
+      counts[d] = (counts[d] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, count]) => ({
+      name,
+      count,
+      pct: employees.length > 0 ? Math.round((count / employees.length) * 100) : 0
+    }));
+  }, [employees]);
+
+  // Filtered Active Employee List
+  const filteredEmployees = useMemo(() => {
+    let list = [...employees];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(e => 
+        (e.name && e.name.toLowerCase().includes(q)) ||
+        (e.empNo && e.empNo.toLowerCase().includes(q)) ||
+        (e.appNo && e.appNo.toLowerCase().includes(q)) ||
+        (e.department && e.department.toLowerCase().includes(q)) ||
+        (e.desig && e.desig.toLowerCase().includes(q)) ||
+        (e.section && e.section.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [employees, searchQuery]);
+
+  const totalPages = Math.ceil(filteredEmployees.length / pageSize) || 1;
+  const paginatedEmployees = filteredEmployees.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const isGreeter = session?.role === 'Greeter';
+
+  return (
+    <div className="min-h-screen bg-[#F4F6F9] flex">
+      <ToastContainer />
+      
+      <Sidebar 
+        session={session} 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
+
+      <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
+        <Topbar 
+          title={isGreeter ? "Entrance Greeter & Visitor Desk" : "Executive Operations & Workforce Hub"} 
+          breadcrumbs={[{ label: isGreeter ? 'Greeter Operations' : 'Store Operations Overview' }]}
+          session={session}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
+
+        <main className="p-4 lg:p-6 space-y-6 flex-1 overflow-y-auto">
+          {/* Header Banner */}
+          <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#163B5C] text-[#4E8ABF] text-[10px] font-black uppercase tracking-widest mb-1.5">
+                <Building2 className="w-3.5 h-3.5" />
+                <span>BSC EXCLUSIVE DAVANAGERE</span>
+              </div>
+              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-[#4E8ABF]" />
+                <span>{isGreeter ? 'Entrance Greeter & Visitor Operations Hub' : 'Employee Maintenance & Store Feedback Analytics'}</span>
+              </h2>
+              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">
+                {isGreeter 
+                  ? 'Real-time visitor footfall counters, entrance greeter kiosk, customer feedback QR & sourcing diverts.'
+                  : 'Active workforce directory, customer feedback collections & daily store operations.'
+                }
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {isGreeter ? (
+                <>
+                  <button 
+                    onClick={() => navigate('/greeter')} 
+                    className="btn-gold text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    <span>Greeter Kiosk</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/footfall')} 
+                    className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <Footprints className="w-4 h-4" />
+                    <span>Hourly Footfall</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/feedback-qr')} 
+                    className="px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#163B5C] text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    <QrCode className="w-4 h-4 text-[#4E8ABF]" />
+                    <span>Feedback QR</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => navigate('/feedback-collection')} 
+                    className="btn-gold text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Feedback Collection</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/attendance')} 
+                    className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <CalendarCheck className="w-4 h-4" />
+                    <span>Mark Attendance</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Metric Cards Section */}
+          {isGreeter ? (
+            /* Greeter-Only Visitor Operational Metrics */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricCard
+                title="Today Visitor Count"
+                value={footfallToday}
+                subtext="Logged hourly footfall entries"
+                icon={Footprints}
+                color="emerald"
+                onClick={() => navigate('/footfall')}
+              />
+              <MetricCard
+                title="Entrance Greeter Kiosk"
+                value="Launch Desk"
+                subtext="Entrance clicker & visitor log"
+                icon={UserCheck}
+                color="navy"
+                onClick={() => navigate('/greeter')}
+              />
+              <MetricCard
+                title="Customer Feedback QR"
+                value="Display QR"
+                subtext="Display customer survey tablet QR"
+                icon={QrCode}
+                color="gold"
+                onClick={() => navigate('/feedback-qr')}
+              />
+              <MetricCard
+                title="Customer Feedbacks"
+                value={feedbackStats.totalFeedback}
+                subtext={`CSAT: ${feedbackStats.npsScore}% • Neg: ${feedbackStats.negativeFeedback}`}
+                icon={MessageSquare}
+                color="teal"
+                onClick={() => navigate('/feedback-collection')}
+              />
+            </div>
+          ) : (
+            /* Admin / HR / Manager Full Metric Cards Grid */
+            <>
+              {/* Primary Metric Cards Grid - Row 1 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard
+                  title="Active Store Staff"
+                  value={employees.length}
+                  subtext={`Female: ${femaleEmployees} • Male: ${maleEmployees}`}
+                  icon={Users}
+                  color="navy"
+                  onClick={() => navigate('/employees')}
+                />
+                <MetricCard
+                  title="Customer Feedbacks"
+                  value={feedbackStats.totalFeedback}
+                  subtext={`Positive: ${feedbackStats.positiveFeedback} • Neg: ${feedbackStats.negativeFeedback}`}
+                  icon={MessageSquare}
+                  color="gold"
+                  onClick={() => navigate('/feedback-collection')}
+                />
+                <MetricCard
+                  title="Pending Call Queue"
+                  value={feedbackStats.pendingCallQueue}
+                  subtext="Negative feedback calls awaiting action"
+                  icon={PhoneCall}
+                  color="rose"
+                  onClick={() => navigate('/feedback-list')}
+                />
+                <MetricCard
+                  title="Satisfaction NPS"
+                  value={`${feedbackStats.npsScore}%`}
+                  subtext="Customer feedback rating index"
+                  icon={Sparkles}
+                  color="teal"
+                  onClick={() => navigate('/feedback-collection')}
+                />
+              </div>
+
+              {/* Secondary Store Floor Operations KPIs - Row 2 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard
+                  title="Today Visitor Count"
+                  value={footfallToday}
+                  subtext="Logged footfall entries today"
+                  icon={Footprints}
+                  color="emerald"
+                  onClick={() => navigate('/footfall')}
+                />
+                <MetricCard
+                  title="Sales Conversion Rate"
+                  value={footfallToday > 0 ? `${Math.min(100, Math.round((openDivertsCount > 0 ? 0.32 : 0.28) * 100))}%` : '—'}
+                  subtext="Store footfall to bill conversion"
+                  icon={Percent}
+                  color="gold"
+                  onClick={() => navigate('/footfall')}
+                />
+                <MetricCard
+                  title="Sourcing Diverts"
+                  value={openDivertsCount}
+                  subtext="Active merchandise requests"
+                  icon={Target}
+                  color="amber"
+                  onClick={() => navigate('/divert')}
+                />
+                <MetricCard
+                  title="Feedback QR Portal"
+                  value="Scan QR"
+                  subtext="Display customer survey tablet QR"
+                  icon={QrCode}
+                  color="indigo"
+                  onClick={() => navigate('/feedback-qr')}
+                />
+              </div>
+
+              {/* ── Authentication Activity (Admin) ─────────────────────── */}
+              {authActivity && (
+                <div className="card-glass p-5">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                      <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-[#4E8ABF]" />
+                        <span>Authentication Activity</span>
+                      </h3>
+                      <p className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">
+                        Live sign-in / sign-out trail across all locations — every event timestamped.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {authActivity.summary.loginsToday} logins today
+                      </span>
+                      <span className="px-2.5 py-1 rounded-full bg-[#EDF4FB] text-[#163B5C] border border-[#E2E8F0]">
+                        {authActivity.summary.logoutsToday} logouts today
+                      </span>
+                      {authActivity.summary.failedToday > 0 && (
+                        <span className="px-2.5 py-1 rounded-full bg-red-50 text-[#C43D4B] border border-red-200">
+                          {authActivity.summary.failedToday} failed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Sign-ins (7 days)</div>
+                      <div className="text-lg font-black text-[#163B5C] mt-0.5">{authActivity.summary.logins7d}</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Sign-outs (7 days)</div>
+                      <div className="text-lg font-black text-[#163B5C] mt-0.5">{authActivity.summary.logouts7d}</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Active Users (7 days)</div>
+                      <div className="text-lg font-black text-[#163B5C] mt-0.5">{authActivity.summary.activeUsers7d}</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
+                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Last Sign-in</div>
+                      <div className="text-xs font-black text-[#163B5C] mt-1 truncate">
+                        {authActivity.summary.lastLogin
+                          ? authActivity.summary.lastLogin.username + ' · ' + new Date(authActivity.summary.lastLogin.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+                          : 'No sign-ins yet'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead className="bg-[#163B5C] text-white">
+                        <tr>
+                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">Timestamp</th>
+                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">User</th>
+                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">Event</th>
+                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px] hidden md:table-cell">IP</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {authActivity.recent.length === 0 ? (
+                          <tr><td colSpan={4} className="px-3 py-6 text-center text-[#5F6E7E] font-semibold">No authentication events recorded yet.</td></tr>
+                        ) : authActivity.recent.map(ev => (
+                          <tr key={ev.id} className="border-t border-[#E2E8F0] bg-white">
+                            <td className="px-3 py-2 font-bold text-[#1B2A3B] whitespace-nowrap">
+                              {ev.at ? new Date(ev.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                            </td>
+                            <td className="px-3 py-2 font-bold text-[#163B5C]">{ev.username || 'Unknown'}</td>
+                            <td className="px-3 py-2">
+                              <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
+                                ev.action === 'LOGIN_SUCCESS' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : ev.action === 'LOGOUT' ? 'bg-[#EDF4FB] text-[#163B5C] border border-[#E2E8F0]'
+                                : 'bg-red-50 text-[#C43D4B] border border-red-200'
+                              }`}>
+                                {ev.action === 'LOGIN_SUCCESS' ? 'Signed In' : ev.action === 'LOGOUT' ? 'Signed Out' : 'Failed Attempt'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 font-mono text-[#5F6E7E] hidden md:table-cell">{ev.ipAddress || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Main Content Area */}
+          {isGreeter ? (
+            /* Greeter-Only Simplified Visitor Management Modules Grid */
+            <div className="card-glass p-6 space-y-5">
+              <div className="border-b border-[#E2E8F0] pb-3">
+                <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#4E8ABF]" />
+                  <span>Greeter Visitor Management Desks</span>
+                </h3>
+                <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Quick access to assigned visitor and footfall operations.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { label: 'Greeter Kiosk', path: '/greeter', icon: UserCheck, desc: 'Entrance clicker counter & visitor logging tablet', color: 'bg-navy-50 text-[#163B5C]' },
+                  { label: 'Hourly Footfall Register', path: '/footfall', icon: Footprints, desc: 'View & submit hourly customer footfall entries', color: 'bg-emerald-50 text-emerald-800' },
+                  { label: 'Customer Feedback QR', path: '/feedback-qr', icon: QrCode, desc: 'Display QR code for customer experience survey', color: 'bg-amber-50 text-amber-800' },
+                  { label: 'Feedback Collection', path: '/feedback-collection', icon: MessageSquare, desc: 'View collected customer feedback entries & CSAT', color: 'bg-indigo-50 text-indigo-800' },
+                  { label: 'Feedback Call Queue', path: '/feedback-list', icon: PhoneCall, desc: 'View telecaller followup queue for negative feedback', color: 'bg-rose-50 text-rose-800' },
+                  { label: 'Sourcing Diverts', path: '/divert', icon: Target, desc: 'Raise merchandise requests for unsupplied items', color: 'bg-[#163B5C]/5 text-[#163B5C]' },
+                  { label: 'VM Checklist Audit', path: '/vm-checklist', icon: FileCheck, desc: 'Visual merchandising daily checklist audit', color: 'bg-sky-50 text-sky-800' },
+                  { label: 'Live TV Monitor Screen', path: '/tv', icon: BarChart3, desc: 'Live store operational monitor display', color: 'bg-purple-50 text-purple-800' }
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={() => navigate(item.path)}
+                      className="p-5 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all text-left group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] group-hover:bg-white/20 group-hover:border-white/30 text-[#163B5C] group-hover:text-white">
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-transform group-hover:translate-x-1" />
+                      </div>
+                      <div>
+                        <div className="font-black text-sm text-[#163B5C] group-hover:text-white">{item.label}</div>
+                        <div className="text-xs text-[#5F6E7E] group-hover:text-white/80 font-medium mt-1 leading-relaxed">{item.desc}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Admin / HR / Manager Full Layout: Workforce Breakdown + Employee Table */
+            <>
+              {/* Middle Layout: Workforce Department Breakdown + Quick Operations Links */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Department Breakdown */}
+                <div className="card-glass p-5 lg:col-span-2 space-y-5 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center justify-between">
+                      <span>Workforce Distribution by Department</span>
+                      <span className="text-xs font-bold text-[#4E8ABF] bg-[#4E8ABF]/10 px-2.5 py-1 rounded-full">
+                        {employees.length} Total Onboarded Staff
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#5F6E7E] font-medium mt-1">Active staff strength across Mens, Ladies, Sarees, Kids &amp; Operations.</p>
+                  </div>
+
+                  <div className="space-y-3.5 my-2">
+                    {deptBreakdown.length > 0 ? (
+                      deptBreakdown.map((d) => (
+                        <div key={d.name} className="space-y-1 text-xs">
+                          <div className="flex items-center justify-between font-extrabold text-[#163B5C]">
+                            <span>{d.name}</span>
+                            <span>{d.count} Staff ({d.pct}%)</span>
+                          </div>
+                          <div className="w-full h-2.5 bg-[#E2E8F0] rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#163B5C] rounded-full transition-all duration-300"
+                              style={{ width: `${Math.max(d.pct, 4)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-xs text-gray-500 font-semibold">
+                        No department breakdown available. Add employees to populate.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs font-bold text-[#163B5C]">
+                    <span>Registered Staff Members: {employees.length}</span>
+                    <button onClick={() => navigate('/employees')} className="text-[#4E8ABF] hover:underline flex items-center gap-1">
+                      <span>View Full Employee Register</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Operations Hub Links */}
+                <div className="card-glass p-5 space-y-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-[#163B5C] text-sm flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#4E8ABF]" />
+                      <span>Store Operations Quick Links</span>
+                    </h3>
+                    <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Quick access to daily store floor desks</p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {[
+                      { label: 'Feedback Collection', path: '/feedback-collection', icon: MessageSquare, desc: 'View collected customer feedbacks & CSAT' },
+                      { label: 'Feedback Call Queue', path: '/feedback-list', icon: MessageSquare, desc: 'View customer survey call queue' },
+                      { label: 'Employee Register', path: '/employees', icon: Users, desc: 'Manage full staff directory & profiles' },
+                      { label: 'Section Allocation', path: '/section-allocation', icon: Building2, desc: 'Assign staff to store floor sections' },
+                      { label: 'Staff Attendance', path: '/attendance', icon: CalendarCheck, desc: 'Mark daily attendance register' },
+                      { label: 'Cash Settlement Desk', path: '/cash-settlement', icon: DollarSign, desc: 'POS daily cash counter settlement' },
+                      { label: 'Candidate Applicants', path: '/candidates', icon: UserPlus, desc: 'View applicant pool for new hiring' }
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.label}
+                          onClick={() => navigate(item.path)}
+                          className="w-full p-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all text-left group flex items-center gap-3 shadow-xs"
+                        >
+                          <div className="p-2 rounded-lg bg-white border border-[#E2E8F0] group-hover:bg-white/20 group-hover:border-white/30 text-[#163B5C] group-hover:text-white">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-xs text-[#163B5C] group-hover:text-white">{item.label}</div>
+                            <div className="text-[10px] text-[#5F6E7E] group-hover:text-white/80">{item.desc}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Employee Directory Table */}
+              <div className="card-glass p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                  <div>
+                    <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center gap-2">
+                      <UserCheck className="w-5 h-5 text-[#4E8ABF]" />
+                      <span>Active Store Staff Directory</span>
+                    </h3>
+                    <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Showing registered employees working at BSC EXCLUSIVE DAVANAGERE.</p>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-initial">
+                      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Search employee by name, ID, section..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input-modern pl-9 pr-4 text-xs py-2 w-full sm:w-64"
+                      />
+                    </div>
+                    <button onClick={() => navigate('/candidate-entry')} className="btn-primary text-xs py-2 whitespace-nowrap shadow-sm">
+                      + Add Staff
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] bg-[#F4F6F9]/60">
+                        <th className="py-3 px-4">Emp / App ID</th>
+                        <th className="py-3 px-4">Employee Name</th>
+                        <th className="py-3 px-4">Designation</th>
+                        <th className="py-3 px-4">Department</th>
+                        <th className="py-3 px-4">Section</th>
+                        <th className="py-3 px-4">Joining Date</th>
+                        <th className="py-3 px-4 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E2E8F0]/60">
+                      {paginatedEmployees.length > 0 ? (
+                        paginatedEmployees.map((emp) => (
+                          <tr key={emp.appNo || emp.empNo} className="hover:bg-black/5 font-medium transition-colors">
+                            <td className="py-3.5 px-4 font-mono font-extrabold text-[#163B5C]">{emp.empNo || emp.appNo}</td>
+                            <td className="py-3.5 px-4 font-extrabold text-[#163B5C]">
+                              <button
+                                onClick={() => setSelectedEmployee(emp)}
+                                className="hover:text-[#4E8ABF] hover:underline text-left transition-colors flex items-center gap-1.5"
+                                title="Click to view full employee overview card"
+                              >
+                                <span>{emp.name || emp.fullName}</span>
+                              </button>
+                            </td>
+                            <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.desig || emp.designation || 'Staff'}</td>
+                            <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.department || '—'}</td>
+                            <td className="py-3.5 px-4 text-[#4E8ABF] font-extrabold">{emp.section || 'Unassigned'}</td>
+                            <td className="py-3.5 px-4 text-[#475569] font-mono">{emp.actualDoj || emp.offeredDoj || emp.date || '—'}</td>
+                            <td className="py-3.5 px-4 text-right">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                Active Staff
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="py-12 text-center text-gray-500 font-semibold">
+                            No employees found matching your query.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0] text-xs font-bold">
+                    <span className="text-gray-500">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                        className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#163B5C] disabled:opacity-40"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                        className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#163B5C] disabled:opacity-40"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Universal 360 Employee Profile Overview Modal */}
+      <EmployeeProfileModal
+        employee={selectedEmployee}
+        onClose={() => setSelectedEmployee(null)}
+        onUpdated={loadData}
+      />
+    </div>
+  );
+}

@@ -20,9 +20,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["components/*", "./components/*", "hrms-system/client/components/*"],
-      "@/services/*": ["services/*", "./services/*", "hrms-system/client/services/*"],
-      "@/app/*": ["app/*", "./app/*", "hrms-system/client/app/*"]
+      "@/components/*": ["components/*", "./components/*", "frontend/src/components/*"],
+      "@/services/*": ["services/*", "./services/*", "frontend/src/services/*"],
+      "@/app/*": ["app/*", "./app/*", "frontend/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
