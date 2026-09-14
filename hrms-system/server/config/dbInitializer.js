@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Log only to console (no file writing to avoid permission issues on Hostinger)
 function logDebug(msg, extra = '') {
