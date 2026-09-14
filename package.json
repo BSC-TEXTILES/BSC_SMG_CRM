@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "seed": "node hrms-system/server/scripts/seed.js"
   },
   "dependencies": {
@@ -36,7 +36,7 @@
     "rimraf": "^5.0.5",
     "glob": "^11.0.0"
   },
-  "main": "server.js",
+  "main": "index.js",
   "description": "Enterprise HRMS System",
   "engines": {
     "node": ">=18.0.0"
