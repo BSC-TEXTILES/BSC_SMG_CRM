@@ -1,0 +1,256 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Master Burgundy + Champagne Color Tokens */
+  --burgundy: #4A1726;
+  --burgundy-dark: #350E1A;
+  --burgundy-light: #5C1D30;
+  --champagne: #C6A15B;
+  --champagne-dark: #B5914B;
+  --champagne-light: #D4B373;
+  --cream: #F8F5F1;
+  --bg: #F8F5F1;
+  --surface: #FFFFFF;
+  --text-main: #321923;
+  --text-muted: #7A726D;
+  --border: #EAE4DC;
+  --border-warm: #E2DDD7;
+
+  /* Standardized Status Indicators */
+  --green: #27805B;
+  --amber: #C58A24;
+  --red: #C43D4B;
+
+  /* Legacy variable mappings for backward compatibility */
+  --navy: #4A1726;
+  --navy-dark: #350E1A;
+  --navy-light: #5C1D30;
+  --gold: #C6A15B;
+  --gold-dark: #B5914B;
+  --muted: #7A726D;
+}
+
+body {
+  font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-main);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Smooth Warm Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F8F5F1;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D2C7;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C6A15B;
+}
+
+/* Premium Enterprise Cards & Glassmorphism */
+.card-glass {
+  background: #FFFFFF;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(74, 23, 38, 0.03);
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-glass-hover:hover {
+  box-shadow: 0 8px 24px rgba(74, 23, 38, 0.07);
+  transform: translateY(-1px);
+}
+
+/* Enterprise Badges (Pill Style) — Burgundy + Champagne Status System */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3.5px 11px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.b-new { background: #F7EFF2; color: #4A1726; border: 1px solid #E0BAC5; }
+.b-short { background: #FDF7EC; color: #C58A24; border: 1px solid #F5DEB4; }
+.b-int { background: #FAF2F5; color: #4A1726; border: 1px solid #E5C3CE; }
+.b-sel { background: #EAF5F0; color: #27805B; border: 1px solid #BBE3D1; }
+.b-offer { background: #FBF7EE; color: #8E6F2D; border: 1px solid #E8D5AA; }
+.b-hold { background: #FDF7EC; color: #C58A24; border: 1px solid #F5DEB4; }
+.b-rej { background: #FDF0F2; color: #C43D4B; border: 1px solid #F6C8CE; }
+.b-board { background: #F5EEF8; color: #4A1726; border: 1px solid #DFC9E8; }
+.b-info { background: #F4F0EB; color: #5E5854; border: 1px solid #E2DDD7; }
+
+/* Status Chips */
+.sc-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.sc-done { background: #EAF5F0; color: #27805B; }
+.sc-fail { background: #FDF0F2; color: #C43D4B; }
+.sc-pending { background: #FDF7EC; color: #C58A24; }
+
+/* Days in Pipeline Chip */
+.days-chip {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.dc-ok { background: #EAF5F0; color: #27805B; }
+.dc-warn { background: #FDF7EC; color: #C58A24; }
+.dc-danger { background: #FDF0F2; color: #C43D4B; }
+
+/* Funnel Rows */
+.funnel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.f-lbl {
+  width: 140px;
+  font-weight: 700;
+  color: var(--burgundy);
+  flex-shrink: 0;
+}
+.f-bg {
+  flex: 1;
+  background: #F8F5F1;
+  height: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.f-bar {
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.f-num {
+  width: 32px;
+  font-weight: 800;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--text-main);
+}
+.f-drop {
+  width: 54px;
+  font-size: 10px;
+  color: var(--red);
+  font-weight: 700;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Modern Form Controls — Warm Ivory / Champagne Borders */
+.input-modern, .select-modern, .textarea-modern {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.15s ease-in-out;
+}
+.input-modern:focus, .select-modern:focus, .textarea-modern:focus {
+  outline: none;
+  border-color: var(--champagne);
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(198, 161, 91, 0.2);
+}
+
+/* Modern Buttons — Deep Burgundy & Champagne Gold */
+.btn-primary {
+  background-color: var(--burgundy);
+  color: #FFFFFF;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(74, 23, 38, 0.2);
+}
+.btn-primary:hover {
+  background-color: var(--burgundy-light);
+  transform: translateY(-0.5px);
+  box-shadow: 0 4px 12px rgba(74, 23, 38, 0.28);
+}
+.btn-gold {
+  background-color: var(--champagne);
+  color: #321923;
+  font-weight: 800;
+  padding: 9px 18px;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(198, 161, 91, 0.22);
+}
+.btn-gold:hover {
+  background-color: var(--champagne-dark);
+  transform: translateY(-0.5px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  animation: spin 0.6s linear infinite;
+}

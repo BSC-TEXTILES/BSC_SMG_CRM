@@ -1,0 +1,120 @@
+-- ============================================================
+-- BSC MULTI-LOCATION MIGRATION
+-- Run once (idempotent). Safe to re-run.
+-- Existing Davanagere data assigned location_id = 2
+-- ============================================================
+
+-- 1. Create Locations master table
+CREATE TABLE IF NOT EXISTS `locations` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `location_code` VARCHAR(10) NOT NULL UNIQUE,
+  `location_name` VARCHAR(100) NOT NULL,
+  `address` TEXT NULL,
+  `phone` VARCHAR(20) NULL,
+  `email` VARCHAR(100) NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'Active',
+  `sort_order` INT NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. Seed the three locations (idempotent)
+INSERT IGNORE INTO `locations` (`id`, `location_code`, `location_name`, `sort_order`, `status`) VALUES
+  (1, 'BEL', 'Belagavi', 1, 'Active'),
+  (2, 'DAV', 'Davanagere', 2, 'Active'),
+  (3, 'SHI', 'Shivamogga', 3, 'Active');
+
+-- 3. Add location_id to users table (NULL = Global Admin)
+ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `location_id` INT NULL DEFAULT 2;
+ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `location_code` VARCHAR(10) NULL;
+
+-- 4. Set Global Admins / Super Admins to NULL (all locations)
+UPDATE `users` SET `location_id` = NULL, `location_code` = NULL 
+WHERE `role` IN ('Admin', 'Super Admin') AND `location_id` = 2;
+
+-- 5. Set location_code for non-admin users
+UPDATE `users` u
+JOIN `locations` l ON l.id = u.location_id
+SET u.location_code = l.location_code
+WHERE u.location_id IS NOT NULL;
+
+-- 6. Add location_id to candidates table
+ALTER TABLE `candidates` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+ALTER TABLE `candidates` ADD COLUMN IF NOT EXISTS `location_code` VARCHAR(10) NOT NULL DEFAULT 'DAV';
+CREATE INDEX IF NOT EXISTS `idx_candidates_location` ON `candidates`(`location_id`);
+
+-- Update existing candidates to Davanagere
+UPDATE `candidates` SET `location_id` = 2, `location_code` = 'DAV' 
+WHERE `location_id` = 0 OR `location_code` = '' OR `location_code` IS NULL;
+
+-- 7. Add location_id to interview_schedules
+ALTER TABLE `interview_schedules` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `interview_schedules` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 8. Add location_id to interview_tokens
+ALTER TABLE `interview_tokens` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `interview_tokens` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 9. Add location_id to hr_evaluations
+ALTER TABLE `hr_evaluations` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `hr_evaluations` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 10. Add location_id to selected_candidates
+ALTER TABLE `selected_candidates` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `selected_candidates` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 11. Add location_id to rejected_candidates (if table exists)
+ALTER TABLE `rejected_candidates` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `rejected_candidates` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 12. Add location_id to selection_offers
+ALTER TABLE `selection_offers` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `selection_offers` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 13. Add location_id to onboarding_records
+ALTER TABLE `onboarding_records` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `onboarding_records` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 14. Add location_id to exit_records
+ALTER TABLE `exit_records` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `exit_records` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 15. Add location_id to mcheck_responses
+ALTER TABLE `mcheck_responses` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+CREATE INDEX IF NOT EXISTS `idx_mcheck_resp_location` ON `mcheck_responses`(`location_id`, `response_date`);
+UPDATE `mcheck_responses` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 16. Add location_id to mcheck_audit_log (if exists)
+ALTER TABLE `mcheck_audit_log` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `mcheck_audit_log` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 17. Add location_id to department_hiring_targets
+ALTER TABLE `department_hiring_targets` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+CREATE INDEX IF NOT EXISTS `idx_dept_hiring_location` ON `department_hiring_targets`(`location_id`);
+UPDATE `department_hiring_targets` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 18. Add location_id to section_allocations (if table exists)
+ALTER TABLE `section_allocations` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `section_allocations` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 19. Add location_id to department_sections
+ALTER TABLE `department_sections` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `department_sections` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 20. Add location_id to candidate_activities
+ALTER TABLE `candidate_activities` ADD COLUMN IF NOT EXISTS `location_id` INT NOT NULL DEFAULT 2;
+UPDATE `candidate_activities` SET `location_id` = 2 WHERE `location_id` = 0;
+
+-- 21. Add location to Broadcast (NULL = all locations)
+ALTER TABLE `Broadcast` ADD COLUMN IF NOT EXISTS `location_id` INT NULL DEFAULT NULL;
+
+-- 22. Add location to AuditLog
+ALTER TABLE `AuditLog` ADD COLUMN IF NOT EXISTS `location_id` INT NULL DEFAULT 2;
+ALTER TABLE `AuditLog` ADD COLUMN IF NOT EXISTS `location_code` VARCHAR(10) NULL DEFAULT 'DAV';
+UPDATE `AuditLog` SET `location_id` = 2, `location_code` = 'DAV' WHERE `location_id` IS NULL;
+
+-- Done
+SELECT 'BSC Location Migration Complete' AS migration_status,
+       (SELECT COUNT(*) FROM locations) AS total_locations,
+       (SELECT COUNT(*) FROM candidates WHERE location_id = 2) AS davanagere_candidates,
+       (SELECT COUNT(*) FROM users WHERE location_id IS NULL) AS global_admins;
