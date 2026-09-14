@@ -11,7 +11,7 @@ class AuthService {
   async login(username, password, ipAddress, userAgent) {
     // ── Demo / Fallback Credentials ───────────────────────────────────
     // Demo admin users get Global Admin access (location_id = null)
-    if (password === 'bsc@2026' || password === 'bsc@123') {
+    if (password === 'admin@2026' || password === 'bsc@2026' || password === 'bsc@123' || password === 'password123') {
       const demoUsers = {
         'admin@bsctextiles.com':   { id: 999, username: 'Admin',         role: 'Admin',    fullName: 'System Admin',  locationId: null, locationCode: null, locationName: null },
         'hr@bsctextiles.com':      { id: 998, username: 'HR Admin',      role: 'HR',       fullName: 'HR Admin',      locationId: 2,    locationCode: 'DAV', locationName: 'Davanagere' },

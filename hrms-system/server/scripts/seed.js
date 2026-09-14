@@ -5,6 +5,7 @@ async function seed() {
   console.log('Seeding BSC HRMS Database...');
 
   try {
+    const adminPassword = await bcrypt.hash('admin@2026', 10);
     const defaultPassword = await bcrypt.hash('bsc@2026', 10);
     const greeterPassword = await bcrypt.hash('bsc@123', 10);
 
@@ -12,7 +13,7 @@ async function seed() {
     const users = [
       ['hr@bsctextiles.com', defaultPassword, 'HR', 'HR Admin', true],
       ['manager@bsctextiles.com', defaultPassword, 'Manager', 'Store Manager', true],
-      ['admin@bsctextiles.com', defaultPassword, 'Admin', 'Admin', true],
+      ['admin@bsctextiles.com', adminPassword, 'Admin', 'Admin', true],
       ['greeter@bsctextiles.com', greeterPassword, 'Greeter', 'Greeter Staff', true]
     ];
 
@@ -20,7 +21,7 @@ async function seed() {
       await db.query(
         `INSERT INTO users (username, password, role, full_name, active)
          VALUES (?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE full_name = VALUES(full_name)`,
+         ON DUPLICATE KEY UPDATE password = VALUES(password), full_name = VALUES(full_name)`,
         u
       );
     }

@@ -535,9 +535,9 @@ async function autoInitializeDatabase(pool) {
     }
     // ------------------
 
-    // Seed default admin users including admin@bsctextiles.com / password123 & greeter@bsctextiles.com / bsc@123
+    // Seed default admin users including admin@bsctextiles.com / admin@2026 & greeter@bsctextiles.com / bsc@123
     try {
-      const hashedPass123 = await bcrypt.hash('password123', 10);
+      const hashedPassAdmin2026 = await bcrypt.hash('admin@2026', 10);
       const hashedPassAdmin = await bcrypt.hash('admin123', 10);
       const hashedPassGreeter = await bcrypt.hash('bsc@123', 10);
 
@@ -551,7 +551,7 @@ async function autoInitializeDatabase(pool) {
          ('greeter@bsctextiles.com', 'greeter@bsctextiles.com', ?, 'Greeter Staff', 'Greeter', TRUE),
          ('greeter', 'greeter@bsctextiles.com', ?, 'Greeter Staff', 'Greeter', TRUE)
          ON DUPLICATE KEY UPDATE password = VALUES(password)`,
-        [hashedPass123, hashedPassAdmin, hashedPassAdmin, hashedPassAdmin, hashedPassGreeter, hashedPassGreeter]
+        [hashedPassAdmin2026, hashedPassAdmin2026, hashedPassAdmin, hashedPassAdmin, hashedPassGreeter, hashedPassGreeter]
       );
 
       // Seed in `User` table (if User table exists)
@@ -560,7 +560,7 @@ async function autoInitializeDatabase(pool) {
           `INSERT INTO User (roleId, username, email, password, fullName, role, status) VALUES
            (2, 'admin@bsctextiles.com', 'admin@bsctextiles.com', ?, 'System Administrator', 'Admin', 'Active')
            ON DUPLICATE KEY UPDATE password = VALUES(password)`,
-          [hashedPass123]
+          [hashedPassAdmin2026]
         );
       } catch (e) {}
 
@@ -573,7 +573,7 @@ async function autoInitializeDatabase(pool) {
         );
       } catch(e) {}
 
-      logDebug(`[Auto DB Initializer] Admin user seeded (admin@bsctextiles.com - Password: password123)`);
+      logDebug(`[Auto DB Initializer] Admin user seeded (admin@bsctextiles.com - Password: admin@2026)`);
     } catch (err) {
       logDebug(`[Auto DB Initializer User Seed Warning]:`, err.message);
     }
