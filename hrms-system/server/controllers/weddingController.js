@@ -4,7 +4,7 @@ const { getLocationFilter, injectLocationId } = require('../middleware/auth');
 
 /**
  * Helper to build location filter dynamically.
- * If user is Global Admin and query.locationId is passed, filters by that location.
+ * If user is Global Admin and query.locationId / location_id is passed, filters by that location.
  * Otherwise uses standard getLocationFilter based on user's assigned branch.
  */
 function resolveLocFilter(req, tableAlias = 'w') {
@@ -13,10 +13,11 @@ function resolveLocFilter(req, tableAlias = 'w') {
   const isGlobal = !userLoc;
 
   if (isGlobal) {
-    if (req.query.locationId && req.query.locationId !== 'all' && !isNaN(parseInt(req.query.locationId, 10))) {
+    const locParam = req.query.locationId || req.query.location_id;
+    if (locParam && locParam !== 'all' && !isNaN(parseInt(locParam, 10))) {
       return {
         clause: `AND ${col} = ?`,
-        params: [parseInt(req.query.locationId, 10)]
+        params: [parseInt(locParam, 10)]
       };
     }
     return { clause: '', params: [] };
@@ -29,10 +30,110 @@ function resolveLocFilter(req, tableAlias = 'w') {
   };
 }
 
+let tablesChecked = false;
+async function ensureTables() {
+  if (tablesChecked) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_customers\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_code\` VARCHAR(50) NOT NULL UNIQUE,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`customer_name\` VARCHAR(150) NOT NULL,
+        \`mobile_number\` VARCHAR(20) NOT NULL,
+        \`email\` VARCHAR(150) NULL,
+        \`wedding_date\` DATE NULL,
+        \`expected_shopping_date\` DATE NOT NULL,
+        \`preferred_shopping_category\` VARCHAR(150) NULL,
+        \`estimated_family_size\` INT NULL DEFAULT 1,
+        \`assigned_telecaller\` VARCHAR(150) NULL,
+        \`assigned_telecaller_id\` INT NULL,
+        \`follow_up_date\` DATE NOT NULL,
+        \`preferred_call_time\` VARCHAR(50) NULL,
+        \`customer_notes\` TEXT NULL,
+        \`customer_status\` VARCHAR(50) NOT NULL DEFAULT 'New',
+        \`call_status\` VARCHAR(50) NOT NULL DEFAULT 'Pending',
+        \`total_calls_count\` INT NOT NULL DEFAULT 0,
+        \`last_call_date\` DATETIME NULL,
+        \`last_call_outcome\` VARCHAR(100) NULL,
+        \`created_by\` VARCHAR(150) NULL,
+        \`created_by_user_id\` INT NULL,
+        \`is_deleted\` TINYINT(1) NOT NULL DEFAULT 0,
+        \`deleted_at\` DATETIME NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX \`idx_wed_loc_status\` (\`location_id\`, \`customer_status\`, \`follow_up_date\`),
+        INDEX \`idx_wed_mobile_loc\` (\`mobile_number\`, \`location_id\`),
+        INDEX \`idx_wed_follow_up\` (\`follow_up_date\`),
+        INDEX \`idx_wed_shop_date\` (\`expected_shopping_date\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_call_logs\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`call_date\` DATE NOT NULL,
+        \`call_time\` VARCHAR(20) NOT NULL,
+        \`telecaller_name\` VARCHAR(150) NOT NULL,
+        \`telecaller_id\` INT NULL,
+        \`call_status\` VARCHAR(50) NOT NULL DEFAULT 'Completed',
+        \`call_outcome\` VARCHAR(50) NOT NULL,
+        \`remarks\` TEXT NULL,
+        \`next_follow_up_date\` DATE NULL,
+        \`next_follow_up_time\` VARCHAR(50) NULL,
+        \`expected_shopping_date_updated\` DATE NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX \`idx_call_cust\` (\`customer_id\`),
+        INDEX \`idx_call_date\` (\`call_date\`),
+        INDEX \`idx_call_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_audit_logs\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`user_name\` VARCHAR(150) NOT NULL,
+        \`action\` VARCHAR(100) NOT NULL,
+        \`details\` TEXT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX \`idx_audit_cust\` (\`customer_id\`),
+        INDEX \`idx_audit_loc\` (\`location_id\`),
+        INDEX \`idx_audit_action\` (\`action\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    const [cnt] = await pool.query(`SELECT COUNT(*) AS total FROM wedding_customers WHERE is_deleted = 0`);
+    if (!cnt || cnt[0]?.total === 0) {
+      await pool.query(`
+        INSERT IGNORE INTO wedding_customers (
+          customer_code, location_id, customer_name, mobile_number, email, wedding_date,
+          expected_shopping_date, preferred_shopping_category, estimated_family_size,
+          assigned_telecaller, follow_up_date, preferred_call_time, customer_notes,
+          customer_status, call_status
+        ) VALUES
+        ('WED-DAV-2026-0001', 2, 'Ananya Sharma', '9845012345', 'ananya.s@example.com', DATE_ADD(CURDATE(), INTERVAL 45 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'Bridal Lehengas', 4, 'Pooja Telecaller', CURDATE(), 'Morning (10 AM - 1 PM)', 'Interested in premium bridal lehengas', 'Follow-up Pending', 'Call Back Requested'),
+        ('WED-DAV-2026-0002', 2, 'Rajeshwari Patil', '9741098765', 'rajeshwari.p@example.com', DATE_ADD(CURDATE(), INTERVAL 60 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'Pure Silk Sarees', 6, 'Sneha Follow-up', DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'Afternoon (1 PM - 4 PM)', 'Pure Kanchipuram silk sarees for marriage ceremony', 'Contacted', 'No Answer'),
+        ('WED-DAV-2026-0003', 2, 'Vijay Kumar Hegde', '9448054321', 'vijay.hegde@example.com', DATE_ADD(CURDATE(), INTERVAL 30 DAY), DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'Sherwanis & Suits', 3, 'Pooja Telecaller', CURDATE(), 'Evening (4 PM - 7 PM)', 'Groom sherwani and family shopping confirmed', 'Shopping Date Confirmed', 'Completed'),
+        ('WED-BEL-2026-0001', 1, 'Deepa Kulkarni', '9980112233', 'deepa.k@example.com', DATE_ADD(CURDATE(), INTERVAL 40 DAY), DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'Pure Silk Sarees', 5, 'Kiran CRM Desk', CURDATE(), 'Morning (10 AM - 1 PM)', 'Visited Belagavi store, follow up scheduled', 'New', 'Pending'),
+        ('WED-SHI-2026-0001', 3, 'Manjunath Gowda', '9632009988', 'manjunath.g@example.com', DATE_ADD(CURDATE(), INTERVAL 50 DAY), DATE_ADD(CURDATE(), INTERVAL 18 DAY), 'Family Matching Sets', 8, 'Pooja Telecaller', DATE_ADD(CURDATE(), INTERVAL 2 DAY), 'Morning (10 AM - 1 PM)', 'Family wedding group for Shivamogga store', 'Interested', 'Completed')
+      `);
+    }
+
+    tablesChecked = true;
+  } catch (err) {
+    console.error('[WeddingController.ensureTables Error]', err.message);
+  }
+}
+
 class WeddingController {
   // ── 1. Dashboard KPI Stats ──────────────────────────────────────────
   async getDashboardStats(req, res) {
     try {
+      await ensureTables();
       const { clause, params } = resolveLocFilter(req, 'w');
 
       const [rows] = await pool.query(`
@@ -48,6 +149,27 @@ class WeddingController {
         FROM wedding_customers w
         WHERE w.is_deleted = 0 ${clause}
       `, params);
+
+      const raw = rows[0] || {};
+      const stats = {
+        totalCustomers: Number(raw.totalCustomers) || 0,
+        todayFollowUps: Number(raw.todayFollowUps) || 0,
+        overdueFollowUps: Number(raw.overdueFollowUps) || 0,
+        callsPending: Number(raw.callsPending) || 0,
+        callsCompleted: Number(raw.callsCompleted) || 0,
+        shoppingConfirmed: Number(raw.shoppingConfirmed) || 0,
+        visitedConverted: Number(raw.visitedConverted) || 0,
+        notInterested: Number(raw.notInterested) || 0,
+        // Aliases for compatibility
+        total_customers: Number(raw.totalCustomers) || 0,
+        due_today: Number(raw.todayFollowUps) || 0,
+        overdue: Number(raw.overdueFollowUps) || 0,
+        calls_pending: Number(raw.callsPending) || 0,
+        calls_completed: Number(raw.callsCompleted) || 0,
+        shopping_confirmed: Number(raw.shoppingConfirmed) || 0,
+        visited_converted: Number(raw.visitedConverted) || 0,
+        not_interested: Number(raw.notInterested) || 0
+      };
 
       // Location breakdown if Global Admin
       let locationStats = [];
@@ -69,7 +191,7 @@ class WeddingController {
       }
 
       return successRes(res, {
-        stats: rows[0] || {},
+        stats,
         locationStats
       }, 'Dashboard stats fetched successfully');
     } catch (err) {
@@ -81,16 +203,17 @@ class WeddingController {
   // ── 2. Get Filtered & Paginated Customers ───────────────────────────
   async getCustomers(req, res) {
     try {
+      await ensureTables();
       const {
-        dateView = 'all',
-        customerStatus,
-        callStatus,
-        telecaller,
+        dateView = req.query.date_filter || 'all',
+        customerStatus = req.query.status,
+        callStatus = req.query.call_status,
+        telecaller = req.query.telecaller_id,
         search,
-        startDate,
-        endDate,
+        startDate = req.query.from_date,
+        endDate = req.query.to_date,
         page = 1,
-        limit = 25
+        limit = 50
       } = req.query;
 
       const { clause: locClause, params: queryParams } = resolveLocFilter(req, 'w');
@@ -126,8 +249,13 @@ class WeddingController {
 
       // Assigned Telecaller Filter
       if (telecaller && telecaller !== 'all') {
-        whereClauses.push(`w.assigned_telecaller = ?`);
-        queryParams.push(telecaller);
+        if (!isNaN(parseInt(telecaller, 10))) {
+          whereClauses.push(`(w.assigned_telecaller_id = ? OR w.assigned_telecaller = ?)`);
+          queryParams.push(parseInt(telecaller, 10), telecaller);
+        } else {
+          whereClauses.push(`w.assigned_telecaller = ?`);
+          queryParams.push(telecaller);
+        }
       }
 
       // Fast Search Filter
@@ -193,8 +321,10 @@ class WeddingController {
   // ── 3. Duplicate Mobile Check ───────────────────────────────────────
   async checkDuplicate(req, res) {
     try {
-      const { mobile, customerId } = req.body;
-      if (!mobile) {
+      const mobile = req.body.mobile || req.body.phone || req.body.mobile_number;
+      const customerId = req.body.customerId || req.body.customer_id;
+
+      if (!mobile || !mobile.trim()) {
         return errorRes(res, 'Mobile number is required', [], 400);
       }
 
@@ -219,7 +349,8 @@ class WeddingController {
       if (rows && rows.length > 0) {
         return successRes(res, {
           exists: true,
-          customer: rows[0]
+          customer: rows[0],
+          existingCustomer: rows[0]
         }, 'Duplicate customer found with this mobile number');
       }
 
@@ -233,39 +364,37 @@ class WeddingController {
   // ── 4. Create Wedding Customer ──────────────────────────────────────
   async createCustomer(req, res) {
     try {
-      const {
-        customer_name,
-        mobile_number,
-        email,
-        wedding_date,
-        expected_shopping_date,
-        preferred_shopping_category,
-        estimated_family_size = 1,
-        assigned_telecaller,
-        assigned_telecaller_id,
-        follow_up_date,
-        preferred_call_time,
-        customer_notes,
-        location_id: requestedLocationId
-      } = req.body;
+      const customerName = (req.body.customer_name || req.body.customerName || '').trim();
+      const mobileNumber = (req.body.mobile_number || req.body.phone || req.body.mobile || '').trim();
+      const email = (req.body.email || '').trim() || null;
+      const weddingDate = req.body.wedding_date || req.body.weddingDate || null;
+      const expectedShoppingDate = req.body.expected_shopping_date || req.body.expectedShoppingDate;
+      const preferredCategory = req.body.preferred_shopping_category || req.body.preferredShoppingCategory || (Array.isArray(req.body.shopping_categories) ? req.body.shopping_categories.join(', ') : req.body.shopping_categories) || 'General Wedding Shopping';
+      const estimatedFamilySize = parseInt(req.body.estimated_family_size || req.body.estimatedFamilySize || 1, 10);
+      let assignedTelecaller = (req.body.assigned_telecaller || req.body.assignedTelecaller || '').trim() || null;
+      let assignedTelecallerId = req.body.assigned_telecaller_id ? parseInt(req.body.assigned_telecaller_id, 10) : null;
+      const followUpDate = req.body.follow_up_date || req.body.followUpDate;
+      const preferredCallTime = req.body.preferred_call_time || req.body.preferredCallTime || 'Morning (10 AM - 1 PM)';
+      const customerNotes = req.body.customer_notes || req.body.customerNotes || req.body.initial_notes || null;
+      const requestedLocationId = req.body.location_id || req.body.locationId;
 
-      if (!customer_name || !customer_name.trim()) {
+      if (!customerName) {
         return errorRes(res, 'Customer name is required', [], 400);
       }
-      if (!mobile_number || !mobile_number.trim()) {
+      if (!mobileNumber) {
         return errorRes(res, 'Mobile number is required', [], 400);
       }
-      if (!expected_shopping_date) {
+      if (!expectedShoppingDate) {
         return errorRes(res, 'Expected shopping date is required', [], 400);
       }
-      if (!follow_up_date) {
+      if (!followUpDate) {
         return errorRes(res, 'Follow-up date is required', [], 400);
       }
 
-      // Enforce location security
+      // Enforce location security: branch user strictly locked to their location
       let locationId = req.user ? req.user.locationId : null;
       if (!locationId) {
-        // Global admin can choose location
+        // Global admin can specify location or defaults to 2 (Davanagere)
         locationId = requestedLocationId ? parseInt(requestedLocationId, 10) : 2;
       }
 
@@ -273,14 +402,24 @@ class WeddingController {
       const [locRows] = await pool.query(`SELECT location_code FROM locations WHERE id = ?`, [locationId]);
       const locCode = locRows[0]?.location_code || 'BSC';
 
-      // Check duplicate mobile
+      // Duplicate mobile check per location
       const [dup] = await pool.query(`
         SELECT id, customer_code, customer_name FROM wedding_customers 
         WHERE mobile_number = ? AND location_id = ? AND is_deleted = 0
-      `, [mobile_number.trim(), locationId]);
+      `, [mobileNumber, locationId]);
 
       if (dup && dup.length > 0) {
-        return errorRes(res, `Customer with mobile ${mobile_number} already exists (${dup[0].customer_name} - ${dup[0].customer_code})`, [], 409);
+        return errorRes(res, `Customer with mobile ${mobileNumber} already exists (${dup[0].customer_name} - ${dup[0].customer_code})`, [], 409);
+      }
+
+      // If assigned_telecaller_id provided without name, find name
+      if (assignedTelecallerId && !assignedTelecaller) {
+        const [u] = await pool.query(`SELECT full_name FROM users WHERE id = ?`, [assignedTelecallerId]);
+        if (u && u.length > 0) assignedTelecaller = u[0].full_name;
+      }
+      if (!assignedTelecaller) {
+        assignedTelecaller = req.user?.fullName || 'Staff';
+        assignedTelecallerId = req.user?.id || null;
       }
 
       // Generate sequence code: WED-[LOC]-[YEAR]-[SEQ]
@@ -315,18 +454,18 @@ class WeddingController {
       `, [
         customerCode,
         locationId,
-        customer_name.trim(),
-        mobile_number.trim(),
-        email ? email.trim() : null,
-        wedding_date || null,
-        expected_shopping_date,
-        preferred_shopping_category || 'General Wedding Shopping',
-        parseInt(estimated_family_size, 10) || 1,
-        assigned_telecaller ? assigned_telecaller.trim() : (req.user?.fullName || 'Unassigned'),
-        assigned_telecaller_id ? parseInt(assigned_telecaller_id, 10) : (req.user?.id || null),
-        follow_up_date,
-        preferred_call_time || 'Morning (10 AM - 1 PM)',
-        customer_notes || null,
+        customerName,
+        mobileNumber,
+        email,
+        weddingDate,
+        expectedShoppingDate,
+        preferredCategory,
+        estimatedFamilySize,
+        assignedTelecaller,
+        assignedTelecallerId,
+        followUpDate,
+        preferredCallTime,
+        customerNotes,
         req.user?.fullName || 'Staff',
         req.user?.id || null
       ]);
@@ -341,12 +480,19 @@ class WeddingController {
         newId,
         locationId,
         req.user?.fullName || 'Staff',
-        `Created wedding customer ${customer_name.trim()} (${customerCode}). Expected shopping: ${expected_shopping_date}, Follow-up: ${follow_up_date}`
+        `Created wedding customer ${customerName} (${customerCode}). Expected shopping: ${expectedShoppingDate}, Follow-up: ${followUpDate}`
       ]);
 
       return successRes(res, {
         id: newId,
-        customer_code: customerCode
+        customer_code: customerCode,
+        customer: {
+          id: newId,
+          customer_code: customerCode,
+          customer_name: customerName,
+          mobile_number: mobileNumber,
+          location_id: locationId
+        }
       }, 'Wedding customer added successfully', 201);
     } catch (err) {
       console.error('[WeddingController.createCustomer Error]', err);
@@ -398,6 +544,7 @@ class WeddingController {
       return successRes(res, {
         customer,
         callLogs: callLogs || [],
+        timeline: callLogs || [],
         auditLogs: auditLogs || []
       }, 'Customer details fetched successfully');
     } catch (err) {
@@ -421,32 +568,30 @@ class WeddingController {
       }
 
       const prev = existing[0];
-      const {
-        customer_name,
-        mobile_number,
-        email,
-        wedding_date,
-        expected_shopping_date,
-        preferred_shopping_category,
-        estimated_family_size,
-        assigned_telecaller,
-        assigned_telecaller_id,
-        follow_up_date,
-        preferred_call_time,
-        customer_notes,
-        customer_status,
-        call_status
-      } = req.body;
+      const customerName = req.body.customer_name || req.body.customerName;
+      const mobileNumber = req.body.mobile_number || req.body.phone || req.body.mobile;
+      const email = req.body.email;
+      const weddingDate = req.body.wedding_date || req.body.weddingDate;
+      const expectedShoppingDate = req.body.expected_shopping_date || req.body.expectedShoppingDate;
+      const preferredCategory = req.body.preferred_shopping_category || req.body.preferredShoppingCategory || req.body.shopping_categories;
+      const estimatedFamilySize = req.body.estimated_family_size || req.body.estimatedFamilySize;
+      const assignedTelecaller = req.body.assigned_telecaller || req.body.assignedTelecaller;
+      const assignedTelecallerId = req.body.assigned_telecaller_id || req.body.assignedTelecallerId;
+      const followUpDate = req.body.follow_up_date || req.body.followUpDate;
+      const preferredCallTime = req.body.preferred_call_time || req.body.preferredCallTime;
+      const customerNotes = req.body.customer_notes || req.body.customerNotes || req.body.initial_notes;
+      const customerStatus = req.body.customer_status || req.body.customerStatus || req.body.current_status;
+      const callStatus = req.body.call_status || req.body.callStatus;
 
       // Duplicate check if mobile is being changed
-      if (mobile_number && mobile_number.trim() !== prev.mobile_number) {
+      if (mobileNumber && mobileNumber.trim() !== prev.mobile_number) {
         const [dup] = await pool.query(`
           SELECT id FROM wedding_customers 
           WHERE mobile_number = ? AND location_id = ? AND id != ? AND is_deleted = 0
-        `, [mobile_number.trim(), prev.location_id, id]);
+        `, [mobileNumber.trim(), prev.location_id, id]);
 
         if (dup && dup.length > 0) {
-          return errorRes(res, `Another customer already exists with mobile ${mobile_number}`, [], 409);
+          return errorRes(res, `Another customer already exists with mobile ${mobileNumber}`, [], 409);
         }
       }
 
@@ -468,29 +613,29 @@ class WeddingController {
           call_status = ?
         WHERE id = ?
       `, [
-        customer_name ? customer_name.trim() : prev.customer_name,
-        mobile_number ? mobile_number.trim() : prev.mobile_number,
+        customerName ? customerName.trim() : prev.customer_name,
+        mobileNumber ? mobileNumber.trim() : prev.mobile_number,
         email !== undefined ? (email ? email.trim() : null) : prev.email,
-        wedding_date !== undefined ? wedding_date : prev.wedding_date,
-        expected_shopping_date || prev.expected_shopping_date,
-        preferred_shopping_category || prev.preferred_shopping_category,
-        estimated_family_size ? parseInt(estimated_family_size, 10) : prev.estimated_family_size,
-        assigned_telecaller || prev.assigned_telecaller,
-        assigned_telecaller_id ? parseInt(assigned_telecaller_id, 10) : prev.assigned_telecaller_id,
-        follow_up_date || prev.follow_up_date,
-        preferred_call_time || prev.preferred_call_time,
-        customer_notes !== undefined ? customer_notes : prev.customer_notes,
-        customer_status || prev.customer_status,
-        call_status || prev.call_status,
+        weddingDate !== undefined ? weddingDate : prev.wedding_date,
+        expectedShoppingDate || prev.expected_shopping_date,
+        preferredCategory || prev.preferred_shopping_category,
+        estimatedFamilySize ? parseInt(estimatedFamilySize, 10) : prev.estimated_family_size,
+        assignedTelecaller || prev.assigned_telecaller,
+        assignedTelecallerId ? parseInt(assignedTelecallerId, 10) : prev.assigned_telecaller_id,
+        followUpDate || prev.follow_up_date,
+        preferredCallTime || prev.preferred_call_time,
+        customerNotes !== undefined ? customerNotes : prev.customer_notes,
+        customerStatus || prev.customer_status,
+        callStatus || prev.call_status,
         id
       ]);
 
       // Audit log
       const changes = [];
-      if (customer_status && customer_status !== prev.customer_status) changes.push(`Status: ${prev.customer_status} → ${customer_status}`);
-      if (follow_up_date && follow_up_date !== prev.follow_up_date) changes.push(`Follow-up: ${prev.follow_up_date} → ${follow_up_date}`);
-      if (assigned_telecaller && assigned_telecaller !== prev.assigned_telecaller) changes.push(`Telecaller: ${prev.assigned_telecaller} → ${assigned_telecaller}`);
-      if (expected_shopping_date && expected_shopping_date !== prev.expected_shopping_date) changes.push(`Shopping Date: ${prev.expected_shopping_date} → ${expected_shopping_date}`);
+      if (customerStatus && customerStatus !== prev.customer_status) changes.push(`Status: ${prev.customer_status} → ${customerStatus}`);
+      if (followUpDate && followUpDate !== prev.follow_up_date) changes.push(`Follow-up: ${prev.follow_up_date} → ${followUpDate}`);
+      if (assignedTelecaller && assignedTelecaller !== prev.assigned_telecaller) changes.push(`Telecaller: ${prev.assigned_telecaller} → ${assignedTelecaller}`);
+      if (expectedShoppingDate && expectedShoppingDate !== prev.expected_shopping_date) changes.push(`Shopping Date: ${prev.expected_shopping_date} → ${expectedShoppingDate}`);
 
       await pool.query(`
         INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details)
@@ -549,17 +694,15 @@ class WeddingController {
   // ── 8. Log Call & Auto-manage Follow-up ──────────────────────────────
   async logCall(req, res) {
     try {
-      const {
-        customerId,
-        callDate,
-        callTime,
-        callStatus = 'Completed',
-        callOutcome,
-        remarks,
-        nextFollowUpDate,
-        nextFollowUpTime,
-        expectedShoppingDate
-      } = req.body;
+      const customerId = req.body.customerId || req.body.customer_id;
+      const callDate = req.body.callDate || req.body.call_date;
+      const callTime = req.body.callTime || req.body.call_time;
+      const callStatus = req.body.callStatus || req.body.call_status || 'Completed';
+      const callOutcome = req.body.callOutcome || req.body.call_outcome || req.body.outcome;
+      const remarks = req.body.remarks || req.body.call_notes || req.body.customer_feedback;
+      const nextFollowUpDate = req.body.nextFollowUpDate || req.body.next_follow_up_date;
+      const nextFollowUpTime = req.body.nextFollowUpTime || req.body.next_follow_up_time;
+      const expectedShoppingDate = req.body.expectedShoppingDate || req.body.expected_shopping_date;
 
       if (!customerId) {
         return errorRes(res, 'Customer ID is required', [], 400);
@@ -653,6 +796,11 @@ class WeddingController {
           break;
       }
 
+      // If caller manually passed new_customer_status, prioritize that
+      if (req.body.new_customer_status || req.body.customer_status) {
+        newCustomerStatus = req.body.new_customer_status || req.body.customer_status;
+      }
+
       // 3. Update customer record
       const updateFields = [
         `total_calls_count = total_calls_count + 1`,
@@ -695,7 +843,7 @@ class WeddingController {
         cust.id,
         cust.location_id,
         telecallerName,
-        `Logged call outcome: ${callOutcome}. Status updated to ${newCustomerStatus}. ${nextFollowUpDate ? `Next call: ${nextFollowUpDate}` : ''}`
+        `Logged call outcome: ${callOutcome}. Status: ${newCustomerStatus}. ${nextFollowUpDate ? `Next call: ${nextFollowUpDate}` : ''}`
       ]);
 
       return successRes(res, {
@@ -713,6 +861,7 @@ class WeddingController {
   // ── 9. Telecaller Calling Desk Queue ─────────────────────────────────
   async getCallingDesk(req, res) {
     try {
+      await ensureTables();
       const { clause: locClause, params } = resolveLocFilter(req, 'w');
 
       // Overall desk counters
@@ -727,11 +876,6 @@ class WeddingController {
         WHERE w.is_deleted = 0 ${locClause}
       `, params);
 
-      // Prioritized Queue:
-      // 1. Overdue (< CURDATE() and open)
-      // 2. Due Today (= CURDATE())
-      // 3. Callback Requests (any date open)
-      // 4. Upcoming (next 3 days)
       const baseSelect = `
         SELECT 
           w.*,
@@ -746,16 +890,16 @@ class WeddingController {
         WHERE w.is_deleted = 0 ${locClause}
       `;
 
-      // 1. Overdue
+      // 1. Overdue (< CURDATE() and open)
       const [overdue] = await pool.query(`
         ${baseSelect}
         AND w.follow_up_date < CURDATE() 
         AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed')
         ORDER BY w.follow_up_date ASC, w.id ASC
-        LIMIT 50
+        LIMIT 60
       `, params);
 
-      // 2. Due Today
+      // 2. Due Today (= CURDATE())
       const [dueToday] = await pool.query(`
         ${baseSelect}
         AND w.follow_up_date = CURDATE()
@@ -763,16 +907,16 @@ class WeddingController {
         ORDER BY 
           CASE WHEN w.call_status = 'Call Back Requested' THEN 0 WHEN w.call_status = 'Pending' THEN 1 ELSE 2 END,
           w.id ASC
-        LIMIT 50
+        LIMIT 60
       `, params);
 
-      // 3. Callback Requests
+      // 3. Callback Requests (any date open)
       const [callbackRequests] = await pool.query(`
         ${baseSelect}
         AND w.call_status = 'Call Back Requested'
         AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed')
         ORDER BY w.follow_up_date ASC, w.id ASC
-        LIMIT 30
+        LIMIT 40
       `, params);
 
       // 4. Upcoming (next 7 days)
@@ -781,15 +925,37 @@ class WeddingController {
         AND w.follow_up_date > CURDATE() AND w.follow_up_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
         AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed')
         ORDER BY w.follow_up_date ASC, w.id ASC
-        LIMIT 50
+        LIMIT 60
       `, params);
 
+      const sum = counterRows[0] || {};
+
       return successRes(res, {
-        summary: counterRows[0] || {},
+        summary: {
+          pendingCalls: Number(sum.pendingCalls) || 0,
+          completedToday: Number(sum.completedToday) || 0,
+          noAnswerCount: Number(sum.noAnswerCount) || 0,
+          callbackCount: Number(sum.callbackCount) || 0,
+          remainingCalls: Number(sum.remainingCalls) || 0
+        },
+        counts: {
+          overdue: overdue.length,
+          due_today: dueToday.length,
+          dueToday: dueToday.length,
+          callbacks: callbackRequests.length,
+          callbackRequests: callbackRequests.length,
+          upcoming: upcoming.length,
+          pending: Number(sum.pendingCalls) || 0,
+          completed: Number(sum.completedToday) || 0,
+          no_answer: Number(sum.noAnswerCount) || 0,
+          remaining: Number(sum.remainingCalls) || 0
+        },
         queues: {
           overdue: overdue || [],
           dueToday: dueToday || [],
+          due_today: dueToday || [],
           callbackRequests: callbackRequests || [],
+          callbacks: callbackRequests || [],
           upcoming: upcoming || []
         }
       }, 'Calling desk queue loaded successfully');
@@ -802,7 +968,7 @@ class WeddingController {
   // ── 10. Date-wise Calendar ──────────────────────────────────────────
   async getCalendar(req, res) {
     try {
-      const { year, month } = req.query;
+      const { year, month, date } = req.query;
       const targetYear = parseInt(year, 10) || new Date().getFullYear();
       const targetMonth = parseInt(month, 10) || (new Date().getMonth() + 1);
 
@@ -825,10 +991,30 @@ class WeddingController {
         ORDER BY w.follow_up_date ASC
       `, [targetYear, targetMonth, ...params]);
 
+      // All customers in that month for instant client-side date inspection
+      const [allCustomersInMonth] = await pool.query(`
+        SELECT 
+          w.*,
+          l.location_name,
+          CASE 
+            WHEN w.follow_up_date < CURDATE() AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed')
+            THEN DATEDIFF(CURDATE(), w.follow_up_date)
+            ELSE 0 
+          END AS overdue_days
+        FROM wedding_customers w
+        LEFT JOIN locations l ON l.id = w.location_id
+        WHERE w.is_deleted = 0 
+          AND YEAR(w.follow_up_date) = ? 
+          AND MONTH(w.follow_up_date) = ?
+          ${locClause}
+        ORDER BY w.follow_up_date ASC, w.id DESC
+      `, [targetYear, targetMonth, ...params]);
+
       return successRes(res, {
         year: targetYear,
         month: targetMonth,
-        days: rows || []
+        days: rows || [],
+        customers: allCustomersInMonth || []
       }, 'Calendar follow-up data fetched successfully');
     } catch (err) {
       console.error('[WeddingController.getCalendar Error]', err);
@@ -944,7 +1130,7 @@ class WeddingController {
           w.total_calls_count AS 'Total Calls',
           COALESCE(DATE_FORMAT(w.last_call_date, '%d/%m/%Y %H:%i'), '-') AS 'Last Call Date',
           COALESCE(w.last_call_outcome, '-') AS 'Last Call Result',
-          COALESCE(w.customer_notes, '-') AS 'Notes',
+          COALESCE(w.customer_notes, '-') AS 'Remarks',
           DATE_FORMAT(w.created_at, '%d/%m/%Y') AS 'Added On'
         FROM wedding_customers w
         LEFT JOIN locations l ON l.id = w.location_id
@@ -954,6 +1140,7 @@ class WeddingController {
 
       return successRes(res, {
         records: rows || [],
+        customers: rows || [],
         total: rows.length,
         exportedAt: new Date().toISOString()
       }, 'Export data generated successfully');

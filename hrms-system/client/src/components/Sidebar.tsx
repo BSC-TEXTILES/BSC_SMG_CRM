@@ -16,8 +16,14 @@ import {
   ChevronRight,
   Sparkles,
   Megaphone,
-  CheckSquare
+  CheckSquare,
+  Menu
 } from 'lucide-react';
+import { 
+  getSidebarCollapsed, 
+  setSidebarCollapsed, 
+  subscribeSidebarCollapsed 
+} from '../utils/sidebarState';
 
 interface SidebarProps {
   session: UserSession | null;
@@ -28,23 +34,76 @@ interface SidebarProps {
 export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   const pathname = useLocation().pathname;
   const role = session?.role || 'HR';
+  const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
+
+  useEffect(() => {
+    const unsub = subscribeSidebarCollapsed((c) => {
+      setCollapsed(c);
+    });
+    return unsub;
+  }, []);
+
+  const handleToggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    setSidebarCollapsed(next);
+  };
 
   const roleNavMap: Record<string, string[]> = {
     'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
     'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
     'HR':          ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
-    'Recruiter':   ['dashboard', 'candidates', 'interview', 'form', 'broadcast'],
+    'Recruiter':   ['dashboard', 'wedding_crm', 'candidates', 'interview', 'form', 'broadcast'],
     'Interviewer': ['interview', 'candidates'],
     'Manager':     ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
-    'Employee':    ['dashboard', 'onboarding'],
+    'Employee':    ['dashboard', 'wedding_crm', 'onboarding'],
     'Guest':       ['form'],
     'Greeter':     ['wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter']
   };
 
   const [allowed, setAllowed] = useState<string[]>(roleNavMap[role] || roleNavMap['HR']);
 
+  const roleLabels: Record<string, string> = {
+    'Super Admin': 'Super Administrator',
+    'Admin':       'Administrator',
+    'HR':          'HR Specialist',
+    'Recruiter':   'Recruiter',
+    'Interviewer': 'Interviewer Panel',
+    'Manager':     'Store Manager',
+    'Employee':    'Employee',
+    'Guest':       'Guest',
+    'Greeter':     'Greeter Desk'
+  };
+
+  const navItems = [
+    { key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: BarChart3, section: 'Core Workspace' },
+    { key: 'wedding_crm', href: '/wedding-crm', label: 'Wedding Follow-up CRM', icon: Sparkles, section: 'Store Operations', isNew: true },
+    { key: 'footfall', href: '/footfall', label: 'Hourly Footfall', icon: BarChart3, section: 'Store Operations' },
+    { key: 'feedback_collection', href: '/feedback-collection', label: 'Feedback Collection', icon: FileText, section: 'Store Operations' },
+    { key: 'feedback_list', href: '/feedback-list', label: 'Feedback Call Queue', icon: FileText, section: 'Store Operations' },
+    { key: 'feedback_qr', href: '/feedback-qr', label: 'Feedback QR Code', icon: ClipboardList, section: 'Store Operations' },
+    { key: 'divert', href: '/divert', label: 'Sourcing Diverts', icon: Target, section: 'Store Operations' },
+    { key: 'pm_view', href: '/pm-view', label: 'Purchase Manager View', icon: Briefcase, section: 'Store Operations' },
+    { key: 'vm_checklist', href: '/vm-checklist', label: 'VM Checklist', icon: ClipboardList, section: 'Store Operations' },
+    { key: 'attendance', href: '/attendance', label: 'Attendance & Roster', icon: UserCheck, section: 'Store Operations' },
+    { key: 'daily_mcheck', href: '/daily-mcheck', label: 'Daily MCheck', icon: CheckSquare, section: 'Daily Operations' },
+    { key: 'mcheck_reports', href: '/mcheck-reports', label: 'MCheck Reports', icon: BarChart3, section: 'Daily Operations' },
+    { key: 'mcheck_history', href: '/mcheck-history', label: 'MCheck History', icon: ClipboardList, section: 'Daily Operations' },
+    { key: 'candidates', href: '/candidates', label: 'Candidate CRM', icon: Users, section: 'Core Workspace' },
+    { key: 'offer', href: '/offer-process', label: 'Offer Desk', icon: FileText, section: 'Core Workspace' },
+    { key: 'openings', href: '/openings', label: 'Manpower Planning', icon: Briefcase, section: 'Core Workspace' },
+    { key: 'employees', href: '/employees', label: 'Employee Directory', icon: UserCheck, section: 'Talent Management' },
+    { key: 'dept_hiring', href: '/department-hiring', label: 'Department Hiring Status', icon: Briefcase, section: 'Talent Management' },
+    { key: 'section_allocation', href: '/section-allocation', label: 'Section Allocation', icon: UserCheck, section: 'Talent Management' },
+    { key: 'form', href: '/candidate-entry', label: 'Applicant Registration', icon: ClipboardList, section: 'Public Portals', target: '_blank' },
+    { key: 'feedback_public', href: '/feedback-public', label: 'Customer Feedback QR', icon: ClipboardList, section: 'Public Portals', target: '_blank' },
+    { key: 'tv', href: '/tv', label: 'Live TV Kiosk', icon: BarChart3, section: 'Public Portals', target: '_blank' },
+    { key: 'greeter', href: '/greeter', label: 'Greeter Kiosk', icon: UserCheck, section: 'Public Portals', target: '_blank' },
+    { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
+    { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' }
+  ];
+
   useEffect(() => {
-    // Dynamically fetch page visibility from the database
     API.getPageSettings().then(res => {
       const settingsObj = (res && res.settings) ? res.settings : (res || {});
       const defaultAllowed = roleNavMap[role] || roleNavMap['HR'];
@@ -62,54 +121,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
         
         setAllowed(newAllowed);
       }
-    }).catch(() => {
-      // Quietly fallback to default role permissions
-    });
+    }).catch(() => {});
   }, [role]);
-
-  const roleLabels: Record<string, string> = {
-    'Super Admin': 'Super Administrator',
-    'Admin':       'Administrator',
-    'HR':          'HR Specialist',
-    'Recruiter':   'Recruiter',
-    'Interviewer': 'Interviewer Panel',
-    'Manager':     'Store Manager',
-    'Employee':    'Employee',
-    'Guest':       'Guest',
-    'Greeter':     'Greeter Desk'
-  };
-
-  const navItems = [
-    { key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: BarChart3, section: 'Core Workspace' },
-    { key: 'wedding_crm', href: '/wedding-crm', label: 'Wedding Follow-up CRM', icon: Sparkles, section: 'Store Operations' },
-    { key: 'footfall', href: '/footfall', label: 'Hourly Footfall', icon: BarChart3, section: 'Store Operations' },
-    { key: 'feedback_collection', href: '/feedback-collection', label: 'Feedback Collection', icon: FileText, section: 'Store Operations' },
-    { key: 'feedback_list', href: '/feedback-list', label: 'Feedback Call Queue', icon: FileText, section: 'Store Operations' },
-    { key: 'feedback_qr', href: '/feedback-qr', label: 'Feedback QR Code', icon: ClipboardList, section: 'Store Operations' },
-    { key: 'divert', href: '/divert', label: 'Sourcing Diverts', icon: Target, section: 'Store Operations' },
-    { key: 'pm_view', href: '/pm-view', label: 'Purchase Manager View', icon: Briefcase, section: 'Store Operations' },
-    // { key: 'cash', href: '/cash-settlement', label: 'Cash Settlement', icon: FileText, section: 'Store Operations' },
-    { key: 'vm_checklist', href: '/vm-checklist', label: 'VM Checklist', icon: ClipboardList, section: 'Store Operations' },
-    { key: 'attendance', href: '/attendance', label: 'Attendance & Roster', icon: UserCheck, section: 'Store Operations' },
-    // MCheck — Daily Operations
-    { key: 'daily_mcheck', href: '/daily-mcheck', label: 'Daily MCheck', icon: CheckSquare, section: 'Daily Operations' },
-    { key: 'mcheck_reports', href: '/mcheck-reports', label: 'MCheck Reports', icon: BarChart3, section: 'Daily Operations' },
-    { key: 'mcheck_history', href: '/mcheck-history', label: 'MCheck History', icon: ClipboardList, section: 'Daily Operations' },
-    { key: 'candidates', href: '/candidates', label: 'Candidate CRM', icon: Users, section: 'Core Workspace' },
-    { key: 'offer', href: '/offer-process', label: 'Offer Desk', icon: FileText, section: 'Core Workspace' },
-    { key: 'openings', href: '/openings', label: 'Manpower Planning', icon: Briefcase, section: 'Core Workspace' },
-    // { key: 'onboarding', href: '/onboarding', label: 'Onboarding Hub', icon: PartyPopper, section: 'Talent Management' },
-    { key: 'employees', href: '/employees', label: 'Employee Directory', icon: UserCheck, section: 'Talent Management' },
-    { key: 'dept_hiring', href: '/department-hiring', label: 'Department Hiring Status', icon: Briefcase, section: 'Talent Management' },
-    { key: 'section_allocation', href: '/section-allocation', label: 'Section Allocation', icon: UserCheck, section: 'Talent Management' },
-    // { key: 'exit', href: '/employee-exit', label: 'Exit & FnF Desk', icon: DoorOpen, section: 'Talent Management' },
-    { key: 'form', href: '/candidate-entry', label: 'Applicant Registration', icon: ClipboardList, section: 'Public Portals', target: '_blank' },
-    { key: 'feedback_public', href: '/feedback-public', label: 'Customer Feedback QR', icon: ClipboardList, section: 'Public Portals', target: '_blank' },
-    { key: 'tv', href: '/tv', label: 'Live TV Kiosk', icon: BarChart3, section: 'Public Portals', target: '_blank' },
-    { key: 'greeter', href: '/greeter', label: 'Greeter Kiosk', icon: UserCheck, section: 'Public Portals', target: '_blank' },
-    { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
-    { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' }
-  ];
 
   const initials = session?.fullName
     ? session.fullName.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
@@ -125,49 +138,103 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
         />
       )}
 
-      <aside className={`
-        fixed top-0 left-0 bottom-0 w-64 bg-[#4A1726] text-white z-50 flex flex-col transition-transform duration-300 shadow-2xl border-r border-[#C6A15B]/20
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Header Logo */}
-        <div className="p-4 border-b border-[#C6A15B]/15 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="BSC Logo" className="w-10 h-10 object-contain rounded-xl bg-white p-1 shadow-md border border-[#C6A15B]/30" />
-            <div>
-              <div className="font-extrabold text-sm text-[#F8F5F1] tracking-wide leading-tight">BSC EXCLUSIVE</div>
-              <div className="text-[9.5px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
-                {session?.isGlobalAdmin ? (
-                  <span className="text-[#27805B] font-extrabold">🌐 ALL LOCATIONS</span>
-                ) : (
-                  <span className="text-[#C6A15B]">📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
-                )}
+      <aside
+        style={{ width: collapsed ? '72px' : '256px' }}
+        className={`
+          fixed top-0 left-0 bottom-0 bg-[#4A1726] text-white z-50 flex flex-col transition-all duration-300 shadow-2xl border-r border-[#C6A15B]/25
+          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${collapsed ? 'w-[72px]' : 'w-64'}
+        `}
+      >
+        {/* Header: Collapsed shows ONLY 3-lines + logo; Expanded shows Logo + Text + 3-line Toggle */}
+        {collapsed ? (
+          <div className="p-3 border-b border-[#C6A15B]/15 flex flex-col items-center justify-center min-h-[64px] gap-2.5">
+            {/* 3-line hamburger button prominently displayed at top */}
+            <button
+              type="button"
+              onClick={handleToggle}
+              className="p-1.5 rounded-xl text-[#C6A15B] hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs border border-[#C6A15B]/30"
+              title="Expand navigation menu (3 lines)"
+              aria-label="Expand sidebar"
+            >
+              <Menu className="w-5 h-5 text-[#C6A15B]" />
+            </button>
+            {/* ONLY LOGO */}
+            <img 
+              src="/logo.png" 
+              alt="BSC Logo" 
+              className="w-9 h-9 object-contain rounded-xl bg-white p-1 shadow-md border border-[#C6A15B]/40 hover:scale-105 transition-transform cursor-pointer"
+              onClick={handleToggle}
+              title="BSC Logo - Click to expand navigation"
+            />
+          </div>
+        ) : (
+          <div className="p-3.5 border-b border-[#C6A15B]/15 flex items-center justify-between min-h-[64px] w-full">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img 
+                src="/logo.png" 
+                alt="BSC Logo" 
+                className="w-10 h-10 object-contain rounded-xl bg-white p-1 shadow-md border border-[#C6A15B]/30 flex-shrink-0" 
+              />
+              <div className="min-w-0">
+                <div className="font-extrabold text-sm text-[#F8F5F1] tracking-wide leading-tight truncate">BSC EXCLUSIVE</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1 truncate text-[#C6A15B]">
+                  {session?.isGlobalAdmin ? (
+                    <span className="text-[#27805B] font-extrabold truncate">🌐 ALL LOCATIONS</span>
+                  ) : (
+                    <span className="truncate">📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* 3-line menu toggle button */}
+            <button
+              type="button"
+              onClick={handleToggle}
+              className="p-1.5 rounded-xl text-[#C6A15B] hover:text-white hover:bg-white/10 transition-colors flex-shrink-0 cursor-pointer border border-[#C6A15B]/30 shadow-xs"
+              title="Collapse sidebar to logo only (3 lines)"
+              aria-label="Toggle sidebar collapse"
+            >
+              <Menu className="w-5 h-5 text-[#C6A15B]" />
+            </button>
           </div>
-        </div>
+        )}
 
         {/* User Card */}
-        <div className="p-3 mx-3 my-3 rounded-2xl bg-black/20 border border-[#C6A15B]/25 flex items-center gap-3 shadow-inner">
-          <div className="w-9 h-9 rounded-xl bg-[#C6A15B] text-[#321923] font-black flex items-center justify-center text-xs shadow-md border border-[#D4B373]">
+        <div className={`mx-2 my-2 rounded-xl bg-black/20 border border-[#C6A15B]/25 flex items-center shadow-inner transition-all ${
+          collapsed ? 'p-1 justify-center' : 'p-2.5 gap-2.5'
+        }`}>
+          <div 
+            className="w-8 h-8 rounded-lg bg-[#C6A15B] text-[#321923] font-black flex items-center justify-center text-xs shadow-md border border-[#D4B373] flex-shrink-0"
+            title={`${session?.fullName || 'User'} (${role})`}
+          >
             {initials}
           </div>
-          <div className="overflow-hidden flex-1">
-            <div className="font-bold text-xs text-[#F8F5F1] truncate">{session?.fullName || 'HR Manager'}</div>
-            <div className="text-[10px] text-[#C6A15B] font-semibold truncate">{roleLabels[role] || role}</div>
-          </div>
+          {!collapsed && (
+            <div className="overflow-hidden flex-1">
+              <div className="font-bold text-xs text-[#F8F5F1] truncate">{session?.fullName || 'HR Manager'}</div>
+              <div className="text-[10px] text-[#C6A15B] font-semibold truncate">{roleLabels[role] || role}</div>
+            </div>
+          )}
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4">
-          {['Core Workspace', 'Store Operations', 'Daily Operations', 'Talent Management', 'Public Portals', 'Administration'].map(section => {
+        <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-3">
+          {['Store Operations', 'Core Workspace', 'Daily Operations', 'Talent Management', 'Public Portals', 'Administration'].map(section => {
             const items = navItems.filter(item => item.section === section && (allowed.includes(item.key) || ['Super Admin', 'Admin', 'HR', 'Manager'].includes(role)));
             if (items.length === 0) return null;
 
             return (
-              <div key={section}>
-                <div className="text-[9.5px] font-black uppercase tracking-widest text-[#C6A15B]/60 px-3 mb-1.5 flex items-center gap-1">
-                  <span>{section}</span>
-                </div>
+              <div key={section} className="space-y-0.5">
+                {collapsed ? (
+                  <div className="h-px bg-[#C6A15B]/20 my-1.5 mx-1" />
+                ) : (
+                  <div className="text-[9px] font-black uppercase tracking-widest text-[#C6A15B]/60 px-2.5 mb-1">
+                    <span>{section}</span>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   {items.map(item => {
                     const Icon = item.icon;
@@ -179,18 +246,36 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
                         to={item.href}
                         target={item.target}
                         onClick={onClose}
+                        title={item.label}
                         className={`
-                          flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 group
+                          flex items-center rounded-xl text-xs font-bold transition-all duration-150 group relative
+                          ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5 justify-between'}
                           ${isActive 
                             ? 'bg-[#C6A15B] text-[#321923] shadow-lg shadow-[#C6A15B]/25 font-black border-l-4 border-[#321923]' 
                             : 'text-[#F8F5F1]/85 hover:bg-[#5C1D30] hover:text-white'}
                         `}
                       >
-                        <div className="flex items-center gap-3">
-                          <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'text-[#321923]' : 'text-[#C6A15B]/80 group-hover:text-[#C6A15B]'}`} />
-                          <span>{item.label}</span>
+                        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5 min-w-0'}`}>
+                          <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 flex-shrink-0 ${
+                            isActive ? 'text-[#321923]' : item.key === 'wedding_crm' ? 'text-[#D4B373] animate-pulse' : 'text-[#C6A15B]/80 group-hover:text-[#C6A15B]'
+                          }`} />
+                          
+                          {!collapsed && (
+                            <span className="truncate">
+                              {item.label}
+                            </span>
+                          )}
+
+                          {!collapsed && item.key === 'wedding_crm' && (
+                            <span className="text-[8px] bg-[#C6A15B] text-[#321923] font-black px-1.5 py-0.2 rounded-full uppercase ml-1 flex-shrink-0">
+                              NEW
+                            </span>
+                          )}
                         </div>
-                        {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#321923] opacity-80" />}
+
+                        {!collapsed && isActive && (
+                          <ChevronRight className="w-3.5 h-3.5 text-[#321923] opacity-80 flex-shrink-0" />
+                        )}
                       </Link>
                     );
                   })}
@@ -201,17 +286,22 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Footer Logout */}
-        <div className="p-3 border-t border-[#C6A15B]/15 bg-[#350E1A]/80">
+        <div className={`border-t border-[#C6A15B]/15 bg-[#350E1A]/80 transition-all ${collapsed ? 'p-2' : 'p-3'}`}>
           <button
             onClick={() => Auth.logout()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold bg-[#C43D4B]/15 text-[#F8F5F1] border border-[#C43D4B]/40 hover:bg-[#C43D4B] hover:text-white transition-all shadow-sm"
+            title="Sign Out Session"
+            className={`w-full flex items-center justify-center rounded-xl text-xs font-bold bg-[#C43D4B]/15 text-[#F8F5F1] border border-[#C43D4B]/40 hover:bg-[#C43D4B] hover:text-white transition-all shadow-sm ${
+              collapsed ? 'py-2.5 px-0' : 'py-2.5 px-3 gap-2'
+            }`}
           >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out Session</span>
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span>Sign Out</span>}
           </button>
-          <div className="text-[9px] text-[#F8F5F1]/40 text-center mt-2 font-medium">
-            BSC Candidate CRM · Enterprise ATS v2.5
-          </div>
+          {!collapsed && (
+            <div className="text-[8.5px] text-[#F8F5F1]/40 text-center mt-2 font-medium">
+              BSC Wedding CRM · Enterprise ATS v2.6
+            </div>
+          )}
         </div>
       </aside>
     </>

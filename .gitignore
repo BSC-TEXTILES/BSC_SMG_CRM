@@ -1,6 +1,5 @@
 node_modules/
 build/
-dist/
 hrms-system/client/dist/
 .env.local
 .env.development.local

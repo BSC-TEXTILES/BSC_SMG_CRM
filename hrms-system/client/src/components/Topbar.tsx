@@ -7,6 +7,8 @@ import ActivityPanel from './ui/ActivityPanel';
 import GlobalSearchModal from './ui/GlobalSearchModal';
 import ProfileDropdown from './ui/ProfileDropdown';
 
+import { toggleSidebarCollapsed } from '../utils/sidebarState';
+
 interface TopbarProps {
   title: string;
   breadcrumbs: { label: string; href?: string }[];
@@ -44,16 +46,25 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
     };
   }, []);
 
+  const handleHamburgerClick = () => {
+    if (window.innerWidth >= 1024) {
+      toggleSidebarCollapsed();
+    } else {
+      onMenuClick();
+    }
+  };
+
   return (
     <>
       <header className="h-16 bg-white/95 backdrop-blur-md border-b border-[#EAE4DC] px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
-            onClick={onMenuClick}
-            className="p-2 rounded-xl text-[#4A1726] hover:bg-[#4A1726]/5 lg:hidden transition-colors border border-[#EAE4DC] flex-shrink-0"
-            aria-label="Toggle menu"
+            onClick={handleHamburgerClick}
+            className="p-2 rounded-xl text-[#4A1726] hover:bg-[#4A1726]/10 transition-colors border border-[#EAE4DC] flex-shrink-0 flex items-center justify-center cursor-pointer shadow-xs"
+            aria-label="Toggle navigation menu (3 lines)"
+            title="Toggle navigation (3 lines)"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-5 h-5 text-[#4A1726]" />
           </button>
           <div className="min-w-0">
             <h1 className="text-sm sm:text-base md:text-lg font-black text-[#321923] tracking-tight leading-none truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">

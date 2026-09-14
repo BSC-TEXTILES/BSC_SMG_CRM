@@ -6,6 +6,8 @@ import ToastContainer from '../Toast';
 import { Auth, UserSession } from "../../services/api";
 import { Plus, X, UserCheck, BarChart3, Target, PhoneCall, Zap } from 'lucide-react';
 
+import { getSidebarCollapsed, subscribeSidebarCollapsed } from '../../utils/sidebarState';
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
   title: string;
@@ -25,6 +27,12 @@ export default function DashboardLayout({
   const [session, setSession] = useState<UserSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
+
+  useEffect(() => {
+    const unsub = subscribeSidebarCollapsed((c) => setCollapsed(c));
+    return unsub;
+  }, []);
 
   useEffect(() => {
     if (!Auth.check()) {
@@ -40,7 +48,7 @@ export default function DashboardLayout({
 
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Topbar
           title={title}
           breadcrumbs={breadcrumbs}

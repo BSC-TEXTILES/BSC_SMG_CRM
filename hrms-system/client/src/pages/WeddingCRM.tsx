@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import * as XLSX from 'xlsx';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { API, Auth, UserSession } from '../services/api';
+import { getSidebarCollapsed, subscribeSidebarCollapsed } from '../utils/sidebarState';
 import {
   Sparkles,
   Phone,
@@ -38,7 +40,11 @@ import {
   Flame,
   ArrowRight,
   CalendarDays,
-  CheckCheck
+  CheckCheck,
+  History,
+  FileSpreadsheet,
+  X,
+  MessageSquare
 } from 'lucide-react';
 
 interface WeddingCustomer {
@@ -48,53 +54,96 @@ interface WeddingCustomer {
   location_name?: string;
   location_code?: string;
   customer_name: string;
-  phone: string;
-  alternate_phone?: string;
-  city?: string;
+  mobile_number: string;
+  phone?: string; // alias
+  email?: string;
   wedding_date?: string;
-  bride_name?: string;
-  groom_name?: string;
-  customer_role?: string;
-  estimated_budget?: number;
-  shopping_categories?: string | string[];
-  expected_shopping_date?: string;
-  follow_up_date?: string;
-  follow_up_priority?: 'Normal' | 'High' | 'Urgent';
+  expected_shopping_date: string;
+  preferred_shopping_category?: string;
+  estimated_family_size?: number;
+  assigned_telecaller?: string;
   assigned_telecaller_id?: number;
-  telecaller_name?: string;
-  current_status: string;
-  readiness_score: number;
-  initial_notes?: string;
+  follow_up_date: string;
+  preferred_call_time?: string;
+  customer_notes?: string;
+  customer_status: string;
+  call_status: string;
   total_calls_count?: number;
   last_call_date?: string;
   last_call_outcome?: string;
-  last_call_notes?: string;
+  overdue_days?: number;
   created_at?: string;
 }
 
 interface WeddingStats {
-  total_leads: number;
-  due_today: number;
-  overdue: number;
-  upcoming_week: number;
-  ready_to_shop: number;
-  store_visit_planned: number;
-  callback_requests: number;
-  converted: number;
-  lost: number;
+  totalCustomers: number;
+  todayFollowUps: number;
+  overdueFollowUps: number;
+  callsPending: number;
+  callsCompleted: number;
+  shoppingConfirmed: number;
+  visitedConverted: number;
+  notInterested: number;
 }
 
 interface CallLog {
   id: number;
+  customer_id: number;
   call_date: string;
-  caller_name: string;
+  call_time: string;
+  telecaller_name: string;
+  telecaller_id?: number;
   call_status: string;
-  outcome: string;
-  call_notes: string;
-  customer_feedback: string;
-  readiness_score: number;
-  next_follow_up_date: string;
+  call_outcome: string;
+  remarks?: string;
+  next_follow_up_date?: string;
+  next_follow_up_time?: string;
+  expected_shopping_date_updated?: string;
+  created_at: string;
 }
+
+interface AuditLog {
+  id: number;
+  user_name: string;
+  action: string;
+  details?: string;
+  created_at: string;
+}
+
+const CUSTOMER_STATUSES = [
+  'New',
+  'Follow-up Pending',
+  'Contacted',
+  'Interested',
+  'Shopping Date Confirmed',
+  'Visited Store',
+  'Converted',
+  'Not Interested',
+  'No Response',
+  'Cancelled',
+  'Closed'
+];
+
+const CALL_STATUSES = [
+  'Pending',
+  'Called',
+  'No Answer',
+  'Busy',
+  'Call Back Requested',
+  'Connected',
+  'Completed'
+];
+
+const CALL_OUTCOMES = [
+  'Connected',
+  'No Answer',
+  'Busy',
+  'Call Back Requested',
+  'Interested',
+  'Not Interested',
+  'Shopping Confirmed',
+  'Other'
+];
 
 const CATEGORY_OPTIONS = [
   'Pure Silk Sarees',
@@ -104,126 +153,136 @@ const CATEGORY_OPTIONS = [
   'Fancy & Designer Sarees',
   'Kids Ethnic Wear',
   'Shirting & Suiting',
-  'Accessories & Dhotis'
+  'Accessories & Dhotis',
+  'General Wedding Shopping'
 ];
 
-const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'New Lead': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  'Call Scheduled': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
-  'Follow-up in Progress': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  'Callback Requested': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  'Store Visit Planned': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  'Ready to Shop': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
-  'Converted': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-300' },
-  'Lost': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
-};
+const CALL_TIME_OPTIONS = [
+  'Morning (10 AM - 1 PM)',
+  'Afternoon (1 PM - 4 PM)',
+  'Evening (4 PM - 7 PM)',
+  'Night (7 PM - 9 PM)',
+  'Any Time'
+];
 
 export default function WeddingCRM() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'register' | 'calling_desk' | 'calendar' | 'analytics'>('calling_desk');
+  const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
+  const [activeTab, setActiveTab] = useState<'calling_desk' | 'register' | 'calendar' | 'analytics'>('calling_desk');
 
   // Multi-location state
   const [selectedLocation, setSelectedLocation] = useState<number | ''>('');
-  const [locations, setLocations] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([
+    { id: 1, name: 'Belagavi', code: 'BEL' },
+    { id: 2, name: 'Davanagere', code: 'DAV' },
+    { id: 3, name: 'Shivamogga', code: 'SHI' }
+  ]);
 
   // Telecallers list
   const [telecallers, setTelecallers] = useState<any[]>([]);
 
-  // Statistics
+  // 8 Dashboard KPI Stats
   const [stats, setStats] = useState<WeddingStats>({
-    total_leads: 0,
-    due_today: 0,
-    overdue: 0,
-    upcoming_week: 0,
-    ready_to_shop: 0,
-    store_visit_planned: 0,
-    callback_requests: 0,
-    converted: 0,
-    lost: 0
+    totalCustomers: 0,
+    todayFollowUps: 0,
+    overdueFollowUps: 0,
+    callsPending: 0,
+    callsCompleted: 0,
+    shoppingConfirmed: 0,
+    visitedConverted: 0,
+    notInterested: 0
   });
 
-  // Customer Register List
+  // Calling Desk State
+  const [deskQueueType, setDeskQueueType] = useState<'overdue' | 'dueToday' | 'callbacks' | 'upcoming'>('dueToday');
+  const [deskSummary, setDeskSummary] = useState({
+    pendingCalls: 0,
+    completedToday: 0,
+    noAnswerCount: 0,
+    callbackCount: 0,
+    remainingCalls: 0
+  });
+  const [deskQueues, setDeskQueues] = useState<{
+    overdue: WeddingCustomer[];
+    dueToday: WeddingCustomer[];
+    callbackRequests: WeddingCustomer[];
+    upcoming: WeddingCustomer[];
+  }>({
+    overdue: [],
+    dueToday: [],
+    callbackRequests: [],
+    upcoming: []
+  });
+  const [loadingDesk, setLoadingDesk] = useState(false);
+
+  // Customer Directory / Register State
   const [customers, setCustomers] = useState<WeddingCustomer[]>([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateViewFilter, setDateViewFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('all');
-  const [customFromDate, setCustomFromDate] = useState('');
-  const [customToDate, setCustomToDate] = useState('');
-
-  // Calling Desk Queues
-  const [callingDeskData, setCallingDeskData] = useState<{
-    counts: { overdue: number; due_today: number; callbacks: number; upcoming: number };
-    queues: {
-      overdue: WeddingCustomer[];
-      due_today: WeddingCustomer[];
-      callbacks: WeddingCustomer[];
-      upcoming: WeddingCustomer[];
-    };
-  }>({
-    counts: { overdue: 0, due_today: 0, callbacks: 0, upcoming: 0 },
-    queues: { overdue: [], due_today: [], callbacks: [], upcoming: [] }
-  });
-  const [activeDeskQueue, setActiveDeskQueue] = useState<'due_today' | 'overdue' | 'callbacks' | 'upcoming'>('due_today');
-  const [loadingDesk, setLoadingDesk] = useState(false);
+  const [callStatusFilter, setCallStatusFilter] = useState('');
+  const [telecallerFilter, setTelecallerFilter] = useState('');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   // Calendar State
-  const [calendarMonth, setCalendarMonth] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  });
-  const [calendarData, setCalendarData] = useState<{
-    days: Record<string, { follow_ups: number; expected_shoppings: number; customers: any[] }>;
-    month: string;
-  }>({ days: {}, month: '' });
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth() + 1);
+  const [calendarDays, setCalendarDays] = useState<any[]>([]);
+  const [monthCustomers, setMonthCustomers] = useState<WeddingCustomer[]>([]);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
 
   // Analytics State
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [analyticsData, setAnalyticsData] = useState<{
+    funnel: any;
+    outcomes: any[];
+    telecallers: any[];
+  } | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
-  // Modals
+  // Modals & Active Customer
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showCallLogModal, setShowCallLogModal] = useState(false);
+  const [showLogCallModal, setShowLogCallModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<WeddingCustomer | null>(null);
-  const [customerTimeline, setCustomerTimeline] = useState<CallLog[]>([]);
+  const [customerCallLogs, setCustomerCallLogs] = useState<CallLog[]>([]);
+  const [customerAuditLogs, setCustomerAuditLogs] = useState<AuditLog[]>([]);
 
-  // Duplicate Check Banner
+  // Duplicate Check Alert State
   const [duplicateWarning, setDuplicateWarning] = useState<any | null>(null);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Form states
+  // Add Customer Form
   const [addForm, setAddForm] = useState({
     customer_name: '',
-    phone: '',
-    alternate_phone: '',
-    city: '',
+    mobile_number: '',
+    email: '',
+    location_id: '',
     wedding_date: '',
-    bride_name: '',
-    groom_name: '',
-    customer_role: 'Groom',
-    estimated_budget: '',
-    shopping_categories: [] as string[],
     expected_shopping_date: '',
-    follow_up_date: '',
-    follow_up_priority: 'Normal',
+    preferred_shopping_category: 'General Wedding Shopping',
+    estimated_family_size: '2',
+    assigned_telecaller: '',
     assigned_telecaller_id: '',
-    initial_notes: '',
-    location_id: ''
+    follow_up_date: '',
+    preferred_call_time: 'Morning (10 AM - 1 PM)',
+    customer_notes: ''
   });
 
-  const [callLogForm, setCallLogForm] = useState({
-    call_status: 'Connected',
-    outcome: 'Interested - Follow-up Required',
-    call_notes: '',
-    customer_feedback: '',
-    readiness_score: 3,
+  // Log Call Form
+  const [logForm, setLogForm] = useState({
+    call_date: new Date().toISOString().slice(0, 10),
+    call_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    call_status: 'Completed',
+    call_outcome: 'Connected',
+    remarks: '',
     next_follow_up_date: '',
-    assigned_telecaller_id: '',
-    new_customer_status: ''
+    next_follow_up_time: 'Morning (10 AM - 1 PM)',
+    expected_shopping_date: ''
   });
 
   const showToast = (msg: string) => {
@@ -231,7 +290,13 @@ export default function WeddingCRM() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Check auth session
+  // Subscribe to sidebar collapse state
+  useEffect(() => {
+    const unsub = subscribeSidebarCollapsed((c) => setCollapsed(c));
+    return unsub;
+  }, []);
+
+  // Initialize Auth & Location
   useEffect(() => {
     const s = Auth.get();
     if (!s) {
@@ -239,20 +304,59 @@ export default function WeddingCRM() {
       return;
     }
     setSession(s);
+
     if (!s.isGlobalAdmin && s.locationId) {
       setSelectedLocation(s.locationId);
       setAddForm(prev => ({ ...prev, location_id: String(s.locationId) }));
+    } else {
+      // Default to Davanagere if global admin
+      setSelectedLocation('');
     }
+
+    // Set default addForm dates: Shopping in 30 days, Follow-up in 3 days
+    const today = new Date();
+    const fDate = new Date(today);
+    fDate.setDate(today.getDate() + 3);
+    const sDate = new Date(today);
+    sDate.setDate(today.getDate() + 30);
+
+    setAddForm(prev => ({
+      ...prev,
+      follow_up_date: fDate.toISOString().slice(0, 10),
+      expected_shopping_date: sDate.toISOString().slice(0, 10)
+    }));
   }, []);
 
   // Fetch Locations & Telecallers
   useEffect(() => {
-    API.getLocations().then(res => {
-      if (res && res.locations) setLocations(res.locations);
-    }).catch(() => {});
+    const defaultLocations = [
+      { id: 1, name: 'Belagavi', code: 'BEL' },
+      { id: 2, name: 'Davanagere', code: 'DAV' },
+      { id: 3, name: 'Shivamogga', code: 'SHI' }
+    ];
+
+    if (typeof API.getLocations === 'function') {
+      API.getLocations().then(res => {
+        const list = res?.locations || res?.data?.locations;
+        if (list && list.length > 0) {
+          setLocations(list.map((l: any) => ({
+            id: l.id,
+            name: l.location_name || l.name,
+            code: l.location_code || l.code
+          })));
+        } else {
+          setLocations(defaultLocations);
+        }
+      }).catch(() => setLocations(defaultLocations));
+    } else {
+      setLocations(defaultLocations);
+    }
 
     API.getWeddingTelecallers(selectedLocation || undefined).then(res => {
-      if (res && res.telecallers) setTelecallers(res.telecallers);
+      const tc = res?.telecallers || res?.data?.telecallers;
+      if (tc) {
+        setTelecallers(tc);
+      }
     }).catch(() => {});
   }, [selectedLocation]);
 
@@ -260,34 +364,23 @@ export default function WeddingCRM() {
   const loadStats = useCallback(async () => {
     try {
       const res = await API.getWeddingStats(selectedLocation || undefined);
-      if (res && res.stats) setStats(res.stats);
+      const s = res?.stats || res?.data?.stats;
+      if (s) {
+        setStats({
+          totalCustomers: Number(s.totalCustomers ?? s.total_customers) || 0,
+          todayFollowUps: Number(s.todayFollowUps ?? s.due_today) || 0,
+          overdueFollowUps: Number(s.overdueFollowUps ?? s.overdue) || 0,
+          callsPending: Number(s.callsPending ?? s.calls_pending) || 0,
+          callsCompleted: Number(s.callsCompleted ?? s.calls_completed) || 0,
+          shoppingConfirmed: Number(s.shoppingConfirmed ?? s.shopping_confirmed) || 0,
+          visitedConverted: Number(s.visitedConverted ?? s.visited_converted) || 0,
+          notInterested: Number(s.notInterested ?? s.not_interested) || 0
+        });
+      }
     } catch (err) {
       console.error('Failed to load stats:', err);
     }
   }, [selectedLocation]);
-
-  // Load Customers
-  const loadCustomers = useCallback(async () => {
-    setLoadingCustomers(true);
-    try {
-      const res = await API.getWeddingCustomers({
-        location_id: selectedLocation || undefined,
-        date_filter: dateFilter,
-        status: statusFilter || undefined,
-        search: searchQuery || undefined,
-        from_date: customFromDate || undefined,
-        to_date: customToDate || undefined,
-        limit: 100
-      });
-      if (res && res.customers) {
-        setCustomers(res.customers);
-      }
-    } catch (err) {
-      console.error('Failed to load customers:', err);
-    } finally {
-      setLoadingCustomers(false);
-    }
-  }, [selectedLocation, dateFilter, statusFilter, searchQuery, customFromDate, customToDate]);
 
   // Load Calling Desk Queues
   const loadCallingDesk = useCallback(async () => {
@@ -296,8 +389,16 @@ export default function WeddingCRM() {
       const res = await API.getWeddingCallingDesk({
         location_id: selectedLocation || undefined
       });
-      if (res && res.queues) {
-        setCallingDeskData(res);
+      const summary = res?.summary || res?.data?.summary;
+      const queues = res?.queues || res?.data?.queues;
+      if (summary) setDeskSummary(summary);
+      if (queues) {
+        setDeskQueues({
+          overdue: queues.overdue || [],
+          dueToday: queues.dueToday || queues.due_today || [],
+          callbackRequests: queues.callbackRequests || queues.callbacks || [],
+          upcoming: queues.upcoming || []
+        });
       }
     } catch (err) {
       console.error('Failed to load calling desk:', err);
@@ -306,45 +407,75 @@ export default function WeddingCRM() {
     }
   }, [selectedLocation]);
 
-  // Load Calendar
+  // Load Customer Directory / Register
+  const loadCustomers = useCallback(async () => {
+    setLoadingCustomers(true);
+    try {
+      const res = await API.getWeddingCustomers({
+        location_id: selectedLocation || undefined,
+        date_filter: dateViewFilter !== 'all' ? dateViewFilter : undefined,
+        status: statusFilter || undefined,
+        telecaller_id: telecallerFilter || undefined,
+        search: searchQuery || undefined,
+        from_date: customStartDate || undefined,
+        to_date: customEndDate || undefined,
+        limit: 100
+      });
+      const custList = res?.customers || res?.data?.customers;
+      if (custList) {
+        setCustomers(custList);
+      }
+    } catch (err) {
+      console.error('Failed to load customers:', err);
+    } finally {
+      setLoadingCustomers(false);
+    }
+  }, [selectedLocation, dateViewFilter, statusFilter, telecallerFilter, searchQuery, customStartDate, customEndDate]);
+
+  // Load Calendar Data
   const loadCalendar = useCallback(async () => {
     try {
       const res = await API.getWeddingCalendar({
-        month: calendarMonth,
+        month: `${calendarYear}-${String(calendarMonth).padStart(2, '0')}`,
         location_id: selectedLocation || undefined
       });
-      if (res && res.calendar) {
-        setCalendarData(res.calendar);
-      }
+      const days = res?.days || res?.data?.days;
+      const cList = res?.customers || res?.data?.customers;
+      if (days) setCalendarDays(days);
+      if (cList) setMonthCustomers(cList);
     } catch (err) {
       console.error('Failed to load calendar:', err);
     }
-  }, [calendarMonth, selectedLocation]);
+  }, [calendarYear, calendarMonth, selectedLocation]);
 
-  // Load Analytics
+  // Load Analytics Data
   const loadAnalytics = useCallback(async () => {
+    setLoadingAnalytics(true);
     try {
       const res = await API.getWeddingAnalytics({
         location_id: selectedLocation || undefined
       });
-      if (res && res.analytics) {
-        setAnalyticsData(res.analytics);
+      const ana = res?.data || res;
+      if (ana) {
+        setAnalyticsData(ana);
       }
     } catch (err) {
       console.error('Failed to load analytics:', err);
+    } finally {
+      setLoadingAnalytics(false);
     }
   }, [selectedLocation]);
 
-  // Master refresh on location or tab change
+  // Refresh tab data when activeTab or location changes
   useEffect(() => {
     loadStats();
-    if (activeTab === 'register') loadCustomers();
-    else if (activeTab === 'calling_desk') loadCallingDesk();
+    if (activeTab === 'calling_desk') loadCallingDesk();
+    else if (activeTab === 'register') loadCustomers();
     else if (activeTab === 'calendar') loadCalendar();
     else if (activeTab === 'analytics') loadAnalytics();
-  }, [activeTab, selectedLocation, loadStats, loadCustomers, loadCallingDesk, loadCalendar, loadAnalytics]);
+  }, [activeTab, selectedLocation, loadStats, loadCallingDesk, loadCustomers, loadCalendar, loadAnalytics]);
 
-  // Real-time Duplicate Check on phone change
+  // Duplicate Check on Phone Blur
   const handlePhoneBlur = async (phone: string) => {
     if (!phone || phone.trim().length < 10) {
       setDuplicateWarning(null);
@@ -353,7 +484,7 @@ export default function WeddingCRM() {
     try {
       const res = await API.checkWeddingDuplicate(phone.trim());
       if (res && res.exists) {
-        setDuplicateWarning(res.existingCustomer);
+        setDuplicateWarning(res.customer || res.existingCustomer);
       } else {
         setDuplicateWarning(null);
       }
@@ -362,79 +493,87 @@ export default function WeddingCRM() {
     }
   };
 
-  // Handle Add Customer Submission
+  // Create Customer Handler
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addForm.customer_name || !addForm.phone) {
-      alert('Please fill customer name and phone number.');
+    if (!addForm.customer_name.trim() || !addForm.mobile_number.trim()) {
+      alert('Customer Name and Mobile Number are required.');
       return;
     }
     if (!addForm.expected_shopping_date) {
-      alert('Please provide the Expected Shopping Date.');
+      alert('Expected Shopping Date is required.');
       return;
     }
     if (!addForm.follow_up_date) {
-      alert('Please provide the Follow-up Date.');
+      alert('Follow-up Date is required.');
       return;
     }
 
     try {
       const payload = {
-        ...addForm,
-        estimated_budget: addForm.estimated_budget ? parseFloat(addForm.estimated_budget) : null,
-        location_id: addForm.location_id ? parseInt(addForm.location_id) : (session?.locationId || 1),
-        assigned_telecaller_id: addForm.assigned_telecaller_id ? parseInt(addForm.assigned_telecaller_id) : null
+        customer_name: addForm.customer_name.trim(),
+        mobile_number: addForm.mobile_number.trim(),
+        email: addForm.email.trim() || null,
+        wedding_date: addForm.wedding_date || null,
+        expected_shopping_date: addForm.expected_shopping_date,
+        preferred_shopping_category: addForm.preferred_shopping_category,
+        estimated_family_size: parseInt(addForm.estimated_family_size, 10) || 1,
+        assigned_telecaller: addForm.assigned_telecaller || null,
+        assigned_telecaller_id: addForm.assigned_telecaller_id ? parseInt(addForm.assigned_telecaller_id, 10) : null,
+        follow_up_date: addForm.follow_up_date,
+        preferred_call_time: addForm.preferred_call_time,
+        customer_notes: addForm.customer_notes.trim() || null,
+        location_id: addForm.location_id ? parseInt(addForm.location_id, 10) : (session?.locationId || 2)
       };
 
       const res = await API.createWeddingCustomer(payload);
       if (res && res.success) {
-        showToast(`Wedding Customer ${res.customer.customer_code} created successfully!`);
+        showToast(`Wedding Customer added! Code: ${res.customer_code || res.customer?.customer_code}`);
         setShowAddModal(false);
         setDuplicateWarning(null);
+
         // Reset form
-        setAddForm({
+        setAddForm(prev => ({
           customer_name: '',
-          phone: '',
-          alternate_phone: '',
-          city: '',
+          mobile_number: '',
+          email: '',
+          location_id: session?.locationId ? String(session.locationId) : '',
           wedding_date: '',
-          bride_name: '',
-          groom_name: '',
-          customer_role: 'Groom',
-          estimated_budget: '',
-          shopping_categories: [],
-          expected_shopping_date: '',
-          follow_up_date: '',
-          follow_up_priority: 'Normal',
+          expected_shopping_date: prev.expected_shopping_date,
+          preferred_shopping_category: 'General Wedding Shopping',
+          estimated_family_size: '2',
+          assigned_telecaller: '',
           assigned_telecaller_id: '',
-          initial_notes: '',
-          location_id: session?.locationId ? String(session.locationId) : ''
-        });
+          follow_up_date: prev.follow_up_date,
+          preferred_call_time: 'Morning (10 AM - 1 PM)',
+          customer_notes: ''
+        }));
+
         loadStats();
         if (activeTab === 'calling_desk') loadCallingDesk();
         else loadCustomers();
       } else {
-        alert(res?.error || 'Failed to create wedding customer');
+        alert(res?.message || res?.error || 'Failed to create customer');
       }
     } catch (err: any) {
-      alert(err.message || 'Error creating customer');
+      alert(err.message || 'Error creating wedding customer');
     }
   };
 
   // Open Log Call Modal
   const openCallModal = (cust: WeddingCustomer) => {
     setSelectedCustomer(cust);
-    setCallLogForm({
-      call_status: 'Connected',
-      outcome: 'Interested - Follow-up Required',
-      call_notes: '',
-      customer_feedback: '',
-      readiness_score: cust.readiness_score || 3,
-      next_follow_up_date: '',
-      assigned_telecaller_id: cust.assigned_telecaller_id ? String(cust.assigned_telecaller_id) : '',
-      new_customer_status: cust.current_status || ''
+    setLogForm({
+      call_date: new Date().toISOString().slice(0, 10),
+      call_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      call_status: 'Completed',
+      call_outcome: 'Connected',
+      remarks: '',
+      next_follow_up_date: cust.follow_up_date || '',
+      next_follow_up_time: cust.preferred_call_time || 'Morning (10 AM - 1 PM)',
+      expected_shopping_date: cust.expected_shopping_date || ''
     });
-    setShowCallLogModal(true);
+    setShowLogCallModal(true);
   };
 
   // Submit Call Log
@@ -444,37 +583,39 @@ export default function WeddingCRM() {
 
     try {
       const payload = {
+        customerId: selectedCustomer.id,
         customer_id: selectedCustomer.id,
-        call_status: callLogForm.call_status,
-        outcome: callLogForm.outcome,
-        call_notes: callLogForm.call_notes,
-        customer_feedback: callLogForm.customer_feedback,
-        readiness_score: callLogForm.readiness_score,
-        next_follow_up_date: callLogForm.next_follow_up_date || undefined,
-        assigned_telecaller_id: callLogForm.assigned_telecaller_id ? parseInt(callLogForm.assigned_telecaller_id) : undefined,
-        new_customer_status: callLogForm.new_customer_status || undefined
+        callDate: logForm.call_date,
+        callTime: logForm.call_time,
+        callStatus: logForm.call_status,
+        callOutcome: logForm.call_outcome,
+        remarks: logForm.remarks,
+        nextFollowUpDate: logForm.call_outcome !== 'Not Interested' ? logForm.next_follow_up_date : null,
+        nextFollowUpTime: logForm.call_outcome !== 'Not Interested' ? logForm.next_follow_up_time : null,
+        expectedShoppingDate: logForm.call_outcome === 'Shopping Confirmed' ? logForm.expected_shopping_date : null
       };
 
       const res = await API.logWeddingCall(payload);
       if (res && res.success) {
-        showToast(`Call logged for ${selectedCustomer.customer_name}. Next follow-up updated!`);
-        setShowCallLogModal(false);
+        showToast(`Call outcome [${logForm.call_outcome}] logged for ${selectedCustomer.customer_name}!`);
+        setShowLogCallModal(false);
         loadStats();
         if (activeTab === 'calling_desk') loadCallingDesk();
         else if (activeTab === 'register') loadCustomers();
-        // If profile modal is also open, reload timeline
+        else if (activeTab === 'calendar') loadCalendar();
+
         if (showProfileModal) {
           openProfileModal(selectedCustomer);
         }
       } else {
-        alert(res?.error || 'Failed to log call');
+        alert(res?.message || 'Failed to log call');
       }
     } catch (err: any) {
       alert(err.message || 'Error saving call log');
     }
   };
 
-  // Open Customer Profile & Timeline
+  // Open Customer Profile Modal
   const openProfileModal = async (cust: WeddingCustomer) => {
     setSelectedCustomer(cust);
     setShowProfileModal(true);
@@ -482,7 +623,8 @@ export default function WeddingCRM() {
       const res = await API.getWeddingCustomerById(cust.id);
       if (res && res.customer) {
         setSelectedCustomer(res.customer);
-        setCustomerTimeline(res.timeline || []);
+        setCustomerCallLogs(res.callLogs || res.timeline || []);
+        setCustomerAuditLogs(res.auditLogs || []);
       }
     } catch (e) {
       console.error('Error fetching customer profile:', e);
@@ -491,146 +633,215 @@ export default function WeddingCRM() {
 
   // Open Edit Customer Modal
   const openEditModal = (cust: WeddingCustomer) => {
-    setSelectedCustomer(cust);
+    setSelectedCustomer({ ...cust });
     setShowEditModal(true);
   };
 
+  // Submit Update Customer
   const handleUpdateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomer) return;
     try {
       const res = await API.updateWeddingCustomer(selectedCustomer.id, selectedCustomer);
       if (res && res.success) {
-        showToast('Customer details updated successfully.');
+        showToast('Customer profile updated successfully.');
         setShowEditModal(false);
         loadCustomers();
         loadCallingDesk();
+        loadStats();
+        if (showProfileModal) {
+          openProfileModal(selectedCustomer);
+        }
       } else {
-        alert(res?.error || 'Failed to update customer');
+        alert(res?.message || 'Failed to update customer');
       }
     } catch (err: any) {
       alert(err.message || 'Error updating customer');
     }
   };
 
-  // Delete customer (Admin only)
+  // Soft Delete Customer
   const handleDeleteCustomer = async (cust: WeddingCustomer) => {
-    if (!window.confirm(`Are you sure you want to remove customer ${cust.customer_name} (${cust.customer_code})?`)) {
+    if (!window.confirm(`Are you sure you want to archive customer ${cust.customer_name} (${cust.customer_code})? Historical call logs will be preserved.`)) {
       return;
     }
     try {
       const res = await API.deleteWeddingCustomer(cust.id);
       if (res && res.success) {
-        showToast('Customer record deleted.');
+        showToast('Customer archived successfully.');
+        setShowProfileModal(false);
         loadStats();
         loadCustomers();
         loadCallingDesk();
+      } else {
+        alert(res?.message || 'Failed to archive customer');
       }
     } catch (err: any) {
-      alert(err.message || 'Failed to delete record');
+      alert(err.message || 'Failed to archive customer');
     }
   };
 
-  // Copy phone helper
+  // Export to Excel (.xlsx)
+  const handleExportExcel = async () => {
+    try {
+      const res = await API.getWeddingExportData({
+        location_id: selectedLocation || undefined,
+        status: statusFilter || undefined
+      });
+      const rows = res?.records || res?.customers || [];
+      if (rows.length === 0) {
+        alert('No records available to export.');
+        return;
+      }
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Wedding Customers');
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `BSC_Wedding_CRM_${dateStr}.xlsx`);
+      showToast('Excel report downloaded successfully.');
+    } catch (err: any) {
+      alert('Failed to export Excel: ' + err.message);
+    }
+  };
+
+  // Export to PDF / Print Report
+  const handleExportPDF = () => {
+    const locName = locations.find(l => l.id === selectedLocation)?.name || (session?.isGlobalAdmin ? 'All Locations' : (session?.locationName || 'Davanagere'));
+    const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow pop-ups to view printable PDF report.');
+      return;
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>BSC Wedding Customer Follow-up Report</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; color: #321923; }
+          .header { border-bottom: 3px solid #C6A15B; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+          .brand { font-size: 24px; font-weight: 900; color: #4A1726; }
+          .tagline { font-size: 11px; color: #C6A15B; font-weight: bold; letter-spacing: 2px; }
+          .meta { text-align: right; font-size: 12px; color: #666; }
+          .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+          .kpi-card { background: #F8F5F1; border: 1px solid #EAE4DC; padding: 12px; border-radius: 8px; }
+          .kpi-title { font-size: 11px; font-weight: bold; color: #7A726D; text-transform: uppercase; }
+          .kpi-val { font-size: 20px; font-weight: 900; color: #4A1726; margin-top: 4px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
+          th { background: #4A1726; color: #F8F5F1; padding: 8px 10px; text-align: left; font-weight: bold; }
+          td { padding: 8px 10px; border-bottom: 1px solid #EAE4DC; }
+          tr:nth-child(even) { background: #FAFAFA; }
+          .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }
+          .badge-overdue { background: #FEE2E2; color: #991B1B; }
+          .badge-confirmed { background: #D1FAE5; color: #065F46; }
+          .footer { margin-top: 30px; font-size: 10px; text-align: center; color: #999; border-top: 1px solid #EEE; padding-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="brand">BSC EXCLUSIVE TEXTILES</div>
+            <div class="tagline">WEDDING CUSTOMER FOLLOW-UP REPORT</div>
+          </div>
+          <div class="meta">
+            <div><strong>Location:</strong> ${locName}</div>
+            <div><strong>Report Date:</strong> ${dateStr}</div>
+            <div><strong>Generated By:</strong> ${session?.fullName || 'Staff'}</div>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-title">Total Customers</div>
+            <div class="kpi-val">${stats.totalCustomers}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Due Today</div>
+            <div class="kpi-val">${stats.todayFollowUps}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Overdue Calls</div>
+            <div class="kpi-val" style="color:#B91C1C;">${stats.overdueFollowUps}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Shopping Confirmed</div>
+            <div class="kpi-val" style="color:#047857;">${stats.shoppingConfirmed}</div>
+          </div>
+        </div>
+
+        <h3>Active Wedding Customer Follow-up List</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer Name</th>
+              <th>Mobile</th>
+              <th>Expected Shopping</th>
+              <th>Next Follow-up</th>
+              <th>Telecaller</th>
+              <th>Customer Status</th>
+              <th>Call Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${customers.slice(0, 50).map(c => `
+              <tr>
+                <td>${c.customer_code}</td>
+                <td><strong>${c.customer_name}</strong></td>
+                <td>${c.mobile_number}</td>
+                <td>${c.expected_shopping_date}</td>
+                <td>${c.follow_up_date} ${c.overdue_days && c.overdue_days > 0 ? `<span class="badge badge-overdue">${c.overdue_days}d overdue</span>` : ''}</td>
+                <td>${c.assigned_telecaller || 'Unassigned'}</td>
+                <td>${c.customer_status}</td>
+                <td>${c.call_status}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          BSC Business Management System · Wedding CRM Module · Printed on ${new Date().toLocaleString('en-IN')}
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
+  // Helper copy phone
   const copyPhone = (phone: string) => {
     navigator.clipboard.writeText(phone);
     setCopySuccess(phone);
     setTimeout(() => setCopySuccess(null), 2000);
   };
 
-  // Format dates
-  const formatDate = (dStr?: string) => {
-    if (!dStr) return '—';
+  // Format Date helper
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
     try {
-      const d = new Date(dStr);
+      const d = new Date(dateStr);
       return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     } catch {
-      return dStr;
+      return dateStr;
     }
-  };
-
-  // Days difference
-  const getDaysDiff = (dStr?: string) => {
-    if (!dStr) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = new Date(dStr);
-    target.setHours(0, 0, 0, 0);
-    return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  };
-
-  // Export to CSV
-  const handleExportCSV = async () => {
-    try {
-      const res = await API.getWeddingExportData({
-        location_id: selectedLocation || undefined,
-        status: statusFilter || undefined
-      });
-      if (!res || !res.customers || res.customers.length === 0) {
-        alert('No data to export.');
-        return;
-      }
-
-      const headers = [
-        'Code', 'Location', 'Customer Name', 'Phone', 'Alt Phone', 'City',
-        'Wedding Date', 'Bride Name', 'Groom Name', 'Role', 'Est. Budget',
-        'Shopping Categories', 'Expected Shopping Date', 'Follow-up Date',
-        'Priority', 'Status', 'Readiness Score (1-5)', 'Assigned Telecaller',
-        'Total Calls', 'Last Call Outcome', 'Last Call Notes'
-      ];
-
-      const csvRows = [headers.join(',')];
-
-      res.customers.forEach((c: any) => {
-        const row = [
-          `"${c.customer_code || ''}"`,
-          `"${c.location_name || ''}"`,
-          `"${(c.customer_name || '').replace(/"/g, '""')}"`,
-          `"${c.phone || ''}"`,
-          `"${c.alternate_phone || ''}"`,
-          `"${(c.city || '').replace(/"/g, '""')}"`,
-          `"${c.wedding_date ? c.wedding_date.slice(0, 10) : ''}"`,
-          `"${(c.bride_name || '').replace(/"/g, '""')}"`,
-          `"${(c.groom_name || '').replace(/"/g, '""')}"`,
-          `"${c.customer_role || ''}"`,
-          `"${c.estimated_budget || ''}"`,
-          `"${(Array.isArray(c.shopping_categories) ? c.shopping_categories.join(';') : (c.shopping_categories || '')).replace(/"/g, '""')}"`,
-          `"${c.expected_shopping_date ? c.expected_shopping_date.slice(0, 10) : ''}"`,
-          `"${c.follow_up_date ? c.follow_up_date.slice(0, 10) : ''}"`,
-          `"${c.follow_up_priority || ''}"`,
-          `"${c.current_status || ''}"`,
-          `"${c.readiness_score || ''}"`,
-          `"${(c.telecaller_name || '').replace(/"/g, '""')}"`,
-          `"${c.total_calls_count || 0}"`,
-          `"${(c.last_call_outcome || '').replace(/"/g, '""')}"`,
-          `"${(c.last_call_notes || '').replace(/"/g, '""')}"`
-        ];
-        csvRows.push(row.join(','));
-      });
-
-      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `BSC_Wedding_Customers_${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err: any) {
-      alert('Failed to export data: ' + err.message);
-    }
-  };
-
-  // Print Report
-  const handlePrint = () => {
-    window.print();
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F5F1] text-gray-800 flex">
+    <div className="min-h-screen bg-[#F8F5F1] text-gray-800 flex relative selection:bg-[#C6A15B]/30">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Topbar
           title="Wedding Customer Follow-up CRM"
           breadcrumbs={[
@@ -642,34 +853,32 @@ export default function WeddingCRM() {
           rightElement={
             <div className="flex items-center gap-2">
               {/* Multi-location selector for Global Admin */}
-              {session?.isGlobalAdmin && (
-                <div className="flex items-center bg-[#4A1726]/10 rounded-lg p-1 border border-[#C6A15B]/30">
+              {session?.isGlobalAdmin ? (
+                <div className="flex items-center bg-[#4A1726]/10 rounded-xl p-1 border border-[#C6A15B]/40">
                   <span className="text-[11px] font-bold text-[#4A1726] px-2 uppercase tracking-wide">Location:</span>
                   <select
                     value={selectedLocation}
-                    onChange={e => setSelectedLocation(e.target.value ? parseInt(e.target.value) : '')}
-                    className="bg-white text-xs font-semibold text-[#4A1726] py-1 px-2.5 rounded-md border-0 focus:ring-2 focus:ring-[#C6A15B] shadow-xs cursor-pointer"
+                    onChange={e => setSelectedLocation(e.target.value ? parseInt(e.target.value, 10) : '')}
+                    className="bg-white text-xs font-bold text-[#4A1726] py-1 px-2.5 rounded-lg border-0 focus:ring-2 focus:ring-[#C6A15B] shadow-xs cursor-pointer"
                   >
-                    <option value="">🌐 All Locations</option>
+                    <option value="">🌐 ALL LOCATIONS (BEL, DAV, SHI)</option>
                     {locations.map(loc => (
                       <option key={loc.id} value={loc.id}>
-                        {loc.name} ({loc.code})
+                        📍 {loc.name} ({loc.code})
                       </option>
                     ))}
                   </select>
                 </div>
-              )}
-              {/* Branch Badge for Single Location */}
-              {!session?.isGlobalAdmin && session?.locationName && (
-                <div className="bg-[#4A1726] text-white px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs">
+              ) : (
+                <div className="bg-[#4A1726] text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#C6A15B]/30">
                   <MapPin className="w-3.5 h-3.5 text-[#C6A15B]" />
-                  <span>{session.locationName}</span>
+                  <span>📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
                 </div>
               )}
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-gradient-to-r from-[#4A1726] to-[#6A2338] text-[#F8F5F1] hover:from-[#38111D] hover:to-[#551B2C] px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all hover:scale-102"
+                className="bg-gradient-to-r from-[#4A1726] to-[#6A2338] hover:from-[#350E1A] hover:to-[#551B2C] text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-[#C6A15B]/50"
               >
                 <Plus className="w-4 h-4 text-[#C6A15B]" />
                 <span>Add Wedding Customer</span>
@@ -678,828 +887,702 @@ export default function WeddingCRM() {
           }
         />
 
-        <main className="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
-          {/* Toast Notification */}
+        <main className="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 flex-1">
+          {/* Toast Alert */}
           {toastMessage && (
-            <div className="fixed bottom-6 right-6 z-[200] bg-[#4A1726] border-2 border-[#C6A15B] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-up">
-              <CheckCircle2 className="w-5 h-5 text-[#C6A15B]" />
-              <span className="text-sm font-semibold">{toastMessage}</span>
+            <div className="fixed bottom-6 right-6 z-[200] bg-[#4A1726] border-2 border-[#C6A15B] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up">
+              <CheckCircle2 className="w-5 h-5 text-[#C6A15B] flex-shrink-0" />
+              <span className="text-sm font-bold tracking-wide">{toastMessage}</span>
             </div>
           )}
 
-          {/* ── 8 KPI Cards ─────────────────────────────────────── */}
+          {/* ════════════════════════════════════════════════════════════
+              8 DASHBOARD KPI CARDS (Manager Understands in < 10 Seconds)
+             ════════════════════════════════════════════════════════════ */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-            {/* 1. Today's Follow-ups (Primary Pulse) */}
+            {/* 1. Total Wedding Customers */}
             <div
-              onClick={() => {
-                setActiveTab('calling_desk');
-                setActiveDeskQueue('due_today');
-              }}
-              className="bg-white border-2 border-amber-400/80 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden group hover:border-amber-500"
+              onClick={() => { setActiveTab('register'); setStatusFilter(''); setDateViewFilter('all'); }}
+              className="bg-white border border-[#EAE4DC] hover:border-[#4A1726] rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-amber-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Due Today</span>
-                <PhoneCall className="w-4 h-4 animate-bounce" />
+              <div className="flex items-center justify-between text-[#7A726D] mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider">Total Customers</span>
+                <Users className="w-4 h-4 text-[#4A1726] group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-[#4A1726]">{stats.due_today}</div>
-              <div className="text-[10px] text-amber-700 font-semibold mt-0.5">Calls to make today</div>
+              <div className="text-2xl font-black text-[#4A1726]">{stats.totalCustomers}</div>
+              <div className="text-[10px] text-[#7A726D] font-medium mt-0.5">All registered</div>
             </div>
 
-            {/* 2. Overdue Calls (Critical Red) */}
+            {/* 2. Today's Follow-ups (Primary Pulse KPI - Click opens Calling Desk) */}
             <div
-              onClick={() => {
-                setActiveTab('calling_desk');
-                setActiveDeskQueue('overdue');
-              }}
-              className={`bg-white border rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer ${
-                stats.overdue > 0 ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
+              onClick={() => { setActiveTab('calling_desk'); setDeskQueueType('dueToday'); }}
+              className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-400 rounded-2xl p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden group"
+            >
+              <div className="flex items-center justify-between text-amber-700 mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider">Today's Calls</span>
+                <PhoneCall className="w-4 h-4 text-amber-600 animate-bounce" />
+              </div>
+              <div className="text-2xl font-black text-amber-900">{stats.todayFollowUps}</div>
+              <div className="text-[10px] text-amber-800 font-bold mt-0.5 flex items-center gap-1">
+                <span>Primary Desk</span>
+                <ChevronRight className="w-3 h-3" />
+              </div>
+            </div>
+
+            {/* 3. Overdue Follow-ups */}
+            <div
+              onClick={() => { setActiveTab('calling_desk'); setDeskQueueType('overdue'); }}
+              className={`rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group border ${
+                stats.overdueFollowUps > 0 ? 'bg-red-50/70 border-red-300' : 'bg-white border-[#EAE4DC]'
               }`}
             >
               <div className="flex items-center justify-between text-red-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Overdue</span>
-                <AlertCircle className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-wider">Overdue</span>
+                <AlertCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-red-700">{stats.overdue}</div>
-              <div className="text-[10px] text-red-600 font-semibold mt-0.5">Missed follow-ups</div>
+              <div className="text-2xl font-black text-red-700">{stats.overdueFollowUps}</div>
+              <div className="text-[10px] text-red-600 font-semibold mt-0.5">Calls missed</div>
             </div>
 
-            {/* 3. Callbacks Requested */}
+            {/* 4. Calls Pending */}
             <div
-              onClick={() => {
-                setActiveTab('calling_desk');
-                setActiveDeskQueue('callbacks');
-              }}
-              className="bg-white border border-purple-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              onClick={() => { setActiveTab('calling_desk'); }}
+              className="bg-white border border-[#EAE4DC] hover:border-orange-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-purple-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Callbacks</span>
-                <PhoneForwarded className="w-4 h-4" />
+              <div className="flex items-center justify-between text-orange-600 mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider">Calls Pending</span>
+                <Clock className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-purple-800">{stats.callback_requests}</div>
-              <div className="text-[10px] text-purple-600 font-semibold mt-0.5">Requested to call back</div>
+              <div className="text-2xl font-black text-orange-700">{stats.callsPending}</div>
+              <div className="text-[10px] text-orange-600 font-medium mt-0.5">To be completed</div>
             </div>
 
-            {/* 4. Ready to Shop */}
+            {/* 5. Calls Completed */}
             <div
-              onClick={() => {
-                setActiveTab('register');
-                setStatusFilter('Ready to Shop');
-              }}
-              className="bg-white border border-rose-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer"
-            >
-              <div className="flex items-center justify-between text-rose-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Ready to Shop</span>
-                <Flame className="w-4 h-4 text-rose-500" />
-              </div>
-              <div className="text-2xl font-black text-rose-800">{stats.ready_to_shop}</div>
-              <div className="text-[10px] text-rose-600 font-semibold mt-0.5">High purchase intent</div>
-            </div>
-
-            {/* 5. Visit Planned */}
-            <div
-              onClick={() => {
-                setActiveTab('register');
-                setStatusFilter('Store Visit Planned');
-              }}
-              className="bg-white border border-emerald-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              onClick={() => { setActiveTab('register'); setCallStatusFilter('Completed'); }}
+              className="bg-white border border-[#EAE4DC] hover:border-emerald-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-emerald-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Visit Planned</span>
-                <ShoppingBag className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-wider">Calls Completed</span>
+                <CheckCircle2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-emerald-800">{stats.store_visit_planned}</div>
-              <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">Date confirmed</div>
+              <div className="text-2xl font-black text-emerald-700">{stats.callsCompleted}</div>
+              <div className="text-[10px] text-emerald-600 font-medium mt-0.5">Successfully logged</div>
             </div>
 
-            {/* 6. Converted */}
+            {/* 6. Shopping Confirmed */}
             <div
-              onClick={() => {
-                setActiveTab('register');
-                setStatusFilter('Converted');
-              }}
-              className="bg-white border border-teal-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer"
-            >
-              <div className="flex items-center justify-between text-teal-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Converted</span>
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <div className="text-2xl font-black text-teal-800">{stats.converted}</div>
-              <div className="text-[10px] text-teal-600 font-semibold mt-0.5">Shopped successfully</div>
-            </div>
-
-            {/* 7. Upcoming Week */}
-            <div
-              onClick={() => {
-                setActiveTab('calling_desk');
-                setActiveDeskQueue('upcoming');
-              }}
-              className="bg-white border border-blue-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              onClick={() => { setActiveTab('register'); setStatusFilter('Shopping Date Confirmed'); }}
+              className="bg-white border border-[#EAE4DC] hover:border-blue-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-blue-600 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Next 7 Days</span>
-                <Calendar className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-wider">Shopping Confirmed</span>
+                <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-blue-800">{stats.upcoming_week}</div>
-              <div className="text-[10px] text-blue-600 font-semibold mt-0.5">Upcoming calls</div>
+              <div className="text-2xl font-black text-blue-800">{stats.shoppingConfirmed}</div>
+              <div className="text-[10px] text-blue-600 font-semibold mt-0.5">High Intent</div>
             </div>
 
-            {/* 8. Total Wedding Leads */}
+            {/* 7. Visited / Converted */}
             <div
-              onClick={() => {
-                setActiveTab('register');
-                setStatusFilter('');
-                setDateFilter('all');
-              }}
-              className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              onClick={() => { setActiveTab('register'); setStatusFilter('Converted'); }}
+              className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between text-teal-700 mb-1">
+                <span className="text-[10px] font-black uppercase tracking-wider">Visited / Won</span>
+                <Sparkles className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="text-2xl font-black text-teal-900">{stats.visitedConverted}</div>
+              <div className="text-[10px] text-teal-700 font-bold mt-0.5">Conversion rate</div>
+            </div>
+
+            {/* 8. Not Interested */}
+            <div
+              onClick={() => { setActiveTab('register'); setStatusFilter('Not Interested'); }}
+              className="bg-white border border-[#EAE4DC] hover:border-gray-400 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-gray-500 mb-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Total Leads</span>
-                <Users className="w-4 h-4 text-gray-400" />
+                <span className="text-[10px] font-black uppercase tracking-wider">Not Interested</span>
+                <XCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-[#4A1726]">{stats.total_leads}</div>
-              <div className="text-[10px] text-gray-500 font-semibold mt-0.5">All registered leads</div>
+              <div className="text-2xl font-black text-gray-700">{stats.notInterested}</div>
+              <div className="text-[10px] text-gray-500 font-medium mt-0.5">Closed / Opt-out</div>
             </div>
           </div>
 
-          {/* ── Tabs Navigation ─────────────────────────────────── */}
-          <div className="bg-white rounded-xl shadow-xs border border-gray-200 p-1.5 flex flex-wrap items-center justify-between gap-2">
+          {/* ════════════════════════════════════════════════════════════
+              PRIMARY NAVIGATION TABS
+             ════════════════════════════════════════════════════════════ */}
+          <div className="bg-white p-2 rounded-2xl border border-[#EAE4DC] shadow-xs flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('calling_desk')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'calling_desk'
-                    ? 'bg-[#4A1726] text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#4A1726] text-white shadow-md'
+                    : 'text-[#7A726D] hover:bg-[#F8F5F1] hover:text-[#4A1726]'
                 }`}
               >
-                <PhoneCall className="w-4 h-4 text-[#C6A15B]" />
-                <span>Telecaller Calling Desk</span>
-                {callingDeskData.counts.due_today > 0 && (
-                  <span className="bg-amber-400 text-[#4A1726] text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
-                    {callingDeskData.counts.due_today}
+                <PhoneCall className={`w-4 h-4 ${activeTab === 'calling_desk' ? 'text-[#C6A15B]' : ''}`} />
+                <span>WEDDING FOLLOW-UP DESK</span>
+                {deskSummary.remainingCalls > 0 && (
+                  <span className="bg-amber-400 text-[#321923] text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                    {deskSummary.remainingCalls}
                   </span>
                 )}
               </button>
 
               <button
                 onClick={() => setActiveTab('register')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'register'
-                    ? 'bg-[#4A1726] text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#4A1726] text-white shadow-md'
+                    : 'text-[#7A726D] hover:bg-[#F8F5F1] hover:text-[#4A1726]'
                 }`}
               >
-                <Heart className="w-4 h-4 text-[#C6A15B]" />
+                <Users className={`w-4 h-4 ${activeTab === 'register' ? 'text-[#C6A15B]' : ''}`} />
                 <span>Customer Register</span>
-                <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                  {stats.total_leads}
+                <span className="text-[10px] bg-black/10 px-1.5 py-0.2 rounded-full font-bold">
+                  {stats.totalCustomers}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('calendar')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'calendar'
-                    ? 'bg-[#4A1726] text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#4A1726] text-white shadow-md'
+                    : 'text-[#7A726D] hover:bg-[#F8F5F1] hover:text-[#4A1726]'
                 }`}
               >
-                <CalendarDays className="w-4 h-4 text-[#C6A15B]" />
+                <CalendarDays className={`w-4 h-4 ${activeTab === 'calendar' ? 'text-[#C6A15B]' : ''}`} />
                 <span>Follow-up Calendar</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'analytics'
-                    ? 'bg-[#4A1726] text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#4A1726] text-white shadow-md'
+                    : 'text-[#7A726D] hover:bg-[#F8F5F1] hover:text-[#4A1726]'
                 }`}
               >
-                <TrendingUp className="w-4 h-4 text-[#C6A15B]" />
-                <span>Conversion Funnel & Analytics</span>
+                <BarChart3 className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-[#C6A15B]' : ''}`} />
+                <span>Funnel & Performance</span>
               </button>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2 ml-auto">
+            {/* Global Actions: Excel & PDF Exports */}
+            <div className="flex items-center gap-2">
               <button
-                onClick={handleExportCSV}
-                className="bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                onClick={handleExportExcel}
+                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+                title="Export current view to Excel (.xlsx)"
               >
-                <Download className="w-3.5 h-3.5 text-gray-500" />
-                <span>Export CSV</span>
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Export Excel</span>
               </button>
+
               <button
-                onClick={handlePrint}
-                className="bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                onClick={handleExportPDF}
+                className="bg-white hover:bg-gray-50 text-[#4A1726] border border-[#EAE4DC] px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+                title="Export printable PDF report"
               >
-                <Printer className="w-3.5 h-3.5 text-gray-500" />
-                <span>Print</span>
+                <Printer className="w-3.5 h-3.5 text-[#C6A15B]" />
+                <span>Export PDF</span>
               </button>
             </div>
           </div>
 
-          {/* ══════════════════════════════════════════════════════ */}
-          {/* TAB 1: TELECALLER CALLING DESK                         */}
-          {/* ══════════════════════════════════════════════════════ */}
+          {/* ════════════════════════════════════════════════════════════
+              TAB 1: TELECALLER CALLING DESK ("WEDDING FOLLOW-UP DESK")
+             ════════════════════════════════════════════════════════════ */}
           {activeTab === 'calling_desk' && (
             <div className="space-y-4">
-              {/* Queue Selector Tabs */}
-              <div className="flex items-center gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
+              {/* Telecaller Metrics Banner */}
+              <div className="bg-gradient-to-r from-[#4A1726] to-[#321923] text-white rounded-3xl p-5 shadow-lg border border-[#C6A15B]/30 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-[#C6A15B] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C6A15B]" />
+                    <span>DAILY TELECALLING WORKLOAD</span>
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-[#F8F5F1] mt-0.5">
+                    {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+
+                {/* Counter Pills */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Calls Pending</div>
+                    <div className="text-lg font-black text-amber-400">{deskSummary.pendingCalls}</div>
+                  </div>
+                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Calls Completed</div>
+                    <div className="text-lg font-black text-emerald-400">{deskSummary.completedToday}</div>
+                  </div>
+                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-white/70">No Answer</div>
+                    <div className="text-lg font-black text-rose-400">{deskSummary.noAnswerCount}</div>
+                  </div>
+                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Callbacks</div>
+                    <div className="text-lg font-black text-purple-300">{deskSummary.callbackCount}</div>
+                  </div>
+                  <div className="bg-[#C6A15B] text-[#321923] rounded-2xl px-4 py-2 text-center shadow-md">
+                    <div className="text-[10px] font-black uppercase">Remaining Calls</div>
+                    <div className="text-lg font-black">{deskSummary.remainingCalls}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prioritized Queues Selector */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <button
-                  onClick={() => setActiveDeskQueue('due_today')}
-                  className={`px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition-all ${
-                    activeDeskQueue === 'due_today'
-                      ? 'bg-amber-500 text-white shadow-md'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-amber-50'
+                  onClick={() => setDeskQueueType('overdue')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    deskQueueType === 'overdue'
+                      ? 'bg-red-50 border-red-400 ring-2 ring-red-400 shadow-sm'
+                      : 'bg-white border-[#EAE4DC] hover:border-red-300'
                   }`}
                 >
-                  <Clock className="w-4 h-4" />
-                  <span>Due Today</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">
-                    {callingDeskData.counts.due_today}
-                  </span>
+                  <div className="flex items-center justify-between text-red-700">
+                    <span className="text-xs font-black uppercase">1. Overdue</span>
+                    <AlertCircle className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl font-black text-red-800 mt-1">{deskQueues.overdue.length}</div>
+                  <div className="text-[10px] text-red-600 font-medium">Missed previous calls</div>
                 </button>
 
                 <button
-                  onClick={() => setActiveDeskQueue('overdue')}
-                  className={`px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition-all ${
-                    activeDeskQueue === 'overdue'
-                      ? 'bg-red-600 text-white shadow-md'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-red-50'
+                  onClick={() => setDeskQueueType('dueToday')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    deskQueueType === 'dueToday'
+                      ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400 shadow-sm'
+                      : 'bg-white border-[#EAE4DC] hover:border-amber-300'
                   }`}
                 >
-                  <AlertCircle className="w-4 h-4" />
-                  <span>Overdue Calls</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">
-                    {callingDeskData.counts.overdue}
-                  </span>
+                  <div className="flex items-center justify-between text-amber-700">
+                    <span className="text-xs font-black uppercase">2. Due Today</span>
+                    <PhoneCall className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl font-black text-amber-900 mt-1">{deskQueues.dueToday.length}</div>
+                  <div className="text-[10px] text-amber-700 font-medium">Scheduled for today</div>
                 </button>
 
                 <button
-                  onClick={() => setActiveDeskQueue('callbacks')}
-                  className={`px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition-all ${
-                    activeDeskQueue === 'callbacks'
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-purple-50'
+                  onClick={() => setDeskQueueType('callbacks')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    deskQueueType === 'callbacks'
+                      ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-400 shadow-sm'
+                      : 'bg-white border-[#EAE4DC] hover:border-purple-300'
                   }`}
                 >
-                  <PhoneForwarded className="w-4 h-4" />
-                  <span>Callback Requests</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">
-                    {callingDeskData.counts.callbacks}
-                  </span>
+                  <div className="flex items-center justify-between text-purple-700">
+                    <span className="text-xs font-black uppercase">3. Callback Requests</span>
+                    <PhoneForwarded className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl font-black text-purple-900 mt-1">{deskQueues.callbackRequests.length}</div>
+                  <div className="text-[10px] text-purple-700 font-medium">Customer requested call</div>
                 </button>
 
                 <button
-                  onClick={() => setActiveDeskQueue('upcoming')}
-                  className={`px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition-all ${
-                    activeDeskQueue === 'upcoming'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-blue-50'
+                  onClick={() => setDeskQueueType('upcoming')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    deskQueueType === 'upcoming'
+                      ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-400 shadow-sm'
+                      : 'bg-white border-[#EAE4DC] hover:border-blue-300'
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
-                  <span>Upcoming (7 Days)</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">
-                    {callingDeskData.counts.upcoming}
-                  </span>
+                  <div className="flex items-center justify-between text-blue-700">
+                    <span className="text-xs font-black uppercase">4. Upcoming (Next 7d)</span>
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl font-black text-blue-900 mt-1">{deskQueues.upcoming.length}</div>
+                  <div className="text-[10px] text-blue-700 font-medium">Pipeline follow-ups</div>
                 </button>
               </div>
 
-              {/* Calling Queue Cards Grid */}
+              {/* Customer Cards in Active Queue */}
               {loadingDesk ? (
-                <div className="p-12 text-center text-gray-500 bg-white rounded-xl border border-gray-200">
-                  <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#C6A15B] mb-2" />
-                  <p className="text-sm font-semibold">Loading telecaller queue...</p>
-                </div>
-              ) : callingDeskData.queues[activeDeskQueue].length === 0 ? (
-                <div className="p-12 text-center bg-white rounded-xl border border-dashed border-gray-300">
-                  <CheckCheck className="w-12 h-12 mx-auto text-emerald-500 mb-3" />
-                  <h3 className="text-base font-bold text-gray-800">Queue is Clear!</h3>
-                  <p className="text-xs text-gray-500 max-w-md mx-auto mt-1">
-                    No customers waiting in the{' '}
-                    <span className="font-semibold text-[#4A1726]">{activeDeskQueue.replace('_', ' ')}</span> queue.
-                    Great job staying on top of follow-ups!
-                  </p>
+                <div className="bg-white p-12 rounded-3xl border border-[#EAE4DC] text-center text-[#7A726D]">
+                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-[#C6A15B] mb-2" />
+                  <p className="text-sm font-bold">Loading telecalling queue...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {callingDeskData.queues[activeDeskQueue].map(cust => {
-                    const shopDays = getDaysDiff(cust.expected_shopping_date);
-                    const followDays = getDaysDiff(cust.follow_up_date);
+                (() => {
+                  const currentQueue =
+                    deskQueueType === 'overdue' ? deskQueues.overdue :
+                    deskQueueType === 'dueToday' ? deskQueues.dueToday :
+                    deskQueueType === 'callbacks' ? deskQueues.callbackRequests :
+                    deskQueues.upcoming;
 
+                  if (currentQueue.length === 0) {
                     return (
-                      <div
-                        key={cust.id}
-                        className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all p-4 flex flex-col justify-between relative overflow-hidden"
-                      >
-                        {/* Top Indicator bar */}
-                        <div
-                          className={`absolute top-0 left-0 right-0 h-1.5 ${
-                            activeDeskQueue === 'overdue'
-                              ? 'bg-red-500'
-                              : activeDeskQueue === 'due_today'
-                              ? 'bg-amber-400'
-                              : activeDeskQueue === 'callbacks'
-                              ? 'bg-purple-500'
-                              : 'bg-blue-500'
-                          }`}
-                        />
-
-                        <div>
-                          {/* Header: Code, Priority, Location */}
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-[11px] font-mono font-bold bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                              {cust.customer_code}
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              {cust.location_code && (
-                                <span className="text-[10px] font-bold bg-[#4A1726]/10 text-[#4A1726] px-1.5 py-0.2 rounded">
-                                  {cust.location_code}
-                                </span>
-                              )}
-                              {cust.follow_up_priority === 'Urgent' && (
-                                <span className="text-[10px] font-black bg-red-100 text-red-700 px-1.5 py-0.2 rounded">
-                                  URGENT
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Customer Name & Role */}
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="text-sm font-black text-gray-900 leading-tight">
-                                {cust.customer_name}
-                              </h4>
-                              <p className="text-xs text-gray-500 font-medium mt-0.5">
-                                {cust.customer_role || 'Wedding Shopper'} • {cust.city || 'Local Customer'}
-                              </p>
-                            </div>
-                            {/* Readiness Meter */}
-                            <div className="text-right">
-                              <div className="flex items-center gap-0.5 text-amber-500 justify-end">
-                                {[1, 2, 3, 4, 5].map(star => (
-                                  <Star
-                                    key={star}
-                                    className={`w-3 h-3 ${
-                                      star <= (cust.readiness_score || 3)
-                                        ? 'fill-amber-400 text-amber-400'
-                                        : 'text-gray-200'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              <span className="text-[10px] text-gray-400 font-bold">
-                                Score: {cust.readiness_score || 3}/5
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Phone with Click-to-Call & Copy */}
-                          <div className="mt-3 bg-[#F8F5F1] rounded-lg p-2 flex items-center justify-between border border-gray-200/80">
-                            <a
-                              href={`tel:${cust.phone}`}
-                              className="text-sm font-black text-[#4A1726] hover:underline flex items-center gap-1.5 tracking-wide"
-                            >
-                              <Phone className="w-3.5 h-3.5 text-[#C6A15B]" />
-                              <span>{cust.phone}</span>
-                            </a>
-                            <button
-                              onClick={() => copyPhone(cust.phone)}
-                              className="text-gray-400 hover:text-gray-600 p-1"
-                              title="Copy Phone"
-                            >
-                              {copySuccess === cust.phone ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          </div>
-
-                          {/* Event & Shopping Dates (Strict Distinction) */}
-                          <div className="mt-3 grid grid-cols-2 gap-2 text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                            <div>
-                              <span className="text-[10px] text-gray-400 uppercase font-bold block">
-                                Expected Shopping
-                              </span>
-                              <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
-                                <ShoppingBag className="w-3 h-3 text-[#C6A15B]" />
-                                {formatDate(cust.expected_shopping_date)}
-                              </span>
-                              {shopDays !== null && (
-                                <span
-                                  className={`text-[9.5px] font-bold block mt-0.5 ${
-                                    shopDays < 0
-                                      ? 'text-red-500'
-                                      : shopDays <= 7
-                                      ? 'text-amber-600'
-                                      : 'text-gray-500'
-                                  }`}
-                                >
-                                  {shopDays < 0
-                                    ? `${Math.abs(shopDays)}d ago`
-                                    : shopDays === 0
-                                    ? 'Today!'
-                                    : `in ${shopDays} days`}
-                                </span>
-                              )}
-                            </div>
-
-                            <div>
-                              <span className="text-[10px] text-gray-400 uppercase font-bold block">
-                                Follow-up Due
-                              </span>
-                              <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3 text-blue-500" />
-                                {formatDate(cust.follow_up_date)}
-                              </span>
-                              {followDays !== null && (
-                                <span
-                                  className={`text-[9.5px] font-bold block mt-0.5 ${
-                                    followDays < 0
-                                      ? 'text-red-600 font-extrabold'
-                                      : followDays === 0
-                                      ? 'text-amber-600 font-extrabold'
-                                      : 'text-gray-500'
-                                  }`}
-                                >
-                                  {followDays < 0
-                                    ? `${Math.abs(followDays)}d overdue`
-                                    : followDays === 0
-                                    ? 'Due Today'
-                                    : `in ${followDays} days`}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Last Call Summary */}
-                          {cust.last_call_outcome ? (
-                            <div className="mt-2.5 text-[11px] text-gray-600 bg-amber-50/50 p-2 rounded border border-amber-100">
-                              <span className="font-bold text-amber-800">Last Outcome:</span>{' '}
-                              {cust.last_call_outcome}
-                              {cust.last_call_notes && (
-                                <p className="text-[10px] text-gray-500 italic truncate mt-0.5">
-                                  "{cust.last_call_notes}"
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="mt-2.5 text-[11px] text-gray-400 italic">
-                              No calls logged yet. Initial lead.
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Card Actions */}
-                        <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
-                          <button
-                            onClick={() => openProfileModal(cust)}
-                            className="text-xs font-bold text-gray-600 hover:text-[#4A1726] flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-all"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Timeline</span>
-                          </button>
-
-                          <button
-                            onClick={() => openCallModal(cust)}
-                            className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all hover:scale-102"
-                          >
-                            <PhoneCall className="w-3.5 h-3.5" />
-                            <span>Log Call</span>
-                          </button>
-                        </div>
+                      <div className="bg-white p-12 rounded-3xl border border-[#EAE4DC] text-center">
+                        <CheckCheck className="w-10 h-10 mx-auto text-emerald-500 mb-2" />
+                        <h3 className="text-base font-black text-[#4A1726]">All Clear! No Calls in this Queue</h3>
+                        <p className="text-xs text-[#7A726D] mt-1">Great job! All follow-ups in this bucket are completed or none are scheduled.</p>
                       </div>
                     );
-                  })}
-                </div>
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                      {currentQueue.map((cust) => {
+                        const isOverdue = cust.overdue_days && cust.overdue_days > 0;
+
+                        return (
+                          <div
+                            key={cust.id}
+                            className={`bg-white rounded-2xl p-4 border shadow-xs hover:shadow-md transition-all flex flex-col justify-between ${
+                              isOverdue ? 'border-red-300 bg-red-50/10' : 'border-[#EAE4DC]'
+                            }`}
+                          >
+                            {/* Card Top: Code, Location, Status */}
+                            <div>
+                              <div className="flex items-center justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-mono bg-[#4A1726]/10 text-[#4A1726] font-bold px-2 py-0.5 rounded-md">
+                                    {cust.customer_code}
+                                  </span>
+                                  {cust.location_name && (
+                                    <span className="text-[10px] text-[#7A726D] font-semibold">
+                                      📍 {cust.location_name}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                                  {cust.customer_status}
+                                </span>
+                              </div>
+
+                              {/* Customer Name & Mobile */}
+                              <div className="mb-2">
+                                <h4 className="text-base font-black text-[#321923] tracking-tight">{cust.customer_name}</h4>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <a
+                                    href={`tel:${cust.mobile_number}`}
+                                    className="text-xs font-black text-[#4A1726] hover:underline flex items-center gap-1"
+                                    title="Click to dial"
+                                  >
+                                    <Phone className="w-3 h-3 text-[#C6A15B]" />
+                                    <span>{cust.mobile_number}</span>
+                                  </a>
+                                  <button
+                                    onClick={() => copyPhone(cust.mobile_number)}
+                                    className="text-[10px] text-gray-400 hover:text-gray-700"
+                                    title="Copy mobile number"
+                                  >
+                                    {copySuccess === cust.mobile_number ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Dates Matrix: Crucial Distinction */}
+                              <div className="bg-[#F8F5F1] p-2.5 rounded-xl space-y-1.5 text-[11px] border border-[#EAE4DC]">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#7A726D] font-semibold flex items-center gap-1">
+                                    <ShoppingBag className="w-3 h-3 text-blue-600" />
+                                    <span>Expected Shopping:</span>
+                                  </span>
+                                  <span className="font-black text-blue-900">{formatDate(cust.expected_shopping_date)}</span>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#7A726D] font-semibold flex items-center gap-1">
+                                    <Calendar className="w-3 h-3 text-amber-600" />
+                                    <span>Next Follow-up:</span>
+                                  </span>
+                                  <div className="text-right">
+                                    <span className="font-black text-[#4A1726]">{formatDate(cust.follow_up_date)}</span>
+                                    {isOverdue && (
+                                      <span className="ml-1 text-[9px] bg-red-600 text-white px-1.5 py-0.2 rounded-full font-bold">
+                                        {cust.overdue_days}d overdue
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {cust.wedding_date && (
+                                  <div className="flex items-center justify-between text-[10px] text-gray-500">
+                                    <span>Wedding Date:</span>
+                                    <span className="font-bold">{formatDate(cust.wedding_date)}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Last Call Result & Telecaller */}
+                              <div className="mt-2.5 text-[11px] text-[#7A726D] space-y-0.5">
+                                <div className="flex items-center justify-between">
+                                  <span>Last Call Result:</span>
+                                  <span className="font-bold text-[#321923]">{cust.last_call_outcome || 'No Calls Yet'}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span>Assigned Telecaller:</span>
+                                  <span className="font-bold text-[#4A1726]">{cust.assigned_telecaller || 'Unassigned'}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons: [ Call ], [ Log Call ], [ View ] */}
+                            <div className="mt-4 pt-3 border-t border-[#EAE4DC] flex items-center gap-2">
+                              <a
+                                href={`tel:${cust.mobile_number}`}
+                                onClick={() => openCallModal(cust)}
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-2 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1 transition-all"
+                              >
+                                <PhoneCall className="w-3.5 h-3.5" />
+                                <span>Call</span>
+                              </a>
+
+                              <button
+                                onClick={() => openCallModal(cust)}
+                                className="flex-1 bg-[#4A1726] hover:bg-[#321923] text-white py-2 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1 transition-all"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5 text-[#C6A15B]" />
+                                <span>Log Call</span>
+                              </button>
+
+                              <button
+                                onClick={() => openProfileModal(cust)}
+                                className="p-2 border border-[#EAE4DC] hover:bg-gray-100 rounded-xl text-[#321923]"
+                                title="View Customer Profile"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()
               )}
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════ */}
-          {/* TAB 2: CUSTOMER REGISTER (FULL TABLE)                  */}
-          {/* ══════════════════════════════════════════════════════ */}
+          {/* ════════════════════════════════════════════════════════════
+              TAB 2: CUSTOMER REGISTER / DIRECTORY
+             ════════════════════════════════════════════════════════════ */}
           {activeTab === 'register' && (
             <div className="space-y-4">
               {/* Filter Bar */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                  {/* Search */}
+              <div className="bg-white p-4 rounded-2xl border border-[#EAE4DC] shadow-xs space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Search Bar */}
                   <div className="relative">
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-[#7A726D]" />
                     <input
                       type="text"
-                      placeholder="Search name, phone, code..."
+                      placeholder="Search name, mobile, email, code..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#C6A15B] focus:bg-white transition-all"
+                      className="w-full pl-9 pr-3 py-2 text-xs border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B] focus:border-transparent font-medium"
                     />
                   </div>
 
-                  {/* Date Quick Filter */}
-                  <div>
-                    <select
-                      value={dateFilter}
-                      onChange={e => setDateFilter(e.target.value)}
-                      className="w-full py-1.5 px-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:ring-2 focus:ring-[#C6A15B] focus:bg-white"
-                    >
-                      <option value="all">📅 All Dates</option>
-                      <option value="today">Today's Follow-ups</option>
-                      <option value="tomorrow">Tomorrow</option>
-                      <option value="this_week">This Week</option>
-                      <option value="next_week">Next Week</option>
-                      <option value="overdue">Overdue Follow-ups</option>
-                      <option value="custom">Custom Date Range</option>
-                    </select>
-                  </div>
-
-                  {/* Status Filter */}
+                  {/* Customer Status Filter */}
                   <div>
                     <select
                       value={statusFilter}
                       onChange={e => setStatusFilter(e.target.value)}
-                      className="w-full py-1.5 px-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:ring-2 focus:ring-[#C6A15B] focus:bg-white"
+                      className="w-full py-2 px-3 text-xs border border-[#EAE4DC] rounded-xl font-medium focus:ring-2 focus:ring-[#C6A15B]"
                     >
-                      <option value="">🔘 All Statuses</option>
-                      <option value="New Lead">New Lead</option>
-                      <option value="Call Scheduled">Call Scheduled</option>
-                      <option value="Follow-up in Progress">Follow-up in Progress</option>
-                      <option value="Callback Requested">Callback Requested</option>
-                      <option value="Store Visit Planned">Store Visit Planned</option>
-                      <option value="Ready to Shop">Ready to Shop</option>
-                      <option value="Converted">Converted</option>
-                      <option value="Lost">Lost</option>
+                      <option value="">All Customer Statuses</option>
+                      {CUSTOMER_STATUSES.map(st => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
                     </select>
                   </div>
 
-                  {/* Custom From Date (if custom selected) */}
-                  {dateFilter === 'custom' && (
-                    <input
-                      type="date"
-                      value={customFromDate}
-                      onChange={e => setCustomFromDate(e.target.value)}
-                      className="w-full py-1.5 px-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700"
-                    />
-                  )}
-
-                  {/* Custom To Date (if custom selected) */}
-                  {dateFilter === 'custom' && (
-                    <input
-                      type="date"
-                      value={customToDate}
-                      onChange={e => setCustomToDate(e.target.value)}
-                      className="w-full py-1.5 px-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700"
-                    />
-                  )}
-
-                  {/* Refresh / Filter Apply Button */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={loadCustomers}
-                      className="w-full bg-[#4A1726] hover:bg-[#38111D] text-white py-1.5 px-4 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                  {/* Call Status Filter */}
+                  <div>
+                    <select
+                      value={callStatusFilter}
+                      onChange={e => setCallStatusFilter(e.target.value)}
+                      className="w-full py-2 px-3 text-xs border border-[#EAE4DC] rounded-xl font-medium focus:ring-2 focus:ring-[#C6A15B]"
                     >
-                      <RefreshCw className="w-3.5 h-3.5 text-[#C6A15B]" />
-                      <span>Filter</span>
-                    </button>
-                    {(searchQuery || statusFilter || dateFilter !== 'all') && (
-                      <button
-                        onClick={() => {
-                          setSearchQuery('');
-                          setStatusFilter('');
-                          setDateFilter('all');
-                          setCustomFromDate('');
-                          setCustomToDate('');
-                        }}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-600 py-1.5 px-3 rounded-lg text-xs font-bold"
-                        title="Reset Filters"
-                      >
-                        Reset
-                      </button>
-                    )}
+                      <option value="">All Call Statuses</option>
+                      {CALL_STATUSES.map(cs => (
+                        <option key={cs} value={cs}>{cs}</option>
+                      ))}
+                    </select>
                   </div>
+
+                  {/* Assigned Telecaller Filter */}
+                  <div>
+                    <select
+                      value={telecallerFilter}
+                      onChange={e => setTelecallerFilter(e.target.value)}
+                      className="w-full py-2 px-3 text-xs border border-[#EAE4DC] rounded-xl font-medium focus:ring-2 focus:ring-[#C6A15B]"
+                    >
+                      <option value="">All Assigned Telecallers</option>
+                      {telecallers.map(tc => (
+                        <option key={tc.id} value={tc.full_name}>{tc.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Follow-up Quick Date Filter Pills */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#EAE4DC]">
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="text-[11px] font-bold text-[#7A726D] mr-1">Follow-up:</span>
+                    {[
+                      { key: 'all', label: 'All Dates' },
+                      { key: 'today', label: 'Today' },
+                      { key: 'tomorrow', label: 'Tomorrow' },
+                      { key: 'overdue', label: 'Overdue' },
+                      { key: 'this_week', label: 'This Week' },
+                      { key: 'next_week', label: 'Next Week' },
+                      { key: 'custom', label: 'Custom' }
+                    ].map(btn => (
+                      <button
+                        key={btn.key}
+                        onClick={() => setDateViewFilter(btn.key)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                          dateViewFilter === btn.key
+                            ? 'bg-[#4A1726] text-white'
+                            : 'bg-[#F8F5F1] text-[#7A726D] hover:bg-[#EAE4DC]'
+                        }`}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {dateViewFilter === 'custom' && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={e => setCustomStartDate(e.target.value)}
+                        className="text-xs border border-[#EAE4DC] rounded-xl px-2.5 py-1"
+                      />
+                      <span className="text-xs text-gray-400">to</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={e => setCustomEndDate(e.target.value)}
+                        className="text-xs border border-[#EAE4DC] rounded-xl px-2.5 py-1"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Data Table */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+              {/* Customer Directory Table */}
+              <div className="bg-white rounded-2xl border border-[#EAE4DC] shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#4A1726] text-[#F8F5F1] uppercase text-[10px] tracking-wider font-extrabold border-b border-[#C6A15B]/30">
+                    <thead className="bg-[#4A1726] text-[#F8F5F1] font-black uppercase text-[10px] tracking-wider">
                       <tr>
-                        <th className="py-3 px-3">Customer Code</th>
-                        <th className="py-3 px-3">Customer Name & Contact</th>
-                        <th className="py-3 px-3">Location</th>
-                        <th className="py-3 px-3">Wedding Date</th>
-                        <th className="py-3 px-3">Expected Shopping</th>
-                        <th className="py-3 px-3">Follow-up Date</th>
-                        <th className="py-3 px-3">Readiness</th>
-                        <th className="py-3 px-3">Current Status</th>
-                        <th className="py-3 px-3">Telecaller</th>
-                        <th className="py-3 px-3 text-right">Actions</th>
+                        <th className="p-3">Customer ID</th>
+                        <th className="p-3">Customer Name & Phone</th>
+                        <th className="p-3">Location</th>
+                        <th className="p-3">Expected Shopping</th>
+                        <th className="p-3">Next Follow-up</th>
+                        <th className="p-3">Customer Status</th>
+                        <th className="p-3">Call Status</th>
+                        <th className="p-3">Assigned Telecaller</th>
+                        <th className="p-3 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-[#EAE4DC]">
                       {loadingCustomers ? (
                         <tr>
-                          <td colSpan={10} className="py-12 text-center text-gray-500">
-                            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#C6A15B] mb-2" />
-                            Loading customer directory...
+                          <td colSpan={9} className="p-8 text-center text-gray-400">
+                            <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-1 text-[#C6A15B]" />
+                            <span>Loading wedding customers...</span>
                           </td>
                         </tr>
                       ) : customers.length === 0 ? (
                         <tr>
-                          <td colSpan={10} className="py-12 text-center text-gray-500">
-                            <Heart className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                            <p className="font-semibold">No wedding customers found.</p>
-                            <p className="text-[11px] text-gray-400 mt-0.5">
-                              Try changing filters or add a new wedding customer.
-                            </p>
+                          <td colSpan={9} className="p-8 text-center text-gray-400">
+                            No wedding customers match the selected filters.
                           </td>
                         </tr>
                       ) : (
-                        customers.map(cust => {
-                          const statusStyle = STATUS_COLORS[cust.current_status] || {
-                            bg: 'bg-gray-100',
-                            text: 'text-gray-700',
-                            border: 'border-gray-200'
-                          };
-                          const shopDays = getDaysDiff(cust.expected_shopping_date);
-                          const followDays = getDaysDiff(cust.follow_up_date);
+                        customers.map((c) => {
+                          const isOverdue = c.overdue_days && c.overdue_days > 0;
 
                           return (
-                            <tr key={cust.id} className="hover:bg-amber-50/20 transition-colors">
-                              {/* Code */}
-                              <td className="py-3 px-3 font-mono font-bold text-gray-700">
-                                {cust.customer_code}
+                            <tr key={c.id} className="hover:bg-[#F8F5F1]/80 transition-colors">
+                              <td className="p-3 font-mono font-bold text-[#4A1726]">
+                                {c.customer_code}
                               </td>
-
-                              {/* Customer info */}
-                              <td className="py-3 px-3">
-                                <div className="font-bold text-gray-900 leading-tight">
-                                  {cust.customer_name}
-                                </div>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                  <a
-                                    href={`tel:${cust.phone}`}
-                                    className="text-xs font-semibold text-[#4A1726] hover:underline"
-                                  >
-                                    {cust.phone}
-                                  </a>
+                              <td className="p-3">
+                                <div className="font-bold text-[#321923] text-xs">{c.customer_name}</div>
+                                <div className="text-[11px] text-[#7A726D] flex items-center gap-1.5 mt-0.5">
+                                  <span>{c.mobile_number}</span>
                                   <button
-                                    onClick={() => copyPhone(cust.phone)}
-                                    className="text-gray-400 hover:text-gray-600"
+                                    onClick={() => copyPhone(c.mobile_number)}
+                                    title="Copy mobile"
+                                    className="text-gray-400 hover:text-gray-700"
                                   >
-                                    {copySuccess === cust.phone ? (
-                                      <Check className="w-3 h-3 text-emerald-600" />
-                                    ) : (
-                                      <Copy className="w-3 h-3" />
-                                    )}
+                                    {copySuccess === c.mobile_number ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                                   </button>
                                 </div>
-                                <span className="text-[10px] text-gray-400">
-                                  {cust.customer_role} {cust.city ? `• ${cust.city}` : ''}
-                                </span>
                               </td>
-
-                              {/* Location */}
-                              <td className="py-3 px-3">
-                                <span className="inline-block bg-[#4A1726]/10 text-[#4A1726] font-bold text-[10.5px] px-2 py-0.5 rounded">
-                                  {cust.location_code || cust.location_name || 'Store'}
-                                </span>
+                              <td className="p-3 font-semibold text-[#7A726D]">
+                                📍 {c.location_name || 'Davanagere'}
                               </td>
-
-                              {/* Wedding Date */}
-                              <td className="py-3 px-3">
-                                <span className="font-semibold text-gray-800">
-                                  {formatDate(cust.wedding_date)}
-                                </span>
-                                {(cust.bride_name || cust.groom_name) && (
-                                  <span className="text-[10px] text-gray-400 block truncate max-w-[120px]">
-                                    {cust.bride_name ? `B: ${cust.bride_name}` : ''}
-                                    {cust.groom_name ? ` G: ${cust.groom_name}` : ''}
+                              <td className="p-3 font-black text-blue-900">
+                                {formatDate(c.expected_shopping_date)}
+                              </td>
+                              <td className="p-3">
+                                <div className="font-black text-[#321923]">{formatDate(c.follow_up_date)}</div>
+                                {isOverdue && (
+                                  <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.2 rounded-full">
+                                    {c.overdue_days}d overdue
                                   </span>
                                 )}
                               </td>
-
-                              {/* Expected Shopping Date */}
-                              <td className="py-3 px-3">
-                                <span className="font-bold text-gray-900 block">
-                                  {formatDate(cust.expected_shopping_date)}
-                                </span>
-                                {shopDays !== null && (
-                                  <span
-                                    className={`text-[9.5px] font-bold ${
-                                      shopDays < 0
-                                        ? 'text-red-500'
-                                        : shopDays <= 7
-                                        ? 'text-amber-600'
-                                        : 'text-gray-400'
-                                    }`}
-                                  >
-                                    {shopDays < 0
-                                      ? `${Math.abs(shopDays)}d ago`
-                                      : shopDays === 0
-                                      ? 'Today!'
-                                      : `in ${shopDays} days`}
-                                  </span>
-                                )}
-                              </td>
-
-                              {/* Follow-up Date */}
-                              <td className="py-3 px-3">
-                                <span className="font-bold text-gray-900 block">
-                                  {formatDate(cust.follow_up_date)}
-                                </span>
-                                {followDays !== null && (
-                                  <span
-                                    className={`text-[9.5px] font-extrabold ${
-                                      followDays < 0
-                                        ? 'text-red-600'
-                                        : followDays === 0
-                                        ? 'text-amber-600'
-                                        : 'text-blue-600'
-                                    }`}
-                                  >
-                                    {followDays < 0
-                                      ? `${Math.abs(followDays)}d overdue`
-                                      : followDays === 0
-                                      ? 'Due Today'
-                                      : `in ${followDays} days`}
-                                  </span>
-                                )}
-                              </td>
-
-                              {/* Readiness Score */}
-                              <td className="py-3 px-3">
-                                <div className="flex items-center gap-0.5 text-amber-500">
-                                  {[1, 2, 3, 4, 5].map(star => (
-                                    <Star
-                                      key={star}
-                                      className={`w-3 h-3 ${
-                                        star <= (cust.readiness_score || 3)
-                                          ? 'fill-amber-400 text-amber-400'
-                                          : 'text-gray-200'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                                <span className="text-[10px] text-gray-400 font-bold block mt-0.5">
-                                  {cust.readiness_score}/5
+                              <td className="p-3">
+                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                                  {c.customer_status}
                                 </span>
                               </td>
-
-                              {/* Current Status */}
-                              <td className="py-3 px-3">
-                                <span
-                                  className={`inline-block px-2.5 py-1 rounded-full text-[10.5px] font-extrabold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
-                                >
-                                  {cust.current_status}
+                              <td className="p-3">
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                                  {c.call_status}
                                 </span>
                               </td>
-
-                              {/* Telecaller */}
-                              <td className="py-3 px-3">
-                                <span className="text-gray-700 font-medium">
-                                  {cust.telecaller_name || (
-                                    <span className="text-gray-400 italic">Unassigned</span>
-                                  )}
-                                </span>
+                              <td className="p-3 font-medium text-[#4A1726]">
+                                {c.assigned_telecaller || 'Unassigned'}
                               </td>
-
-                              {/* Actions */}
-                              <td className="py-3 px-3 text-right">
+                              <td className="p-3 text-right">
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
-                                    onClick={() => openCallModal(cust)}
-                                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-1.5 rounded-md"
+                                    onClick={() => openCallModal(c)}
+                                    className="p-1.5 bg-[#4A1726] hover:bg-[#321923] text-white rounded-lg transition-all"
                                     title="Log Call"
                                   >
-                                    <PhoneCall className="w-3.5 h-3.5" />
+                                    <PhoneCall className="w-3.5 h-3.5 text-[#C6A15B]" />
                                   </button>
+
                                   <button
-                                    onClick={() => openProfileModal(cust)}
-                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 p-1.5 rounded-md"
-                                    title="View Timeline Profile"
+                                    onClick={() => openProfileModal(c)}
+                                    className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all"
+                                    title="View Profile"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                   </button>
+
                                   <button
-                                    onClick={() => openEditModal(cust)}
-                                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1.5 rounded-md"
+                                    onClick={() => openEditModal(c)}
+                                    className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all"
                                     title="Edit Details"
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                   </button>
-                                  {(session?.role === 'Super Admin' || session?.role === 'Admin') && (
+
+                                  {(session?.isGlobalAdmin || session?.role === 'Admin' || session?.role === 'Super Admin') && (
                                     <button
-                                      onClick={() => handleDeleteCustomer(cust)}
-                                      className="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-md"
-                                      title="Delete"
+                                      onClick={() => handleDeleteCustomer(c)}
+                                      className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-all"
+                                      title="Archive Customer"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1517,1141 +1600,1085 @@ export default function WeddingCRM() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════════════ */}
-          {/* TAB 3: DATE-WISE FOLLOW-UP CALENDAR                    */}
-          {/* ══════════════════════════════════════════════════════ */}
+          {/* ════════════════════════════════════════════════════════════
+              TAB 3: FOLLOW-UP CALENDAR
+             ════════════════════════════════════════════════════════════ */}
           {activeTab === 'calendar' && (
             <div className="space-y-4">
-              {/* Month Navigation */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-[#C6A15B]" />
-                  <h3 className="text-sm font-extrabold text-gray-900">
-                    Follow-up & Expected Shopping Calendar
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="month"
-                    value={calendarMonth}
-                    onChange={e => setCalendarMonth(e.target.value)}
-                    className="py-1 px-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-[#4A1726]"
-                  />
-                  <button
-                    onClick={loadCalendar}
-                    className="bg-[#4A1726] text-white p-1.5 rounded-lg hover:bg-[#38111D]"
-                    title="Reload Calendar"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 text-[#C6A15B]" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Day Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                {Array.from({ length: 31 }).map((_, idx) => {
-                  const dayNum = idx + 1;
-                  const dateKey = `${calendarMonth}-${String(dayNum).padStart(2, '0')}`;
-                  const dayData = calendarData.days[dateKey];
-                  const followUps = dayData?.follow_ups || 0;
-                  const shoppings = dayData?.expected_shoppings || 0;
-                  const isSelected = selectedCalendarDate === dateKey;
-
-                  // Simple date check
-                  const dObj = new Date(`${dateKey}T00:00:00`);
-                  if (isNaN(dObj.getTime()) || dObj.getMonth() !== new Date(`${calendarMonth}-01T00:00:00`).getMonth()) {
-                    return null;
-                  }
-                  const weekday = dObj.toLocaleDateString('en-US', { weekday: 'short' });
-
-                  return (
-                    <div
-                      key={dateKey}
-                      onClick={() => setSelectedCalendarDate(isSelected ? null : dateKey)}
-                      className={`bg-white rounded-xl border p-3 cursor-pointer transition-all shadow-xs hover:shadow-md ${
-                        isSelected
-                          ? 'border-[#4A1726] ring-2 ring-[#C6A15B]'
-                          : followUps > 0 || shoppings > 0
-                          ? 'border-amber-200 bg-amber-50/10'
-                          : 'border-gray-200 opacity-80'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-black text-gray-800">{dayNum}</span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">{weekday}</span>
-                      </div>
-
-                      <div className="space-y-1">
-                        {followUps > 0 && (
-                          <div className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-1.5 py-0.5 rounded flex items-center justify-between">
-                            <span>Follow-ups</span>
-                            <span className="bg-amber-200 px-1 rounded">{followUps}</span>
-                          </div>
-                        )}
-                        {shoppings > 0 && (
-                          <div className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.5 rounded flex items-center justify-between">
-                            <span>Shopping</span>
-                            <span className="bg-emerald-200 px-1 rounded">{shoppings}</span>
-                          </div>
-                        )}
-                        {followUps === 0 && shoppings === 0 && (
-                          <div className="text-[10px] text-gray-300 italic py-1 text-center">—</div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Selected Day Customer Preview */}
-              {selectedCalendarDate && calendarData.days[selectedCalendarDate] && (
-                <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm animate-slide-up">
-                  <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
-                    <h4 className="text-sm font-extrabold text-[#4A1726]">
-                      Schedule for {formatDate(selectedCalendarDate)}
-                    </h4>
-                    <span className="text-xs text-gray-500 font-medium">
-                      {calendarData.days[selectedCalendarDate].customers.length} customer(s)
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {calendarData.days[selectedCalendarDate].customers.map((c: any) => (
-                      <div
-                        key={c.id}
-                        className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between"
-                      >
-                        <div>
-                          <div className="font-bold text-gray-900 text-xs">{c.customer_name}</div>
-                          <div className="text-[11px] text-gray-500">{c.phone}</div>
-                          <span
-                            className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded mt-1 ${
-                              c.event_type === 'shopping'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}
-                          >
-                            {c.event_type === 'shopping' ? '🛍️ Expected Shopping' : '📞 Follow-up Call'}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => openCallModal(c)}
-                          className="bg-[#4A1726] text-white p-2 rounded-lg hover:bg-[#38111D]"
-                          title="Log Call"
-                        >
-                          <PhoneCall className="w-3.5 h-3.5 text-[#C6A15B]" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ══════════════════════════════════════════════════════ */}
-          {/* TAB 4: CONVERSION FUNNEL & ANALYTICS                   */}
-          {/* ══════════════════════════════════════════════════════ */}
-          {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              {/* Funnel Visualisation */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-base font-extrabold text-[#4A1726]">
-                      Wedding Customer Conversion Funnel
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Stage-by-stage progression from store visit to successful wedding shopping purchase
-                    </p>
-                  </div>
-                  <div className="bg-[#4A1726]/10 text-[#4A1726] px-3 py-1 rounded-lg text-xs font-extrabold">
-                    Overall Conversion:{' '}
-                    {stats.total_leads > 0
-                      ? Math.round((stats.converted / stats.total_leads) * 100)
-                      : 0}
-                    %
-                  </div>
-                </div>
-
-                {/* Horizontal Funnel Stages */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                  {/* Stage 1: New Leads */}
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
-                    <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider block">
-                      Stage 1: Visit Logged
-                    </span>
-                    <div className="text-3xl font-black text-blue-900 mt-2">{stats.total_leads}</div>
-                    <p className="text-[11px] text-blue-600 font-semibold mt-1">100% of pipeline</p>
-                  </div>
-
-                  {/* Stage 2: Follow-up in Progress */}
-                  <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 text-center">
-                    <span className="text-[10px] font-extrabold text-amber-700 uppercase tracking-wider block">
-                      Stage 2: In Follow-up
-                    </span>
-                    <div className="text-3xl font-black text-amber-900 mt-2">
-                      {stats.total_leads - stats.lost}
-                    </div>
-                    <p className="text-[11px] text-amber-600 font-semibold mt-1">Active leads</p>
-                  </div>
-
-                  {/* Stage 3: Store Visit Planned */}
-                  <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-center">
-                    <span className="text-[10px] font-extrabold text-purple-700 uppercase tracking-wider block">
-                      Stage 3: Visit Planned
-                    </span>
-                    <div className="text-3xl font-black text-purple-900 mt-2">
-                      {stats.store_visit_planned}
-                    </div>
-                    <p className="text-[11px] text-purple-600 font-semibold mt-1">Visit date fixed</p>
-                  </div>
-
-                  {/* Stage 4: Ready to Shop */}
-                  <div className="bg-rose-50 border-2 border-rose-200 rounded-xl p-4 text-center">
-                    <span className="text-[10px] font-extrabold text-rose-700 uppercase tracking-wider block">
-                      Stage 4: Ready to Shop
-                    </span>
-                    <div className="text-3xl font-black text-rose-900 mt-2">{stats.ready_to_shop}</div>
-                    <p className="text-[11px] text-rose-600 font-semibold mt-1">High readiness score</p>
-                  </div>
-
-                  {/* Stage 5: Converted */}
-                  <div className="bg-teal-50 border-2 border-teal-300 rounded-xl p-4 text-center shadow-xs">
-                    <span className="text-[10px] font-extrabold text-teal-700 uppercase tracking-wider block">
-                      Stage 5: Purchased! 🎉
-                    </span>
-                    <div className="text-3xl font-black text-teal-900 mt-2">{stats.converted}</div>
-                    <p className="text-[11px] text-teal-700 font-bold mt-1">Successful conversions</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Telecaller Performance Table */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
+              <div className="bg-white p-5 rounded-3xl border border-[#EAE4DC] shadow-xs">
+                {/* Calendar Month Header */}
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-extrabold text-[#4A1726]">
-                    Telecaller Calling & Conversion Performance
-                  </h3>
-                  <span className="text-xs text-gray-500 font-medium">Ranked by calls & conversion</span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-[10px]">
-                      <tr>
-                        <th className="py-2.5 px-3">Telecaller</th>
-                        <th className="py-2.5 px-3">Location</th>
-                        <th className="py-2.5 px-3">Assigned Leads</th>
-                        <th className="py-2.5 px-3">Total Calls Made</th>
-                        <th className="py-2.5 px-3">Successful Conversions</th>
-                        <th className="py-2.5 px-3">Conversion Rate</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {analyticsData?.telecallers && analyticsData.telecallers.length > 0 ? (
-                        analyticsData.telecallers.map((t: any) => {
-                          const convRate =
-                            t.assigned_leads > 0
-                              ? Math.round((t.conversions / t.assigned_leads) * 100)
-                              : 0;
-                          return (
-                            <tr key={t.id} className="hover:bg-gray-50">
-                              <td className="py-3 px-3 font-bold text-gray-900">{t.name}</td>
-                              <td className="py-3 px-3 font-semibold text-gray-600">{t.location_name}</td>
-                              <td className="py-3 px-3 font-semibold text-gray-800">{t.assigned_leads}</td>
-                              <td className="py-3 px-3 font-black text-[#4A1726]">{t.total_calls}</td>
-                              <td className="py-3 px-3 font-black text-teal-700">{t.conversions}</td>
-                              <td className="py-3 px-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-20 bg-gray-200 rounded-full h-2 overflow-hidden">
-                                    <div
-                                      className="bg-emerald-500 h-2 rounded-full"
-                                      style={{ width: `${Math.min(convRate, 100)}%` }}
-                                    />
-                                  </div>
-                                  <span className="font-extrabold text-gray-800">{convRate}%</span>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan={6} className="py-8 text-center text-gray-400">
-                            No telecaller activity recorded yet.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
-
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* MODAL 1: ADD WEDDING CUSTOMER                          */}
-        {/* ══════════════════════════════════════════════════════ */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gray-200 animate-slide-up">
-              {/* Header */}
-              <div className="p-4 sm:p-5 bg-gradient-to-r from-[#4A1726] to-[#6A2338] text-white rounded-t-2xl flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <Sparkles className="w-5 h-5 text-[#C6A15B]" />
                   <div>
-                    <h3 className="text-base font-extrabold">Add Wedding Customer</h3>
-                    <p className="text-xs text-[#F8F5F1]/80">
-                      Record store visitor planning wedding shopping
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setDuplicateWarning(null);
-                  }}
-                  className="text-white/80 hover:text-white p-1 rounded-lg"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Duplicate Warning Banner */}
-              {duplicateWarning && (
-                <div className="bg-red-50 border-b border-red-200 p-3.5 flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <p className="font-extrabold text-red-800">Duplicate Customer Detected!</p>
-                    <p className="text-red-700 mt-0.5">
-                      Phone <span className="font-bold">{duplicateWarning.phone}</span> is already registered as{' '}
-                      <span className="font-bold">{duplicateWarning.customer_name}</span> (Code:{' '}
-                      {duplicateWarning.customer_code}) in {duplicateWarning.location_name}.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Form Body */}
-              <form onSubmit={handleCreateCustomer} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Location (if admin) */}
-                  {session?.isGlobalAdmin && (
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-gray-700 mb-1">
-                        Store Location *
-                      </label>
-                      <select
-                        value={addForm.location_id}
-                        onChange={e => setAddForm({ ...addForm, location_id: e.target.value })}
-                        className="w-full text-xs font-semibold p-2 bg-gray-50 border border-gray-200 rounded-lg"
-                        required
-                      >
-                        <option value="">Select Location</option>
-                        {locations.map(loc => (
-                          <option key={loc.id} value={loc.id}>
-                            {loc.name} ({loc.code})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Customer Name */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Customer Name *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Ramesh Kumar"
-                      value={addForm.customer_name}
-                      onChange={e => setAddForm({ ...addForm, customer_name: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                      required
-                    />
+                    <h3 className="text-lg font-black text-[#4A1726]">
+                      {new Date(calendarYear, calendarMonth - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <p className="text-xs text-[#7A726D]">Follow-up schedule and customer workload</p>
                   </div>
 
-                  {/* Phone */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Primary Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="e.g. 9845012345"
-                      value={addForm.phone}
-                      onChange={e => setAddForm({ ...addForm, phone: e.target.value })}
-                      onBlur={e => handlePhoneBlur(e.target.value)}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                      required
-                    />
-                  </div>
-
-                  {/* Alternate Phone */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Alternate Phone
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="e.g. 9845099999"
-                      value={addForm.alternate_phone}
-                      onChange={e => setAddForm({ ...addForm, alternate_phone: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-
-                  {/* City */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">City / Town</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Shivamogga, Bhadravathi"
-                      value={addForm.city}
-                      onChange={e => setAddForm({ ...addForm, city: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-
-                  {/* Customer Role */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Customer Role in Wedding
-                    </label>
-                    <select
-                      value={addForm.customer_role}
-                      onChange={e => setAddForm({ ...addForm, customer_role: e.target.value })}
-                      className="w-full text-xs font-semibold p-2 bg-gray-50 border border-gray-200 rounded-lg"
-                    >
-                      <option value="Groom">Groom</option>
-                      <option value="Bride">Bride</option>
-                      <option value="Groom's Father/Mother">Groom's Father/Mother</option>
-                      <option value="Bride's Father/Mother">Bride's Father/Mother</option>
-                      <option value="Relative / Family Member">Relative / Family Member</option>
-                      <option value="Friend">Friend</option>
-                    </select>
-                  </div>
-
-                  {/* Wedding Date */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Wedding / Muhurtham Date
-                    </label>
-                    <input
-                      type="date"
-                      value={addForm.wedding_date}
-                      onChange={e => setAddForm({ ...addForm, wedding_date: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-
-                  {/* Bride Name */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Bride Name</label>
-                    <input
-                      type="text"
-                      placeholder="Bride's name"
-                      value={addForm.bride_name}
-                      onChange={e => setAddForm({ ...addForm, bride_name: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-
-                  {/* Groom Name */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Groom Name</label>
-                    <input
-                      type="text"
-                      placeholder="Groom's name"
-                      value={addForm.groom_name}
-                      onChange={e => setAddForm({ ...addForm, groom_name: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-
-                  {/* Estimated Budget */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Estimated Budget (₹)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 50000, 100000"
-                      value={addForm.estimated_budget}
-                      onChange={e => setAddForm({ ...addForm, estimated_budget: e.target.value })}
-                      className="w-full text-xs font-medium p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-
-                  {/* Priority */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Follow-up Priority
-                    </label>
-                    <select
-                      value={addForm.follow_up_priority}
-                      onChange={e =>
-                        setAddForm({
-                          ...addForm,
-                          follow_up_priority: e.target.value as any
-                        })
-                      }
-                      className="w-full text-xs font-semibold p-2 bg-gray-50 border border-gray-200 rounded-lg"
-                    >
-                      <option value="Normal">Normal</option>
-                      <option value="High">High</option>
-                      <option value="Urgent">Urgent</option>
-                    </select>
-                  </div>
-
-                  {/* ── CORE DATE SEPARATION ─────────────────── */}
-                  {/* Expected Shopping Date */}
-                  <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-200">
-                    <label className="block text-xs font-extrabold text-amber-900 mb-1">
-                      🛍️ Expected Shopping Date *
-                    </label>
-                    <span className="text-[10px] text-amber-700 block mb-1.5">
-                      When the customer says they will come back to shop
-                    </span>
-                    <input
-                      type="date"
-                      value={addForm.expected_shopping_date}
-                      onChange={e => setAddForm({ ...addForm, expected_shopping_date: e.target.value })}
-                      className="w-full text-xs font-bold p-2 bg-white border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500"
-                      required
-                    />
-                  </div>
-
-                  {/* Follow-up Date */}
-                  <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-200">
-                    <label className="block text-xs font-extrabold text-blue-900 mb-1">
-                      📞 Telecaller Follow-up Date *
-                    </label>
-                    <span className="text-[10px] text-blue-700 block mb-1.5">
-                      When staff should call to remind / invite customer
-                    </span>
-                    <input
-                      type="date"
-                      value={addForm.follow_up_date}
-                      onChange={e => setAddForm({ ...addForm, follow_up_date: e.target.value })}
-                      className="w-full text-xs font-bold p-2 bg-white border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-
-                  {/* Assigned Telecaller */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Assign Telecaller
-                    </label>
-                    <select
-                      value={addForm.assigned_telecaller_id}
-                      onChange={e => setAddForm({ ...addForm, assigned_telecaller_id: e.target.value })}
-                      className="w-full text-xs font-semibold p-2 bg-gray-50 border border-gray-200 rounded-lg"
-                    >
-                      <option value="">Unassigned (Open Queue)</option>
-                      {telecallers.map(t => (
-                        <option key={t.id} value={t.id}>
-                          {t.name} ({t.role || 'Staff'})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Shopping Categories (Multi-select) */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      Shopping Categories of Interest
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {CATEGORY_OPTIONS.map(cat => {
-                        const isChecked = addForm.shopping_categories.includes(cat);
-                        return (
-                          <label
-                            key={cat}
-                            className={`flex items-center gap-1.5 p-2 rounded-lg text-[11px] font-semibold cursor-pointer border transition-all ${
-                              isChecked
-                                ? 'bg-[#4A1726]/10 border-[#4A1726] text-[#4A1726]'
-                                : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={e => {
-                                if (e.target.checked) {
-                                  setAddForm({
-                                    ...addForm,
-                                    shopping_categories: [...addForm.shopping_categories, cat]
-                                  });
-                                } else {
-                                  setAddForm({
-                                    ...addForm,
-                                    shopping_categories: addForm.shopping_categories.filter(c => c !== cat)
-                                  });
-                                }
-                              }}
-                              className="rounded text-[#4A1726] focus:ring-[#C6A15B]"
-                            />
-                            <span>{cat}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Visit Notes */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Store Visit Notes & Customer Preferences
-                    </label>
-                    <textarea
-                      rows={2}
-                      placeholder="e.g. Liked Kanchipuram silk sarees in green shade, looking for 4 family matching dhotis..."
-                      value={addForm.initial_notes}
-                      onChange={e => setAddForm({ ...addForm, initial_notes: e.target.value })}
-                      className="w-full text-xs font-medium p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                  </div>
-                </div>
-
-                {/* Footer Buttons */}
-                <div className="pt-4 border-t border-gray-200 flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setDuplicateWarning(null);
-                    }}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-gradient-to-r from-[#4A1726] to-[#6A2338] text-white hover:from-[#38111D] hover:to-[#551B2C] rounded-lg text-xs font-extrabold shadow-md flex items-center gap-1.5"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-[#C6A15B]" />
-                    <span>Save Wedding Customer</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* MODAL 2: LOG CALL OUTCOME                              */}
-        {/* ══════════════════════════════════════════════════════ */}
-        {showCallLogModal && selectedCustomer && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-gray-200 animate-slide-up">
-              {/* Header */}
-              <div className="p-4 bg-gradient-to-r from-emerald-700 to-teal-800 text-white rounded-t-2xl flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <PhoneCall className="w-5 h-5 text-emerald-200" />
-                  <div>
-                    <h3 className="text-base font-extrabold">Log Call Outcome</h3>
-                    <p className="text-xs text-emerald-100">
-                      Record telecaller discussion and next step
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowCallLogModal(false)}
-                  className="text-white/80 hover:text-white p-1 rounded-lg"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Customer Quick Summary */}
-              <div className="bg-gray-50 border-b border-gray-200 p-3 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-extrabold text-gray-900">{selectedCustomer.customer_name}</div>
-                  <div className="text-gray-500 font-semibold">{selectedCustomer.phone}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] text-gray-400 font-bold uppercase">Expected Shopping</div>
-                  <div className="font-extrabold text-[#4A1726]">
-                    {formatDate(selectedCustomer.expected_shopping_date)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Body */}
-              <form onSubmit={handleSaveCallLog} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
-                {/* Call Status */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Call Connection Status</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['Connected', 'Not Answered', 'Busy / Switched Off'].map(st => (
-                      <button
-                        type="button"
-                        key={st}
-                        onClick={() => setCallLogForm({ ...callLogForm, call_status: st })}
-                        className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition-all ${
-                          callLogForm.call_status === st
-                            ? 'bg-[#4A1726] text-white border-[#4A1726]'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {st}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Outcome */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Call Outcome *</label>
-                  <select
-                    value={callLogForm.outcome}
-                    onChange={e => {
-                      const val = e.target.value;
-                      let suggestedStatus = selectedCustomer.current_status;
-                      if (val.includes('Confirmed Store Visit')) suggestedStatus = 'Store Visit Planned';
-                      else if (val.includes('Ready to Shop')) suggestedStatus = 'Ready to Shop';
-                      else if (val.includes('Callback Requested')) suggestedStatus = 'Callback Requested';
-                      else if (val.includes('Already Purchased') || val.includes('Not Interested'))
-                        suggestedStatus = 'Lost';
-                      else if (val.includes('Purchased at BSC')) suggestedStatus = 'Converted';
-
-                      setCallLogForm({
-                        ...callLogForm,
-                        outcome: val,
-                        new_customer_status: suggestedStatus
-                      });
-                    }}
-                    className="w-full text-xs font-semibold p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    required
-                  >
-                    <option value="Interested - Confirmed Store Visit">
-                      ✅ Interested - Confirmed Store Visit
-                    </option>
-                    <option value="Interested - Follow-up Required">
-                      💬 Interested - Follow-up Required
-                    </option>
-                    <option value="Ready to Shop Soon">🔥 Ready to Shop Soon</option>
-                    <option value="Callback Requested">📞 Callback Requested</option>
-                    <option value="Postponed Shopping / Muhurtham">
-                      ⏳ Postponed Shopping / Muhurtham
-                    </option>
-                    <option value="Already Purchased at BSC (Converted)">
-                      🎉 Already Purchased at BSC (Converted)
-                    </option>
-                    <option value="Already Purchased Elsewhere">
-                      ❌ Already Purchased Elsewhere (Lost)
-                    </option>
-                    <option value="Not Interested / Budget Mismatch">
-                      ⛔ Not Interested / Budget Mismatch (Lost)
-                    </option>
-                    <option value="No Answer - Try Again Later">
-                      📵 No Answer - Try Again Later
-                    </option>
-                  </select>
-                </div>
-
-                {/* Readiness Score (1 to 5) */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Customer Purchase Readiness Score (1-5)
-                  </label>
                   <div className="flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map(score => (
-                      <button
-                        type="button"
-                        key={score}
-                        onClick={() => setCallLogForm({ ...callLogForm, readiness_score: score })}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold border transition-all flex items-center justify-center gap-1 ${
-                          callLogForm.readiness_score === score
-                            ? 'bg-amber-500 text-white border-amber-600 shadow-sm'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-amber-50'
-                        }`}
-                      >
-                        <Star className="w-3 h-3 fill-current" />
-                        <span>{score}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <span className="text-[10px] text-gray-400 block mt-1">
-                    1 = Cold/Distant • 3 = Normal follow-up • 5 = Immediate buying intent
-                  </span>
-                </div>
-
-                {/* Next Follow-up Date */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Next Follow-up Date (Schedule next call)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={callLogForm.next_follow_up_date}
-                      onChange={e => setCallLogForm({ ...callLogForm, next_follow_up_date: e.target.value })}
-                      className="flex-1 text-xs font-bold p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                    />
-                    {/* Quick shortcuts */}
                     <button
-                      type="button"
                       onClick={() => {
-                        const d = new Date();
-                        d.setDate(d.getDate() + 2);
-                        setCallLogForm({
-                          ...callLogForm,
-                          next_follow_up_date: d.toISOString().slice(0, 10)
-                        });
+                        if (calendarMonth === 1) {
+                          setCalendarMonth(12);
+                          setCalendarYear(calendarYear - 1);
+                        } else {
+                          setCalendarMonth(calendarMonth - 1);
+                        }
                       }}
-                      className="text-[10px] font-extrabold bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-2 rounded-lg"
+                      className="p-2 border border-[#EAE4DC] rounded-xl hover:bg-gray-50"
                     >
-                      +2 Days
+                      <ChevronLeft className="w-4 h-4 text-[#4A1726]" />
                     </button>
+
                     <button
-                      type="button"
                       onClick={() => {
-                        const d = new Date();
-                        d.setDate(d.getDate() + 7);
-                        setCallLogForm({
-                          ...callLogForm,
-                          next_follow_up_date: d.toISOString().slice(0, 10)
-                        });
+                        setCalendarYear(new Date().getFullYear());
+                        setCalendarMonth(new Date().getMonth() + 1);
                       }}
-                      className="text-[10px] font-extrabold bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-2 rounded-lg"
+                      className="px-3 py-1.5 text-xs font-bold border border-[#EAE4DC] rounded-xl hover:bg-gray-50"
                     >
-                      +1 Week
+                      Today
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (calendarMonth === 12) {
+                          setCalendarMonth(1);
+                          setCalendarYear(calendarYear + 1);
+                        } else {
+                          setCalendarMonth(calendarMonth + 1);
+                        }
+                      }}
+                      className="p-2 border border-[#EAE4DC] rounded-xl hover:bg-gray-50"
+                    >
+                      <ChevronRight className="w-4 h-4 text-[#4A1726]" />
                     </button>
                   </div>
                 </div>
 
-                {/* Update Overall Customer Status */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Update Overall Customer Status
-                  </label>
-                  <select
-                    value={callLogForm.new_customer_status}
-                    onChange={e => setCallLogForm({ ...callLogForm, new_customer_status: e.target.value })}
-                    className="w-full text-xs font-semibold p-2 bg-gray-50 border border-gray-200 rounded-lg"
-                  >
-                    <option value="Follow-up in Progress">Follow-up in Progress</option>
-                    <option value="Callback Requested">Callback Requested</option>
-                    <option value="Store Visit Planned">Store Visit Planned</option>
-                    <option value="Ready to Shop">Ready to Shop</option>
-                    <option value="Converted">Converted (Shopped)</option>
-                    <option value="Lost">Lost (Bought elsewhere / Dropped)</option>
-                  </select>
-                </div>
-
-                {/* Call Notes */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Call Notes & Customer Remarks
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. Spoke to customer, said family is arriving next Tuesday, requested call on Monday morning..."
-                    value={callLogForm.call_notes}
-                    onChange={e => setCallLogForm({ ...callLogForm, call_notes: e.target.value })}
-                    className="w-full text-xs font-medium p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#C6A15B]"
-                  />
-                </div>
-
-                {/* Buttons */}
-                <div className="pt-3 border-t border-gray-200 flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowCallLogModal(false)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-lg text-xs font-extrabold shadow-md flex items-center gap-1.5"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-                    <span>Save Call Log</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* MODAL 3: CUSTOMER PROFILE & TIMELINE                   */}
-        {/* ══════════════════════════════════════════════════════ */}
-        {showProfileModal && selectedCustomer && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gray-200 animate-slide-up">
-              {/* Profile Header */}
-              <div className="p-5 bg-gradient-to-r from-[#4A1726] to-[#6A2338] text-white rounded-t-2xl flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono bg-white/20 px-2 py-0.5 rounded font-bold">
-                      {selectedCustomer.customer_code}
-                    </span>
-                    <span className="text-[10px] font-extrabold bg-[#C6A15B] text-[#4A1726] px-2 py-0.5 rounded uppercase">
-                      {selectedCustomer.current_status}
-                    </span>
+                {/* Calendar Legend */}
+                <div className="flex flex-wrap items-center gap-4 text-xs mb-4 pb-3 border-b border-[#EAE4DC]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-500" />
+                    <span className="font-semibold text-gray-700">Overdue</span>
                   </div>
-                  <h3 className="text-lg font-black mt-1.5">{selectedCustomer.customer_name}</h3>
-                  <p className="text-xs text-white/80 font-medium">
-                    {selectedCustomer.customer_role} • {selectedCustomer.city || 'Local Customer'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowProfileModal(false)}
-                  className="text-white/80 hover:text-white p-1 rounded-lg"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Quick Details Bar */}
-              <div className="bg-gray-50 border-b border-gray-200 p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase block">Phone</span>
-                  <a
-                    href={`tel:${selectedCustomer.phone}`}
-                    className="font-bold text-[#4A1726] hover:underline"
-                  >
-                    {selectedCustomer.phone}
-                  </a>
-                </div>
-                <div>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase block">Wedding Date</span>
-                  <span className="font-bold text-gray-800">{formatDate(selectedCustomer.wedding_date)}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase block">
-                    Expected Shopping
-                  </span>
-                  <span className="font-bold text-gray-800">
-                    {formatDate(selectedCustomer.expected_shopping_date)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase block">Readiness</span>
-                  <div className="flex items-center gap-0.5 text-amber-500 mt-0.5">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <Star
-                        key={star}
-                        className={`w-3 h-3 ${
-                          star <= (selectedCustomer.readiness_score || 3)
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'text-gray-200'
-                        }`}
-                      />
-                    ))}
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-amber-400" />
+                    <span className="font-semibold text-gray-700">Due Today</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="font-semibold text-gray-700">Upcoming</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="font-semibold text-gray-700">Completed</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Body: Timeline of Calls */}
-              <div className="p-5 overflow-y-auto flex-1 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase text-gray-500 tracking-wider">
-                    Telecaller Interaction Timeline ({customerTimeline.length} calls)
-                  </h4>
-                  <button
-                    onClick={() => openCallModal(selectedCustomer)}
-                    className="bg-[#4A1726] hover:bg-[#38111D] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs"
-                  >
-                    <PhoneCall className="w-3.5 h-3.5 text-[#C6A15B]" />
-                    <span>Log New Call</span>
-                  </button>
-                </div>
+                {/* Calendar Days Grid */}
+                <div className="grid grid-cols-7 gap-2">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                    <div key={d} className="text-center font-black text-[11px] text-[#7A726D] uppercase py-1">
+                      {d}
+                    </div>
+                  ))}
 
-                {customerTimeline.length === 0 ? (
-                  <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500 font-semibold">No call history recorded yet.</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      Use the "Log New Call" button to record the first conversation.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="relative border-l-2 border-[#C6A15B]/40 ml-3 space-y-4 py-2">
-                    {customerTimeline.map(log => (
-                      <div key={log.id} className="relative pl-6">
-                        {/* Timeline dot */}
-                        <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#4A1726] border-2 border-[#C6A15B]" />
+                  {(() => {
+                    const firstDayIdx = new Date(calendarYear, calendarMonth - 1, 1).getDay();
+                    const daysInMonth = new Date(calendarYear, calendarMonth, 0).getDate();
+                    const cells = [];
 
-                        <div className="bg-gray-50 rounded-xl p-3.5 border border-gray-200 text-xs shadow-2xs">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-extrabold text-[#4A1726]">{log.outcome}</span>
-                            <span className="text-[10px] text-gray-400 font-medium">
-                              {formatDate(log.call_date)}
+                    // Leading empty slots
+                    for (let i = 0; i < firstDayIdx; i++) {
+                      cells.push(<div key={`empty-${i}`} className="min-h-[85px] bg-gray-50/50 rounded-2xl border border-transparent" />);
+                    }
+
+                    // Actual month days
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const dateStr = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                      const dayInfo = calendarDays.find(d => d.date === dateStr);
+                      const isToday = dateStr === new Date().toISOString().slice(0, 10);
+                      const isSelected = selectedCalendarDate === dateStr;
+
+                      cells.push(
+                        <div
+                          key={dateStr}
+                          onClick={() => setSelectedCalendarDate(dateStr)}
+                          className={`min-h-[85px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-[#4A1726] ring-2 ring-[#C6A15B] bg-amber-50/30'
+                              : isToday
+                              ? 'border-amber-400 bg-amber-50/20'
+                              : 'border-[#EAE4DC] bg-white hover:border-[#C6A15B]/60'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-black ${isToday ? 'bg-[#4A1726] text-white px-1.5 py-0.5 rounded-md' : 'text-[#321923]'}`}>
+                              {day}
                             </span>
+                            {dayInfo && dayInfo.total > 0 && (
+                              <span className="text-[10px] font-mono font-bold text-gray-500">
+                                {dayInfo.total} calls
+                              </span>
+                            )}
                           </div>
 
-                          <div className="text-[11px] text-gray-500 mb-2">
-                            Caller: <span className="font-bold text-gray-700">{log.caller_name}</span> •
-                            Status: <span className="font-bold text-gray-700">{log.call_status}</span>
-                          </div>
-
-                          {log.call_notes && (
-                            <p className="text-gray-700 bg-white p-2.5 rounded-lg border border-gray-100 text-xs italic">
-                              "{log.call_notes}"
-                            </p>
-                          )}
-
-                          {log.next_follow_up_date && (
-                            <div className="mt-2 text-[10.5px] text-blue-700 font-bold flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              <span>Scheduled Next Follow-up: {formatDate(log.next_follow_up_date)}</span>
+                          {dayInfo && (
+                            <div className="space-y-0.5 mt-1 text-[9.5px]">
+                              {dayInfo.overdue_count > 0 && (
+                                <div className="bg-red-100 text-red-800 font-bold px-1.5 py-0.2 rounded-md">
+                                  {dayInfo.overdue_count} overdue
+                                </div>
+                              )}
+                              {dayInfo.today_count > 0 && (
+                                <div className="bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded-md">
+                                  {dayInfo.today_count} today
+                                </div>
+                              )}
+                              {dayInfo.shopping_confirmed_count > 0 && (
+                                <div className="bg-blue-100 text-blue-900 font-bold px-1.5 py-0.2 rounded-md">
+                                  {dayInfo.shopping_confirmed_count} shop confirmed
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
+                      );
+                    }
+
+                    return cells;
+                  })()}
+                </div>
+              </div>
+
+              {/* Selected Date Detail Drawer / Table */}
+              {selectedCalendarDate && (
+                <div className="bg-white p-5 rounded-3xl border-2 border-[#C6A15B]/40 shadow-md animate-slide-up space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-black text-[#4A1726]">
+                        Follow-ups Scheduled for {formatDate(selectedCalendarDate)}
+                      </h4>
+                      <p className="text-xs text-[#7A726D]">Click any customer to log call or inspect profile</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedCalendarDate(null)}
+                      className="p-1 text-gray-400 hover:text-gray-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {(() => {
+                    const filtered = monthCustomers.filter(c => c.follow_up_date === selectedCalendarDate);
+                    if (filtered.length === 0) {
+                      return (
+                        <p className="text-xs text-gray-500 py-3">No follow-ups scheduled for this date.</p>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                        {filtered.map(c => (
+                          <div key={c.id} className="p-3 bg-[#F8F5F1] rounded-2xl border border-[#EAE4DC] flex items-center justify-between">
+                            <div>
+                              <div className="font-bold text-xs text-[#321923]">{c.customer_name}</div>
+                              <div className="text-[11px] text-[#7A726D]">{c.mobile_number}</div>
+                              <div className="text-[10px] text-blue-800 font-bold mt-0.5">
+                                Shopping: {formatDate(c.expected_shopping_date)}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => openCallModal(c)}
+                                className="px-2.5 py-1.5 bg-[#4A1726] text-white text-xs font-bold rounded-xl"
+                              >
+                                Call
+                              </button>
+                              <button
+                                onClick={() => openProfileModal(c)}
+                                className="p-1.5 bg-white border border-[#EAE4DC] rounded-xl text-gray-600 hover:text-[#4A1726]"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════════════════════════
+              TAB 4: ANALYTICS & TELECALLER PERFORMANCE
+             ════════════════════════════════════════════════════════════ */}
+          {activeTab === 'analytics' && (
+            <div className="space-y-5">
+              {loadingAnalytics ? (
+                <div className="bg-white p-12 rounded-3xl border border-[#EAE4DC] text-center text-[#7A726D]">
+                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-[#C6A15B] mb-2" />
+                  <p className="text-sm font-bold">Computing conversion funnels & performance...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Conversion Funnel */}
+                  <div className="bg-white p-6 rounded-3xl border border-[#EAE4DC] shadow-xs">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-base font-black text-[#4A1726]">Wedding Customer Conversion Funnel</h3>
+                        <p className="text-xs text-[#7A726D]">Step-by-step conversion tracking from initial lead to store visit and purchase</p>
+                      </div>
+                      <span className="text-xs font-bold text-[#C6A15B]">BSC CRM Intelligence</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                      {[
+                        { label: 'Total Customers', val: analyticsData?.funnel?.total_customers || 0, color: 'bg-[#4A1726] text-white' },
+                        { label: 'Contacted', val: analyticsData?.funnel?.contacted || 0, color: 'bg-indigo-700 text-white' },
+                        { label: 'Interested', val: analyticsData?.funnel?.interested || 0, color: 'bg-purple-700 text-white' },
+                        { label: 'Shopping Confirmed', val: analyticsData?.funnel?.shopping_confirmed || 0, color: 'bg-blue-700 text-white' },
+                        { label: 'Visited Store', val: analyticsData?.funnel?.visited || 0, color: 'bg-emerald-600 text-white' },
+                        { label: 'Converted', val: analyticsData?.funnel?.converted || 0, color: 'bg-teal-700 text-white' }
+                      ].map((step, idx) => (
+                        <div key={step.label} className="bg-[#F8F5F1] p-4 rounded-2xl border border-[#EAE4DC] flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-[#7A726D]">
+                            <span>Step {idx + 1}</span>
+                            {idx < 5 && <ArrowRight className="w-3 h-3 text-[#C6A15B]" />}
+                          </div>
+                          <div className="my-2">
+                            <div className="text-2xl font-black text-[#321923]">{step.val}</div>
+                            <div className="text-xs font-black text-[#4A1726] mt-0.5">{step.label}</div>
+                          </div>
+                          <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${step.color}`}
+                              style={{
+                                width: `${
+                                  analyticsData?.funnel?.total_customers > 0
+                                    ? Math.round((step.val / analyticsData.funnel.total_customers) * 100)
+                                    : 0
+                                }%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Telecaller Performance Scorecard */}
+                  <div className="bg-white rounded-3xl border border-[#EAE4DC] shadow-xs overflow-hidden">
+                    <div className="p-5 border-b border-[#EAE4DC]">
+                      <h3 className="text-base font-black text-[#4A1726]">Telecaller Workload & Performance Scorecard</h3>
+                      <p className="text-xs text-[#7A726D]">Calls completed, conversion results, and pending follow-ups per telecaller</p>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#4A1726] text-[#F8F5F1] font-black uppercase text-[10px] tracking-wider">
+                          <tr>
+                            <th className="p-3">Telecaller Name</th>
+                            <th className="p-3 text-center">Assigned Customers</th>
+                            <th className="p-3 text-center">Calls Completed</th>
+                            <th className="p-3 text-center">Connected</th>
+                            <th className="p-3 text-center">No Answer</th>
+                            <th className="p-3 text-center">Callbacks</th>
+                            <th className="p-3 text-center">Interested</th>
+                            <th className="p-3 text-center">Shopping Confirmed</th>
+                            <th className="p-3 text-center">Conversions</th>
+                            <th className="p-3 text-center">Pending Follow-ups</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#EAE4DC]">
+                          {analyticsData?.telecallers?.length === 0 ? (
+                            <tr>
+                              <td colSpan={10} className="p-8 text-center text-gray-400">
+                                No telecaller performance data recorded yet.
+                              </td>
+                            </tr>
+                          ) : (
+                            analyticsData?.telecallers?.map((tc: any) => (
+                              <tr key={tc.telecaller} className="hover:bg-[#F8F5F1]/80 transition-colors font-medium">
+                                <td className="p-3 font-bold text-[#4A1726]">{tc.telecaller}</td>
+                                <td className="p-3 text-center font-bold">{tc.assigned_customers}</td>
+                                <td className="p-3 text-center font-bold text-emerald-700">{tc.calls_completed}</td>
+                                <td className="p-3 text-center">{tc.connected}</td>
+                                <td className="p-3 text-center text-rose-600 font-semibold">{tc.no_answer}</td>
+                                <td className="p-3 text-center text-purple-700 font-semibold">{tc.callbacks}</td>
+                                <td className="p-3 text-center">{tc.interested}</td>
+                                <td className="p-3 text-center font-bold text-blue-700">{tc.shopping_confirmed}</td>
+                                <td className="p-3 text-center font-black text-teal-800">{tc.conversions}</td>
+                                <td className="p-3 text-center">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    tc.pending_followups > 0 ? 'bg-amber-100 text-amber-900' : 'bg-gray-100 text-gray-500'
+                                  }`}>
+                                    {tc.pending_followups}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════
+          MODAL: ADD WEDDING CUSTOMER (With Realtime Duplicate Check)
+         ════════════════════════════════════════════════════════════ */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[#C6A15B]/30 overflow-hidden my-6 animate-scale-in">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#4A1726] to-[#321923] text-white p-5 flex items-center justify-between border-b border-[#C6A15B]/30">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-5 h-5 text-[#C6A15B]" />
+                <div>
+                  <h3 className="text-base font-black text-[#F8F5F1]">Add Wedding Customer</h3>
+                  <p className="text-[11px] text-[#C6A15B] font-semibold">Store visit walk-in record & follow-up scheduler</p>
+                </div>
+              </div>
+              <button onClick={() => setShowAddModal(false)} className="text-white/70 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Duplicate Mobile Warning Banner */}
+            {duplicateWarning && (
+              <div className="bg-amber-50 border-b border-amber-300 p-3.5 flex items-center justify-between text-xs text-amber-900">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <strong>Customer already exists:</strong> {duplicateWarning.customer_name} ({duplicateWarning.customer_code})
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    openProfileModal(duplicateWarning);
+                  }}
+                  className="px-3 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-xs font-bold transition-colors"
+                >
+                  View Existing Customer
+                </button>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleCreateCustomer} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Customer Name * */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">
+                    Customer Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ramesh Patil"
+                    value={addForm.customer_name}
+                    onChange={e => setAddForm({ ...addForm, customer_name: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B]"
+                  />
+                </div>
+
+                {/* Mobile Number * */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">
+                    Mobile Number <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    maxLength={15}
+                    placeholder="10-digit mobile number"
+                    value={addForm.mobile_number}
+                    onChange={e => {
+                      setAddForm({ ...addForm, mobile_number: e.target.value });
+                    }}
+                    onBlur={e => handlePhoneBlur(e.target.value)}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B]"
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="customer@example.com"
+                    value={addForm.email}
+                    onChange={e => setAddForm({ ...addForm, email: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B]"
+                  />
+                </div>
+
+                {/* Location (Auto-populated for branch, dropdown for Global Admin) */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Store Location</label>
+                  {session?.isGlobalAdmin ? (
+                    <select
+                      value={addForm.location_id}
+                      onChange={e => setAddForm({ ...addForm, location_id: e.target.value })}
+                      className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B]"
+                    >
+                      {locations.map(loc => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.name} ({loc.code})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      value={session?.locationName || 'Davanagere'}
+                      className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl bg-gray-100 text-gray-600"
+                    />
+                  )}
+                </div>
+
+                {/* Wedding Date */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Wedding Date</label>
+                  <input
+                    type="date"
+                    value={addForm.wedding_date}
+                    onChange={e => setAddForm({ ...addForm, wedding_date: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B]"
+                  />
+                </div>
+
+                {/* Expected Shopping Date * (Strictly distinguished from follow-up) */}
+                <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-200">
+                  <label className="block text-xs font-black text-blue-900 mb-1 flex items-center gap-1">
+                    <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Expected Shopping Date <span className="text-red-600">*</span></span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={addForm.expected_shopping_date}
+                    onChange={e => setAddForm({ ...addForm, expected_shopping_date: e.target.value })}
+                    className="w-full text-xs font-bold p-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-400 bg-white"
+                  />
+                  <span className="text-[10px] text-blue-700 mt-1 block">When customer plans to shop in store</span>
+                </div>
+
+                {/* Follow-up Date * (When telecaller must call) */}
+                <div className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-200">
+                  <label className="block text-xs font-black text-amber-900 mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Follow-up Date <span className="text-red-600">*</span></span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={addForm.follow_up_date}
+                    onChange={e => setAddForm({ ...addForm, follow_up_date: e.target.value })}
+                    className="w-full text-xs font-bold p-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-400 bg-white"
+                  />
+                  <span className="text-[10px] text-amber-800 mt-1 block">When telecaller will make follow-up call</span>
+                </div>
+
+                {/* Preferred Call Time */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Preferred Call Time</label>
+                  <select
+                    value={addForm.preferred_call_time}
+                    onChange={e => setAddForm({ ...addForm, preferred_call_time: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl"
+                  >
+                    {CALL_TIME_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Preferred Shopping Category */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Shopping Category</label>
+                  <select
+                    value={addForm.preferred_shopping_category}
+                    onChange={e => setAddForm({ ...addForm, preferred_shopping_category: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl"
+                  >
+                    {CATEGORY_OPTIONS.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Estimated Family Size */}
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Estimated Family Size</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={addForm.estimated_family_size}
+                    onChange={e => setAddForm({ ...addForm, estimated_family_size: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl"
+                  />
+                </div>
+
+                {/* Assigned Telecaller */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-black text-[#321923] mb-1">Assigned Telecaller</label>
+                  <select
+                    value={addForm.assigned_telecaller_id}
+                    onChange={e => {
+                      const id = e.target.value;
+                      const selected = telecallers.find(t => String(t.id) === id);
+                      setAddForm({
+                        ...addForm,
+                        assigned_telecaller_id: id,
+                        assigned_telecaller: selected ? selected.full_name : ''
+                      });
+                    }}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl"
+                  >
+                    <option value="">Assign to Telecaller (or unassigned)</option>
+                    {telecallers.map(tc => (
+                      <option key={tc.id} value={tc.id}>{tc.full_name} ({tc.role})</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Customer Notes */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-black text-[#321923] mb-1">Customer Notes / Preferences</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Specific bridal colors, family requirements, store visit context..."
+                    value={addForm.customer_notes}
+                    onChange={e => setAddForm({ ...addForm, customer_notes: e.target.value })}
+                    className="w-full text-xs font-medium p-2.5 border border-[#EAE4DC] rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-4 border-t border-[#EAE4DC] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-[#EAE4DC] text-xs font-bold rounded-xl hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-[#4A1726] hover:bg-[#321923] text-white text-xs font-black rounded-xl shadow-md transition-all"
+                >
+                  Save Wedding Customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════
+          MODAL: LOG CALL OUTCOME (Fast, Minimal Clicks)
+         ════════════════════════════════════════════════════════════ */}
+      {showLogCallModal && selectedCustomer && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-[#C6A15B]/40 overflow-hidden my-6 animate-scale-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#4A1726] to-[#321923] text-white p-5 flex items-center justify-between border-b border-[#C6A15B]/30">
+              <div className="flex items-center gap-2.5">
+                <PhoneCall className="w-5 h-5 text-[#C6A15B]" />
+                <div>
+                  <h3 className="text-base font-black text-[#F8F5F1]">Log Call Outcome</h3>
+                  <p className="text-[11px] text-[#C6A15B] font-semibold">{selectedCustomer.customer_name} ({selectedCustomer.mobile_number})</p>
+                </div>
+              </div>
+              <button onClick={() => setShowLogCallModal(false)} className="text-white/70 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCallLog} className="p-6 space-y-4">
+              {/* Call Status & Outcome */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Call Status</label>
+                  <select
+                    value={logForm.call_status}
+                    onChange={e => setLogForm({ ...logForm, call_status: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-[#EAE4DC] rounded-xl"
+                  >
+                    {CALL_STATUSES.map(cs => (
+                      <option key={cs} value={cs}>{cs}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-[#321923] mb-1">Call Outcome *</label>
+                  <select
+                    value={logForm.call_outcome}
+                    onChange={e => setLogForm({ ...logForm, call_outcome: e.target.value })}
+                    className="w-full text-xs font-bold p-2.5 border border-[#C6A15B] rounded-xl bg-amber-50/40 text-[#4A1726]"
+                  >
+                    {CALL_OUTCOMES.map(co => (
+                      <option key={co} value={co}>{co}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Dynamic condition: If Shopping Confirmed -> Ask Expected Shopping Date */}
+              {logForm.call_outcome === 'Shopping Confirmed' && (
+                <div className="bg-blue-50 border border-blue-300 p-3 rounded-2xl animate-fade-in">
+                  <label className="block text-xs font-black text-blue-900 mb-1 flex items-center gap-1">
+                    <ShoppingBag className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Confirmed Expected Shopping Date *</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={logForm.expected_shopping_date}
+                    onChange={e => setLogForm({ ...logForm, expected_shopping_date: e.target.value })}
+                    className="w-full text-xs font-bold p-2 border border-blue-400 rounded-xl bg-white"
+                  />
+                  <p className="text-[10px] text-blue-700 mt-1">Customer will be marked as Shopping Date Confirmed.</p>
+                </div>
+              )}
+
+              {/* Dynamic condition: If No Answer, Call Back Requested, or Interested -> Ask Next Follow-up Date */}
+              {logForm.call_outcome !== 'Not Interested' && (
+                <div className="bg-amber-50/60 border border-amber-300 p-3 rounded-2xl space-y-2.5 animate-fade-in">
+                  <label className="block text-xs font-black text-amber-900 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Next Follow-up Date & Time</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="date"
+                      value={logForm.next_follow_up_date}
+                      onChange={e => setLogForm({ ...logForm, next_follow_up_date: e.target.value })}
+                      className="text-xs font-semibold p-2 border border-amber-300 rounded-xl bg-white"
+                    />
+                    <select
+                      value={logForm.next_follow_up_time}
+                      onChange={e => setLogForm({ ...logForm, next_follow_up_time: e.target.value })}
+                      className="text-xs font-semibold p-2 border border-amber-300 rounded-xl bg-white"
+                    >
+                      {CALL_TIME_OPTIONS.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Remarks */}
+              <div>
+                <label className="block text-xs font-black text-[#321923] mb-1">Remarks & Telecaller Notes</label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="Record customer response, shopping plans, family requirements..."
+                  value={logForm.remarks}
+                  onChange={e => setLogForm({ ...logForm, remarks: e.target.value })}
+                  className="w-full text-xs font-medium p-2.5 border border-[#EAE4DC] rounded-xl focus:ring-2 focus:ring-[#C6A15B]"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-[#EAE4DC] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowLogCallModal(false)}
+                  className="px-4 py-2 border border-[#EAE4DC] text-xs font-bold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-md transition-all"
+                >
+                  Complete & Save Call Log
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════
+          MODAL: CUSTOMER PROFILE & TIMELINE (No Page Reload)
+         ════════════════════════════════════════════════════════════ */}
+      {showProfileModal && selectedCustomer && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-[#C6A15B]/40 overflow-hidden my-6 animate-scale-in">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#4A1726] to-[#321923] text-white p-5 flex items-center justify-between border-b border-[#C6A15B]/30">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold bg-[#C6A15B] text-[#321923] px-2 py-0.5 rounded-md">
+                    {selectedCustomer.customer_code}
+                  </span>
+                  <h3 className="text-base font-black text-[#F8F5F1]">{selectedCustomer.customer_name}</h3>
+                </div>
+                <p className="text-[11px] text-[#C6A15B] mt-0.5">
+                  📍 {selectedCustomer.location_name || 'Davanagere'} · Registered {formatDate(selectedCustomer.created_at)}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    openEditModal(selectedCustomer);
+                  }}
+                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center gap-1 border border-white/20"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Edit Customer</span>
+                </button>
+
+                <button
+                  onClick={() => openCallModal(selectedCustomer)}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow-xs"
+                >
+                  <PhoneCall className="w-3.5 h-3.5" />
+                  <span>Log Call</span>
+                </button>
+
+                <button onClick={() => setShowProfileModal(false)} className="text-white/70 hover:text-white p-1 ml-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Profile Content Body */}
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
+              {/* Top Overview Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-[#F8F5F1] p-3 rounded-2xl border border-[#EAE4DC]">
+                  <div className="text-[10px] font-bold text-gray-500 uppercase">Customer Status</div>
+                  <div className="text-xs font-black text-[#4A1726] mt-0.5">{selectedCustomer.customer_status}</div>
+                </div>
+
+                <div className="bg-[#F8F5F1] p-3 rounded-2xl border border-[#EAE4DC]">
+                  <div className="text-[10px] font-bold text-gray-500 uppercase">Call Status</div>
+                  <div className="text-xs font-black text-gray-800 mt-0.5">{selectedCustomer.call_status}</div>
+                </div>
+
+                <div className="bg-[#F8F5F1] p-3 rounded-2xl border border-[#EAE4DC]">
+                  <div className="text-[10px] font-bold text-blue-700 uppercase">Expected Shopping</div>
+                  <div className="text-xs font-black text-blue-900 mt-0.5">{formatDate(selectedCustomer.expected_shopping_date)}</div>
+                </div>
+
+                <div className="bg-[#F8F5F1] p-3 rounded-2xl border border-[#EAE4DC]">
+                  <div className="text-[10px] font-bold text-amber-700 uppercase">Next Follow-up</div>
+                  <div className="text-xs font-black text-amber-900 mt-0.5">{formatDate(selectedCustomer.follow_up_date)}</div>
+                </div>
+              </div>
+
+              {/* Detailed Breakdown */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Contact & Wedding Details */}
+                <div className="bg-white p-4 rounded-2xl border border-[#EAE4DC] space-y-2">
+                  <h4 className="font-black text-[#4A1726] text-xs uppercase tracking-wide border-b border-[#EAE4DC] pb-1.5">
+                    Customer & Wedding Details
+                  </h4>
+                  <div className="space-y-1.5 text-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Mobile Number:</span>
+                      <span className="font-bold">{selectedCustomer.mobile_number}</span>
+                    </div>
+                    {selectedCustomer.email && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Email:</span>
+                        <span className="font-medium">{selectedCustomer.email}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Wedding Date:</span>
+                      <span className="font-bold">{formatDate(selectedCustomer.wedding_date)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Shopping Category:</span>
+                      <span className="font-bold text-[#4A1726]">{selectedCustomer.preferred_shopping_category || 'General Wedding Shopping'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Family Size:</span>
+                      <span className="font-bold">{selectedCustomer.estimated_family_size || 1} members</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Follow-up & Telecaller Details */}
+                <div className="bg-white p-4 rounded-2xl border border-[#EAE4DC] space-y-2">
+                  <h4 className="font-black text-[#4A1726] text-xs uppercase tracking-wide border-b border-[#EAE4DC] pb-1.5">
+                    Telecaller Assignment & Notes
+                  </h4>
+                  <div className="space-y-1.5 text-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Assigned Telecaller:</span>
+                      <span className="font-bold text-[#4A1726]">{selectedCustomer.assigned_telecaller || 'Unassigned'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Preferred Call Time:</span>
+                      <span className="font-medium">{selectedCustomer.preferred_call_time || 'Any Time'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Total Calls Made:</span>
+                      <span className="font-black">{selectedCustomer.total_calls_count || 0}</span>
+                    </div>
+                    {selectedCustomer.customer_notes && (
+                      <div className="pt-1.5 border-t border-[#EAE4DC]">
+                        <span className="text-gray-500 block text-[10px] uppercase font-bold">Notes:</span>
+                        <p className="text-gray-800 italic mt-0.5">{selectedCustomer.customer_notes}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Call History Timeline (Chronological) */}
+              <div className="space-y-3">
+                <h4 className="font-black text-[#4A1726] text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-[#C6A15B]" />
+                  <span>Call History Timeline</span>
+                </h4>
+
+                {customerCallLogs.length === 0 ? (
+                  <div className="bg-[#F8F5F1] p-4 rounded-2xl border border-[#EAE4DC] text-center text-gray-500">
+                    No calls logged for this customer yet.
+                  </div>
+                ) : (
+                  <div className="relative pl-6 space-y-3 border-l-2 border-[#C6A15B]/40">
+                    {customerCallLogs.map((log) => (
+                      <div key={log.id} className="relative bg-white p-3 rounded-2xl border border-[#EAE4DC] shadow-2xs">
+                        <div className="absolute -left-[31px] top-3.5 w-3 h-3 rounded-full bg-[#C6A15B] border-2 border-white" />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-xs text-[#4A1726]">{formatDate(log.call_date)}</span>
+                            <span className="text-[10px] text-gray-500">{log.call_time}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                              {log.call_outcome}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-semibold text-gray-500">by {log.telecaller_name}</span>
+                        </div>
+                        {log.remarks && (
+                          <p className="text-xs text-gray-700 mt-1.5 bg-[#F8F5F1] p-2 rounded-xl border border-[#EAE4DC]">
+                            "{log.remarks}"
+                          </p>
+                        )}
+                        {log.next_follow_up_date && (
+                          <div className="text-[10px] text-amber-800 font-bold mt-1">
+                            Next Follow-up Scheduled: {formatDate(log.next_follow_up_date)}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Close Button */}
-              <div className="p-4 border-t border-gray-200 flex justify-end">
-                <button
-                  onClick={() => setShowProfileModal(false)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold"
-                >
-                  Close Profile
-                </button>
+              {/* Audit Log Trail */}
+              {customerAuditLogs.length > 0 && (
+                <div className="space-y-2 pt-3 border-t border-[#EAE4DC]">
+                  <h4 className="font-bold text-gray-500 text-[10px] uppercase tracking-wider">
+                    Audit Trail Activity
+                  </h4>
+                  <div className="space-y-1">
+                    {customerAuditLogs.map(a => (
+                      <div key={a.id} className="text-[10px] text-gray-600 flex items-center justify-between">
+                        <span><strong>{a.action}:</strong> {a.details}</span>
+                        <span className="text-gray-400">{formatDate(a.created_at)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[#EAE4DC] bg-[#F8F5F1] flex items-center justify-between">
+              <div>
+                {(session?.isGlobalAdmin || session?.role === 'Admin' || session?.role === 'Super Admin') && (
+                  <button
+                    onClick={() => handleDeleteCustomer(selectedCustomer)}
+                    className="text-xs text-red-600 hover:text-red-800 font-bold flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Archive Customer</span>
+                  </button>
+                )}
               </div>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="px-5 py-2 bg-[#4A1726] text-white text-xs font-bold rounded-xl"
+              >
+                Close Profile
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* MODAL 4: EDIT CUSTOMER DETAILS                         */}
-        {/* ══════════════════════════════════════════════════════ */}
-        {showEditModal && selectedCustomer && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-gray-200 animate-slide-up">
-              <div className="p-4 bg-gradient-to-r from-[#4A1726] to-[#6A2338] text-white rounded-t-2xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Edit2 className="w-4 h-4 text-[#C6A15B]" />
-                  <h3 className="text-sm font-extrabold">Edit Customer: {selectedCustomer.customer_code}</h3>
-                </div>
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="text-white/80 hover:text-white p-1 rounded-lg"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
+      {/* ════════════════════════════════════════════════════════════
+          MODAL: EDIT CUSTOMER (CRUD)
+         ════════════════════════════════════════════════════════════ */}
+      {showEditModal && selectedCustomer && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-[#C6A15B]/40 overflow-hidden my-6 animate-scale-in">
+            <div className="bg-gradient-to-r from-[#4A1726] to-[#321923] text-white p-5 flex items-center justify-between border-b border-[#C6A15B]/30">
+              <h3 className="text-base font-black text-[#F8F5F1]">Edit Wedding Customer</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-white/70 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <form onSubmit={handleUpdateCustomer} className="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+            <form onSubmit={handleUpdateCustomer} className="p-6 space-y-3.5 max-h-[75vh] overflow-y-auto text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Customer Name</label>
+                  <label className="block font-bold text-[#321923] mb-1">Customer Name *</label>
                   <input
                     type="text"
+                    required
                     value={selectedCustomer.customer_name}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, customer_name: e.target.value })}
-                    className="w-full p-2 bg-gray-50 border rounded-lg font-medium"
-                    required
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl font-semibold"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Phone</label>
+                  <label className="block font-bold text-[#321923] mb-1">Mobile Number *</label>
                   <input
                     type="tel"
-                    value={selectedCustomer.phone}
-                    onChange={e => setSelectedCustomer({ ...selectedCustomer, phone: e.target.value })}
-                    className="w-full p-2 bg-gray-50 border rounded-lg font-medium"
                     required
+                    value={selectedCustomer.mobile_number}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, mobile_number: e.target.value })}
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl font-semibold"
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-gray-700 mb-1">Expected Shopping Date</label>
-                    <input
-                      type="date"
-                      value={selectedCustomer.expected_shopping_date ? selectedCustomer.expected_shopping_date.slice(0, 10) : ''}
-                      onChange={e => setSelectedCustomer({ ...selectedCustomer, expected_shopping_date: e.target.value })}
-                      className="w-full p-2 bg-gray-50 border rounded-lg font-bold text-amber-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-gray-700 mb-1">Follow-up Date</label>
-                    <input
-                      type="date"
-                      value={selectedCustomer.follow_up_date ? selectedCustomer.follow_up_date.slice(0, 10) : ''}
-                      onChange={e => setSelectedCustomer({ ...selectedCustomer, follow_up_date: e.target.value })}
-                      className="w-full p-2 bg-gray-50 border rounded-lg font-bold text-blue-900"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-gray-700 mb-1">Status</label>
-                    <select
-                      value={selectedCustomer.current_status}
-                      onChange={e => setSelectedCustomer({ ...selectedCustomer, current_status: e.target.value })}
-                      className="w-full p-2 bg-gray-50 border rounded-lg font-semibold"
-                    >
-                      <option value="New Lead">New Lead</option>
-                      <option value="Call Scheduled">Call Scheduled</option>
-                      <option value="Follow-up in Progress">Follow-up in Progress</option>
-                      <option value="Callback Requested">Callback Requested</option>
-                      <option value="Store Visit Planned">Store Visit Planned</option>
-                      <option value="Ready to Shop">Ready to Shop</option>
-                      <option value="Converted">Converted</option>
-                      <option value="Lost">Lost</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-bold text-gray-700 mb-1">Priority</label>
-                    <select
-                      value={selectedCustomer.follow_up_priority || 'Normal'}
-                      onChange={e => setSelectedCustomer({ ...selectedCustomer, follow_up_priority: e.target.value as any })}
-                      className="w-full p-2 bg-gray-50 border rounded-lg font-semibold"
-                    >
-                      <option value="Normal">Normal</option>
-                      <option value="High">High</option>
-                      <option value="Urgent">Urgent</option>
-                    </select>
-                  </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Estimated Budget (₹)</label>
+                  <label className="block font-bold text-[#321923] mb-1">Email</label>
                   <input
-                    type="number"
-                    value={selectedCustomer.estimated_budget || ''}
-                    onChange={e => setSelectedCustomer({ ...selectedCustomer, estimated_budget: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-2 bg-gray-50 border rounded-lg"
+                    type="email"
+                    value={selectedCustomer.email || ''}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, email: e.target.value })}
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl"
                   />
                 </div>
 
-                <div className="pt-3 border-t flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(false)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-[#4A1726] hover:bg-[#38111D] text-white rounded-lg font-extrabold shadow-sm"
-                  >
-                    Save Changes
-                  </button>
+                <div>
+                  <label className="block font-bold text-[#321923] mb-1">Wedding Date</label>
+                  <input
+                    type="date"
+                    value={selectedCustomer.wedding_date ? selectedCustomer.wedding_date.slice(0, 10) : ''}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, wedding_date: e.target.value })}
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl"
+                  />
                 </div>
-              </form>
-            </div>
+
+                <div>
+                  <label className="block font-bold text-blue-900 mb-1">Expected Shopping Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={selectedCustomer.expected_shopping_date ? selectedCustomer.expected_shopping_date.slice(0, 10) : ''}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, expected_shopping_date: e.target.value })}
+                    className="w-full p-2 border border-blue-300 rounded-xl font-bold bg-blue-50/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-amber-900 mb-1">Follow-up Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={selectedCustomer.follow_up_date ? selectedCustomer.follow_up_date.slice(0, 10) : ''}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, follow_up_date: e.target.value })}
+                    className="w-full p-2 border border-amber-300 rounded-xl font-bold bg-amber-50/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#321923] mb-1">Customer Status</label>
+                  <select
+                    value={selectedCustomer.customer_status}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, customer_status: e.target.value })}
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl font-bold"
+                  >
+                    {CUSTOMER_STATUSES.map(st => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#321923] mb-1">Assigned Telecaller</label>
+                  <select
+                    value={selectedCustomer.assigned_telecaller || ''}
+                    onChange={e => {
+                      const name = e.target.value;
+                      const tc = telecallers.find(t => t.full_name === name);
+                      setSelectedCustomer({
+                        ...selectedCustomer,
+                        assigned_telecaller: name,
+                        assigned_telecaller_id: tc ? tc.id : undefined
+                      });
+                    }}
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl font-semibold"
+                  >
+                    <option value="">Unassigned</option>
+                    {telecallers.map(t => (
+                      <option key={t.id} value={t.full_name}>{t.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-[#321923] mb-1">Customer Notes</label>
+                  <textarea
+                    rows={2}
+                    value={selectedCustomer.customer_notes || ''}
+                    onChange={e => setSelectedCustomer({ ...selectedCustomer, customer_notes: e.target.value })}
+                    className="w-full p-2 border border-[#EAE4DC] rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#EAE4DC] flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 border border-[#EAE4DC] rounded-xl text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#4A1726] text-white text-xs font-black rounded-xl shadow-md"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
