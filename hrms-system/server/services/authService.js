@@ -90,8 +90,27 @@ class AuthService {
           rows = [];
         }
       } else {
-        throw queryErr;
+        rows = [];
       }
+    }
+
+    if (!rows || rows.length === 0) {
+      try {
+        const [uRows] = await pool.query(
+          `SELECT 
+             u.id, u.username, u.password, u.fullName AS fullName, u.role, 
+             (u.status = 'Active') AS status,
+             NULL AS locationId,
+             NULL AS locationCode,
+             NULL AS locationName
+           FROM User u
+           WHERE LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)`,
+          [cleanUsername, cleanUsername]
+        );
+        if (uRows && uRows.length > 0) {
+          rows = uRows;
+        }
+      } catch (e) {}
     }
 
     if (!rows || rows.length === 0) {

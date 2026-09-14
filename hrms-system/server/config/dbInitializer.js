@@ -573,6 +573,23 @@ async function autoInitializeDatabase(pool) {
         );
       } catch(e) {}
 
+      // Force update existing admin rows in both users and User tables
+      try {
+        await connection.query(
+          `UPDATE users SET password = ?, active = TRUE 
+           WHERE LOWER(username) IN ('admin@bsctextiles.com', 'admin') OR LOWER(email) = 'admin@bsctextiles.com'`,
+          [hashedPassAdmin2026]
+        );
+      } catch (e) {}
+
+      try {
+        await connection.query(
+          `UPDATE User SET password = ?, status = 'Active' 
+           WHERE LOWER(username) IN ('admin@bsctextiles.com', 'admin') OR LOWER(email) = 'admin@bsctextiles.com'`,
+          [hashedPassAdmin2026]
+        );
+      } catch (e) {}
+
       logDebug(`[Auto DB Initializer] Admin user seeded (admin@bsctextiles.com - Password: admin@2026)`);
     } catch (err) {
       logDebug(`[Auto DB Initializer User Seed Warning]:`, err.message);
