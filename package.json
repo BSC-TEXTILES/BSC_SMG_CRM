@@ -20,7 +20,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.436.0",
-    "multer": "latest",
+    "multer": "^2.3.0",
     "mysql2": "^3.10.1",
     "postcss": "^8.4.41",
     "react": "^18.3.1",
@@ -32,11 +32,9 @@
     "typescript": "^5.5.4"
   },
   "overrides": {
-    "tar": "^6.2.1",
+    "tar": "^7.4.0",
     "rimraf": "^5.0.5",
-    "glob": "^10.3.10",
-    "gauge": "^5.0.1",
-    "npmlog": "^6.0.0"
+    "glob": "^11.0.0"
   },
   "main": "server.js",
   "description": "Enterprise HRMS System",
