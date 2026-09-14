@@ -47,18 +47,37 @@ class AuthService {
     }
 
     // ── Real DB Login ──────────────────────────────────────────────────
-    // Fetch user with location info via LEFT JOIN
-    const [rows] = await pool.query(
-      `SELECT 
-         u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
-         u.location_id AS locationId,
-         COALESCE(u.location_code, l.location_code) AS locationCode,
-         l.location_name AS locationName
-       FROM users u
-       LEFT JOIN locations l ON l.id = u.location_id
-       WHERE LOWER(u.username) = LOWER(?)`,
-      [username.trim()]
-    );
+    // Fetch user with location info via LEFT JOIN (with graceful fallback)
+    let rows;
+    try {
+      [rows] = await pool.query(
+        `SELECT 
+           u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
+           u.location_id AS locationId,
+           COALESCE(u.location_code, l.location_code) AS locationCode,
+           l.location_name AS locationName
+         FROM users u
+         LEFT JOIN locations l ON l.id = u.location_id
+         WHERE LOWER(u.username) = LOWER(?)`,
+        [username.trim()]
+      );
+    } catch (queryErr) {
+      if (queryErr.message.includes('locations') || queryErr.message.includes('location_id')) {
+        console.warn('[AuthService] locations table query failed, falling back to users table:', queryErr.message);
+        [rows] = await pool.query(
+          `SELECT 
+             u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
+             NULL AS locationId,
+             NULL AS locationCode,
+             NULL AS locationName
+           FROM users u
+           WHERE LOWER(u.username) = LOWER(?)`,
+          [username.trim()]
+        );
+      } else {
+        throw queryErr;
+      }
+    }
 
     if (rows.length === 0) {
       throw new Error('Incorrect username or password');
@@ -120,17 +139,35 @@ class AuthService {
   }
 
   async verifyUser(username, password) {
-    const [rows] = await pool.query(
-      `SELECT 
-         u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
-         u.location_id AS locationId,
-         COALESCE(u.location_code, l.location_code) AS locationCode,
-         l.location_name AS locationName
-       FROM users u
-       LEFT JOIN locations l ON l.id = u.location_id
-       WHERE LOWER(u.username) = LOWER(?) AND u.active = TRUE`,
-      [username.trim()]
-    );
+    let rows;
+    try {
+      [rows] = await pool.query(
+        `SELECT 
+           u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
+           u.location_id AS locationId,
+           COALESCE(u.location_code, l.location_code) AS locationCode,
+           l.location_name AS locationName
+         FROM users u
+         LEFT JOIN locations l ON l.id = u.location_id
+         WHERE LOWER(u.username) = LOWER(?) AND u.active = TRUE`,
+        [username.trim()]
+      );
+    } catch (queryErr) {
+      if (queryErr.message.includes('locations') || queryErr.message.includes('location_id')) {
+        [rows] = await pool.query(
+          `SELECT 
+             u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
+             NULL AS locationId,
+             NULL AS locationCode,
+             NULL AS locationName
+           FROM users u
+           WHERE LOWER(u.username) = LOWER(?) AND u.active = TRUE`,
+          [username.trim()]
+        );
+      } else {
+        throw queryErr;
+      }
+    }
 
     if (rows.length === 0) return { success: false };
 

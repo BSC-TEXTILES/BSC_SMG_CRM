@@ -71,6 +71,19 @@ async function autoInitializeDatabase(pool) {
 
     // Ensure Legacy Table Compatibility Views/Tables exist for smooth operational queries
     const compatibilityScripts = [
+      `CREATE TABLE IF NOT EXISTS \`locations\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`location_code\` VARCHAR(10) NOT NULL UNIQUE,
+        \`location_name\` VARCHAR(100) NOT NULL,
+        \`address\` TEXT NULL,
+        \`phone\` VARCHAR(20) NULL,
+        \`email\` VARCHAR(100) NULL,
+        \`status\` VARCHAR(20) NOT NULL DEFAULT 'Active',
+        \`sort_order\` INT NOT NULL DEFAULT 0,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
       `CREATE TABLE IF NOT EXISTS \`users\` (
         \`id\` INT AUTO_INCREMENT PRIMARY KEY,
         \`username\` VARCHAR(100) NOT NULL UNIQUE,
@@ -346,6 +359,18 @@ async function autoInitializeDatabase(pool) {
       }
     }
 
+    // Seed default locations if missing
+    try {
+      await connection.query(
+        `INSERT IGNORE INTO \`locations\` (\`id\`, \`location_code\`, \`location_name\`, \`sort_order\`, \`status\`) VALUES
+         (1, 'BEL', 'Belagavi', 1, 'Active'),
+         (2, 'DAV', 'Davanagere', 2, 'Active'),
+         (3, 'SHI', 'Shivamogga', 3, 'Active')`
+      );
+    } catch (e) {
+      logDebug(`[Auto DB Initializer Locations Seed Warning]:`, e.message);
+    }
+
     // --- MIGRATIONS ---
     const migrations = [
       "ALTER TABLE candidates ADD COLUMN is_duplicate_phone VARCHAR(10) DEFAULT 'No'",
@@ -478,7 +503,24 @@ async function autoInitializeDatabase(pool) {
       "ALTER TABLE Feedback ADD COLUMN voice TEXT NULL",
       "ALTER TABLE Feedback ADD COLUMN entryDate VARCHAR(32) NULL",
       "ALTER TABLE Feedback ADD COLUMN customerName VARCHAR(255) NULL",
-      "ALTER TABLE Feedback ADD COLUMN mobile VARCHAR(32) NULL"
+      "ALTER TABLE Feedback ADD COLUMN mobile VARCHAR(32) NULL",
+
+      // Multi-location columns
+      "ALTER TABLE users ADD COLUMN location_id INT NULL DEFAULT 2",
+      "ALTER TABLE users ADD COLUMN location_code VARCHAR(10) NULL",
+      "ALTER TABLE candidates ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE candidates ADD COLUMN location_code VARCHAR(10) NOT NULL DEFAULT 'DAV'",
+      "ALTER TABLE interview_schedules ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE interview_tokens ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE hr_evaluations ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE selected_candidates ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE rejected_candidates ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE selection_offers ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE onboarding_records ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE candidate_activities ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE department_hiring_targets ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE section_allocations ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+      "ALTER TABLE department_sections ADD COLUMN location_id INT NOT NULL DEFAULT 2"
     ];
 
     for (const sql of migrations) {
@@ -1029,17 +1071,27 @@ async function autoInitializeDatabase(pool) {
       if (migDir) {
         logDebug(`[Auto DB Initializer] Running location migration...`);
         let migSql = fs.readFileSync(path.join(migDir, 'migration_location.sql'), 'utf8');
-        // Strip leading comment blocks
+        // Strip multi-line comments /* ... */
+        migSql = migSql.replace(/\/\*[\s\S]*?\*\//g, '');
+        // Strip single-line comments (-- or #)
+        migSql = migSql.replace(/^--.*$/gm, '').replace(/^#.*$/gm, '');
+
         const migStatements = migSql
-          .split(/;\s*\n/)
+          .split(';')
           .map(s => s.trim())
-          .filter(s => s.length > 0 && !s.startsWith('--') && !s.startsWith('SELECT'));
+          .filter(s => s.length > 0 && !s.toUpperCase().startsWith('SELECT'));
+
         for (const stmt of migStatements) {
           try {
             await connection.query(stmt);
           } catch (e) {
-            // Silently ignore "already exists" / "duplicate column" type errors
-            if (!e.message.includes('Duplicate') && !e.message.includes('already exists') && !e.message.includes("doesn't exist")) {
+            // Silently ignore duplicate column, table exists, or index exists errors
+            if (
+              !e.message.includes('Duplicate') &&
+              !e.message.includes('already exists') &&
+              !e.message.includes("doesn't exist") &&
+              !e.message.includes('ER_DUP_FIELDNAME')
+            ) {
               logDebug(`[Location Migration Warning]:`, e.message.slice(0, 120));
             }
           }

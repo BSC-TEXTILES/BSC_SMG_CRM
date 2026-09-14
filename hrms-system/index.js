@@ -199,7 +199,27 @@ app.get('/api/fix-db-schema', async (req, res) => {
         \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY \`dept_sec_desig\` (\`department\`, \`section\`, \`designation\`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS \`locations\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`location_code\` VARCHAR(10) NOT NULL UNIQUE,
+        \`location_name\` VARCHAR(100) NOT NULL,
+        \`address\` TEXT NULL,
+        \`phone\` VARCHAR(20) NULL,
+        \`email\` VARCHAR(100) NULL,
+        \`status\` VARCHAR(20) NOT NULL DEFAULT 'Active',
+        \`sort_order\` INT NOT NULL DEFAULT 0,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `INSERT IGNORE INTO \`locations\` (\`id\`, \`location_code\`, \`location_name\`, \`sort_order\`, \`status\`) VALUES
+       (1, 'BEL', 'Belagavi', 1, 'Active'),
+       (2, 'DAV', 'Davanagere', 2, 'Active'),
+       (3, 'SHI', 'Shivamogga', 3, 'Active')`,
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS location_id INT NULL DEFAULT 2`,
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS location_code VARCHAR(10) NULL`,
+      `ALTER TABLE candidates ADD COLUMN IF NOT EXISTS location_id INT NOT NULL DEFAULT 2`,
+      `ALTER TABLE candidates ADD COLUMN IF NOT EXISTS location_code VARCHAR(10) NOT NULL DEFAULT 'DAV'`
     ];
     for (const sql of migrations) {
       try {
