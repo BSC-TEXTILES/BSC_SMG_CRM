@@ -430,6 +430,86 @@ export const API = {
     return `${apiBase}/mcheck/export/${type === 'pdf' ? 'pdf' : 'excel'}${q ? `?${q}` : ''}`;
   },
 
+  // ── Wedding Customer Follow-up CRM ───────────────────────────
+  async getWeddingStats(locationId?: number | string) {
+    return apiFetch(`/wedding-crm/stats${locationId ? `?location_id=${locationId}` : ''}`);
+  },
+  async getWeddingCustomers(params?: {
+    date_filter?: string;
+    status?: string;
+    location_id?: number | string;
+    telecaller_id?: number | string;
+    search?: string;
+    from_date?: string;
+    to_date?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return apiFetch(`/wedding-crm/customers${q ? `?${q}` : ''}`);
+  },
+  async checkWeddingDuplicate(phone: string) {
+    return apiFetch('/wedding-crm/check-duplicate', {
+      method: 'POST',
+      body: JSON.stringify({ phone })
+    });
+  },
+  async createWeddingCustomer(payload: any) {
+    return apiFetch('/wedding-crm/customers', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+  async getWeddingCustomerById(id: number | string) {
+    return apiFetch(`/wedding-crm/customers/${id}`);
+  },
+  async updateWeddingCustomer(id: number | string, payload: any) {
+    return apiFetch(`/wedding-crm/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  },
+  async deleteWeddingCustomer(id: number | string) {
+    return apiFetch(`/wedding-crm/customers/${id}`, {
+      method: 'DELETE'
+    });
+  },
+  async logWeddingCall(payload: {
+    customer_id: number;
+    call_status: string;
+    outcome: string;
+    call_notes?: string;
+    customer_feedback?: string;
+    readiness_score?: number;
+    next_follow_up_date?: string;
+    assigned_telecaller_id?: number;
+    new_customer_status?: string;
+  }) {
+    return apiFetch('/wedding-crm/log-call', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+  async getWeddingCallingDesk(params?: { queue?: string; location_id?: number | string }) {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return apiFetch(`/wedding-crm/calling-desk${q ? `?${q}` : ''}`);
+  },
+  async getWeddingCalendar(params?: { month?: string; location_id?: number | string }) {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return apiFetch(`/wedding-crm/calendar${q ? `?${q}` : ''}`);
+  },
+  async getWeddingAnalytics(params?: { from_date?: string; to_date?: string; location_id?: number | string }) {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return apiFetch(`/wedding-crm/analytics${q ? `?${q}` : ''}`);
+  },
+  async getWeddingTelecallers(locationId?: number | string) {
+    return apiFetch(`/wedding-crm/telecallers${locationId ? `?location_id=${locationId}` : ''}`);
+  },
+  async getWeddingExportData(params?: any) {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return apiFetch(`/wedding-crm/export${q ? `?${q}` : ''}`);
+  },
+
   // File URL Helper
   fileUrl(url: string | null | undefined): string | null {
     if (!url) return null;

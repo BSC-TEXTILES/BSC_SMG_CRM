@@ -115,4 +115,8 @@ router.get('/public/interview', interviewController.getInterviewByToken);
 router.post('/public/interview-score', interviewController.submitInterviewScore);
 router.post('/public/candidate-entry', validateAddCandidate, candidateController.addCandidate);
 
+// ── Wedding Customer Follow-up CRM ───────────────────────────
+const weddingRoutes = require('./weddingRoutes');
+router.use('/wedding-crm', weddingRoutes);
+
 module.exports = router;

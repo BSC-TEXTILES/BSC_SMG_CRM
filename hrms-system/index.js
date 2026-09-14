@@ -245,7 +245,11 @@ app.get('/api/fix-db-schema', async (req, res) => {
       ['Admin_interview','Admin','interview',true],['Admin_offer','Admin','offer',true],
       ['Admin_onboarding','Admin','onboarding',true],['Admin_exit','Admin','exit',true],
       ['Admin_employees','Admin','employees',true],['Admin_settings','Admin','settings',true],
-      ['Admin_dept-hiring','Admin','dept-hiring',true]
+      ['Admin_dept-hiring','Admin','dept-hiring',true],
+      ['HR_wedding_crm','HR','wedding_crm',true],
+      ['Manager_wedding_crm','Manager','wedding_crm',true],
+      ['Admin_wedding_crm','Admin','wedding_crm',true],
+      ['Super Admin_wedding_crm','Super Admin','wedding_crm',true]
     ];
     for (const [key, role, page, allowed] of defaultVisibility) {
       try {

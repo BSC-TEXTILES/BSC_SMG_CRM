@@ -191,6 +191,10 @@ router.post('/mcheck/admin/reorder', authenticate, authorize('Admin', 'Super Adm
 router.get('/mcheck/export/pdf', mcheckController.exportPdf);
 router.get('/mcheck/export/excel', mcheckController.exportExcel);
 
+// ── Wedding Customer Follow-up CRM ───────────────────────────
+const weddingRoutes = require('./weddingRoutes');
+router.use('/wedding-crm', weddingRoutes);
+
 // ── Legacy Google Apps Script Action Dispatcher Endpoint ─────
 router.get('/legacy', async (req, res) => {
   if (req.query.action === 'getInterviewByToken') {

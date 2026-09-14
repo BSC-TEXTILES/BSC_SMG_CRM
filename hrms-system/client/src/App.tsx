@@ -31,6 +31,7 @@ import Attendance from './pages/Attendance';
 import DailyMCheck from './pages/DailyMCheck';
 import MCheckReports from './pages/MCheckReports';
 import MCheckHistory from './pages/MCheckHistory';
+import WeddingCRM from './pages/WeddingCRM';
 import QuickActionCenter from './components/ui/QuickActionCenter';
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/wedding-crm" element={<WeddingCRM />} />
         <Route path="/footfall" element={<Footfall />} />
         <Route path="/feedback-public" element={<PublicFeedback />} />
         <Route path="/feedback-qr" element={<FeedbackQR />} />
