@@ -17,7 +17,7 @@
 
 const crypto = require('crypto');
 
-const CODE_LENGTH = 4;
+const CODE_LENGTH = 8;
 const TTL_MS = 90 * 1000; // 90 s — comfortably covers the 30 s client refresh
 const MAX_STORE = 5000;   // memory guard: prune when too many entries pile up
 
@@ -31,11 +31,21 @@ function prune() {
 }
 
 function randomCode() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*';
   let code = '';
-  for (let i = 0; i < CODE_LENGTH; i++) {
-    code += String(crypto.randomInt(0, 10));
+  // Ensure at least one of each required type
+  code += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[crypto.randomInt(0, 26)];
+  code += 'abcdefghijklmnopqrstuvwxyz'[crypto.randomInt(0, 26)];
+  code += '0123456789'[crypto.randomInt(0, 10)];
+  code += '!@#$%&*'[crypto.randomInt(0, 7)];
+  
+  // Fill the rest randomly
+  for (let i = 4; i < CODE_LENGTH; i++) {
+    code += chars[crypto.randomInt(0, chars.length)];
   }
-  return code;
+  
+  // Shuffle the string
+  return code.split('').sort(() => 0.5 - Math.random()).join('');
 }
 
 /**
@@ -67,7 +77,7 @@ function verifyCaptcha(id, text) {
 }
 
 function renderSvg(code) {
-  const W = 170;
+  const W = 300;
   const H = 60;
   const rand = (a, b) => a + Math.random() * (b - a);
   const digitWidth = W / (CODE_LENGTH + 1);
@@ -77,24 +87,24 @@ function renderSvg(code) {
     const x = digitWidth * (i + 0.8) + rand(-4, 4);
     const y = H / 2 + rand(6, 10);
     const rot = rand(-28, 28);
-    const size = rand(30, 38);
+    const size = rand(24, 32); // slightly smaller font to fit well
     chars += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})" `
       + `font-family="Georgia, 'Times New Roman', serif" font-size="${size.toFixed(1)}" font-weight="700" `
-      + `fill="#163B5C" text-anchor="middle">${code[i]}</text>`;
+      + `fill="var(--color-primary, #163B5C)" text-anchor="middle">${code[i]}</text>`;
   }
 
   let noise = '';
   for (let i = 0; i < 4; i++) {
     noise += `<path d="M ${rand(0, W * 0.3).toFixed(0)} ${rand(0, H).toFixed(0)} `
       + `Q ${rand(0, W).toFixed(0)} ${rand(0, H).toFixed(0)} ${rand(W * 0.7, W).toFixed(0)} ${rand(0, H).toFixed(0)}" `
-      + `stroke="#4E8ABF" stroke-width="${rand(0.8, 1.6).toFixed(1)}" fill="none" opacity="${rand(0.25, 0.5).toFixed(2)}"/>`;
+      + `stroke="var(--color-accent, #4E8ABF)" stroke-width="${rand(0.8, 1.6).toFixed(1)}" fill="none" opacity="${rand(0.25, 0.5).toFixed(2)}"/>`;
   }
-  for (let i = 0; i < 26; i++) {
-    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.9).toFixed(1)}" fill="#5F6E7E" opacity="${rand(0.12, 0.3).toFixed(2)}"/>`;
+  for (let i = 0; i < 40; i++) {
+    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.9).toFixed(1)}" fill="var(--color-primary, #5F6E7E)" opacity="${rand(0.12, 0.3).toFixed(2)}"/>`;
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="numeric captcha">`
-    + `<rect width="${W}" height="${H}" fill="#F4F7FB"/>${noise}${chars}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="complex captcha">`
+    + `<rect width="${W}" height="${H}" fill="var(--color-background, #F4F7FB)"/>${noise}${chars}</svg>`;
 }
 
 module.exports = { createCaptcha, verifyCaptcha, TTL_MS };

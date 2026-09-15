@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 function Toast({ msg, type }: { msg: string; type: string }) {
-  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-[#163B5C]';
+  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-primary';
   return <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>{msg}</div>;
 }
 
@@ -72,14 +72,14 @@ export default function MCheckHistory() {
     return (
       <div
         onClick={() => openDayReport(entry.response_date)}
-        className={`card-glass rounded-2xl p-4 cursor-pointer transition-all border-2 ${isSelected ? 'border-[#4E8ABF] shadow-lg' : 'border-transparent hover:border-gray-200 hover:shadow-md'}`}>
+        className={`card-glass rounded-2xl p-4 cursor-pointer transition-all border-2 ${isSelected ? 'border-accent shadow-lg' : 'border-transparent hover:border-gray-200 hover:shadow-md'}`}>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <div className="font-black text-[#163B5C] text-sm">{entry.date_display}</div>
+            <div className="font-black text-primary text-sm">{entry.date_display}</div>
             <div className="text-[10px] text-gray-400 mt-0.5">{entry.total_checkpoints} checkpoints</div>
           </div>
           <div className="flex flex-col items-end">
-            <div className={`text-xl font-black ${pct === 100 ? 'text-emerald-600' : pct >= 75 ? 'text-[#163B5C]' : pct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>{pct}%</div>
+            <div className={`text-xl font-black ${pct === 100 ? 'text-emerald-600' : pct >= 75 ? 'text-primary' : pct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>{pct}%</div>
             {diff !== null && (
               <div className={`flex items-center gap-0.5 text-[10px] font-bold ${diff > 0 ? 'text-emerald-500' : diff < 0 ? 'text-red-400' : 'text-gray-400'}`}>
                 {diff > 0 ? <TrendingUp className="w-3 h-3" /> : diff < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
@@ -91,7 +91,7 @@ export default function MCheckHistory() {
 
         {/* Mini bar */}
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
-          <div className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : pct >= 75 ? 'bg-[#163B5C]' : pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
+          <div className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : pct >= 75 ? 'bg-primary' : pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
             style={{ width: `${pct}%` }} />
         </div>
 
@@ -120,7 +120,7 @@ export default function MCheckHistory() {
             className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition-colors px-2 py-1 rounded-lg hover:bg-emerald-50">
             <FileSpreadsheet className="w-3 h-3" /> Excel
           </button>
-          <span className="ml-auto text-[10px] text-[#4E8ABF] font-bold flex items-center gap-0.5">
+          <span className="ml-auto text-[10px] text-accent font-bold flex items-center gap-0.5">
             <Eye className="w-3 h-3" /> View
           </span>
         </div>
@@ -129,7 +129,7 @@ export default function MCheckHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
         <Topbar session={session} onMenuClick={() => setSidebarOpen(true)} title="MCheck History" breadcrumbs={[{ label: 'Daily Operations' }, { label: 'MCheck History' }]} />
@@ -139,12 +139,12 @@ export default function MCheckHistory() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-black text-[#163B5C] flex items-center gap-2">
-                <History className="w-7 h-7 text-[#4E8ABF]" /> MCheck History
+              <h1 className="text-2xl font-black text-primary flex items-center gap-2">
+                <History className="w-7 h-7 text-accent" /> MCheck History
               </h1>
               <p className="text-sm text-gray-500 mt-0.5">Historical daily management checklist records</p>
             </div>
-            <button onClick={loadHistory} className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-[#163B5C] hover:text-white hover:border-[#163B5C] transition-all shadow-sm w-fit">
+            <button onClick={loadHistory} className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm w-fit">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
@@ -194,27 +194,27 @@ export default function MCheckHistory() {
               ) : dayReportLoading ? (
                 <div className="card-glass rounded-2xl p-10 flex items-center justify-center">
                   <div className="flex items-center gap-3 text-gray-400">
-                    <div className="spinner border-[#163B5C]" />
+                    <div className="spinner border-primary" />
                     <span className="font-semibold text-sm">Loading report...</span>
                   </div>
                 </div>
               ) : dayReport ? (
                 <div className="space-y-4 animate-fade-in">
                   {/* Day header */}
-                  <div className="bg-[#163B5C] rounded-2xl p-5 text-white">
+                  <div className="bg-primary rounded-2xl p-5 text-white">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="text-[10px] font-black text-[#4E8ABF] uppercase tracking-widest mb-1">DAILY REVIEW</div>
+                        <div className="text-[10px] font-black text-accent uppercase tracking-widest mb-1">DAILY REVIEW</div>
                         <div className="text-xl font-black">{dayReport.dateDisplay}</div>
                         <div className="text-sm text-white/60 mt-1">{dayReport.kpis.total} total checkpoints</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-black text-[#4E8ABF]">{dayReport.kpis.completionPct}%</div>
+                        <div className="text-3xl font-black text-accent">{dayReport.kpis.completionPct}%</div>
                         <div className="text-[10px] text-white/50 uppercase">Completion</div>
                       </div>
                     </div>
                     <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#4E8ABF] rounded-full" style={{ width: `${dayReport.kpis.completionPct}%` }} />
+                      <div className="h-full bg-accent rounded-full" style={{ width: `${dayReport.kpis.completionPct}%` }} />
                     </div>
                     {/* KPI row */}
                     <div className="grid grid-cols-5 gap-2 mt-3">
@@ -239,12 +239,12 @@ export default function MCheckHistory() {
                     <div className="space-y-2">
                       {dayReport.moduleStats.map((m: any, i: number) => (
                         <div key={i} className="flex items-center gap-3">
-                          <div className="text-xs font-bold text-[#163B5C] w-40 truncate flex-shrink-0">{m.module_name}</div>
+                          <div className="text-xs font-bold text-primary w-40 truncate flex-shrink-0">{m.module_name}</div>
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${m.completion_pct === 100 ? 'bg-emerald-500' : m.completion_pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
                               style={{ width: `${m.completion_pct}%` }} />
                           </div>
-                          <div className="text-xs font-black text-[#163B5C] w-14 text-right flex-shrink-0">{m.done}/{m.total}</div>
+                          <div className="text-xs font-black text-primary w-14 text-right flex-shrink-0">{m.done}/{m.total}</div>
                           <div className={`text-xs font-black w-10 text-right flex-shrink-0 ${m.completion_pct === 100 ? 'text-emerald-600' : m.completion_pct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>{m.completion_pct}%</div>
                         </div>
                       ))}
@@ -261,7 +261,7 @@ export default function MCheckHistory() {
                         {dayReport.attentionItems.map((item: any, i: number) => (
                           <div key={i} className="px-4 py-2.5 flex items-start gap-3">
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs font-bold text-[#163B5C]">{item.checkpoint_title}</div>
+                              <div className="text-xs font-bold text-primary">{item.checkpoint_title}</div>
                               <div className="text-[10px] text-gray-400">{item.module_name}</div>
                               {item.remarks && <div className="text-[10px] text-gray-500 italic mt-0.5">"{item.remarks}"</div>}
                             </div>
@@ -277,8 +277,8 @@ export default function MCheckHistory() {
                   {/* Export and View for this date */}
                   <div className="flex gap-2 flex-wrap">
                     <button onClick={() => navigate(`/mcheck-reports?date=${selectedDate}`)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#163B5C] text-white text-xs font-bold hover:bg-[#0E2A44] transition-all shadow-sm">
-                      <BarChart3 className="w-3.5 h-3.5 text-[#4E8ABF]" /> Open Dashboard
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary transition-all shadow-sm">
+                      <BarChart3 className="w-3.5 h-3.5 text-accent" /> Open Dashboard
                     </button>
                     <button onClick={() => handleExport(selectedDate, 'pdf')}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-all shadow-sm">

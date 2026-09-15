@@ -800,23 +800,23 @@ export default function WeddingCRM() {
       <head>
         <title>BSC Wedding Customer Follow-up Report</title>
         <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; color: #1B2A3B; }
-          .header { border-bottom: 3px solid #4E8ABF; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-          .brand { font-size: 24px; font-weight: 900; color: #163B5C; }
-          .tagline { font-size: 11px; color: #4E8ABF; font-weight: bold; letter-spacing: 2px; }
-          .meta { text-align: right; font-size: 12px; color: #666; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; color: var(--color-primary); }
+          .header { border-bottom: 3px solid var(--color-accent); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+          .brand { font-size: 24px; font-weight: 900; color: var(--color-primary); }
+          .tagline { font-size: 11px; color: var(--color-accent); font-weight: bold; letter-spacing: 2px; }
+          .meta { text-align: right; font-size: 12px; color: var(--color-primary); }
           .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
-          .kpi-card { background: #F4F6F9; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; }
-          .kpi-title { font-size: 11px; font-weight: bold; color: #5F6E7E; text-transform: uppercase; }
-          .kpi-val { font-size: 20px; font-weight: 900; color: #163B5C; margin-top: 4px; }
+          .kpi-card { background: var(--color-background); border: 1px solid var(--color-accent-soft); padding: 12px; border-radius: 8px; }
+          .kpi-title { font-size: 11px; font-weight: bold; color: var(--color-primary); text-transform: uppercase; }
+          .kpi-val { font-size: 20px; font-weight: 900; color: var(--color-primary); margin-top: 4px; }
           table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
-          th { background: #163B5C; color: #F4F6F9; padding: 8px 10px; text-align: left; font-weight: bold; }
-          td { padding: 8px 10px; border-bottom: 1px solid #E2E8F0; }
-          tr:nth-child(even) { background: #FAFAFA; }
+          th { background: var(--color-primary); color: var(--color-background); padding: 8px 10px; text-align: left; font-weight: bold; }
+          td { padding: 8px 10px; border-bottom: 1px solid var(--color-accent-soft); }
+          tr:nth-child(even) { background: var(--color-background); }
           .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }
           .badge-overdue { background: #FEE2E2; color: #991B1B; }
           .badge-confirmed { background: #D1FAE5; color: #065F46; }
-          .footer { margin-top: 30px; font-size: 10px; text-align: center; color: #999; border-top: 1px solid #EEE; padding-top: 10px; }
+          .footer { margin-top: 30px; font-size: 10px; text-align: center; color: var(--color-primary); border-top: 1px solid #EEE; padding-top: 10px; }
         </style>
       </head>
       <body>
@@ -915,7 +915,7 @@ export default function WeddingCRM() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] text-gray-800 flex relative selection:bg-[#4E8ABF]/30">
+    <div className="min-h-screen bg-background text-gray-800 flex relative selection:bg-accent/30">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
@@ -931,12 +931,12 @@ export default function WeddingCRM() {
             <div className="flex items-center gap-2">
               {/* Multi-location selector for Global Admin */}
               {session?.isGlobalAdmin ? (
-                <div className="flex items-center bg-[#163B5C]/10 rounded-xl p-1 border border-[#4E8ABF]/40">
-                  <span className="text-[11px] font-bold text-[#163B5C] px-2 uppercase tracking-wide">Location:</span>
+                <div className="flex items-center bg-primary/10 rounded-xl p-1 border border-accent/40">
+                  <span className="text-[11px] font-bold text-primary px-2 uppercase tracking-wide">Location:</span>
                   <select
                     value={selectedLocation}
                     onChange={e => setSelectedLocation(e.target.value ? parseInt(e.target.value, 10) : '')}
-                    className="bg-white text-xs font-bold text-[#163B5C] py-1 px-2.5 rounded-lg border-0 focus:ring-2 focus:ring-[#4E8ABF] shadow-xs cursor-pointer"
+                    className="bg-white text-xs font-bold text-primary py-1 px-2.5 rounded-lg border-0 focus:ring-2 focus:ring-accent shadow-xs cursor-pointer"
                   >
                     <option value="">🌐 ALL LOCATIONS (BEL, DAV, SHI)</option>
                     {locations.map(loc => (
@@ -947,17 +947,17 @@ export default function WeddingCRM() {
                   </select>
                 </div>
               ) : (
-                <div className="bg-[#163B5C] text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-[#4E8ABF]/30">
-                  <MapPin className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                <div className="bg-primary text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-accent/30">
+                  <MapPin className="w-3.5 h-3.5 text-accent" />
                   <span>📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
                 </div>
               )}
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-gradient-to-r from-[#163B5C] to-[#27598A] hover:from-[#0E2A44] hover:to-[#1F4D77] text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-[#4E8ABF]/50"
+                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50"
               >
-                <Plus className="w-4 h-4 text-[#4E8ABF]" />
+                <Plus className="w-4 h-4 text-accent" />
                 <span>Add Wedding Customer</span>
               </button>
             </div>
@@ -967,8 +967,8 @@ export default function WeddingCRM() {
         <main className="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 flex-1">
           {/* Toast Alert */}
           {toastMessage && (
-            <div className="fixed bottom-6 right-6 z-[200] bg-[#163B5C] border-2 border-[#4E8ABF] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up">
-              <CheckCircle2 className="w-5 h-5 text-[#4E8ABF] flex-shrink-0" />
+            <div className="fixed bottom-6 right-6 z-[200] bg-primary border-2 border-accent text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up">
+              <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0" />
               <span className="text-sm font-bold tracking-wide">{toastMessage}</span>
             </div>
           )}
@@ -980,14 +980,14 @@ export default function WeddingCRM() {
             {/* 1. Total Wedding Customers */}
             <div
               onClick={() => { setActiveTab('register'); setStatusFilter(''); setDateViewFilter('all'); }}
-              className="bg-white border border-[#E2E8F0] hover:border-[#163B5C] rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-primary rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-[#5F6E7E] mb-1">
+              <div className="flex items-center justify-between text-primary/70 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Total Customers</span>
-                <Users className="w-4 h-4 text-[#163B5C] group-hover:scale-110 transition-transform" />
+                <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-[#163B5C]">{stats.totalCustomers}</div>
-              <div className="text-[10px] text-[#5F6E7E] font-medium mt-0.5">All registered</div>
+              <div className="text-2xl font-black text-primary">{stats.totalCustomers}</div>
+              <div className="text-[10px] text-primary/70 font-medium mt-0.5">All registered</div>
             </div>
 
             {/* 2. Today's Follow-ups (Primary Pulse KPI - Click opens Calling Desk) */}
@@ -1010,7 +1010,7 @@ export default function WeddingCRM() {
             <div
               onClick={() => { setActiveTab('calling_desk'); setDeskQueueType('overdue'); }}
               className={`rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group border ${
-                stats.overdueFollowUps > 0 ? 'bg-red-50/70 border-red-300' : 'bg-white border-[#E2E8F0]'
+                stats.overdueFollowUps > 0 ? 'bg-red-50/70 border-red-300' : 'bg-white border-accent-soft'
               }`}
             >
               <div className="flex items-center justify-between text-red-600 mb-1">
@@ -1024,7 +1024,7 @@ export default function WeddingCRM() {
             {/* 4. Calls Pending */}
             <div
               onClick={() => { setActiveTab('calling_desk'); }}
-              className="bg-white border border-[#E2E8F0] hover:border-orange-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-orange-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-orange-600 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Calls Pending</span>
@@ -1037,7 +1037,7 @@ export default function WeddingCRM() {
             {/* 5. Calls Completed */}
             <div
               onClick={() => { setActiveTab('register'); setCallStatusFilter('Completed'); }}
-              className="bg-white border border-[#E2E8F0] hover:border-emerald-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-emerald-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-emerald-600 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Calls Completed</span>
@@ -1050,7 +1050,7 @@ export default function WeddingCRM() {
             {/* 6. Shopping Confirmed */}
             <div
               onClick={() => { setActiveTab('register'); setStatusFilter('Shopping Date Confirmed'); }}
-              className="bg-white border border-[#E2E8F0] hover:border-blue-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-blue-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-blue-600 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Shopping Confirmed</span>
@@ -1076,7 +1076,7 @@ export default function WeddingCRM() {
             {/* 8. Not Interested */}
             <div
               onClick={() => { setActiveTab('register'); setStatusFilter('Not Interested'); }}
-              className="bg-white border border-[#E2E8F0] hover:border-gray-400 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-gray-400 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-gray-500 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Not Interested</span>
@@ -1090,20 +1090,20 @@ export default function WeddingCRM() {
           {/* ════════════════════════════════════════════════════════════
               PRIMARY NAVIGATION TABS
              ════════════════════════════════════════════════════════════ */}
-          <div className="bg-white p-2 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white p-2 rounded-2xl border border-accent-soft shadow-xs flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('calling_desk')}
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'calling_desk'
-                    ? 'bg-[#163B5C] text-white shadow-md'
-                    : 'text-[#5F6E7E] hover:bg-[#F4F6F9] hover:text-[#163B5C]'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-primary/70 hover:bg-background hover:text-primary'
                 }`}
               >
-                <PhoneCall className={`w-4 h-4 ${activeTab === 'calling_desk' ? 'text-[#4E8ABF]' : ''}`} />
+                <PhoneCall className={`w-4 h-4 ${activeTab === 'calling_desk' ? 'text-accent' : ''}`} />
                 <span>WEDDING FOLLOW-UP DESK</span>
                 {deskSummary.remainingCalls > 0 && (
-                  <span className="bg-amber-400 text-[#1B2A3B] text-[10px] font-black px-1.5 py-[2px] rounded-full">
+                  <span className="bg-amber-400 text-primary text-[10px] font-black px-1.5 py-[2px] rounded-full">
                     {deskSummary.remainingCalls}
                   </span>
                 )}
@@ -1113,11 +1113,11 @@ export default function WeddingCRM() {
                 onClick={() => setActiveTab('register')}
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'register'
-                    ? 'bg-[#163B5C] text-white shadow-md'
-                    : 'text-[#5F6E7E] hover:bg-[#F4F6F9] hover:text-[#163B5C]'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-primary/70 hover:bg-background hover:text-primary'
                 }`}
               >
-                <Users className={`w-4 h-4 ${activeTab === 'register' ? 'text-[#4E8ABF]' : ''}`} />
+                <Users className={`w-4 h-4 ${activeTab === 'register' ? 'text-accent' : ''}`} />
                 <span>Customer Register</span>
                 <span className="text-[10px] bg-black/10 px-1.5 py-[2px] rounded-full font-bold">
                   {stats.totalCustomers}
@@ -1128,11 +1128,11 @@ export default function WeddingCRM() {
                 onClick={() => setActiveTab('calendar')}
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'calendar'
-                    ? 'bg-[#163B5C] text-white shadow-md'
-                    : 'text-[#5F6E7E] hover:bg-[#F4F6F9] hover:text-[#163B5C]'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-primary/70 hover:bg-background hover:text-primary'
                 }`}
               >
-                <CalendarDays className={`w-4 h-4 ${activeTab === 'calendar' ? 'text-[#4E8ABF]' : ''}`} />
+                <CalendarDays className={`w-4 h-4 ${activeTab === 'calendar' ? 'text-accent' : ''}`} />
                 <span>Follow-up Calendar</span>
               </button>
 
@@ -1140,11 +1140,11 @@ export default function WeddingCRM() {
                 onClick={() => setActiveTab('analytics')}
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'analytics'
-                    ? 'bg-[#163B5C] text-white shadow-md'
-                    : 'text-[#5F6E7E] hover:bg-[#F4F6F9] hover:text-[#163B5C]'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-primary/70 hover:bg-background hover:text-primary'
                 }`}
               >
-                <BarChart3 className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-[#4E8ABF]' : ''}`} />
+                <BarChart3 className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-accent' : ''}`} />
                 <span>Funnel & Performance</span>
               </button>
             </div>
@@ -1161,19 +1161,19 @@ export default function WeddingCRM() {
               <button
                 onClick={() => importInputRef.current?.click()}
                 disabled={importing}
-                className="bg-[#EDF4FB] hover:bg-[#DCE9F7] text-[#163B5C] border border-[#4E8ABF]/40 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-60"
+                className="bg-[#EDF4FB] hover:bg-[#DCE9F7] text-primary border border-accent/40 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-60"
                 title="Bulk-import customers from a CSV file (invalid rows are skipped)"
               >
-                <Upload className={`w-3.5 h-3.5 text-[#4E8ABF] ${importing ? 'animate-pulse' : ''}`} />
+                <Upload className={`w-3.5 h-3.5 text-accent ${importing ? 'animate-pulse' : ''}`} />
                 <span>{importing ? 'Importing…' : 'Import CSV'}</span>
               </button>
 
               <button
                 onClick={handleExportCSV}
-                className="bg-white hover:bg-gray-50 text-[#163B5C] border border-[#E2E8F0] px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+                className="bg-white hover:bg-gray-50 text-primary border border-accent-soft px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
                 title="Download current view as CSV"
               >
-                <Download className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                <Download className="w-3.5 h-3.5 text-accent" />
                 <span>Export CSV</span>
               </button>
 
@@ -1188,10 +1188,10 @@ export default function WeddingCRM() {
 
               <button
                 onClick={handleExportPDF}
-                className="bg-white hover:bg-gray-50 text-[#163B5C] border border-[#E2E8F0] px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
+                className="bg-white hover:bg-gray-50 text-primary border border-accent-soft px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all"
                 title="Export printable PDF report"
               >
-                <Printer className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                <Printer className="w-3.5 h-3.5 text-accent" />
                 <span>Export PDF</span>
               </button>
             </div>
@@ -1203,13 +1203,13 @@ export default function WeddingCRM() {
           {activeTab === 'calling_desk' && (
             <div className="space-y-4">
               {/* Telecaller Metrics Banner */}
-              <div className="bg-gradient-to-r from-[#163B5C] to-[#1B2A3B] text-white rounded-3xl p-5 shadow-lg border border-[#4E8ABF]/30 flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-gradient-to-r from-primary to-primary text-white rounded-3xl p-5 shadow-lg border border-accent/30 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-[#4E8ABF] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                  <div className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-accent" />
                     <span>DAILY TELECALLING WORKLOAD</span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-[#F4F6F9] mt-0.5">
+                  <div className="text-xl sm:text-2xl font-black text-background mt-0.5">
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                   </div>
                 </div>
@@ -1232,7 +1232,7 @@ export default function WeddingCRM() {
                     <div className="text-[10px] font-bold uppercase text-white/70">Callbacks</div>
                     <div className="text-lg font-black text-purple-300">{deskSummary.callbackCount}</div>
                   </div>
-                  <div className="bg-[#4E8ABF] text-[#1B2A3B] rounded-2xl px-4 py-2 text-center shadow-md">
+                  <div className="bg-accent text-primary rounded-2xl px-4 py-2 text-center shadow-md">
                     <div className="text-[10px] font-black uppercase">Remaining Calls</div>
                     <div className="text-lg font-black">{deskSummary.remainingCalls}</div>
                   </div>
@@ -1246,7 +1246,7 @@ export default function WeddingCRM() {
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'overdue'
                       ? 'bg-red-50 border-red-400 ring-2 ring-red-400 shadow-sm'
-                      : 'bg-white border-[#E2E8F0] hover:border-red-300'
+                      : 'bg-white border-accent-soft hover:border-red-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-red-700">
@@ -1262,7 +1262,7 @@ export default function WeddingCRM() {
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'dueToday'
                       ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400 shadow-sm'
-                      : 'bg-white border-[#E2E8F0] hover:border-amber-300'
+                      : 'bg-white border-accent-soft hover:border-amber-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-amber-700">
@@ -1278,7 +1278,7 @@ export default function WeddingCRM() {
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'callbacks'
                       ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-400 shadow-sm'
-                      : 'bg-white border-[#E2E8F0] hover:border-purple-300'
+                      : 'bg-white border-accent-soft hover:border-purple-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-purple-700">
@@ -1294,7 +1294,7 @@ export default function WeddingCRM() {
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'upcoming'
                       ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-400 shadow-sm'
-                      : 'bg-white border-[#E2E8F0] hover:border-blue-300'
+                      : 'bg-white border-accent-soft hover:border-blue-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-blue-700">
@@ -1308,8 +1308,8 @@ export default function WeddingCRM() {
 
               {/* Customer Cards in Active Queue */}
               {loadingDesk ? (
-                <div className="bg-white p-12 rounded-3xl border border-[#E2E8F0] text-center text-[#5F6E7E]">
-                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-[#4E8ABF] mb-2" />
+                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary/70">
+                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-accent mb-2" />
                   <p className="text-sm font-bold">Loading telecalling queue...</p>
                 </div>
               ) : (
@@ -1322,10 +1322,10 @@ export default function WeddingCRM() {
 
                   if (currentQueue.length === 0) {
                     return (
-                      <div className="bg-white p-12 rounded-3xl border border-[#E2E8F0] text-center">
+                      <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center">
                         <CheckCheck className="w-10 h-10 mx-auto text-emerald-500 mb-2" />
-                        <h3 className="text-base font-black text-[#163B5C]">All Clear! No Calls in this Queue</h3>
-                        <p className="text-xs text-[#5F6E7E] mt-1">Great job! All follow-ups in this bucket are completed or none are scheduled.</p>
+                        <h3 className="text-base font-black text-primary">All Clear! No Calls in this Queue</h3>
+                        <p className="text-xs text-primary/70 mt-1">Great job! All follow-ups in this bucket are completed or none are scheduled.</p>
                       </div>
                     );
                   }
@@ -1339,18 +1339,18 @@ export default function WeddingCRM() {
                           <div
                             key={cust.id}
                             className={`bg-white rounded-2xl p-4 border shadow-xs hover:shadow-md transition-all flex flex-col justify-between ${
-                              isOverdue ? 'border-red-300 bg-red-50/10' : 'border-[#E2E8F0]'
+                              isOverdue ? 'border-red-300 bg-red-50/10' : 'border-accent-soft'
                             }`}
                           >
                             {/* Card Top: Code, Location, Status */}
                             <div>
                               <div className="flex items-center justify-between gap-2 mb-2">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] font-mono bg-[#163B5C]/10 text-[#163B5C] font-bold px-2 py-0.5 rounded-md">
+                                  <span className="text-[10px] font-mono bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-md">
                                     {cust.customer_code}
                                   </span>
                                   {cust.location_name && (
-                                    <span className="text-[10px] text-[#5F6E7E] font-semibold">
+                                    <span className="text-[10px] text-primary/70 font-semibold">
                                       📍 {cust.location_name}
                                     </span>
                                   )}
@@ -1362,14 +1362,14 @@ export default function WeddingCRM() {
 
                               {/* Customer Name & Mobile */}
                               <div className="mb-2">
-                                <h4 className="text-base font-black text-[#1B2A3B] tracking-tight">{cust.customer_name}</h4>
+                                <h4 className="text-base font-black text-primary tracking-tight">{cust.customer_name}</h4>
                                 <div className="flex items-center gap-2 mt-0.5">
                                   <a
                                     href={`tel:${cust.mobile_number}`}
-                                    className="text-xs font-black text-[#163B5C] hover:underline flex items-center gap-1"
+                                    className="text-xs font-black text-primary hover:underline flex items-center gap-1"
                                     title="Click to dial"
                                   >
-                                    <Phone className="w-3 h-3 text-[#4E8ABF]" />
+                                    <Phone className="w-3 h-3 text-accent" />
                                     <span>{cust.mobile_number}</span>
                                   </a>
                                   <button
@@ -1383,9 +1383,9 @@ export default function WeddingCRM() {
                               </div>
 
                               {/* Dates Matrix: Crucial Distinction */}
-                              <div className="bg-[#F4F6F9] p-2.5 rounded-xl space-y-1.5 text-[11px] border border-[#E2E8F0]">
+                              <div className="bg-background p-2.5 rounded-xl space-y-1.5 text-[11px] border border-accent-soft">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[#5F6E7E] font-semibold flex items-center gap-1">
+                                  <span className="text-primary/70 font-semibold flex items-center gap-1">
                                     <ShoppingBag className="w-3 h-3 text-blue-600" />
                                     <span>Expected Shopping:</span>
                                   </span>
@@ -1393,12 +1393,12 @@ export default function WeddingCRM() {
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <span className="text-[#5F6E7E] font-semibold flex items-center gap-1">
+                                  <span className="text-primary/70 font-semibold flex items-center gap-1">
                                     <Calendar className="w-3 h-3 text-amber-600" />
                                     <span>Next Follow-up:</span>
                                   </span>
                                   <div className="text-right">
-                                    <span className="font-black text-[#163B5C]">{formatDate(cust.follow_up_date)}</span>
+                                    <span className="font-black text-primary">{formatDate(cust.follow_up_date)}</span>
                                     {isOverdue && (
                                       <span className="ml-1 text-[9px] bg-red-600 text-white px-1.5 py-[2px] rounded-full font-bold">
                                         {cust.overdue_days}d overdue
@@ -1416,20 +1416,20 @@ export default function WeddingCRM() {
                               </div>
 
                               {/* Last Call Result & Telecaller */}
-                              <div className="mt-2.5 text-[11px] text-[#5F6E7E] space-y-0.5">
+                              <div className="mt-2.5 text-[11px] text-primary/70 space-y-0.5">
                                 <div className="flex items-center justify-between">
                                   <span>Last Call Result:</span>
-                                  <span className="font-bold text-[#1B2A3B]">{cust.last_call_outcome || 'No Calls Yet'}</span>
+                                  <span className="font-bold text-primary">{cust.last_call_outcome || 'No Calls Yet'}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span>Assigned Telecaller:</span>
-                                  <span className="font-bold text-[#163B5C]">{cust.assigned_telecaller || 'Unassigned'}</span>
+                                  <span className="font-bold text-primary">{cust.assigned_telecaller || 'Unassigned'}</span>
                                 </div>
                               </div>
                             </div>
 
                             {/* Action Buttons: [ Call ], [ Log Call ], [ View ] */}
-                            <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center gap-2">
+                            <div className="mt-4 pt-3 border-t border-accent-soft flex items-center gap-2">
                               <a
                                 href={`tel:${cust.mobile_number}`}
                                 onClick={() => openCallModal(cust)}
@@ -1441,15 +1441,15 @@ export default function WeddingCRM() {
 
                               <button
                                 onClick={() => openCallModal(cust)}
-                                className="flex-1 bg-[#163B5C] hover:bg-[#1B2A3B] text-white py-2 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1 transition-all"
+                                className="flex-1 bg-primary hover:bg-primary text-white py-2 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1 transition-all"
                               >
-                                <MessageSquare className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                                <MessageSquare className="w-3.5 h-3.5 text-accent" />
                                 <span>Log Call</span>
                               </button>
 
                               <button
                                 onClick={() => openProfileModal(cust)}
-                                className="p-2 border border-[#E2E8F0] hover:bg-gray-100 rounded-xl text-[#1B2A3B]"
+                                className="p-2 border border-accent-soft hover:bg-gray-100 rounded-xl text-primary"
                                 title="View Customer Profile"
                               >
                                 <Eye className="w-4 h-4" />
@@ -1471,17 +1471,17 @@ export default function WeddingCRM() {
           {activeTab === 'register' && (
             <div className="space-y-4">
               {/* Filter Bar */}
-              <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-xs space-y-3">
+              <div className="bg-white p-4 rounded-2xl border border-accent-soft shadow-xs space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* Search Bar */}
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-[#5F6E7E]" />
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-primary/70" />
                     <input
                       type="text"
                       placeholder="Search name, mobile, email, code..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF] focus:border-transparent font-medium"
+                      className="w-full pl-9 pr-3 py-2 text-xs border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent focus:border-transparent font-medium"
                     />
                   </div>
 
@@ -1490,7 +1490,7 @@ export default function WeddingCRM() {
                     <select
                       value={statusFilter}
                       onChange={e => setStatusFilter(e.target.value)}
-                      className="w-full py-2 px-3 text-xs border border-[#E2E8F0] rounded-xl font-medium focus:ring-2 focus:ring-[#4E8ABF]"
+                      className="w-full py-2 px-3 text-xs border border-accent-soft rounded-xl font-medium focus:ring-2 focus:ring-accent"
                     >
                       <option value="">All Customer Statuses</option>
                       {CUSTOMER_STATUSES.map(st => (
@@ -1504,7 +1504,7 @@ export default function WeddingCRM() {
                     <select
                       value={callStatusFilter}
                       onChange={e => setCallStatusFilter(e.target.value)}
-                      className="w-full py-2 px-3 text-xs border border-[#E2E8F0] rounded-xl font-medium focus:ring-2 focus:ring-[#4E8ABF]"
+                      className="w-full py-2 px-3 text-xs border border-accent-soft rounded-xl font-medium focus:ring-2 focus:ring-accent"
                     >
                       <option value="">All Call Statuses</option>
                       {CALL_STATUSES.map(cs => (
@@ -1518,7 +1518,7 @@ export default function WeddingCRM() {
                     <select
                       value={telecallerFilter}
                       onChange={e => setTelecallerFilter(e.target.value)}
-                      className="w-full py-2 px-3 text-xs border border-[#E2E8F0] rounded-xl font-medium focus:ring-2 focus:ring-[#4E8ABF]"
+                      className="w-full py-2 px-3 text-xs border border-accent-soft rounded-xl font-medium focus:ring-2 focus:ring-accent"
                     >
                       <option value="">All Assigned Telecallers</option>
                       {telecallers.map(tc => (
@@ -1529,9 +1529,9 @@ export default function WeddingCRM() {
                 </div>
 
                 {/* Follow-up Quick Date Filter Pills */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E2E8F0]">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-accent-soft">
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                    <span className="text-[11px] font-bold text-[#5F6E7E] mr-1">Follow-up:</span>
+                    <span className="text-[11px] font-bold text-primary/70 mr-1">Follow-up:</span>
                     {[
                       { key: 'all', label: 'All Dates' },
                       { key: 'today', label: 'Today' },
@@ -1546,8 +1546,8 @@ export default function WeddingCRM() {
                         onClick={() => setDateViewFilter(btn.key)}
                         className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                           dateViewFilter === btn.key
-                            ? 'bg-[#163B5C] text-white'
-                            : 'bg-[#F4F6F9] text-[#5F6E7E] hover:bg-[#E2E8F0]'
+                            ? 'bg-primary text-white'
+                            : 'bg-background text-primary/70 hover:bg-accent-soft'
                         }`}
                       >
                         {btn.label}
@@ -1561,14 +1561,14 @@ export default function WeddingCRM() {
                         type="date"
                         value={customStartDate}
                         onChange={e => setCustomStartDate(e.target.value)}
-                        className="text-xs border border-[#E2E8F0] rounded-xl px-2.5 py-1"
+                        className="text-xs border border-accent-soft rounded-xl px-2.5 py-1"
                       />
                       <span className="text-xs text-gray-400">to</span>
                       <input
                         type="date"
                         value={customEndDate}
                         onChange={e => setCustomEndDate(e.target.value)}
-                        className="text-xs border border-[#E2E8F0] rounded-xl px-2.5 py-1"
+                        className="text-xs border border-accent-soft rounded-xl px-2.5 py-1"
                       />
                     </div>
                   )}
@@ -1576,10 +1576,10 @@ export default function WeddingCRM() {
               </div>
 
               {/* Customer Directory Table */}
-              <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
+              <div className="bg-white rounded-2xl border border-accent-soft shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#163B5C] text-[#F4F6F9] font-black uppercase text-[10px] tracking-wider">
+                    <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3">Customer ID</th>
                         <th className="p-3">Customer Name & Phone</th>
@@ -1592,11 +1592,11 @@ export default function WeddingCRM() {
                         <th className="p-3 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E2E8F0]">
+                    <tbody className="divide-y divide-accent-soft">
                       {loadingCustomers ? (
                         <tr>
                           <td colSpan={9} className="p-8 text-center text-gray-400">
-                            <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-1 text-[#4E8ABF]" />
+                            <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-1 text-accent" />
                             <span>Loading wedding customers...</span>
                           </td>
                         </tr>
@@ -1611,13 +1611,13 @@ export default function WeddingCRM() {
                           const isOverdue = c.overdue_days && c.overdue_days > 0;
 
                           return (
-                            <tr key={c.id} className="hover:bg-[#F4F6F9]/80 transition-colors">
-                              <td className="p-3 font-mono font-bold text-[#163B5C]">
+                            <tr key={c.id} className="hover:bg-background/80 transition-colors">
+                              <td className="p-3 font-mono font-bold text-primary">
                                 {c.customer_code}
                               </td>
                               <td className="p-3">
-                                <div className="font-bold text-[#1B2A3B] text-xs">{c.customer_name}</div>
-                                <div className="text-[11px] text-[#5F6E7E] flex items-center gap-1.5 mt-0.5">
+                                <div className="font-bold text-primary text-xs">{c.customer_name}</div>
+                                <div className="text-[11px] text-primary/70 flex items-center gap-1.5 mt-0.5">
                                   <span>{c.mobile_number}</span>
                                   <button
                                     onClick={() => copyPhone(c.mobile_number)}
@@ -1628,14 +1628,14 @@ export default function WeddingCRM() {
                                   </button>
                                 </div>
                               </td>
-                              <td className="p-3 font-semibold text-[#5F6E7E]">
+                              <td className="p-3 font-semibold text-primary/70">
                                 📍 {c.location_name || 'Davanagere'}
                               </td>
                               <td className="p-3 font-black text-blue-900">
                                 {formatDate(c.expected_shopping_date)}
                               </td>
                               <td className="p-3">
-                                <div className="font-black text-[#1B2A3B]">{formatDate(c.follow_up_date)}</div>
+                                <div className="font-black text-primary">{formatDate(c.follow_up_date)}</div>
                                 {isOverdue && (
                                   <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-[2px] rounded-full">
                                     {c.overdue_days}d overdue
@@ -1652,17 +1652,17 @@ export default function WeddingCRM() {
                                   {c.call_status}
                                 </span>
                               </td>
-                              <td className="p-3 font-medium text-[#163B5C]">
+                              <td className="p-3 font-medium text-primary">
                                 {c.assigned_telecaller || 'Unassigned'}
                               </td>
                               <td className="p-3 text-right">
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
                                     onClick={() => openCallModal(c)}
-                                    className="p-1.5 bg-[#163B5C] hover:bg-[#1B2A3B] text-white rounded-lg transition-all"
+                                    className="p-1.5 bg-primary hover:bg-primary text-white rounded-lg transition-all"
                                     title="Log Call"
                                   >
-                                    <PhoneCall className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                                    <PhoneCall className="w-3.5 h-3.5 text-accent" />
                                   </button>
 
                                   <a
@@ -1678,7 +1678,7 @@ export default function WeddingCRM() {
                                   {c.email && (
                                     <a
                                       href={`mailto:${c.email}?subject=${encodeURIComponent('BSC Exclusive — Wedding Collection Invitation')}&body=${encodeURIComponent(`Dear ${c.customer_name || 'Customer'},\n\nGreetings from BSC Exclusive! We would love to host you for your wedding shopping. Please reply to this email or call us to schedule your visit.\n\nWarm regards,\nBSC Exclusive Team`)}`}
-                                      className="p-1.5 bg-[#EDF4FB] hover:bg-[#DCE9F7] text-[#163B5C] rounded-lg transition-all"
+                                      className="p-1.5 bg-[#EDF4FB] hover:bg-[#DCE9F7] text-primary rounded-lg transition-all"
                                       title={`Email ${c.email}`}
                                     >
                                       <Mail className="w-3.5 h-3.5" />
@@ -1728,14 +1728,14 @@ export default function WeddingCRM() {
              ════════════════════════════════════════════════════════════ */}
           {activeTab === 'calendar' && (
             <div className="space-y-4">
-              <div className="bg-white p-5 rounded-3xl border border-[#E2E8F0] shadow-xs">
+              <div className="bg-white p-5 rounded-3xl border border-accent-soft shadow-xs">
                 {/* Calendar Month Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-black text-[#163B5C]">
+                    <h3 className="text-lg font-black text-primary">
                       {new Date(calendarYear, calendarMonth - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
                     </h3>
-                    <p className="text-xs text-[#5F6E7E]">Follow-up schedule and customer workload</p>
+                    <p className="text-xs text-primary/70">Follow-up schedule and customer workload</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -1748,9 +1748,9 @@ export default function WeddingCRM() {
                           setCalendarMonth(calendarMonth - 1);
                         }
                       }}
-                      className="p-2 border border-[#E2E8F0] rounded-xl hover:bg-gray-50"
+                      className="p-2 border border-accent-soft rounded-xl hover:bg-gray-50"
                     >
-                      <ChevronLeft className="w-4 h-4 text-[#163B5C]" />
+                      <ChevronLeft className="w-4 h-4 text-primary" />
                     </button>
 
                     <button
@@ -1758,7 +1758,7 @@ export default function WeddingCRM() {
                         setCalendarYear(new Date().getFullYear());
                         setCalendarMonth(new Date().getMonth() + 1);
                       }}
-                      className="px-3 py-1.5 text-xs font-bold border border-[#E2E8F0] rounded-xl hover:bg-gray-50"
+                      className="px-3 py-1.5 text-xs font-bold border border-accent-soft rounded-xl hover:bg-gray-50"
                     >
                       Today
                     </button>
@@ -1772,15 +1772,15 @@ export default function WeddingCRM() {
                           setCalendarMonth(calendarMonth + 1);
                         }
                       }}
-                      className="p-2 border border-[#E2E8F0] rounded-xl hover:bg-gray-50"
+                      className="p-2 border border-accent-soft rounded-xl hover:bg-gray-50"
                     >
-                      <ChevronRight className="w-4 h-4 text-[#163B5C]" />
+                      <ChevronRight className="w-4 h-4 text-primary" />
                     </button>
                   </div>
                 </div>
 
                 {/* Calendar Legend */}
-                <div className="flex flex-wrap items-center gap-4 text-xs mb-4 pb-3 border-b border-[#E2E8F0]">
+                <div className="flex flex-wrap items-center gap-4 text-xs mb-4 pb-3 border-b border-accent-soft">
                   <div className="flex items-center gap-1.5">
                     <span className="w-3 h-3 rounded-full bg-red-500" />
                     <span className="font-semibold text-gray-700">Overdue</span>
@@ -1802,7 +1802,7 @@ export default function WeddingCRM() {
                 {/* Calendar Days Grid */}
                 <div className="grid grid-cols-7 gap-2">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                    <div key={d} className="text-center font-black text-[11px] text-[#5F6E7E] uppercase py-1">
+                    <div key={d} className="text-center font-black text-[11px] text-primary/70 uppercase py-1">
                       {d}
                     </div>
                   ))}
@@ -1830,14 +1830,14 @@ export default function WeddingCRM() {
                           onClick={() => setSelectedCalendarDate(dateStr)}
                           className={`min-h-[85px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                             isSelected
-                              ? 'border-[#163B5C] ring-2 ring-[#4E8ABF] bg-amber-50/30'
+                              ? 'border-primary ring-2 ring-accent bg-amber-50/30'
                               : isToday
                               ? 'border-amber-400 bg-amber-50/20'
-                              : 'border-[#E2E8F0] bg-white hover:border-[#4E8ABF]/60'
+                              : 'border-accent-soft bg-white hover:border-accent/60'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`text-xs font-black ${isToday ? 'bg-[#163B5C] text-white px-1.5 py-0.5 rounded-md' : 'text-[#1B2A3B]'}`}>
+                            <span className={`text-xs font-black ${isToday ? 'bg-primary text-white px-1.5 py-0.5 rounded-md' : 'text-primary'}`}>
                               {day}
                             </span>
                             {dayInfo && dayInfo.total > 0 && (
@@ -1877,13 +1877,13 @@ export default function WeddingCRM() {
 
               {/* Selected Date Detail Drawer / Table */}
               {selectedCalendarDate && (
-                <div className="bg-white p-5 rounded-3xl border-2 border-[#4E8ABF]/40 shadow-md animate-slide-up space-y-3">
+                <div className="bg-white p-5 rounded-3xl border-2 border-accent/40 shadow-md animate-slide-up space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-black text-[#163B5C]">
+                      <h4 className="text-sm font-black text-primary">
                         Follow-ups Scheduled for {formatDate(selectedCalendarDate)}
                       </h4>
-                      <p className="text-xs text-[#5F6E7E]">Click any customer to log call or inspect profile</p>
+                      <p className="text-xs text-primary/70">Click any customer to log call or inspect profile</p>
                     </div>
                     <button
                       onClick={() => setSelectedCalendarDate(null)}
@@ -1904,10 +1904,10 @@ export default function WeddingCRM() {
                     return (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                         {filtered.map(c => (
-                          <div key={c.id} className="p-3 bg-[#F4F6F9] rounded-2xl border border-[#E2E8F0] flex items-center justify-between">
+                          <div key={c.id} className="p-3 bg-background rounded-2xl border border-accent-soft flex items-center justify-between">
                             <div>
-                              <div className="font-bold text-xs text-[#1B2A3B]">{c.customer_name}</div>
-                              <div className="text-[11px] text-[#5F6E7E]">{c.mobile_number}</div>
+                              <div className="font-bold text-xs text-primary">{c.customer_name}</div>
+                              <div className="text-[11px] text-primary/70">{c.mobile_number}</div>
                               <div className="text-[10px] text-blue-800 font-bold mt-0.5">
                                 Shopping: {formatDate(c.expected_shopping_date)}
                               </div>
@@ -1915,13 +1915,13 @@ export default function WeddingCRM() {
                             <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => openCallModal(c)}
-                                className="px-2.5 py-1.5 bg-[#163B5C] text-white text-xs font-bold rounded-xl"
+                                className="px-2.5 py-1.5 bg-primary text-white text-xs font-bold rounded-xl"
                               >
                                 Call
                               </button>
                               <button
                                 onClick={() => openProfileModal(c)}
-                                className="p-1.5 bg-white border border-[#E2E8F0] rounded-xl text-gray-600 hover:text-[#163B5C]"
+                                className="p-1.5 bg-white border border-accent-soft rounded-xl text-gray-600 hover:text-primary"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
@@ -1942,39 +1942,39 @@ export default function WeddingCRM() {
           {activeTab === 'analytics' && (
             <div className="space-y-5">
               {loadingAnalytics ? (
-                <div className="bg-white p-12 rounded-3xl border border-[#E2E8F0] text-center text-[#5F6E7E]">
-                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-[#4E8ABF] mb-2" />
+                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary/70">
+                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-accent mb-2" />
                   <p className="text-sm font-bold">Computing conversion funnels & performance...</p>
                 </div>
               ) : (
                 <>
                   {/* Conversion Funnel */}
-                  <div className="bg-white p-6 rounded-3xl border border-[#E2E8F0] shadow-xs">
+                  <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h3 className="text-base font-black text-[#163B5C]">Wedding Customer Conversion Funnel</h3>
-                        <p className="text-xs text-[#5F6E7E]">Step-by-step conversion tracking from initial lead to store visit and purchase</p>
+                        <h3 className="text-base font-black text-primary">Wedding Customer Conversion Funnel</h3>
+                        <p className="text-xs text-primary/70">Step-by-step conversion tracking from initial lead to store visit and purchase</p>
                       </div>
-                      <span className="text-xs font-bold text-[#4E8ABF]">BSC CRM Intelligence</span>
+                      <span className="text-xs font-bold text-accent">BSC CRM Intelligence</span>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                       {[
-                        { label: 'Total Customers', val: analyticsData?.funnel?.total_customers || 0, color: 'bg-[#163B5C] text-white' },
+                        { label: 'Total Customers', val: analyticsData?.funnel?.total_customers || 0, color: 'bg-primary text-white' },
                         { label: 'Contacted', val: analyticsData?.funnel?.contacted || 0, color: 'bg-indigo-700 text-white' },
                         { label: 'Interested', val: analyticsData?.funnel?.interested || 0, color: 'bg-purple-700 text-white' },
                         { label: 'Shopping Confirmed', val: analyticsData?.funnel?.shopping_confirmed || 0, color: 'bg-blue-700 text-white' },
                         { label: 'Visited Store', val: analyticsData?.funnel?.visited || 0, color: 'bg-emerald-600 text-white' },
                         { label: 'Converted', val: analyticsData?.funnel?.converted || 0, color: 'bg-teal-700 text-white' }
                       ].map((step, idx) => (
-                        <div key={step.label} className="bg-[#F4F6F9] p-4 rounded-2xl border border-[#E2E8F0] flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-[11px] font-bold text-[#5F6E7E]">
+                        <div key={step.label} className="bg-background p-4 rounded-2xl border border-accent-soft flex flex-col justify-between">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-primary/70">
                             <span>Step {idx + 1}</span>
-                            {idx < 5 && <ArrowRight className="w-3 h-3 text-[#4E8ABF]" />}
+                            {idx < 5 && <ArrowRight className="w-3 h-3 text-accent" />}
                           </div>
                           <div className="my-2">
-                            <div className="text-2xl font-black text-[#1B2A3B]">{step.val}</div>
-                            <div className="text-xs font-black text-[#163B5C] mt-0.5">{step.label}</div>
+                            <div className="text-2xl font-black text-primary">{step.val}</div>
+                            <div className="text-xs font-black text-primary mt-0.5">{step.label}</div>
                           </div>
                           <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                             <div
@@ -1994,15 +1994,15 @@ export default function WeddingCRM() {
                   </div>
 
                   {/* Telecaller Performance Scorecard */}
-                  <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-xs overflow-hidden">
-                    <div className="p-5 border-b border-[#E2E8F0]">
-                      <h3 className="text-base font-black text-[#163B5C]">Telecaller Workload & Performance Scorecard</h3>
-                      <p className="text-xs text-[#5F6E7E]">Calls completed, conversion results, and pending follow-ups per telecaller</p>
+                  <div className="bg-white rounded-3xl border border-accent-soft shadow-xs overflow-hidden">
+                    <div className="p-5 border-b border-accent-soft">
+                      <h3 className="text-base font-black text-primary">Telecaller Workload & Performance Scorecard</h3>
+                      <p className="text-xs text-primary/70">Calls completed, conversion results, and pending follow-ups per telecaller</p>
                     </div>
 
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-[#163B5C] text-[#F4F6F9] font-black uppercase text-[10px] tracking-wider">
+                        <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
                           <tr>
                             <th className="p-3">Telecaller Name</th>
                             <th className="p-3 text-center">Assigned Customers</th>
@@ -2016,7 +2016,7 @@ export default function WeddingCRM() {
                             <th className="p-3 text-center">Pending Follow-ups</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E2E8F0]">
+                        <tbody className="divide-y divide-accent-soft">
                           {analyticsData?.telecallers?.length === 0 ? (
                             <tr>
                               <td colSpan={10} className="p-8 text-center text-gray-400">
@@ -2025,8 +2025,8 @@ export default function WeddingCRM() {
                             </tr>
                           ) : (
                             analyticsData?.telecallers?.map((tc: any) => (
-                              <tr key={tc.telecaller} className="hover:bg-[#F4F6F9]/80 transition-colors font-medium">
-                                <td className="p-3 font-bold text-[#163B5C]">{tc.telecaller}</td>
+                              <tr key={tc.telecaller} className="hover:bg-background/80 transition-colors font-medium">
+                                <td className="p-3 font-bold text-primary">{tc.telecaller}</td>
                                 <td className="p-3 text-center font-bold">{tc.assigned_customers}</td>
                                 <td className="p-3 text-center font-bold text-emerald-700">{tc.calls_completed}</td>
                                 <td className="p-3 text-center">{tc.connected}</td>
@@ -2061,14 +2061,14 @@ export default function WeddingCRM() {
          ════════════════════════════════════════════════════════════ */}
       {showAddModal && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-[#4E8ABF]/30 overflow-hidden my-6 animate-scale-in">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-accent/30 overflow-hidden my-6 animate-scale-in">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#163B5C] to-[#1B2A3B] text-white p-5 flex items-center justify-between border-b border-[#4E8ABF]/30">
+            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
               <div className="flex items-center gap-2.5">
-                <Sparkles className="w-5 h-5 text-[#4E8ABF]" />
+                <Sparkles className="w-5 h-5 text-accent" />
                 <div>
-                  <h3 className="text-base font-black text-[#F4F6F9]">Add Wedding Customer</h3>
-                  <p className="text-[11px] text-[#4E8ABF] font-semibold">Store visit walk-in record & follow-up scheduler</p>
+                  <h3 className="text-base font-black text-background">Add Wedding Customer</h3>
+                  <p className="text-[11px] text-accent font-semibold">Store visit walk-in record & follow-up scheduler</p>
                 </div>
               </div>
               <button onClick={() => setShowAddModal(false)} className="text-white/70 hover:text-white p-1">
@@ -2103,7 +2103,7 @@ export default function WeddingCRM() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Customer Name * */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">
+                  <label className="block text-xs font-black text-primary mb-1">
                     Customer Name <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -2112,13 +2112,13 @@ export default function WeddingCRM() {
                     placeholder="e.g. Ramesh Patil"
                     value={addForm.customer_name}
                     onChange={e => setAddForm({ ...addForm, customer_name: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF]"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
                   />
                 </div>
 
                 {/* Mobile Number * */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">
+                  <label className="block text-xs font-black text-primary mb-1">
                     Mobile Number <span className="text-red-600">*</span>
                   </label>
                   <input
@@ -2131,30 +2131,30 @@ export default function WeddingCRM() {
                       setAddForm({ ...addForm, mobile_number: e.target.value });
                     }}
                     onBlur={e => handlePhoneBlur(e.target.value)}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF]"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
                   />
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Email Address</label>
+                  <label className="block text-xs font-black text-primary mb-1">Email Address</label>
                   <input
                     type="email"
                     placeholder="customer@example.com"
                     value={addForm.email}
                     onChange={e => setAddForm({ ...addForm, email: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF]"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
                   />
                 </div>
 
                 {/* Location (Auto-populated for branch, dropdown for Global Admin) */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Store Location</label>
+                  <label className="block text-xs font-black text-primary mb-1">Store Location</label>
                   {session?.isGlobalAdmin ? (
                     <select
                       value={addForm.location_id}
                       onChange={e => setAddForm({ ...addForm, location_id: e.target.value })}
-                      className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF]"
+                      className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
                     >
                       {locations.map(loc => (
                         <option key={loc.id} value={loc.id}>
@@ -2167,19 +2167,19 @@ export default function WeddingCRM() {
                       type="text"
                       disabled
                       value={session?.locationName || 'Davanagere'}
-                      className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl bg-gray-100 text-gray-600"
+                      className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl bg-gray-100 text-gray-600"
                     />
                   )}
                 </div>
 
                 {/* Wedding Date */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Wedding Date</label>
+                  <label className="block text-xs font-black text-primary mb-1">Wedding Date</label>
                   <input
                     type="date"
                     value={addForm.wedding_date}
                     onChange={e => setAddForm({ ...addForm, wedding_date: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF]"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
                   />
                 </div>
 
@@ -2217,11 +2217,11 @@ export default function WeddingCRM() {
 
                 {/* Preferred Call Time */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Preferred Call Time</label>
+                  <label className="block text-xs font-black text-primary mb-1">Preferred Call Time</label>
                   <select
                     value={addForm.preferred_call_time}
                     onChange={e => setAddForm({ ...addForm, preferred_call_time: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl"
                   >
                     {CALL_TIME_OPTIONS.map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
@@ -2231,11 +2231,11 @@ export default function WeddingCRM() {
 
                 {/* Preferred Shopping Category */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Shopping Category</label>
+                  <label className="block text-xs font-black text-primary mb-1">Shopping Category</label>
                   <select
                     value={addForm.preferred_shopping_category}
                     onChange={e => setAddForm({ ...addForm, preferred_shopping_category: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl"
                   >
                     {CATEGORY_OPTIONS.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -2245,20 +2245,20 @@ export default function WeddingCRM() {
 
                 {/* Estimated Family Size */}
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Estimated Family Size</label>
+                  <label className="block text-xs font-black text-primary mb-1">Estimated Family Size</label>
                   <input
                     type="number"
                     min={1}
                     max={50}
                     value={addForm.estimated_family_size}
                     onChange={e => setAddForm({ ...addForm, estimated_family_size: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl"
                   />
                 </div>
 
                 {/* Assigned Telecaller */}
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Assigned Telecaller</label>
+                  <label className="block text-xs font-black text-primary mb-1">Assigned Telecaller</label>
                   <select
                     value={addForm.assigned_telecaller_id}
                     onChange={e => {
@@ -2270,7 +2270,7 @@ export default function WeddingCRM() {
                         assigned_telecaller: selected ? selected.full_name : ''
                       });
                     }}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl"
                   >
                     <option value="">Assign to Telecaller (or unassigned)</option>
                     {telecallers.map(tc => (
@@ -2281,29 +2281,29 @@ export default function WeddingCRM() {
 
                 {/* Customer Notes */}
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Customer Notes / Preferences</label>
+                  <label className="block text-xs font-black text-primary mb-1">Customer Notes / Preferences</label>
                   <textarea
                     rows={2}
                     placeholder="Specific bridal colors, family requirements, store visit context..."
                     value={addForm.customer_notes}
                     onChange={e => setAddForm({ ...addForm, customer_notes: e.target.value })}
-                    className="w-full text-xs font-medium p-2.5 border border-[#E2E8F0] rounded-xl"
+                    className="w-full text-xs font-medium p-2.5 border border-accent-soft rounded-xl"
                   />
                 </div>
               </div>
 
               {/* Submit Buttons */}
-              <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2.5">
+              <div className="pt-4 border-t border-accent-soft flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-[#E2E8F0] text-xs font-bold rounded-xl hover:bg-gray-100"
+                  className="px-4 py-2 border border-accent-soft text-xs font-bold rounded-xl hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#163B5C] hover:bg-[#1B2A3B] text-white text-xs font-black rounded-xl shadow-md transition-all"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary text-white text-xs font-black rounded-xl shadow-md transition-all"
                 >
                   Save Wedding Customer
                 </button>
@@ -2318,14 +2318,14 @@ export default function WeddingCRM() {
          ════════════════════════════════════════════════════════════ */}
       {showLogCallModal && selectedCustomer && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-[#4E8ABF]/40 overflow-hidden my-6 animate-scale-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-accent/40 overflow-hidden my-6 animate-scale-in">
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#163B5C] to-[#1B2A3B] text-white p-5 flex items-center justify-between border-b border-[#4E8ABF]/30">
+            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
               <div className="flex items-center gap-2.5">
-                <PhoneCall className="w-5 h-5 text-[#4E8ABF]" />
+                <PhoneCall className="w-5 h-5 text-accent" />
                 <div>
-                  <h3 className="text-base font-black text-[#F4F6F9]">Log Call Outcome</h3>
-                  <p className="text-[11px] text-[#4E8ABF] font-semibold">{selectedCustomer.customer_name} ({selectedCustomer.mobile_number})</p>
+                  <h3 className="text-base font-black text-background">Log Call Outcome</h3>
+                  <p className="text-[11px] text-accent font-semibold">{selectedCustomer.customer_name} ({selectedCustomer.mobile_number})</p>
                 </div>
               </div>
               <button onClick={() => setShowLogCallModal(false)} className="text-white/70 hover:text-white p-1">
@@ -2337,11 +2337,11 @@ export default function WeddingCRM() {
               {/* Call Status & Outcome */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Call Status</label>
+                  <label className="block text-xs font-black text-primary mb-1">Call Status</label>
                   <select
                     value={logForm.call_status}
                     onChange={e => setLogForm({ ...logForm, call_status: e.target.value })}
-                    className="w-full text-xs font-semibold p-2.5 border border-[#E2E8F0] rounded-xl"
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl"
                   >
                     {CALL_STATUSES.map(cs => (
                       <option key={cs} value={cs}>{cs}</option>
@@ -2350,11 +2350,11 @@ export default function WeddingCRM() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#1B2A3B] mb-1">Call Outcome *</label>
+                  <label className="block text-xs font-black text-primary mb-1">Call Outcome *</label>
                   <select
                     value={logForm.call_outcome}
                     onChange={e => setLogForm({ ...logForm, call_outcome: e.target.value })}
-                    className="w-full text-xs font-bold p-2.5 border border-[#4E8ABF] rounded-xl bg-amber-50/40 text-[#163B5C]"
+                    className="w-full text-xs font-bold p-2.5 border border-accent rounded-xl bg-amber-50/40 text-primary"
                   >
                     {CALL_OUTCOMES.map(co => (
                       <option key={co} value={co}>{co}</option>
@@ -2410,23 +2410,23 @@ export default function WeddingCRM() {
 
               {/* Remarks */}
               <div>
-                <label className="block text-xs font-black text-[#1B2A3B] mb-1">Remarks & Telecaller Notes</label>
+                <label className="block text-xs font-black text-primary mb-1">Remarks & Telecaller Notes</label>
                 <textarea
                   rows={2}
                   required
                   placeholder="Record customer response, shopping plans, family requirements..."
                   value={logForm.remarks}
                   onChange={e => setLogForm({ ...logForm, remarks: e.target.value })}
-                  className="w-full text-xs font-medium p-2.5 border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#4E8ABF]"
+                  className="w-full text-xs font-medium p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-accent-soft flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowLogCallModal(false)}
-                  className="px-4 py-2 border border-[#E2E8F0] text-xs font-bold rounded-xl"
+                  className="px-4 py-2 border border-accent-soft text-xs font-bold rounded-xl"
                 >
                   Cancel
                 </button>
@@ -2447,17 +2447,17 @@ export default function WeddingCRM() {
          ════════════════════════════════════════════════════════════ */}
       {showProfileModal && selectedCustomer && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-[#4E8ABF]/40 overflow-hidden my-6 animate-scale-in">
+          <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-accent/40 overflow-hidden my-6 animate-scale-in">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#163B5C] to-[#1B2A3B] text-white p-5 flex items-center justify-between border-b border-[#4E8ABF]/30">
+            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold bg-[#4E8ABF] text-[#1B2A3B] px-2 py-0.5 rounded-md">
+                  <span className="text-xs font-mono font-bold bg-accent text-primary px-2 py-0.5 rounded-md">
                     {selectedCustomer.customer_code}
                   </span>
-                  <h3 className="text-base font-black text-[#F4F6F9]">{selectedCustomer.customer_name}</h3>
+                  <h3 className="text-base font-black text-background">{selectedCustomer.customer_name}</h3>
                 </div>
-                <p className="text-[11px] text-[#4E8ABF] mt-0.5">
+                <p className="text-[11px] text-accent mt-0.5">
                   📍 {selectedCustomer.location_name || 'Davanagere'} · Registered {formatDate(selectedCustomer.created_at)}
                 </p>
               </div>
@@ -2492,22 +2492,22 @@ export default function WeddingCRM() {
             <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
               {/* Top Overview Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#F4F6F9] p-3 rounded-2xl border border-[#E2E8F0]">
+                <div className="bg-background p-3 rounded-2xl border border-accent-soft">
                   <div className="text-[10px] font-bold text-gray-500 uppercase">Customer Status</div>
-                  <div className="text-xs font-black text-[#163B5C] mt-0.5">{selectedCustomer.customer_status}</div>
+                  <div className="text-xs font-black text-primary mt-0.5">{selectedCustomer.customer_status}</div>
                 </div>
 
-                <div className="bg-[#F4F6F9] p-3 rounded-2xl border border-[#E2E8F0]">
+                <div className="bg-background p-3 rounded-2xl border border-accent-soft">
                   <div className="text-[10px] font-bold text-gray-500 uppercase">Call Status</div>
                   <div className="text-xs font-black text-gray-800 mt-0.5">{selectedCustomer.call_status}</div>
                 </div>
 
-                <div className="bg-[#F4F6F9] p-3 rounded-2xl border border-[#E2E8F0]">
+                <div className="bg-background p-3 rounded-2xl border border-accent-soft">
                   <div className="text-[10px] font-bold text-blue-700 uppercase">Expected Shopping</div>
                   <div className="text-xs font-black text-blue-900 mt-0.5">{formatDate(selectedCustomer.expected_shopping_date)}</div>
                 </div>
 
-                <div className="bg-[#F4F6F9] p-3 rounded-2xl border border-[#E2E8F0]">
+                <div className="bg-background p-3 rounded-2xl border border-accent-soft">
                   <div className="text-[10px] font-bold text-amber-700 uppercase">Next Follow-up</div>
                   <div className="text-xs font-black text-amber-900 mt-0.5">{formatDate(selectedCustomer.follow_up_date)}</div>
                 </div>
@@ -2516,8 +2516,8 @@ export default function WeddingCRM() {
               {/* Detailed Breakdown */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Contact & Wedding Details */}
-                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] space-y-2">
-                  <h4 className="font-black text-[#163B5C] text-xs uppercase tracking-wide border-b border-[#E2E8F0] pb-1.5">
+                <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-2">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wide border-b border-accent-soft pb-1.5">
                     Customer & Wedding Details
                   </h4>
                   <div className="space-y-1.5 text-gray-700">
@@ -2537,7 +2537,7 @@ export default function WeddingCRM() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Shopping Category:</span>
-                      <span className="font-bold text-[#163B5C]">{selectedCustomer.preferred_shopping_category || 'General Wedding Shopping'}</span>
+                      <span className="font-bold text-primary">{selectedCustomer.preferred_shopping_category || 'General Wedding Shopping'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Family Size:</span>
@@ -2547,14 +2547,14 @@ export default function WeddingCRM() {
                 </div>
 
                 {/* Follow-up & Telecaller Details */}
-                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] space-y-2">
-                  <h4 className="font-black text-[#163B5C] text-xs uppercase tracking-wide border-b border-[#E2E8F0] pb-1.5">
+                <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-2">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wide border-b border-accent-soft pb-1.5">
                     Telecaller Assignment & Notes
                   </h4>
                   <div className="space-y-1.5 text-gray-700">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Assigned Telecaller:</span>
-                      <span className="font-bold text-[#163B5C]">{selectedCustomer.assigned_telecaller || 'Unassigned'}</span>
+                      <span className="font-bold text-primary">{selectedCustomer.assigned_telecaller || 'Unassigned'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Preferred Call Time:</span>
@@ -2565,7 +2565,7 @@ export default function WeddingCRM() {
                       <span className="font-black">{selectedCustomer.total_calls_count || 0}</span>
                     </div>
                     {selectedCustomer.customer_notes && (
-                      <div className="pt-1.5 border-t border-[#E2E8F0]">
+                      <div className="pt-1.5 border-t border-accent-soft">
                         <span className="text-gray-500 block text-[10px] uppercase font-bold">Notes:</span>
                         <p className="text-gray-800 italic mt-0.5">{selectedCustomer.customer_notes}</p>
                       </div>
@@ -2576,23 +2576,23 @@ export default function WeddingCRM() {
 
               {/* Call History Timeline (Chronological) */}
               <div className="space-y-3">
-                <h4 className="font-black text-[#163B5C] text-xs uppercase tracking-wider flex items-center gap-1.5">
-                  <History className="w-4 h-4 text-[#4E8ABF]" />
+                <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-accent" />
                   <span>Call History Timeline</span>
                 </h4>
 
                 {customerCallLogs.length === 0 ? (
-                  <div className="bg-[#F4F6F9] p-4 rounded-2xl border border-[#E2E8F0] text-center text-gray-500">
+                  <div className="bg-background p-4 rounded-2xl border border-accent-soft text-center text-gray-500">
                     No calls logged for this customer yet.
                   </div>
                 ) : (
-                  <div className="relative pl-6 space-y-3 border-l-2 border-[#4E8ABF]/40">
+                  <div className="relative pl-6 space-y-3 border-l-2 border-accent/40">
                     {customerCallLogs.map((log) => (
-                      <div key={log.id} className="relative bg-white p-3 rounded-2xl border border-[#E2E8F0] shadow-2xs">
-                        <div className="absolute -left-[31px] top-3.5 w-3 h-3 rounded-full bg-[#4E8ABF] border-2 border-white" />
+                      <div key={log.id} className="relative bg-white p-3 rounded-2xl border border-accent-soft shadow-2xs">
+                        <div className="absolute -left-[31px] top-3.5 w-3 h-3 rounded-full bg-accent border-2 border-white" />
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="font-black text-xs text-[#163B5C]">{formatDate(log.call_date)}</span>
+                            <span className="font-black text-xs text-primary">{formatDate(log.call_date)}</span>
                             <span className="text-[10px] text-gray-500">{log.call_time}</span>
                             <span className="text-[10px] font-bold px-2 py-[2px] rounded-full bg-emerald-100 text-emerald-800">
                               {log.call_outcome}
@@ -2601,7 +2601,7 @@ export default function WeddingCRM() {
                           <span className="text-[10px] font-semibold text-gray-500">by {log.telecaller_name}</span>
                         </div>
                         {log.remarks && (
-                          <p className="text-xs text-gray-700 mt-1.5 bg-[#F4F6F9] p-2 rounded-xl border border-[#E2E8F0]">
+                          <p className="text-xs text-gray-700 mt-1.5 bg-background p-2 rounded-xl border border-accent-soft">
                             "{log.remarks}"
                           </p>
                         )}
@@ -2618,7 +2618,7 @@ export default function WeddingCRM() {
 
               {/* Audit Log Trail */}
               {customerAuditLogs.length > 0 && (
-                <div className="space-y-2 pt-3 border-t border-[#E2E8F0]">
+                <div className="space-y-2 pt-3 border-t border-accent-soft">
                   <h4 className="font-bold text-gray-500 text-[10px] uppercase tracking-wider">
                     Audit Trail Activity
                   </h4>
@@ -2635,7 +2635,7 @@ export default function WeddingCRM() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-[#E2E8F0] bg-[#F4F6F9] flex items-center justify-between">
+            <div className="p-4 border-t border-accent-soft bg-background flex items-center justify-between">
               <div>
                 {(session?.isGlobalAdmin || session?.role === 'Admin' || session?.role === 'Super Admin') && (
                   <button
@@ -2649,7 +2649,7 @@ export default function WeddingCRM() {
               </div>
               <button
                 onClick={() => setShowProfileModal(false)}
-                className="px-5 py-2 bg-[#163B5C] text-white text-xs font-bold rounded-xl"
+                className="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl"
               >
                 Close Profile
               </button>
@@ -2663,9 +2663,9 @@ export default function WeddingCRM() {
          ════════════════════════════════════════════════════════════ */}
       {showEditModal && selectedCustomer && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-[#4E8ABF]/40 overflow-hidden my-6 animate-scale-in">
-            <div className="bg-gradient-to-r from-[#163B5C] to-[#1B2A3B] text-white p-5 flex items-center justify-between border-b border-[#4E8ABF]/30">
-              <h3 className="text-base font-black text-[#F4F6F9]">Edit Wedding Customer</h3>
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-accent/40 overflow-hidden my-6 animate-scale-in">
+            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
+              <h3 className="text-base font-black text-background">Edit Wedding Customer</h3>
               <button onClick={() => setShowEditModal(false)} className="text-white/70 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
@@ -2674,44 +2674,44 @@ export default function WeddingCRM() {
             <form onSubmit={handleUpdateCustomer} className="p-6 space-y-3.5 max-h-[75vh] overflow-y-auto text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Customer Name *</label>
+                  <label className="block font-bold text-primary mb-1">Customer Name *</label>
                   <input
                     type="text"
                     required
                     value={selectedCustomer.customer_name}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, customer_name: e.target.value })}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl font-semibold"
+                    className="w-full p-2 border border-accent-soft rounded-xl font-semibold"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Mobile Number *</label>
+                  <label className="block font-bold text-primary mb-1">Mobile Number *</label>
                   <input
                     type="tel"
                     required
                     value={selectedCustomer.mobile_number}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, mobile_number: e.target.value })}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl font-semibold"
+                    className="w-full p-2 border border-accent-soft rounded-xl font-semibold"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Email</label>
+                  <label className="block font-bold text-primary mb-1">Email</label>
                   <input
                     type="email"
                     value={selectedCustomer.email || ''}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, email: e.target.value })}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl"
+                    className="w-full p-2 border border-accent-soft rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Wedding Date</label>
+                  <label className="block font-bold text-primary mb-1">Wedding Date</label>
                   <input
                     type="date"
                     value={selectedCustomer.wedding_date ? selectedCustomer.wedding_date.slice(0, 10) : ''}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, wedding_date: e.target.value })}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl"
+                    className="w-full p-2 border border-accent-soft rounded-xl"
                   />
                 </div>
 
@@ -2738,11 +2738,11 @@ export default function WeddingCRM() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Customer Status</label>
+                  <label className="block font-bold text-primary mb-1">Customer Status</label>
                   <select
                     value={selectedCustomer.customer_status}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, customer_status: e.target.value })}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl font-bold"
+                    className="w-full p-2 border border-accent-soft rounded-xl font-bold"
                   >
                     {CUSTOMER_STATUSES.map(st => (
                       <option key={st} value={st}>{st}</option>
@@ -2751,7 +2751,7 @@ export default function WeddingCRM() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Assigned Telecaller</label>
+                  <label className="block font-bold text-primary mb-1">Assigned Telecaller</label>
                   <select
                     value={selectedCustomer.assigned_telecaller || ''}
                     onChange={e => {
@@ -2763,7 +2763,7 @@ export default function WeddingCRM() {
                         assigned_telecaller_id: tc ? tc.id : undefined
                       });
                     }}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl font-semibold"
+                    className="w-full p-2 border border-accent-soft rounded-xl font-semibold"
                   >
                     <option value="">Unassigned</option>
                     {telecallers.map(t => (
@@ -2773,27 +2773,27 @@ export default function WeddingCRM() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block font-bold text-[#1B2A3B] mb-1">Customer Notes</label>
+                  <label className="block font-bold text-primary mb-1">Customer Notes</label>
                   <textarea
                     rows={2}
                     value={selectedCustomer.customer_notes || ''}
                     onChange={e => setSelectedCustomer({ ...selectedCustomer, customer_notes: e.target.value })}
-                    className="w-full p-2 border border-[#E2E8F0] rounded-xl"
+                    className="w-full p-2 border border-accent-soft rounded-xl"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#E2E8F0] flex justify-end gap-2">
+              <div className="pt-3 border-t border-accent-soft flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 border border-[#E2E8F0] rounded-xl text-xs font-bold"
+                  className="px-4 py-2 border border-accent-soft rounded-xl text-xs font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#163B5C] text-white text-xs font-black rounded-xl shadow-md"
+                  className="px-5 py-2 bg-primary text-white text-xs font-black rounded-xl shadow-md"
                 >
                   Save Changes
                 </button>

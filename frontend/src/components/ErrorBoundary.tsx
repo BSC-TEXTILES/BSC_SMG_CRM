@@ -49,24 +49,24 @@ export default class ErrorBoundary extends React.Component<{ children: React.Rea
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] p-8 text-center animate-fade-in">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-accent-soft p-8 text-center animate-fade-in">
             <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mb-5">
               <AlertOctagon className="w-8 h-8 text-[#C43D4B]" strokeWidth={1.75} />
             </div>
-            <h2 className="text-xl font-black text-[#163B5C] tracking-tight mb-2">Something went wrong</h2>
-            <p className="text-xs text-[#5F6E7E] font-medium leading-relaxed mb-6">
+            <h2 className="text-xl font-black text-primary tracking-tight mb-2">Something went wrong</h2>
+            <p className="text-xs text-primary/70 font-medium leading-relaxed mb-6">
               An unexpected error interrupted this page. Your data is safe —
               reloading the application usually resolves the issue.
             </p>
             <button
               onClick={this.handleReload}
-              className="w-full py-3 px-4 rounded-xl bg-[#163B5C] text-white font-extrabold text-xs tracking-wide hover:bg-[#1F4D77] active:scale-[0.99] transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl bg-primary text-white font-extrabold text-xs tracking-wide hover:bg-primary-hover active:scale-[0.99] transition-all shadow-lg flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Reload Application</span>
             </button>
-            <p className="text-[10px] text-[#8896A6] font-semibold mt-4">
+            <p className="text-[10px] text-primary/60 font-semibold mt-4">
               If this keeps happening, please contact your System Administrator.
             </p>
           </div>

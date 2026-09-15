@@ -9,7 +9,7 @@ interface BadgeProps {
 export default function Badge({ children, variant = 'info', className = '' }: BadgeProps) {
   const variantStyles = {
     new: 'bg-[#E6F1FB] text-[#185FA5]',
-    shortlist: 'bg-[#FFF7E6] text-[#3D74A3]',
+    shortlist: 'bg-[#FFF7E6] text-accent',
     interview: 'bg-[#EEEDFE] text-[#534AB7]',
     select: 'bg-[#EAF3DE] text-[#3B6D11]',
     offer: 'bg-[#E1F5FE] text-[#0288D1]',

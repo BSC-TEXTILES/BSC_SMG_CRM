@@ -91,11 +91,11 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
   const photo = fileUrl(candidate.photoUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#163B5C]/70 backdrop-blur-md transition-all animate-fade-in select-none">
-      <div className="relative w-full max-w-3xl max-h-[92vh] bg-[#F4F6F9] rounded-3xl shadow-2xl flex flex-col z-10 overflow-hidden border-2 border-[#4E8ABF]/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-primary/70 backdrop-blur-md transition-all animate-fade-in select-none">
+      <div className="relative w-full max-w-3xl max-h-[92vh] bg-background rounded-3xl shadow-2xl flex flex-col z-10 overflow-hidden border-2 border-accent/50">
         
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-[#163B5C] via-[#0E2A44] to-[#0B1F35] text-white p-5 sm:p-6 border-b-2 border-[#4E8ABF]/40 relative">
+        <div className="bg-gradient-to-r from-primary via-primary to-[#0B1F35] text-white p-5 sm:p-6 border-b-2 border-accent/40 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all border border-white/20 shadow-md"
@@ -110,11 +110,11 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
                 <img
                   src={photo}
                   alt={candidate.name}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-[#4E8ABF] shadow-md bg-white p-0.5"
+                  className="w-16 h-16 rounded-2xl object-cover border-2 border-accent shadow-md bg-white p-0.5"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#163B5C] to-[#1F4D77] text-white font-black text-xl flex items-center justify-center border-2 border-[#4E8ABF] shadow-md">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-hover text-white font-black text-xl flex items-center justify-center border-2 border-accent shadow-md">
                   {candidate.initials || candidate.name?.slice(0, 2).toUpperCase()}
                 </div>
               )}
@@ -139,21 +139,21 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
         <form onSubmit={handleConfirmShortlist} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 text-xs">
           
           {/* Section 1: Screening Questionnaire Card */}
-          <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
-            <h3 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2.5 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#4E8ABF]" />
+          <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4">
+            <h3 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2.5 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent" />
               <span>1. Candidate Shortlisting & Screening Questions</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Retail Industry Experience
                 </label>
                 <select
                   value={retailExp}
                   onChange={(e) => setRetailExp(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40 bg-[#F4F6F9]"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40 bg-background"
                 >
                   <option value="Fresh Candidate">Fresh Candidate (No Prior Exp)</option>
                   <option value="< 1 Year">&lt; 1 Year Experience</option>
@@ -164,13 +164,13 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Communication & Personality Score
                 </label>
                 <select
                   value={communicationScore}
                   onChange={(e) => setCommunicationScore(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40 bg-[#F4F6F9]"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40 bg-background"
                 >
                   <option value="5 Stars - Exceptional">⭐⭐⭐⭐⭐ 5 Stars (Exceptional)</option>
                   <option value="4 Stars - Good">⭐⭐⭐⭐ 4 Stars (Good Communication)</option>
@@ -180,7 +180,7 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Expected Monthly Salary (₹)
                 </label>
                 <input
@@ -188,18 +188,18 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
                   placeholder="e.g. 18000"
                   value={expectedSalary}
                   onChange={(e) => setExpectedSalary(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-mono font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40 bg-[#F4F6F9]"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-mono font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40 bg-background"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Joining Readiness & Notice Period
                 </label>
                 <select
                   value={joiningTimeline}
                   onChange={(e) => setJoiningTimeline(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40 bg-[#F4F6F9]"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40 bg-background"
                 >
                   <option value="Immediate (Within 3 Days)">Immediate (Within 3 Days)</option>
                   <option value="1 Week">1 Week Notice</option>
@@ -211,21 +211,21 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
           </div>
 
           {/* Section 2: Department, Section & Role Allocation Card */}
-          <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
-            <h3 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2.5 flex items-center gap-2">
-              <Building className="w-4 h-4 text-[#4E8ABF]" />
+          <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4">
+            <h3 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2.5 flex items-center gap-2">
+              <Building className="w-4 h-4 text-accent" />
               <span>2. Department, Section & Role Assignment</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Target Department
                 </label>
                 <select
                   value={department}
                   onChange={(e) => { setDepartment(e.target.value); setSection(''); }}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                 >
                   {BSC_DEPARTMENTS.map(d => (
                     <option key={d} value={d}>{d}</option>
@@ -234,15 +234,15 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1 flex items-center justify-between">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1 flex items-center justify-between">
                   <span>Assigned Floor Section</span>
-                  <span className="text-[10px] font-extrabold text-[#5F6E7E] uppercase tracking-wider">(Optional)</span>
+                  <span className="text-[10px] font-extrabold text-primary/70 uppercase tracking-wider">(Optional)</span>
                 </label>
                 {availableSections.length > 0 ? (
                   <select
                     value={section}
                     onChange={(e) => setSection(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#4E8ABF] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40"
                   >
                     <option value="">-- Leave Optional / Unassigned --</option>
                     {availableSections.map(sec => (
@@ -255,38 +255,38 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
                     placeholder="Optional section (e.g. Ethnic Wear)"
                     value={section}
                     onChange={(e) => setSection(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#4E8ABF] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 )}
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Offered Designation / Role
                 </label>
                 <input
                   type="text"
                   value={desig}
                   onChange={(e) => setDesig(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">
                   Store Branch
                 </label>
                 <input
                   type="text"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">
+              <label className="block text-[11px] font-black text-primary uppercase mb-1">
                 Recruiter Screening Remarks & Notes
               </label>
               <textarea
@@ -294,22 +294,22 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
                 placeholder="Enter candidate shortlisting notes, recruiter remarks or special conditions..."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-semibold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-semibold text-primary outline-none focus:ring-2 focus:ring-accent/40"
               />
             </div>
           </div>
 
           {/* Modal Sticky Footer */}
-          <div className="p-4 bg-[#F4F6F9] rounded-2xl border border-[#E2E8F0] flex items-center justify-between">
-            <div className="text-[11px] text-[#5F6E7E] font-bold">
-              Candidate status updates to <span className="text-[#163B5C] font-black">Shortlisted</span>
+          <div className="p-4 bg-background rounded-2xl border border-accent-soft flex items-center justify-between">
+            <div className="text-[11px] text-primary/70 font-bold">
+              Candidate status updates to <span className="text-primary font-black">Shortlisted</span>
             </div>
             
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl border border-[#E2E8F0] bg-white font-extrabold text-xs text-[#475569]"
+                className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#475569]"
               >
                 Cancel
               </button>

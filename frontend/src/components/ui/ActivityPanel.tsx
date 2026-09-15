@@ -31,12 +31,12 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="fixed inset-0 bg-[#163B5C]/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-primary/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
-      <aside className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-fade-in border-l border-[#E2E8F0]">
-        <div className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-[#163B5C] text-white flex items-center justify-between">
+      <aside className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-fade-in border-l border-accent-soft">
+        <div className="p-4 sm:p-5 border-b border-accent-soft bg-primary text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Activity className="w-5 h-5 text-[#4E8ABF]" />
+            <Activity className="w-5 h-5 text-accent" />
             <h2 className="font-extrabold text-base tracking-tight leading-tight">Live Activity Intelligence</h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10">
@@ -56,17 +56,17 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
 
           {/* Activity Feed */}
           <div>
-            <h3 className="font-black text-xs text-[#163B5C] uppercase tracking-wider mb-2.5">Recent Activity Timeline</h3>
+            <h3 className="font-black text-xs text-primary uppercase tracking-wider mb-2.5">Recent Activity Timeline</h3>
             <div className="space-y-2.5">
               {activities.length > 0 ? (
                 activities.map((act, idx) => (
-                  <div key={idx} className="p-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] space-y-1">
-                    <div className="flex items-center justify-between font-bold text-[#163B5C]">
+                  <div key={idx} className="p-3 rounded-xl border border-accent-soft bg-background space-y-1">
+                    <div className="flex items-center justify-between font-bold text-primary">
                       <span className="flex items-center gap-1.5">
                         <span>{act.icon || '📋'}</span>
                         <span>{act.label || act.action_type}</span>
                       </span>
-                      <span className="text-[10px] text-[#5F6E7E] font-mono">{act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                      <span className="text-[10px] text-primary/70 font-mono">{act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                     </div>
                     {act.remarks && <p className="text-[#475569] font-medium text-[11px]">{act.remarks}</p>}
                   </div>

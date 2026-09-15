@@ -5,33 +5,47 @@
 @tailwind utilities;
 
 :root {
-  /* Corporate Slate-Blue Light Theme — Primary #163B5C · Accent #4E8ABF */
-  --burgundy: #163B5C;
-  --burgundy-dark: #0E2A44;
-  --burgundy-light: #1F4D77;
-  --champagne: #4E8ABF;
-  --champagne-dark: #3D74A3;
-  --champagne-light: #6FA3D0;
-  --cream: #F4F6F9;
-  --bg: #F4F6F9;
-  --surface: #FFFFFF;
-  --text-main: #1B2A3B;
-  --text-muted: #5F6E7E;
-  --border: #E2E8F0;
-  --border-warm: #E2E8F0;
+  /* Original Dark Blue Theme */
+  
+  /* Primary Brand Color */
+  --color-primary: #163B5C;
+  --color-primary-hover: #1F4D77;
+  
+  /* Accent Color */
+  --color-accent: #4E8ABF;
+  --color-accent-hover: #3D74A3;
+  --color-accent-soft: #DFE6EE; 
+  --color-accent-soft-hover: #D0D9E5;
 
-  /* Standardized Status Indicators */
+  /* Neutral Background */
+  --color-background: #F4F6F9;
+  
+  /* Standardized Status Indicators (Keeping for legacy if used, otherwise mapped) */
   --green: #27805B;
   --amber: #C58A24;
   --red: #C43D4B;
 
-  /* Legacy variable mappings for backward compatibility */
-  --navy: #163B5C;
-  --navy-dark: #0E2A44;
-  --navy-light: #1F4D77;
-  --gold: #4E8ABF;
-  --gold-dark: #3D74A3;
-  --muted: #5F6E7E;
+  /* Legacy variable mappings to new theme for backward compatibility */
+  --burgundy: var(--color-primary);
+  --burgundy-dark: var(--color-primary-hover);
+  --burgundy-light: var(--color-primary-hover);
+  --champagne: var(--color-accent);
+  --champagne-dark: var(--color-accent-hover);
+  --champagne-light: var(--color-accent-soft);
+  --cream: var(--color-background);
+  --bg: var(--color-background);
+  --surface: #FFFFFF;
+  --text-main: var(--color-primary);
+  --text-muted: var(--color-primary);
+  --border: var(--color-accent-soft);
+  --border-warm: var(--color-accent-soft);
+  
+  --navy: var(--color-primary);
+  --navy-dark: var(--color-primary-hover);
+  --navy-light: var(--color-primary-hover);
+  --gold: var(--color-accent);
+  --gold-dark: var(--color-accent-hover);
+  --muted: var(--color-primary);
 }
 
 body {
@@ -50,14 +64,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F4F6F9;
+  background: var(--color-background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--color-accent-soft);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4E8ABF;
+  background: var(--color-accent);
 }
 
 /* Enterprise Cards & Glassmorphism */
@@ -137,7 +151,7 @@ body {
 }
 .f-bg {
   flex: 1;
-  background: #F4F6F9;
+  background: var(--color-background);
   height: 24px;
   border-radius: 8px;
   overflow: hidden;

@@ -91,7 +91,7 @@ export default function EmployeeExitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -104,7 +104,7 @@ export default function EmployeeExitPage() {
           rightElement={
             <button
               onClick={() => setNewModal(true)}
-              className="px-3 py-1.5 rounded-lg bg-[#163B5C] text-white text-xs font-bold hover:bg-[#0E2A44] flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
               <span>New Exit Process</span>
@@ -117,7 +117,7 @@ export default function EmployeeExitPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E2E8F0] text-[10px] font-black uppercase text-[#64748B]">
+                  <tr className="border-b border-accent-soft text-[10px] font-black uppercase text-[#64748B]">
                     <th className="py-2.5 px-3 text-center w-12">SL.NO</th>
                     <th className="py-2.5 px-3">Employee</th>
                     <th className="py-2.5 px-3">Designation</th>
@@ -127,12 +127,12 @@ export default function EmployeeExitPage() {
                     <th className="py-2.5 px-3">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/50">
+                <tbody className="divide-y divide-accent-soft/50">
                   {records.length > 0 ? (
                     records.map((r, idx) => (
                       <tr key={r.recordId} className="hover:bg-black/5 font-medium">
-                        <td className="py-3 px-3 text-center font-bold text-[#5F6E7E]">{idx + 1}</td>
-                        <td className="py-3 px-3 font-bold text-[#163B5C]">{r.empName}</td>
+                        <td className="py-3 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                        <td className="py-3 px-3 font-bold text-primary">{r.empName}</td>
                         <td className="py-3 px-3">{r.desig}</td>
                         <td className="py-3 px-3">{r.lwd}</td>
                         <td className="py-3 px-3">
@@ -186,9 +186,9 @@ export default function EmployeeExitPage() {
                     {sec}
                   </div>
                   {sections[sec].map(item => (
-                    <div key={item.itemId} className="p-3 rounded-xl border border-[#E2E8F0] flex items-center justify-between gap-3 bg-white">
+                    <div key={item.itemId} className="p-3 rounded-xl border border-accent-soft flex items-center justify-between gap-3 bg-white">
                       <div>
-                        <div className="font-semibold text-[#163B5C]">{item.item}</div>
+                        <div className="font-semibold text-primary">{item.item}</div>
                         {item.mandatory && <span className="text-[9px] text-red-600 font-bold">★ Mandatory</span>}
                       </div>
                       <div className="flex gap-1">
@@ -221,35 +221,35 @@ export default function EmployeeExitPage() {
             <h3 className="font-black text-red-700 text-base">New Exit Process</h3>
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Employee Name *</label>
+                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Employee Name *</label>
                 <input
                   type="text"
                   value={empName}
                   onChange={(e) => setEmpName(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9]"
+                  className="w-full p-2.5 rounded-lg border border-accent-soft bg-background"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Designation</label>
+                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Designation</label>
                 <input
                   type="text"
                   value={desig}
                   onChange={(e) => setDesig(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9]"
+                  className="w-full p-2.5 rounded-lg border border-accent-soft bg-background"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Last Working Day *</label>
+                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Last Working Day *</label>
                 <input
                   type="date"
                   value={lwd}
                   onChange={(e) => setLwd(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9]"
+                  className="w-full p-2.5 rounded-lg border border-accent-soft bg-background"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setNewModal(false)} className="px-4 py-2 rounded-lg border border-[#E2E8F0] text-xs font-bold">Cancel</button>
+              <button onClick={() => setNewModal(false)} className="px-4 py-2 rounded-lg border border-accent-soft text-xs font-bold">Cancel</button>
               <button onClick={handleCreateExit} className="px-4 py-2 rounded-lg bg-red-700 text-white text-xs font-bold">Start Exit</button>
             </div>
           </div>

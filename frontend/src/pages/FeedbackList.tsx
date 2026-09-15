@@ -178,7 +178,7 @@ export default function FeedbackList() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="card-glass p-5 flex items-center justify-between border-l-4 border-l-rose-500">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider">Pending Calls</div>
+              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">Pending Calls</div>
               <div className="text-2xl font-black text-rose-600 mt-1">{pendingCount}</div>
               <div className="text-[11px] text-rose-700 font-bold mt-0.5 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Auto-Escalated Tickets
@@ -191,7 +191,7 @@ export default function FeedbackList() {
 
           <div className="card-glass p-5 flex items-center justify-between">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider">In Progress</div>
+              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">In Progress</div>
               <div className="text-2xl font-black text-blue-600 mt-1">{inProgressCount}</div>
               <div className="text-[11px] text-blue-700 font-bold mt-0.5 flex items-center gap-1">
                 <Clock className="w-3 h-3" /> Telecaller Contacted
@@ -204,7 +204,7 @@ export default function FeedbackList() {
 
           <div className="card-glass p-5 flex items-center justify-between">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider">Resolved Today</div>
+              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">Resolved Today</div>
               <div className="text-2xl font-black text-emerald-600 mt-1">{resolvedCount}</div>
               <div className="text-[11px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Issue Closed
@@ -217,7 +217,7 @@ export default function FeedbackList() {
 
           <div className="card-glass p-5 flex items-center justify-between">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider">Escalated Manager</div>
+              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">Escalated Manager</div>
               <div className="text-2xl font-black text-purple-700 mt-1">{escalatedCount}</div>
               <div className="text-[11px] text-purple-800 font-bold mt-0.5 flex items-center gap-1">
                 <ShieldAlert className="w-3 h-3" /> Senior Review
@@ -243,7 +243,7 @@ export default function FeedbackList() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <Filter className="w-3.5 h-3.5 text-[#4E8ABF] hidden sm:block" />
+            <Filter className="w-3.5 h-3.5 text-accent hidden sm:block" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -256,7 +256,7 @@ export default function FeedbackList() {
               <option value="escalated_manager">Escalated to Store Manager</option>
             </select>
 
-            <Calendar className="w-3.5 h-3.5 text-[#4E8ABF] hidden sm:block ml-2" />
+            <Calendar className="w-3.5 h-3.5 text-accent hidden sm:block ml-2" />
             <select
               value={datePreset}
               onChange={(e) => setDatePreset(e.target.value)}
@@ -293,12 +293,12 @@ export default function FeedbackList() {
 
         {/* Call Queue Master Register Table */}
         <div className="card-glass overflow-hidden">
-          <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between">
-            <h3 className="font-extrabold text-sm text-[#163B5C] uppercase tracking-wider flex items-center gap-2">
-              <PhoneCall className="w-4 h-4 text-[#4E8ABF]" />
+          <div className="p-5 border-b border-accent-soft flex items-center justify-between">
+            <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider flex items-center gap-2">
+              <PhoneCall className="w-4 h-4 text-accent" />
               <span>Feedback Call Queue Register ({callQueue.length})</span>
             </h3>
-            <button onClick={fetchCallQueue} className="text-xs font-bold text-[#4E8ABF] hover:underline flex items-center gap-1">
+            <button onClick={fetchCallQueue} className="text-xs font-bold text-accent hover:underline flex items-center gap-1">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               <span>Sync Real-Time Queue</span>
             </button>
@@ -306,19 +306,19 @@ export default function FeedbackList() {
 
           {loading ? (
             <div className="py-12 text-center text-gray-500 font-bold text-xs flex flex-col items-center gap-2">
-              <RefreshCw className="w-6 h-6 animate-spin text-[#4E8ABF]" />
+              <RefreshCw className="w-6 h-6 animate-spin text-accent" />
               <span>Loading telecaller call queue...</span>
             </div>
           ) : callQueue.length === 0 ? (
             <div className="py-12 text-center text-gray-500 font-bold text-xs space-y-2">
               <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-              <div className="text-sm text-[#163B5C] font-black">No Pending Follow-up Calls</div>
+              <div className="text-sm text-primary font-black">No Pending Follow-up Calls</div>
               <p className="text-gray-400 font-medium">All escalated customer feedbacks have been handled or resolved.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-semibold border-collapse">
-                <thead className="bg-[#163B5C] text-white uppercase text-[10.5px] tracking-wider">
+                <thead className="bg-primary text-white uppercase text-[10.5px] tracking-wider">
                   <tr>
                     <th className="p-4">Customer Details</th>
                     <th className="p-4">Submission Date &amp; Time</th>
@@ -336,8 +336,8 @@ export default function FeedbackList() {
                     return (
                       <tr key={item.id} className="hover:bg-black/5 transition-colors">
                         <td className="p-4">
-                          <div className="font-extrabold text-[#163B5C] flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                          <div className="font-extrabold text-primary flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5 text-accent" />
                             <span>{item.customerName || 'Valued Customer'}</span>
                           </div>
                           <div className="text-[11px] text-gray-500 font-mono flex items-center gap-1 mt-0.5">
@@ -347,12 +347,12 @@ export default function FeedbackList() {
                         </td>
 
                         <td className="p-4 text-gray-600">
-                          <div className="font-bold text-[#163B5C] font-mono text-[11px]">
+                          <div className="font-bold text-primary font-mono text-[11px]">
                             {item.entryDate || 'Today'}
                           </div>
                           {item.entryTime && (
                             <div className="text-[10.5px] text-gray-500 font-semibold flex items-center gap-1 mt-0.5">
-                              <Clock className="w-3 h-3 text-[#4E8ABF]" />
+                              <Clock className="w-3 h-3 text-accent" />
                               <span>{item.entryTime}</span>
                             </div>
                           )}
@@ -364,7 +364,7 @@ export default function FeedbackList() {
                           </span>
                         </td>
 
-                        <td className="p-4 font-extrabold text-[#163B5C]">
+                        <td className="p-4 font-extrabold text-primary">
                           {item.attempts || 0} Call Logged
                         </td>
 
@@ -412,12 +412,12 @@ export default function FeedbackList() {
 
         {/* Structured Call Outcome Logging Modal */}
         {selectedItem && (
-          <div className="fixed inset-0 bg-[#163B5C]/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="card-glass p-6 sm:p-8 max-w-lg w-full space-y-5 animate-scale-in shadow-2xl rounded-3xl border border-white/40 bg-white text-[#163B5C] max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-primary/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="card-glass p-6 sm:p-8 max-w-lg w-full space-y-5 animate-scale-in shadow-2xl rounded-3xl border border-white/40 bg-white text-primary max-h-[90vh] overflow-y-auto">
               
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                <h3 className="text-lg font-black text-[#163B5C] flex items-center gap-2">
-                  <PhoneCall className="w-5 h-5 text-[#4E8ABF]" />
+              <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+                <h3 className="text-lg font-black text-primary flex items-center gap-2">
+                  <PhoneCall className="w-5 h-5 text-accent" />
                   <span>Log Telecaller Call Outcome</span>
                 </h3>
                 <button
@@ -429,9 +429,9 @@ export default function FeedbackList() {
               </div>
 
               {/* Customer Ticket Context Header */}
-              <div className="p-4 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-1">
-                <div className="text-[10px] font-black uppercase tracking-wider text-[#4E8ABF]">Customer Context</div>
-                <div className="font-extrabold text-sm text-[#163B5C] flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-background border border-accent-soft space-y-1">
+                <div className="text-[10px] font-black uppercase tracking-wider text-accent">Customer Context</div>
+                <div className="font-extrabold text-sm text-primary flex items-center justify-between">
                   <span>{selectedItem.customerName || 'Valued Customer'}</span>
                   <span className="font-mono text-xs text-gray-600">{selectedItem.mobile}</span>
                 </div>
@@ -444,7 +444,7 @@ export default function FeedbackList() {
                 
                 {/* Call Outcome Select */}
                 <div>
-                  <label className="block text-xs font-extrabold text-[#163B5C] mb-1.5">Call Outcome *</label>
+                  <label className="block text-xs font-extrabold text-primary mb-1.5">Call Outcome *</label>
                   <select
                     value={callOutcome}
                     onChange={(e) => setCallOutcome(e.target.value)}
@@ -463,7 +463,7 @@ export default function FeedbackList() {
 
                 {/* Issue Category Select */}
                 <div>
-                  <label className="block text-xs font-extrabold text-[#163B5C] mb-1.5">Issue Category *</label>
+                  <label className="block text-xs font-extrabold text-primary mb-1.5">Issue Category *</label>
                   <select
                     value={issueCategory}
                     onChange={(e) => setIssueCategory(e.target.value)}
@@ -481,7 +481,7 @@ export default function FeedbackList() {
                 {/* Next Follow-up Date & Time */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-extrabold text-[#163B5C] mb-1.5">Next Follow-Up Date</label>
+                    <label className="block text-xs font-extrabold text-primary mb-1.5">Next Follow-Up Date</label>
                     <input
                       type="date"
                       value={nextFollowUpDate}
@@ -490,7 +490,7 @@ export default function FeedbackList() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-extrabold text-[#163B5C] mb-1.5">Next Follow-Up Time</label>
+                    <label className="block text-xs font-extrabold text-primary mb-1.5">Next Follow-Up Time</label>
                     <input
                       type="time"
                       value={nextFollowUpTime}
@@ -502,7 +502,7 @@ export default function FeedbackList() {
 
                 {/* Call Notes */}
                 <div>
-                  <label className="block text-xs font-extrabold text-[#163B5C] mb-1.5">Telecaller Resolution & Call Remarks *</label>
+                  <label className="block text-xs font-extrabold text-primary mb-1.5">Telecaller Resolution & Call Remarks *</label>
                   <textarea
                     rows={3}
                     value={notes}
@@ -514,9 +514,9 @@ export default function FeedbackList() {
 
                 {/* Existing Call History Log Display */}
                 {selectedItem.notes && (
-                  <div className="space-y-1.5 pt-2 border-t border-[#E2E8F0]">
-                    <div className="text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider flex items-center gap-1">
-                      <History className="w-3.5 h-3.5 text-[#4E8ABF]" /> Call Log History
+                  <div className="space-y-1.5 pt-2 border-t border-accent-soft">
+                    <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider flex items-center gap-1">
+                      <History className="w-3.5 h-3.5 text-accent" /> Call Log History
                     </div>
                     <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[11px] font-mono text-gray-700 max-h-32 overflow-y-auto whitespace-pre-wrap">
                       {selectedItem.notes}
@@ -525,7 +525,7 @@ export default function FeedbackList() {
                 )}
 
                 {/* Modal Footer Action Buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E2E8F0]">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-accent-soft">
                   <button
                     onClick={() => setSelectedItem(null)}
                     className="px-4 py-2 rounded-xl text-xs font-extrabold text-gray-600 bg-gray-100 hover:bg-gray-200"

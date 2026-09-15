@@ -98,14 +98,14 @@ export default function PublicFeedback() {
     if (l.includes('satisfied') || l.includes('good') || l.includes('helpful') || l.includes('yes')) return <ThumbsUp className="w-4 h-4 text-emerald-500 shrink-0" />;
     if (l.includes('neutral') || l.includes('average') || l.includes('partially')) return <Meh className="w-4 h-4 text-amber-500 shrink-0" />;
     if (l.includes('dissatisfied') || l.includes('poor') || l.includes('no') || l.includes('not recommend')) return <Frown className="w-4 h-4 text-rose-500 shrink-0" />;
-    return <Star className="w-4 h-4 text-[#4E8ABF] shrink-0" />;
+    return <Star className="w-4 h-4 text-accent shrink-0" />;
   };
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0E2A44] via-[#1F4D77] to-[#0B1F35] flex items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden text-white">
+      <div className="min-h-screen bg-gradient-to-br from-primary via-primary-hover to-[#0B1F35] flex items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden text-white">
         {/* Background Ambient Glows */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4E8ABF]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="bg-white/10 backdrop-blur-2xl p-8 sm:p-10 max-w-lg w-full text-center space-y-6 animate-scale-in border border-white/20 rounded-3xl shadow-2xl relative z-10">
@@ -114,7 +114,7 @@ export default function PublicFeedback() {
           </div>
 
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#0E2A44] border border-[#4E8ABF] text-[#4E8ABF] text-[10.5px] font-black uppercase tracking-widest">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary border border-accent text-accent text-[10.5px] font-black uppercase tracking-widest">
               <Store className="w-3.5 h-3.5" /> BSC EXCLUSIVE DAVANAGERE
             </div>
             <h2 className="text-3xl font-black text-white tracking-tight">Thank You!</h2>
@@ -125,7 +125,7 @@ export default function PublicFeedback() {
 
           {/* Reference Badge */}
           <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-white/90 space-y-1">
-            <div className="text-[10px] uppercase font-black tracking-widest text-[#4E8ABF]">Survey Reference ID</div>
+            <div className="text-[10px] uppercase font-black tracking-widest text-accent">Survey Reference ID</div>
             <div className="font-mono text-base font-black text-white">{refNo}</div>
           </div>
 
@@ -139,7 +139,7 @@ export default function PublicFeedback() {
               setCanImprove('');
               setAdditionalComments('');
             }}
-            className="w-full h-14 bg-gradient-to-r from-[#4E8ABF] via-[#F3C04D] to-[#4E8ABF] text-[#0E2A44] font-black text-sm rounded-2xl shadow-xl active:scale-95 transition-all duration-150 border-2 border-amber-200/50"
+            className="w-full h-14 bg-gradient-to-r from-accent via-[#F3C04D] to-accent text-primary font-black text-sm rounded-2xl shadow-xl active:scale-95 transition-all duration-150 border-2 border-amber-200/50"
           >
             Submit Another Survey Response
           </button>
@@ -153,21 +153,21 @@ export default function PublicFeedback() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] py-5 sm:py-8 px-4 sm:px-6 flex justify-center selection:bg-[#4E8ABF] selection:text-[#0E2A44]">
+    <div className="min-h-screen bg-background py-5 sm:py-8 px-4 sm:px-6 flex justify-center selection:bg-accent selection:text-primary">
       <div className="max-w-4xl w-full space-y-5">
 
         {/* Luxury Deep Navy to Royal Navy & Gold Hero Section (220-260px Height) */}
-        <div className="p-6 sm:p-8 rounded-[24px] bg-gradient-to-br from-[#0E2A44] via-[#1F4D77] to-[#0B1F35] text-white border border-white/20 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[230px] sm:min-h-[255px]">
+        <div className="p-6 sm:p-8 rounded-[24px] bg-gradient-to-br from-primary via-primary-hover to-[#0B1F35] text-white border border-white/20 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[230px] sm:min-h-[255px]">
           {/* Subtle Decorative Gold Highlight & Shapes */}
-          <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#4E8ABF]/20 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
           <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-5 items-center">
 
             {/* Left Content Column */}
             <div className="sm:col-span-2 space-y-2.5 text-center sm:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0E2A44] text-[#4E8ABF] text-[11px] font-black uppercase tracking-widest border border-[#4E8ABF]/80 shadow-sm">
-                <ShoppingBag className="w-3.5 h-3.5 text-[#4E8ABF]" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary text-accent text-[11px] font-black uppercase tracking-widest border border-accent/80 shadow-sm">
+                <ShoppingBag className="w-3.5 h-3.5 text-accent" />
                 <span>BSC EXCLUSIVE DAVANAGERE • STORE SURVEY</span>
               </div>
 
@@ -194,7 +194,7 @@ export default function PublicFeedback() {
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path
-                    className="text-[#4E8ABF] transition-all duration-500 ease-out"
+                    className="text-accent transition-all duration-500 ease-out"
                     strokeDasharray={`${progressStats.pct}, 100`}
                     strokeWidth="3.5"
                     strokeLinecap="round"
@@ -204,15 +204,15 @@ export default function PublicFeedback() {
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center">
-                  <span className="font-mono text-xs sm:text-sm font-black text-[#4E8ABF] drop-shadow-xs">{progressStats.pct}%</span>
+                  <span className="font-mono text-xs sm:text-sm font-black text-accent drop-shadow-xs">{progressStats.pct}%</span>
                   <span className="text-[8px] uppercase font-bold text-white/75">Done</span>
                 </div>
               </div>
 
               {/* Stats Summary Panel */}
               <div className="text-right sm:text-center space-y-0.5 text-xs">
-                <div className="flex items-center justify-end sm:justify-center gap-1 text-[11px] font-black text-[#4E8ABF]">
-                  <Clock className="w-3 h-3 text-[#4E8ABF]" />
+                <div className="flex items-center justify-end sm:justify-center gap-1 text-[11px] font-black text-accent">
+                  <Clock className="w-3 h-3 text-accent" />
                   <span>Est. Time: 1 Min</span>
                 </div>
                 <div className="text-white/95 text-[11px] font-extrabold">5 Survey Sections</div>
@@ -226,35 +226,35 @@ export default function PublicFeedback() {
           {/* Full-Width Animated Section Step Tracker below Hero */}
           <div className="relative z-10 pt-4 border-t border-white/15 space-y-2">
             <div className="flex items-center justify-between text-[10.5px] font-extrabold text-white/90 overflow-x-auto gap-1.5 scrollbar-none">
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${customerName && mobile ? 'bg-[#4E8ABF] text-[#0E2A44] font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${customerName && mobile ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
                 Details
               </span>
               <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q1'] ? 'bg-[#4E8ABF] text-[#0E2A44] font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q1'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
                 Shopping
               </span>
               <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q2'] || answers['q3'] ? 'bg-[#4E8ABF] text-[#0E2A44] font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q2'] || answers['q3'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
                 Product
               </span>
               <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q4'] ? 'bg-[#4E8ABF] text-[#0E2A44] font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q4'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
                 Staff
               </span>
               <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q5'] ? 'bg-[#4E8ABF] text-[#0E2A44] font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q5'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
                 Recommendation
               </span>
               <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${likedMost || canImprove ? 'bg-[#4E8ABF] text-[#0E2A44] font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${likedMost || canImprove ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
                 Feedback
               </span>
             </div>
 
             {/* Dark Navy Track & Gold Progress Line */}
-            <div className="w-full h-2.5 bg-[#0E2A44]/80 rounded-full overflow-hidden p-0.5 border border-white/10">
+            <div className="w-full h-2.5 bg-primary/80 rounded-full overflow-hidden p-0.5 border border-white/10">
               <div
-                className="h-full bg-gradient-to-r from-[#4E8ABF] via-[#F3C04D] to-amber-300 rounded-full transition-all duration-300 shadow-md"
+                className="h-full bg-gradient-to-r from-accent via-[#F3C04D] to-amber-300 rounded-full transition-all duration-300 shadow-md"
                 style={{ width: `${progressStats.pct}%` }}
               ></div>
             </div>
@@ -265,23 +265,23 @@ export default function PublicFeedback() {
         <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* Customer Verification Panel (Secure Check-in Screen) */}
-          <div className="card-glass p-6 sm:p-8 rounded-[22px] space-y-4 border border-white/80 bg-white/95 shadow-lg border-t-4 border-t-[#4E8ABF]">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <h3 className="font-black text-[#0E2A44] text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
-                <div className="bg-[#4E8ABF]/15 p-1.5 rounded-xl text-[#0E2A44]">
-                  <Lock className="w-4 h-4 text-[#4E8ABF]" />
+          <div className="card-glass p-6 sm:p-8 rounded-[22px] space-y-4 border border-white/80 bg-white/95 shadow-lg border-t-4 border-t-accent">
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+              <h3 className="font-black text-primary text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+                <div className="bg-accent/15 p-1.5 rounded-xl text-primary">
+                  <Lock className="w-4 h-4 text-accent" />
                 </div>
                 <span>Customer Verification Details</span>
               </h3>
-              <span className="text-[10.5px] font-black text-[#4E8ABF] uppercase tracking-wider bg-[#0E2A44] px-2.5 py-1 rounded-full">Required Verification *</span>
+              <span className="text-[10.5px] font-black text-accent uppercase tracking-wider bg-primary px-2.5 py-1 rounded-full">Required Verification *</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-extrabold text-[#0E2A44]">Full Name *</label>
+                <label className="block text-xs font-extrabold text-primary">Full Name *</label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 bg-[#4E8ABF]/15 p-1.5 rounded-xl text-[#0E2A44]">
-                    <User className="w-4 h-4 text-[#0E2A44]" />
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 bg-accent/15 p-1.5 rounded-xl text-primary">
+                    <User className="w-4 h-4 text-primary" />
                   </div>
                   <input
                     type="text"
@@ -289,16 +289,16 @@ export default function PublicFeedback() {
                     placeholder="Enter your full name"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full text-xs font-semibold pl-12 pr-4 h-14 rounded-2xl border border-[#E2E8F0] bg-white/95 text-[#0E2A44] outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/30 transition-all shadow-xs"
+                    className="w-full text-xs font-semibold pl-12 pr-4 h-14 rounded-2xl border border-accent-soft bg-white/95 text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-xs"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-extrabold text-[#0E2A44]">Mobile Number *</label>
+                <label className="block text-xs font-extrabold text-primary">Mobile Number *</label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 bg-[#4E8ABF]/15 p-1.5 rounded-xl text-[#0E2A44]">
-                    <Phone className="w-4 h-4 text-[#0E2A44]" />
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 bg-accent/15 p-1.5 rounded-xl text-primary">
+                    <Phone className="w-4 h-4 text-primary" />
                   </div>
                   <input
                     type="tel"
@@ -307,10 +307,10 @@ export default function PublicFeedback() {
                     placeholder="10-digit mobile number"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                    className="w-full text-xs font-mono font-semibold pl-12 pr-4 h-14 rounded-2xl border border-[#E2E8F0] bg-white/95 text-[#0E2A44] outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/30 transition-all shadow-xs"
+                    className="w-full text-xs font-mono font-semibold pl-12 pr-4 h-14 rounded-2xl border border-accent-soft bg-white/95 text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-xs"
                   />
                 </div>
-                <p className="text-[10.5px] font-bold text-[#5F6E7E] pt-0.5">
+                <p className="text-[10.5px] font-bold text-primary/70 pt-0.5">
                   “We will only use this number for service follow-up.”
                 </p>
               </div>
@@ -325,12 +325,12 @@ export default function PublicFeedback() {
               const cleanTitle = q.question.replace(/^\d+\.\s*/, '');
 
               return (
-                <div key={q.id || idx} className="card-glass p-7 sm:p-8 rounded-[22px] space-y-4 border border-white/90 bg-white/95 shadow-lg border-t-4 border-t-[#4E8ABF]">
+                <div key={q.id || idx} className="card-glass p-7 sm:p-8 rounded-[22px] space-y-4 border border-white/90 bg-white/95 shadow-lg border-t-4 border-t-accent">
 
                   {/* Section Badge Pill */}
-                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0E2A44] text-[#4E8ABF] text-[10.5px] font-black uppercase tracking-widest">
-                      <Sparkles className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                  <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-accent text-[10.5px] font-black uppercase tracking-widest">
+                      <Sparkles className="w-3.5 h-3.5 text-accent" />
                       <span>{categoryLabel} • Section {idx + 1} of {questions.length}</span>
                     </span>
                     {answers[q.id] && (
@@ -340,7 +340,7 @@ export default function PublicFeedback() {
                     )}
                   </div>
 
-                  <h3 className="text-xl sm:text-[22px] font-black text-[#0E2A44] leading-snug">
+                  <h3 className="text-xl sm:text-[22px] font-black text-primary leading-snug">
                     {cleanTitle}
                   </h3>
 
@@ -357,8 +357,8 @@ export default function PublicFeedback() {
                           className={`
                             h-14 min-h-[56px] py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-between gap-3 text-left border shadow-xs active:scale-95
                             ${isSelected
-                              ? 'bg-[#0E2A44] text-white border-2 border-[#4E8ABF] shadow-xl shadow-[#0E2A44]/20 scale-[1.01]'
-                              : 'bg-white/95 text-[#0E2A44] border-[#E2E8F0] hover:bg-white hover:border-[#0E2A44]'}
+                              ? 'bg-primary text-white border-2 border-accent shadow-xl shadow-primary/20 scale-[1.01]'
+                              : 'bg-white/95 text-primary border-accent-soft hover:bg-white hover:border-primary'}
                           `}
                         >
                           <span className="truncate">{opt}</span>
@@ -373,13 +373,13 @@ export default function PublicFeedback() {
           </div>
 
           {/* Voice of Customer / Additional Feedback Section (3 Glass Textareas) */}
-          <div className="card-glass p-7 sm:p-8 rounded-[22px] space-y-5 border border-white/90 bg-white/95 shadow-lg border-t-4 border-t-[#4E8ABF]">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <h3 className="font-black text-[#0E2A44] text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#4E8ABF]" />
+          <div className="card-glass p-7 sm:p-8 rounded-[22px] space-y-5 border border-white/90 bg-white/95 shadow-lg border-t-4 border-t-accent">
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+              <h3 className="font-black text-primary text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-accent" />
                 <span>Voice of Customer Notes (Optional)</span>
               </h3>
-              <span className="text-[10.5px] font-extrabold text-[#5F6E7E] uppercase tracking-wider">Store Feedback</span>
+              <span className="text-[10.5px] font-extrabold text-primary/70 uppercase tracking-wider">Store Feedback</span>
             </div>
 
             <div className="space-y-4">
@@ -393,7 +393,7 @@ export default function PublicFeedback() {
                   placeholder="Tell us what stood out positively during your visit..."
                   value={likedMost}
                   onChange={(e) => setLikedMost(e.target.value)}
-                  className="w-full text-xs font-medium p-3.5 rounded-xl border border-emerald-200 bg-white text-[#0E2A44] outline-none focus:ring-2 focus:ring-emerald-400/30 transition-all"
+                  className="w-full text-xs font-medium p-3.5 rounded-xl border border-emerald-200 bg-white text-primary outline-none focus:ring-2 focus:ring-emerald-400/30 transition-all"
                 ></textarea>
               </div>
 
@@ -407,7 +407,7 @@ export default function PublicFeedback() {
                   placeholder="Share suggestions or improvement areas for our store..."
                   value={canImprove}
                   onChange={(e) => setCanImprove(e.target.value)}
-                  className="w-full text-xs font-medium p-3.5 rounded-xl border border-amber-200 bg-white text-[#0E2A44] outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
+                  className="w-full text-xs font-medium p-3.5 rounded-xl border border-amber-200 bg-white text-primary outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
                 ></textarea>
               </div>
 
@@ -421,7 +421,7 @@ export default function PublicFeedback() {
                   placeholder="Write any extra thoughts, staff compliments, or general comments..."
                   value={additionalComments}
                   onChange={(e) => setAdditionalComments(e.target.value)}
-                  className="w-full text-xs font-medium p-3.5 rounded-xl border border-blue-200 bg-white text-[#0E2A44] outline-none focus:ring-2 focus:ring-blue-400/30 transition-all"
+                  className="w-full text-xs font-medium p-3.5 rounded-xl border border-blue-200 bg-white text-primary outline-none focus:ring-2 focus:ring-blue-400/30 transition-all"
                 ></textarea>
               </div>
             </div>
@@ -432,14 +432,14 @@ export default function PublicFeedback() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-[58px] bg-gradient-to-r from-[#4E8ABF] via-[#F3C04D] to-[#4E8ABF] text-[#0E2A44] font-black text-base sm:text-lg rounded-2xl shadow-2xl border-2 border-amber-200/50 flex items-center justify-center gap-2.5 hover:brightness-105 active:scale-95 transition-all duration-150"
+              className="w-full h-[58px] bg-gradient-to-r from-accent via-[#F3C04D] to-accent text-primary font-black text-base sm:text-lg rounded-2xl shadow-2xl border-2 border-amber-200/50 flex items-center justify-center gap-2.5 hover:brightness-105 active:scale-95 transition-all duration-150"
             >
               <Send className="w-5 h-5" />
               <span>{submitting ? 'Submitting Feedback...' : 'Submit Feedback Response'}</span>
             </button>
 
-            <div className="text-center text-xs text-[#5F6E7E] font-semibold flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#4E8ABF]" />
+            <div className="text-center text-xs text-primary/70 font-semibold flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-accent" />
               <span>Your feedback helps us continuously improve your shopping experience.</span>
             </div>
           </div>

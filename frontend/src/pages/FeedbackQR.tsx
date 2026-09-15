@@ -16,12 +16,12 @@ export default function FeedbackQR() {
     <DashboardLayout title="Feedback QR Code Portal" subtitle="POS & Checkout Counter Customer Survey QR Display">
       <div className="max-w-xl mx-auto space-y-6 text-center">
         <div className="card-glass p-8 space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#163B5C] text-[#4E8ABF] text-xs font-extrabold uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-accent text-xs font-extrabold uppercase tracking-widest">
             <Sparkles className="w-4 h-4" />
             <span>Store Tablet Kiosk Ready</span>
           </div>
 
-          <h2 className="text-2xl font-black text-[#163B5C]">Scan to Share Your Feedback</h2>
+          <h2 className="text-2xl font-black text-primary">Scan to Share Your Feedback</h2>
           <p className="text-gray-600 text-sm font-medium max-w-md mx-auto">
             Place this QR code display on POS billing counters for customers to scan using their smartphone camera.
           </p>
@@ -33,13 +33,13 @@ export default function FeedbackQR() {
               alt="Feedback QR Code"
               className="w-60 h-60 object-contain mx-auto"
             />
-            <div className="mt-4 font-black text-xs text-[#163B5C] uppercase tracking-wider">
+            <div className="mt-4 font-black text-xs text-primary uppercase tracking-wider">
               BSC EXCLUSIVE DAVANAGERE
             </div>
           </div>
 
           {/* URL Controls */}
-          <div className="flex items-center gap-2 bg-[#F4F6F9] p-3 rounded-xl border max-w-md mx-auto">
+          <div className="flex items-center gap-2 bg-background p-3 rounded-xl border max-w-md mx-auto">
             <Smartphone className="w-5 h-5 text-gray-400 flex-shrink-0" />
             <input
               type="text"

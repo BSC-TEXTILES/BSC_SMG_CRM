@@ -208,7 +208,7 @@ export default function DashboardPage() {
   const isGreeter = session?.role === 'Greeter';
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       
       <Sidebar 
@@ -229,15 +229,15 @@ export default function DashboardPage() {
           {/* Header Banner */}
           <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#163B5C] text-[#4E8ABF] text-[10px] font-black uppercase tracking-widest mb-1.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary text-accent text-[10px] font-black uppercase tracking-widest mb-1.5">
                 <Building2 className="w-3.5 h-3.5" />
                 <span>BSC EXCLUSIVE DAVANAGERE</span>
               </div>
-              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-[#4E8ABF]" />
+              <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-accent" />
                 <span>{isGreeter ? 'Entrance Greeter & Visitor Operations Hub' : 'Employee Maintenance & Store Feedback Analytics'}</span>
               </h2>
-              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">
+              <p className="text-xs text-primary/70 font-medium mt-0.5">
                 {isGreeter 
                   ? 'Real-time visitor footfall counters, entrance greeter kiosk, customer feedback QR & sourcing diverts.'
                   : 'Active workforce directory, customer feedback collections & daily store operations.'
@@ -264,9 +264,9 @@ export default function DashboardPage() {
                   </button>
                   <button 
                     onClick={() => navigate('/feedback-qr')} 
-                    className="px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#163B5C] text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
+                    className="px-4 py-2 rounded-xl bg-white border border-accent-soft text-primary text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
                   >
-                    <QrCode className="w-4 h-4 text-[#4E8ABF]" />
+                    <QrCode className="w-4 h-4 text-accent" />
                     <span>Feedback QR</span>
                   </button>
                 </>
@@ -408,11 +408,11 @@ export default function DashboardPage() {
                 <div className="card-glass p-5">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                     <div>
-                      <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-[#4E8ABF]" />
+                      <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-accent" />
                         <span>Authentication Activity</span>
                       </h3>
-                      <p className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">
+                      <p className="text-[11px] text-primary/70 font-medium mt-0.5">
                         Live sign-in / sign-out trail across all locations — every event timestamped.
                       </p>
                     </div>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
                       <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {authActivity.summary.loginsToday} logins today
                       </span>
-                      <span className="px-2.5 py-1 rounded-full bg-[#EDF4FB] text-[#163B5C] border border-[#E2E8F0]">
+                      <span className="px-2.5 py-1 rounded-full bg-[#EDF4FB] text-primary border border-accent-soft">
                         {authActivity.summary.logoutsToday} logouts today
                       </span>
                       {authActivity.summary.failedToday > 0 && (
@@ -432,21 +432,21 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Sign-ins (7 days)</div>
-                      <div className="text-lg font-black text-[#163B5C] mt-0.5">{authActivity.summary.logins7d}</div>
+                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
+                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-ins (7 days)</div>
+                      <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logins7d}</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Sign-outs (7 days)</div>
-                      <div className="text-lg font-black text-[#163B5C] mt-0.5">{authActivity.summary.logouts7d}</div>
+                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
+                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-outs (7 days)</div>
+                      <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logouts7d}</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Active Users (7 days)</div>
-                      <div className="text-lg font-black text-[#163B5C] mt-0.5">{authActivity.summary.activeUsers7d}</div>
+                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
+                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Active Users (7 days)</div>
+                      <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.activeUsers7d}</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                      <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Last Sign-in</div>
-                      <div className="text-xs font-black text-[#163B5C] mt-1 truncate">
+                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
+                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Last Sign-in</div>
+                      <div className="text-xs font-black text-primary mt-1 truncate">
                         {authActivity.summary.lastLogin
                           ? authActivity.summary.lastLogin.username + ' · ' + new Date(authActivity.summary.lastLogin.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
                           : 'No sign-ins yet'}
@@ -454,9 +454,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
+                  <div className="rounded-xl border border-accent-soft overflow-hidden">
                     <table className="w-full text-xs">
-                      <thead className="bg-[#163B5C] text-white">
+                      <thead className="bg-primary text-white">
                         <tr>
                           <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">Timestamp</th>
                           <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">User</th>
@@ -466,23 +466,23 @@ export default function DashboardPage() {
                       </thead>
                       <tbody>
                         {authActivity.recent.length === 0 ? (
-                          <tr><td colSpan={4} className="px-3 py-6 text-center text-[#5F6E7E] font-semibold">No authentication events recorded yet.</td></tr>
+                          <tr><td colSpan={4} className="px-3 py-6 text-center text-primary/70 font-semibold">No authentication events recorded yet.</td></tr>
                         ) : authActivity.recent.map(ev => (
-                          <tr key={ev.id} className="border-t border-[#E2E8F0] bg-white">
-                            <td className="px-3 py-2 font-bold text-[#1B2A3B] whitespace-nowrap">
+                          <tr key={ev.id} className="border-t border-accent-soft bg-white">
+                            <td className="px-3 py-2 font-bold text-primary whitespace-nowrap">
                               {ev.at ? new Date(ev.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
                             </td>
-                            <td className="px-3 py-2 font-bold text-[#163B5C]">{ev.username || 'Unknown'}</td>
+                            <td className="px-3 py-2 font-bold text-primary">{ev.username || 'Unknown'}</td>
                             <td className="px-3 py-2">
                               <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
                                 ev.action === 'LOGIN_SUCCESS' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : ev.action === 'LOGOUT' ? 'bg-[#EDF4FB] text-[#163B5C] border border-[#E2E8F0]'
+                                : ev.action === 'LOGOUT' ? 'bg-[#EDF4FB] text-primary border border-accent-soft'
                                 : 'bg-red-50 text-[#C43D4B] border border-red-200'
                               }`}>
                                 {ev.action === 'LOGIN_SUCCESS' ? 'Signed In' : ev.action === 'LOGOUT' ? 'Signed Out' : 'Failed Attempt'}
                               </span>
                             </td>
-                            <td className="px-3 py-2 font-mono text-[#5F6E7E] hidden md:table-cell">{ev.ipAddress || '—'}</td>
+                            <td className="px-3 py-2 font-mono text-primary/70 hidden md:table-cell">{ev.ipAddress || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -497,22 +497,22 @@ export default function DashboardPage() {
           {isGreeter ? (
             /* Greeter-Only Simplified Visitor Management Modules Grid */
             <div className="card-glass p-6 space-y-5">
-              <div className="border-b border-[#E2E8F0] pb-3">
-                <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#4E8ABF]" />
+              <div className="border-b border-accent-soft pb-3">
+                <h3 className="font-extrabold text-primary text-base tracking-tight flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" />
                   <span>Greeter Visitor Management Desks</span>
                 </h3>
-                <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Quick access to assigned visitor and footfall operations.</p>
+                <p className="text-xs text-primary/70 font-medium mt-0.5">Quick access to assigned visitor and footfall operations.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                  { label: 'Greeter Kiosk', path: '/greeter', icon: UserCheck, desc: 'Entrance clicker counter & visitor logging tablet', color: 'bg-navy-50 text-[#163B5C]' },
+                  { label: 'Greeter Kiosk', path: '/greeter', icon: UserCheck, desc: 'Entrance clicker counter & visitor logging tablet', color: 'bg-navy-50 text-primary' },
                   { label: 'Hourly Footfall Register', path: '/footfall', icon: Footprints, desc: 'View & submit hourly customer footfall entries', color: 'bg-emerald-50 text-emerald-800' },
                   { label: 'Customer Feedback QR', path: '/feedback-qr', icon: QrCode, desc: 'Display QR code for customer experience survey', color: 'bg-amber-50 text-amber-800' },
                   { label: 'Feedback Collection', path: '/feedback-collection', icon: MessageSquare, desc: 'View collected customer feedback entries & CSAT', color: 'bg-indigo-50 text-indigo-800' },
                   { label: 'Feedback Call Queue', path: '/feedback-list', icon: PhoneCall, desc: 'View telecaller followup queue for negative feedback', color: 'bg-rose-50 text-rose-800' },
-                  { label: 'Sourcing Diverts', path: '/divert', icon: Target, desc: 'Raise merchandise requests for unsupplied items', color: 'bg-[#163B5C]/5 text-[#163B5C]' },
+                  { label: 'Sourcing Diverts', path: '/divert', icon: Target, desc: 'Raise merchandise requests for unsupplied items', color: 'bg-primary/5 text-primary' },
                   { label: 'VM Checklist Audit', path: '/vm-checklist', icon: FileCheck, desc: 'Visual merchandising daily checklist audit', color: 'bg-sky-50 text-sky-800' },
                   { label: 'Live TV Monitor Screen', path: '/tv', icon: BarChart3, desc: 'Live store operational monitor display', color: 'bg-purple-50 text-purple-800' }
                 ].map((item) => {
@@ -521,17 +521,17 @@ export default function DashboardPage() {
                     <button
                       key={item.label}
                       onClick={() => navigate(item.path)}
-                      className="p-5 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all text-left group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md"
+                      className="p-5 rounded-2xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all text-left group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] group-hover:bg-white/20 group-hover:border-white/30 text-[#163B5C] group-hover:text-white">
+                        <div className="p-3 rounded-xl bg-white border border-accent-soft group-hover:bg-white/20 group-hover:border-white/30 text-primary group-hover:text-white">
                           <Icon className="w-5 h-5" />
                         </div>
                         <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-transform group-hover:translate-x-1" />
                       </div>
                       <div>
-                        <div className="font-black text-sm text-[#163B5C] group-hover:text-white">{item.label}</div>
-                        <div className="text-xs text-[#5F6E7E] group-hover:text-white/80 font-medium mt-1 leading-relaxed">{item.desc}</div>
+                        <div className="font-black text-sm text-primary group-hover:text-white">{item.label}</div>
+                        <div className="text-xs text-primary/70 group-hover:text-white/80 font-medium mt-1 leading-relaxed">{item.desc}</div>
                       </div>
                     </button>
                   );
@@ -546,26 +546,26 @@ export default function DashboardPage() {
                 {/* Department Breakdown */}
                 <div className="card-glass p-5 lg:col-span-2 space-y-5 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center justify-between">
+                    <h3 className="font-extrabold text-primary text-base tracking-tight flex items-center justify-between">
                       <span>Workforce Distribution by Department</span>
-                      <span className="text-xs font-bold text-[#4E8ABF] bg-[#4E8ABF]/10 px-2.5 py-1 rounded-full">
+                      <span className="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-full">
                         {employees.length} Total Onboarded Staff
                       </span>
                     </h3>
-                    <p className="text-xs text-[#5F6E7E] font-medium mt-1">Active staff strength across Mens, Ladies, Sarees, Kids &amp; Operations.</p>
+                    <p className="text-xs text-primary/70 font-medium mt-1">Active staff strength across Mens, Ladies, Sarees, Kids &amp; Operations.</p>
                   </div>
 
                   <div className="space-y-3.5 my-2">
                     {deptBreakdown.length > 0 ? (
                       deptBreakdown.map((d) => (
                         <div key={d.name} className="space-y-1 text-xs">
-                          <div className="flex items-center justify-between font-extrabold text-[#163B5C]">
+                          <div className="flex items-center justify-between font-extrabold text-primary">
                             <span>{d.name}</span>
                             <span>{d.count} Staff ({d.pct}%)</span>
                           </div>
-                          <div className="w-full h-2.5 bg-[#E2E8F0] rounded-full overflow-hidden">
+                          <div className="w-full h-2.5 bg-accent-soft rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-[#163B5C] rounded-full transition-all duration-300"
+                              className="h-full bg-primary rounded-full transition-all duration-300"
                               style={{ width: `${Math.max(d.pct, 4)}%` }}
                             />
                           </div>
@@ -578,9 +578,9 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs font-bold text-[#163B5C]">
+                  <div className="pt-4 border-t border-accent-soft flex items-center justify-between text-xs font-bold text-primary">
                     <span>Registered Staff Members: {employees.length}</span>
-                    <button onClick={() => navigate('/employees')} className="text-[#4E8ABF] hover:underline flex items-center gap-1">
+                    <button onClick={() => navigate('/employees')} className="text-accent hover:underline flex items-center gap-1">
                       <span>View Full Employee Register</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
@@ -590,11 +590,11 @@ export default function DashboardPage() {
                 {/* Quick Operations Hub Links */}
                 <div className="card-glass p-5 space-y-4 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-extrabold text-[#163B5C] text-sm flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#4E8ABF]" />
+                    <h3 className="font-extrabold text-primary text-sm flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-accent" />
                       <span>Store Operations Quick Links</span>
                     </h3>
-                    <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Quick access to daily store floor desks</p>
+                    <p className="text-xs text-primary/70 font-medium mt-0.5">Quick access to daily store floor desks</p>
                   </div>
 
                   <div className="space-y-2.5">
@@ -612,14 +612,14 @@ export default function DashboardPage() {
                         <button
                           key={item.label}
                           onClick={() => navigate(item.path)}
-                          className="w-full p-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all text-left group flex items-center gap-3 shadow-xs"
+                          className="w-full p-3 rounded-xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all text-left group flex items-center gap-3 shadow-xs"
                         >
-                          <div className="p-2 rounded-lg bg-white border border-[#E2E8F0] group-hover:bg-white/20 group-hover:border-white/30 text-[#163B5C] group-hover:text-white">
+                          <div className="p-2 rounded-lg bg-white border border-accent-soft group-hover:bg-white/20 group-hover:border-white/30 text-primary group-hover:text-white">
                             <Icon className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-extrabold text-xs text-[#163B5C] group-hover:text-white">{item.label}</div>
-                            <div className="text-[10px] text-[#5F6E7E] group-hover:text-white/80">{item.desc}</div>
+                            <div className="font-extrabold text-xs text-primary group-hover:text-white">{item.label}</div>
+                            <div className="text-[10px] text-primary/70 group-hover:text-white/80">{item.desc}</div>
                           </div>
                         </button>
                       );
@@ -630,13 +630,13 @@ export default function DashboardPage() {
 
               {/* Active Employee Directory Table */}
               <div className="card-glass p-5 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-accent-soft pb-3">
                   <div>
-                    <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center gap-2">
-                      <UserCheck className="w-5 h-5 text-[#4E8ABF]" />
+                    <h3 className="font-extrabold text-primary text-base tracking-tight flex items-center gap-2">
+                      <UserCheck className="w-5 h-5 text-accent" />
                       <span>Active Store Staff Directory</span>
                     </h3>
-                    <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Showing registered employees working at BSC EXCLUSIVE DAVANAGERE.</p>
+                    <p className="text-xs text-primary/70 font-medium mt-0.5">Showing registered employees working at BSC EXCLUSIVE DAVANAGERE.</p>
                   </div>
 
                   <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -659,7 +659,7 @@ export default function DashboardPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] bg-[#F4F6F9]/60">
+                      <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/60">
                         <th className="py-3 px-4">Emp / App ID</th>
                         <th className="py-3 px-4">Employee Name</th>
                         <th className="py-3 px-4">Designation</th>
@@ -669,15 +669,15 @@ export default function DashboardPage() {
                         <th className="py-3 px-4 text-right">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E2E8F0]/60">
+                    <tbody className="divide-y divide-accent-soft/60">
                       {paginatedEmployees.length > 0 ? (
                         paginatedEmployees.map((emp) => (
                           <tr key={emp.appNo || emp.empNo} className="hover:bg-black/5 font-medium transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-extrabold text-[#163B5C]">{emp.empNo || emp.appNo}</td>
-                            <td className="py-3.5 px-4 font-extrabold text-[#163B5C]">
+                            <td className="py-3.5 px-4 font-mono font-extrabold text-primary">{emp.empNo || emp.appNo}</td>
+                            <td className="py-3.5 px-4 font-extrabold text-primary">
                               <button
                                 onClick={() => setSelectedEmployee(emp)}
-                                className="hover:text-[#4E8ABF] hover:underline text-left transition-colors flex items-center gap-1.5"
+                                className="hover:text-accent hover:underline text-left transition-colors flex items-center gap-1.5"
                                 title="Click to view full employee overview card"
                               >
                                 <span>{emp.name || emp.fullName}</span>
@@ -685,7 +685,7 @@ export default function DashboardPage() {
                             </td>
                             <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.desig || emp.designation || 'Staff'}</td>
                             <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.department || '—'}</td>
-                            <td className="py-3.5 px-4 text-[#4E8ABF] font-extrabold">{emp.section || 'Unassigned'}</td>
+                            <td className="py-3.5 px-4 text-accent font-extrabold">{emp.section || 'Unassigned'}</td>
                             <td className="py-3.5 px-4 text-[#475569] font-mono">{emp.actualDoj || emp.offeredDoj || emp.date || '—'}</td>
                             <td className="py-3.5 px-4 text-right">
                               <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
@@ -707,7 +707,7 @@ export default function DashboardPage() {
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0] text-xs font-bold">
+                  <div className="flex items-center justify-between pt-3 border-t border-accent-soft text-xs font-bold">
                     <span className="text-gray-500">
                       Page {currentPage} of {totalPages}
                     </span>
@@ -715,14 +715,14 @@ export default function DashboardPage() {
                       <button
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(p => p - 1)}
-                        className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#163B5C] disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-accent-soft bg-white text-primary disabled:opacity-40"
                       >
                         Previous
                       </button>
                       <button
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage(p => p + 1)}
-                        className="px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#163B5C] disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-accent-soft bg-white text-primary disabled:opacity-40"
                       >
                         Next
                       </button>

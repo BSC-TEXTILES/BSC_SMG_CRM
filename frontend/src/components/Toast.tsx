@@ -47,7 +47,7 @@ export default function ToastContainer() {
           success: 'bg-[#27805B] text-white border-[#1E6849]',
           error: 'bg-[#C43D4B] text-white border-[#A82D3B]',
           warn: 'bg-[#C58A24] text-white border-[#B27B1E]',
-          info: 'bg-[#163B5C] text-white border-[#0E2A44]'
+          info: 'bg-primary text-white border-primary'
         };
 
         const Icon = t.type === 'success' ? CheckCircle2 : t.type === 'error' ? AlertCircle : Info;

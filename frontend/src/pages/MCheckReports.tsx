@@ -18,10 +18,10 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; 
   PENDING:     { bg: 'bg-gray-50',    text: 'text-gray-500',    border: 'border-gray-200',    dot: 'bg-gray-400' },
 };
 
-const MODULE_BARS = ['bg-[#163B5C]', 'bg-[#4E8ABF]', 'bg-emerald-600', 'bg-purple-600', 'bg-rose-600', 'bg-teal-600'];
+const MODULE_BARS = ['bg-primary', 'bg-accent', 'bg-emerald-600', 'bg-purple-600', 'bg-rose-600', 'bg-teal-600'];
 
 function Toast({ msg, type }: { msg: string; type: string }) {
-  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-[#163B5C]';
+  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-primary';
   return <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>{msg}</div>;
 }
 
@@ -105,7 +105,7 @@ export default function MCheckReports() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
         <Topbar session={session} onMenuClick={() => setSidebarOpen(true)} title="MCheck Reports" breadcrumbs={[{ label: 'Daily Operations' }, { label: 'MCheck Reports' }]} />
@@ -115,8 +115,8 @@ export default function MCheckReports() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-black text-[#163B5C] flex items-center gap-2">
-                <BarChart3 className="w-7 h-7 text-[#4E8ABF]" /> Daily MCheck Management Dashboard
+              <h1 className="text-2xl font-black text-primary flex items-center gap-2">
+                <BarChart3 className="w-7 h-7 text-accent" /> Daily MCheck Management Dashboard
               </h1>
               <p className="text-sm text-gray-500 mt-0.5">Management Performance Review & Operational Attention Desk</p>
             </div>
@@ -137,7 +137,7 @@ export default function MCheckReports() {
               </button>
               <button
                 onClick={loadReport}
-                className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-[#163B5C] hover:text-white hover:border-[#163B5C] transition-all shadow-sm cursor-pointer"
+                className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm cursor-pointer"
                 title="Refresh Report"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -153,7 +153,7 @@ export default function MCheckReports() {
                   <button
                     key={m}
                     onClick={() => setFilterMode(m)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${filterMode === m ? 'bg-[#163B5C] text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${filterMode === m ? 'bg-primary text-white shadow' : 'text-gray-500 hover:text-gray-800'}`}
                   >
                     {m === 'date' ? 'Single Date' : 'Date Range'}
                   </button>
@@ -227,7 +227,7 @@ export default function MCheckReports() {
           {loading ? (
             <div className="bg-white border border-gray-200 rounded-2xl p-12 flex items-center justify-center shadow-sm">
               <div className="flex items-center gap-3 text-gray-500">
-                <div className="w-5 h-5 border-2 border-[#163B5C] border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 <span className="font-semibold text-sm">Loading reports...</span>
               </div>
             </div>
@@ -242,13 +242,13 @@ export default function MCheckReports() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                   {[
-                    { label: 'Total Checkpoints', value: kpi?.total ?? 0, bg: 'bg-[#163B5C]', icon: Target },
+                    { label: 'Total Checkpoints', value: kpi?.total ?? 0, bg: 'bg-primary', icon: Target },
                     { label: 'Completed', value: kpi?.done ?? 0, bg: 'bg-emerald-600', icon: CheckCircle2 },
                     { label: 'Pending', value: kpi?.pending ?? 0, bg: 'bg-gray-400', icon: Circle },
                     { label: 'Not Done', value: kpi?.notDone ?? 0, bg: 'bg-red-500', icon: XCircle },
                     { label: 'In Progress', value: kpi?.inProgress ?? 0, bg: 'bg-amber-500', icon: Clock },
                     { label: 'Postponed', value: kpi?.postponed ?? 0, bg: 'bg-purple-600', icon: AlertCircle },
-                    { label: 'Overall Completion', value: `${kpi?.completionPct ?? 0}%`, bg: 'bg-[#4E8ABF]', icon: BarChart3 },
+                    { label: 'Overall Completion', value: `${kpi?.completionPct ?? 0}%`, bg: 'bg-accent', icon: BarChart3 },
                   ].map((item, i) => {
                     const Icon = item.icon;
                     return (
@@ -257,7 +257,7 @@ export default function MCheckReports() {
                           <Icon className="w-4 h-4 text-white" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xl font-black text-[#163B5C] leading-tight">{item.value}</div>
+                          <div className="text-xl font-black text-primary leading-tight">{item.value}</div>
                           <div className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wide truncate">{item.label}</div>
                         </div>
                       </div>
@@ -279,18 +279,18 @@ export default function MCheckReports() {
                       <div
                         key={i}
                         onClick={() => navigate(`/daily-mcheck?moduleId=${m.module_id || (i + 1)}&date=${filterDate}`)}
-                        className="p-3 rounded-xl border border-gray-100 hover:border-[#4E8ABF] hover:bg-amber-50/20 transition-all cursor-pointer group"
+                        className="p-3 rounded-xl border border-gray-100 hover:border-accent hover:bg-amber-50/20 transition-all cursor-pointer group"
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="font-extrabold text-sm text-[#163B5C] group-hover:text-[#4E8ABF] transition-colors truncate">
+                            <span className="font-extrabold text-sm text-primary group-hover:text-accent transition-colors truncate">
                               {m.module_name}
                             </span>
-                            <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-[#4E8ABF] group-hover:translate-x-1 transition-all" />
+                            <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-accent group-hover:translate-x-1 transition-all" />
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0 ml-2">
                             <span className="text-xs font-bold text-gray-500">{m.done} / {m.total}</span>
-                            <span className={`text-sm font-black ${m.completion_pct === 100 ? 'text-emerald-600' : m.completion_pct >= 50 ? 'text-[#163B5C]' : 'text-red-500'}`}>
+                            <span className={`text-sm font-black ${m.completion_pct === 100 ? 'text-emerald-600' : m.completion_pct >= 50 ? 'text-primary' : 'text-red-500'}`}>
                               {m.completion_pct}%
                             </span>
                             {m.completion_pct < 50 && m.total > 0 && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
@@ -323,7 +323,7 @@ export default function MCheckReports() {
                 {/* Daily Trend */}
                 <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
                   <h2 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-[#4E8ABF]" /> DAILY TREND
+                    <TrendingUp className="w-4 h-4 text-accent" /> DAILY TREND
                   </h2>
                   <div className="space-y-2.5">
                     {trendData.slice(-10).map((t, i, arr) => {
@@ -340,7 +340,7 @@ export default function MCheckReports() {
                               style={{ width: `${t.completion_pct}%` }}
                             />
                           </div>
-                          <div className="text-[11px] font-black text-[#163B5C] w-10 text-right">{t.completion_pct}%</div>
+                          <div className="text-[11px] font-black text-primary w-10 text-right">{t.completion_pct}%</div>
                           <div className="w-4 flex-shrink-0">
                             {diff > 0 ? <TrendingUp className="w-3 h-3 text-emerald-500" /> : diff < 0 ? <TrendingDown className="w-3 h-3 text-red-400" /> : <Minus className="w-3 h-3 text-gray-300" />}
                           </div>
@@ -375,14 +375,14 @@ export default function MCheckReports() {
                           <div className="flex items-start justify-between gap-4 flex-wrap">
                             <div className="flex-1 min-w-0 space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-extrabold text-[#163B5C] text-sm">{item.checkpoint_title}</span>
+                                <span className="font-extrabold text-primary text-sm">{item.checkpoint_title}</span>
                                 <span className="text-[11px] font-bold text-gray-400 px-2 py-0.5 rounded-md bg-gray-100">
                                   {item.module_name}
                                 </span>
                               </div>
 
                               <div className="text-xs text-gray-600 flex items-center gap-4 flex-wrap">
-                                <span>Responsible: <strong className="text-[#163B5C]">{item.responsible_person || item.responsible_department || 'Assigned Staff'}</strong></span>
+                                <span>Responsible: <strong className="text-primary">{item.responsible_person || item.responsible_department || 'Assigned Staff'}</strong></span>
                                 {item.scheduled_time && <span>Scheduled: <strong>{item.scheduled_time}</strong></span>}
                               </div>
 
@@ -443,7 +443,7 @@ export default function MCheckReports() {
                             <span className="text-gray-300">·</span>
                             <span className="text-xs font-bold text-gray-500">{cp.responsible_department}</span>
                           </div>
-                          <div className="font-bold text-[#163B5C] text-sm mt-0.5">{cp.checkpoint_title}</div>
+                          <div className="font-bold text-primary text-sm mt-0.5">{cp.checkpoint_title}</div>
                           <div className="text-xs text-gray-500 mt-0.5">
                             Responsible: <strong className="text-gray-700">{cp.responsible_person || 'Unassigned'}</strong>
                             {cp.scheduled_time ? ` · ${cp.scheduled_time}` : ''}
@@ -457,16 +457,16 @@ export default function MCheckReports() {
 
                       {expandedCheckpoint === i && (
                         <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs animate-fade-in bg-[#FAF9F7] p-3 rounded-xl">
-                          <div><span className="font-bold text-gray-500">Compliance Status:</span> <strong className="text-[#163B5C]">{cp.compliance_status || '—'}</strong></div>
-                          <div><span className="font-bold text-gray-500">Accuracy:</span> <strong className="text-[#163B5C]">{cp.accuracy || '—'}</strong></div>
-                          <div><span className="font-bold text-gray-500">Updated By:</span> <strong className="text-[#163B5C]">{cp.updated_by || cp.submitted_by || '—'}</strong></div>
-                          <div><span className="font-bold text-gray-500">Updated Date/Time:</span> <strong className="text-[#163B5C]">{cp.response_updated_at ? new Date(cp.response_updated_at).toLocaleString('en-IN') : cp.response_date || '—'}</strong></div>
+                          <div><span className="font-bold text-gray-500">Compliance Status:</span> <strong className="text-primary">{cp.compliance_status || '—'}</strong></div>
+                          <div><span className="font-bold text-gray-500">Accuracy:</span> <strong className="text-primary">{cp.accuracy || '—'}</strong></div>
+                          <div><span className="font-bold text-gray-500">Updated By:</span> <strong className="text-primary">{cp.updated_by || cp.submitted_by || '—'}</strong></div>
+                          <div><span className="font-bold text-gray-500">Updated Date/Time:</span> <strong className="text-primary">{cp.response_updated_at ? new Date(cp.response_updated_at).toLocaleString('en-IN') : cp.response_date || '—'}</strong></div>
                           {cp.remarks && <div className="sm:col-span-2"><span className="font-bold text-gray-500">Remarks:</span> <span className="text-gray-700 italic">"{cp.remarks}"</span></div>}
                           {cp.corrective_action && <div className="sm:col-span-2"><span className="font-bold text-amber-700">Corrective Action:</span> <span className="text-amber-800">{cp.corrective_action}</span></div>}
                           {cp.photo_url && (
                             <div className="sm:col-span-2 flex items-center gap-2">
                               <span className="font-bold text-gray-500">Photo Evidence:</span>
-                              <a href={cp.photo_url} target="_blank" rel="noreferrer" className="text-xs text-[#4E8ABF] font-bold underline flex items-center gap-1">
+                              <a href={cp.photo_url} target="_blank" rel="noreferrer" className="text-xs text-accent font-bold underline flex items-center gap-1">
                                 <Eye className="w-3.5 h-3.5" /> View Photo
                               </a>
                             </div>

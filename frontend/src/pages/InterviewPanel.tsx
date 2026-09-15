@@ -234,7 +234,7 @@ export default function InterviewPanelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -250,22 +250,22 @@ export default function InterviewPanelPage() {
           {/* Header */}
           <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
-                <Target className="w-5 h-5 text-[#4E8ABF]" />
+              <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                <Target className="w-5 h-5 text-accent" />
                 <span>Interview Panel &amp; Scorecard</span>
               </h2>
-              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Score candidate technical &amp; HR rounds, generate shareable links, and approve selections.</p>
+              <p className="text-xs text-primary/70 font-medium mt-0.5">Score candidate technical &amp; HR rounds, generate shareable links, and approve selections.</p>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5F6E7E]" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary/70" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search candidate, app no..."
-                  className="pl-9 pr-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-semibold text-[#163B5C] focus:outline-none focus:border-[#163B5C] w-56 shadow-xs"
+                  className="pl-9 pr-3 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary focus:outline-none focus:border-primary w-56 shadow-xs"
                 />
               </div>
             </div>
@@ -285,8 +285,8 @@ export default function InterviewPanelPage() {
                 className={`
                   px-4 py-2 rounded-full border transition-all duration-150 shadow-xs
                   ${activeFilter === f.key 
-                    ? 'bg-[#163B5C] text-white border-[#163B5C] font-black' 
-                    : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F4F6F9]'}
+                    ? 'bg-primary text-white border-primary font-black' 
+                    : 'bg-white text-[#475569] border-accent-soft hover:bg-background'}
                 `}
               >
                 {f.label}
@@ -299,7 +299,7 @@ export default function InterviewPanelPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider bg-[#F4F6F9]/60">
+                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 tracking-wider bg-background/60">
                     <th className="py-3 px-3 text-center w-12">SL.NO</th>
                     <th className="py-3 px-4">App No</th>
                     <th className="py-3 px-4">Candidate</th>
@@ -310,12 +310,12 @@ export default function InterviewPanelPage() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/60">
+                <tbody className="divide-y divide-accent-soft/60">
                   {filtered.map((iv, idx) => (
                     <tr key={iv.appNo} className="hover:bg-black/5 transition-colors font-medium">
-                      <td className="py-3.5 px-3 text-center font-bold text-[#5F6E7E]">{idx + 1}</td>
+                      <td className="py-3.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
                       <td className="py-3.5 px-4 font-mono text-[#475569] font-bold">{iv.appNo}</td>
-                      <td className="py-3.5 px-4 font-extrabold text-[#163B5C]">{iv.candidate}</td>
+                      <td className="py-3.5 px-4 font-extrabold text-primary">{iv.candidate}</td>
                       <td className="py-3.5 px-4 text-[#475569] font-semibold">{iv.desig}</td>
 
                       {/* HR Score */}
@@ -332,14 +332,14 @@ export default function InterviewPanelPage() {
                       {/* Evaluator Link */}
                       <td className="py-3.5 px-4">
                         {iv.assignedName ? (
-                          <div className="font-bold text-[#163B5C]">
+                          <div className="font-bold text-primary">
                             <div>{iv.assignedName}</div>
-                            <div className="text-[10px] text-[#5F6E7E] font-medium">{iv.assignedDesig}</div>
+                            <div className="text-[10px] text-primary/70 font-medium">{iv.assignedDesig}</div>
                           </div>
                         ) : (
                           <button
                             onClick={() => { setAssignModal({ open: true, interview: iv }); setEvalName(''); setEvalDesig(''); setGeneratedLink(''); }}
-                            className="px-2.5 py-1 rounded-lg border border-[#163B5C] text-[#163B5C] font-bold text-[11px] hover:bg-[#163B5C] hover:text-white transition-all flex items-center gap-1 shadow-xs"
+                            className="px-2.5 py-1 rounded-lg border border-primary text-primary font-bold text-[11px] hover:bg-primary hover:text-white transition-all flex items-center gap-1 shadow-xs"
                           >
                             <Share2 className="w-3 h-3" /> Assign Evaluator
                           </button>
@@ -363,7 +363,7 @@ export default function InterviewPanelPage() {
                           {session?.role !== 'Manager' && (
                             <button
                               onClick={() => handleOpenScorePanel(iv, 'HR')}
-                              className="px-2.5 py-1 rounded-lg bg-[#163B5C] text-white font-bold text-[11px] hover:bg-[#0E2A44] shadow-xs"
+                              className="px-2.5 py-1 rounded-lg bg-primary text-white font-bold text-[11px] hover:bg-primary shadow-xs"
                             >
                               {iv.hrScore ? 'Edit HR Score' : 'Score HR Round'}
                             </button>
@@ -371,7 +371,7 @@ export default function InterviewPanelPage() {
                           <div className="flex gap-2 justify-end">
                           <button
                             onClick={() => handleViewScorecard(iv)}
-                            className="px-2.5 py-1 rounded-lg border border-[#163B5C] text-[#163B5C] font-bold text-[11px] hover:bg-[#163B5C] hover:text-white shadow-xs transition-colors"
+                            className="px-2.5 py-1 rounded-lg border border-primary text-primary font-bold text-[11px] hover:bg-primary hover:text-white shadow-xs transition-colors"
                           >
                             View Scorecard
                           </button>
@@ -383,7 +383,7 @@ export default function InterviewPanelPage() {
                               }
                               handleOpenScorePanel(iv, 'Round 2');
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-[#4E8ABF] text-white font-bold text-[11px] hover:bg-amber-600 shadow-xs"
+                            className="px-2.5 py-1 rounded-lg bg-accent text-white font-bold text-[11px] hover:bg-amber-600 shadow-xs"
                           >
                             {iv.assignedScore ? 'Edit Management Score' : 'Score Management Round'}
                           </button>
@@ -422,17 +422,17 @@ export default function InterviewPanelPage() {
 
       {/* Centered Score Evaluation Modal */}
       {scorePanel.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-[#163B5C]/60 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] overflow-hidden flex flex-col max-h-[90vh] my-auto animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-primary/60 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-accent-soft overflow-hidden flex flex-col max-h-[90vh] my-auto animate-scale-in">
             {/* Modal Header */}
-            <div className="p-4 sm:p-6 border-b border-[#E2E8F0] bg-[#163B5C] text-white flex items-center justify-between sticky top-0 z-10">
+            <div className="p-4 sm:p-6 border-b border-accent-soft bg-primary text-white flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#4E8ABF]/20 border border-[#4E8ABF]/40 flex items-center justify-center text-[#4E8ABF]">
+                <div className="w-10 h-10 rounded-2xl bg-accent/20 border border-accent/40 flex items-center justify-center text-accent">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#4E8ABF] text-white">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-accent text-white">
                       {scorePanel.round} Evaluation
                     </span>
                     <span className="text-xs font-mono font-bold text-white/70">
@@ -457,12 +457,12 @@ export default function InterviewPanelPage() {
             <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 text-xs">
               {scorePanel.round === 'Round 2' && scorePanel.interview?.hrScore && scorePanel.hrQuestions && (
                 <div className="mb-6 bg-blue-50/50 border border-blue-100 rounded-2xl p-4">
-                  <h4 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider mb-3">HR Round 1 Evaluation Summary</h4>
+                  <h4 className="font-extrabold text-primary text-xs uppercase tracking-wider mb-3">HR Round 1 Evaluation Summary</h4>
                   <div className="space-y-2 mb-3">
                     {scorePanel.hrQuestions.map((hq: any, idx: number) => (
-                      <div key={hq.id} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-[#E2E8F0]">
-                        <span className="font-bold text-[#163B5C] text-[11px] max-w-[80%]">{hq.text}</span>
-                        <span className="font-black text-xs text-[#4E8ABF]">
+                      <div key={hq.id} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-accent-soft">
+                        <span className="font-bold text-primary text-[11px] max-w-[80%]">{hq.text}</span>
+                        <span className="font-black text-xs text-accent">
                           {scorePanel.interview.hrScore.scores?.[idx] || 0} / {hq.max || 10}
                         </span>
                       </div>
@@ -478,20 +478,20 @@ export default function InterviewPanelPage() {
               )}
 
               <div className="space-y-3">
-                <h4 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider flex items-center gap-2">
-                  <Star className="w-4 h-4 text-[#4E8ABF]" />
+                <h4 className="font-extrabold text-primary text-xs uppercase tracking-wider flex items-center gap-2">
+                  <Star className="w-4 h-4 text-accent" />
                   <span>{scorePanel.round === 'Round 2' ? 'Management Evaluation Rubric' : 'Evaluation Questions & Scoring Rubric'}</span>
                 </h4>
                 
                 {scorePanel.questions.map((q, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] space-y-3">
-                    <div className="flex items-start justify-between gap-3 font-bold text-[#163B5C]">
+                  <div key={idx} className="p-4 rounded-2xl border border-accent-soft bg-background space-y-3">
+                    <div className="flex items-start justify-between gap-3 font-bold text-primary">
                       <span className="text-xs sm:text-sm font-extrabold leading-snug">{idx + 1}. {q.question}</span>
-                      <span className="px-2.5 py-1 rounded-lg bg-[#163B5C]/10 text-[#163B5C] font-mono text-[11px] font-black flex-shrink-0">
+                      <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-mono text-[11px] font-black flex-shrink-0">
                         Max: {q.max || 10}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 bg-white p-2.5 rounded-xl border border-[#E2E8F0]">
+                    <div className="flex items-center gap-4 bg-white p-2.5 rounded-xl border border-accent-soft">
                       <input
                         type="range"
                         min="0"
@@ -502,9 +502,9 @@ export default function InterviewPanelPage() {
                           next[idx] = parseInt(e.target.value) || 0;
                           setScores(next);
                         }}
-                        className="w-full accent-[#163B5C] cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
-                      <span className="font-black text-base text-[#163B5C] w-8 text-center bg-[#F4F6F9] py-1 rounded-lg border border-[#E2E8F0]">
+                      <span className="font-black text-base text-primary w-8 text-center bg-background py-1 rounded-lg border border-accent-soft">
                         {scores[idx] || 0}
                       </span>
                     </div>
@@ -513,13 +513,13 @@ export default function InterviewPanelPage() {
               </div>
 
               {/* Total Score Summary Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#163B5C] to-[#0E2A44] text-white flex items-center justify-between shadow-lg border border-[#4E8ABF]/30">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-primary to-primary text-white flex items-center justify-between shadow-lg border border-accent/30">
                 <div>
                   <span className="font-black text-xs uppercase tracking-wider block text-white">Aggregated Evaluation Score</span>
                   <span className="text-[11px] text-white/80 font-medium">Based on evaluator criteria points</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-black text-[#4E8ABF]">
+                  <span className="text-2xl font-black text-accent">
                     {scores.reduce((a, b) => a + b, 0)} <span className="text-sm text-white/80">/ {scorePanel.questions.reduce((s, q) => s + (q.max || 10), 0)}</span>
                   </span>
                 </div>
@@ -528,7 +528,7 @@ export default function InterviewPanelPage() {
               {/* Remarks & Recommendation Inputs */}
               <div className="space-y-4 pt-2">
                 <div>
-                  <label className="block font-extrabold text-[#163B5C] mb-1 text-xs">Evaluator Remarks &amp; Observations *</label>
+                  <label className="block font-extrabold text-primary mb-1 text-xs">Evaluator Remarks &amp; Observations *</label>
                   <textarea
                     rows={3}
                     value={remarks}
@@ -540,7 +540,7 @@ export default function InterviewPanelPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-extrabold text-[#163B5C] mb-1 text-xs">
+                    <label className="block font-extrabold text-primary mb-1 text-xs">
                       {scorePanel.round === 'HR' ? 'Expected Monthly Salary (₹)' : 'Recommended Salary (₹)'}
                     </label>
                     <input
@@ -552,7 +552,7 @@ export default function InterviewPanelPage() {
                     />
                   </div>
                   <div>
-                    <label className="block font-extrabold text-[#163B5C] mb-1 text-xs">
+                    <label className="block font-extrabold text-primary mb-1 text-xs">
                       {scorePanel.round === 'HR' ? 'Expected Date of Joining' : 'Recommended Date of Joining'}
                     </label>
                     <input
@@ -567,18 +567,18 @@ export default function InterviewPanelPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 sm:p-5 border-t border-[#E2E8F0] bg-[#F4F6F9] flex items-center justify-end gap-3 sticky bottom-0 z-10">
+            <div className="p-4 sm:p-5 border-t border-accent-soft bg-background flex items-center justify-end gap-3 sticky bottom-0 z-10">
               <button
                 onClick={() => setScorePanel({ open: false, interview: null, questions: [], round: 'HR' })}
-                className="px-5 py-2.5 rounded-xl border-2 border-[#E2E8F0] bg-white text-[#475569] font-extrabold hover:bg-black/5 transition-colors text-xs"
+                className="px-5 py-2.5 rounded-xl border-2 border-accent-soft bg-white text-[#475569] font-extrabold hover:bg-black/5 transition-colors text-xs"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveScore}
-                className="px-6 py-2.5 rounded-xl bg-[#163B5C] text-white font-black hover:bg-[#0E2A44] shadow-md transition-all text-xs flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-primary text-white font-black hover:bg-primary shadow-md transition-all text-xs flex items-center gap-2"
               >
-                <CheckCircle className="w-4 h-4 text-[#4E8ABF]" />
+                <CheckCircle className="w-4 h-4 text-accent" />
                 <span>Save Evaluation Scorecard</span>
               </button>
             </div>
@@ -590,8 +590,8 @@ export default function InterviewPanelPage() {
       {assignModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
           <div className="w-full max-w-md bg-white rounded-2xl p-6 space-y-4 shadow-2xl animate-fade-in">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <h3 className="font-extrabold text-[#163B5C] text-base">Assign Round 2 Evaluator</h3>
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+              <h3 className="font-extrabold text-primary text-base">Assign Round 2 Evaluator</h3>
               <button onClick={() => setAssignModal({ open: false, interview: null })} className="text-[#64748B]">
                 <X className="w-5 h-5" />
               </button>
@@ -599,22 +599,22 @@ export default function InterviewPanelPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-[#163B5C] mb-1">Evaluator Full Name *</label>
+                <label className="block font-bold text-primary mb-1">Evaluator Full Name *</label>
                 <input type="text" value={evalName} onChange={(e) => setEvalName(e.target.value)} placeholder="e.g. Rajesh Kumar" className="input-modern" />
               </div>
               <div>
-                <label className="block font-bold text-[#163B5C] mb-1">Evaluator Designation *</label>
+                <label className="block font-bold text-primary mb-1">Evaluator Designation *</label>
                 <input type="text" value={evalDesig} onChange={(e) => setEvalDesig(e.target.value)} placeholder="e.g. Senior Floor Manager" className="input-modern" />
               </div>
 
               {generatedLink && (
-                <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-1">
-                  <span className="text-[10px] uppercase font-black text-[#5F6E7E] block">Shareable Evaluator Link</span>
+                <div className="p-3 rounded-xl bg-background border border-accent-soft space-y-1">
+                  <span className="text-[10px] uppercase font-black text-primary/70 block">Shareable Evaluator Link</span>
                   <div className="flex items-center gap-2">
                     <input type="text" readOnly value={generatedLink} className="w-full bg-white p-2 rounded border text-xs font-mono" />
                     <button
                       onClick={() => { navigator.clipboard.writeText(generatedLink); showToast('Link copied to clipboard!', 'success'); }}
-                      className="p-2 rounded bg-[#163B5C] text-white font-bold"
+                      className="p-2 rounded bg-primary text-white font-bold"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
@@ -623,8 +623,8 @@ export default function InterviewPanelPage() {
               )}
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E2E8F0]">
-              <button onClick={() => setAssignModal({ open: false, interview: null })} className="px-4 py-2 rounded-xl border border-[#E2E8F0] font-bold text-xs">
+            <div className="flex justify-end gap-2 pt-2 border-t border-accent-soft">
+              <button onClick={() => setAssignModal({ open: false, interview: null })} className="px-4 py-2 rounded-xl border border-accent-soft font-bold text-xs">
                 Close
               </button>
               {!generatedLink && (
@@ -641,8 +641,8 @@ export default function InterviewPanelPage() {
       {approveModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
           <div className="w-full max-w-md bg-white rounded-2xl p-6 space-y-4 shadow-2xl animate-fade-in">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <h3 className="font-extrabold text-[#163B5C] text-base">Approve Candidate Selection</h3>
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+              <h3 className="font-extrabold text-primary text-base">Approve Candidate Selection</h3>
               <button onClick={() => setApproveModal({ open: false, interview: null, probation: false })} className="text-[#64748B]">
                 <X className="w-5 h-5" />
               </button>
@@ -652,42 +652,42 @@ export default function InterviewPanelPage() {
               <p className="text-[#475569] font-medium">Are you sure you want to approve candidate <strong>{approveModal.interview?.candidate}</strong> for final selection and offer issuance?</p>
               
               {approveModal.interview?.hrScore && (
-                <div className="bg-[#F4F6F9] p-3 rounded-xl border border-[#E2E8F0]">
-                  <h4 className="font-extrabold text-[#163B5C] text-[10px] uppercase tracking-wider mb-1">HR Round 1 Summary</h4>
+                <div className="bg-background p-3 rounded-xl border border-accent-soft">
+                  <h4 className="font-extrabold text-primary text-[10px] uppercase tracking-wider mb-1">HR Round 1 Summary</h4>
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-bold text-[#475569]">Score:</span>
-                    <span className="font-black text-[#4E8ABF]">{approveModal.interview.hrScore.total} / {approveModal.interview.hrScore.maxTotal}</span>
+                    <span className="font-black text-accent">{approveModal.interview.hrScore.total} / {approveModal.interview.hrScore.maxTotal}</span>
                   </div>
-                  <p className="text-[#5F6E7E] font-medium italic">"{approveModal.interview.hrScore.remarks || 'No remarks.'}"</p>
+                  <p className="text-primary/70 font-medium italic">"{approveModal.interview.hrScore.remarks || 'No remarks.'}"</p>
                 </div>
               )}
 
               {approveModal.interview?.assignedScore && (
                 <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                  <h4 className="font-extrabold text-[#163B5C] text-[10px] uppercase tracking-wider mb-1">Round 2 Management Summary</h4>
+                  <h4 className="font-extrabold text-primary text-[10px] uppercase tracking-wider mb-1">Round 2 Management Summary</h4>
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-bold text-[#475569]">Score:</span>
                     <span className="font-black text-blue-700">{approveModal.interview.assignedScore.total} / {approveModal.interview.assignedScore.maxTotal}</span>
                   </div>
-                  <p className="text-[#5F6E7E] font-medium italic">"{approveModal.interview.assignedScore.remarks || 'No remarks.'}"</p>
+                  <p className="text-primary/70 font-medium italic">"{approveModal.interview.assignedScore.remarks || 'No remarks.'}"</p>
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div>
-                  <label className="block font-bold text-[#163B5C] mb-1">Salary Offered (₹) *</label>
+                  <label className="block font-bold text-primary mb-1">Salary Offered (₹) *</label>
                   <input type="text" value={approveSalary} onChange={(e) => setApproveSalary(e.target.value)} placeholder="e.g. 35,000" className="input-modern" />
                 </div>
                 <div>
-                  <label className="block font-bold text-[#163B5C] mb-1">Expected DOJ *</label>
+                  <label className="block font-bold text-primary mb-1">Expected DOJ *</label>
                   <input type="date" value={approveDoj} onChange={(e) => setApproveDoj(e.target.value)} className="input-modern" />
                 </div>
                 <div>
-                  <label className="block font-bold text-[#163B5C] mb-1">Finalized Designation *</label>
+                  <label className="block font-bold text-primary mb-1">Finalized Designation *</label>
                   <input type="text" value={approveDesig} onChange={(e) => setApproveDesig(e.target.value)} placeholder="e.g. Senior Floor Manager" className="input-modern" />
                 </div>
                 <div>
-                  <label className="block font-bold text-[#163B5C] mb-1">Allocated Department *</label>
+                  <label className="block font-bold text-primary mb-1">Allocated Department *</label>
                   <select value={approveDept} onChange={(e) => setApproveDept(e.target.value)} className="select-modern font-bold">
                     <option value="">Select Department</option>
                     <option value="Ground Floor Saree">Ground Floor Saree</option>
@@ -701,19 +701,19 @@ export default function InterviewPanelPage() {
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block font-bold text-[#163B5C] mb-1">Notice Period (Optional)</label>
+                  <label className="block font-bold text-primary mb-1">Notice Period (Optional)</label>
                   <input type="text" value={approveNotice} onChange={(e) => setApproveNotice(e.target.value)} placeholder="e.g. Immediate, 15 Days" className="input-modern" />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-[#163B5C] mb-1">Approval Remarks</label>
+                <label className="block font-bold text-primary mb-1">Approval Remarks</label>
                 <textarea rows={2} value={approveRemarks} onChange={(e) => setApproveRemarks(e.target.value)} placeholder="Final approval notes..." className="input-modern" />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E2E8F0]">
-              <button onClick={() => setApproveModal({ open: false, interview: null, probation: false })} className="px-4 py-2 rounded-xl border border-[#E2E8F0] font-bold text-xs">
+            <div className="flex justify-end gap-2 pt-2 border-t border-accent-soft">
+              <button onClick={() => setApproveModal({ open: false, interview: null, probation: false })} className="px-4 py-2 rounded-xl border border-accent-soft font-bold text-xs">
                 Cancel
               </button>
               <button onClick={handleConfirmApprove} disabled={submittingApprove} className="btn-gold text-xs shadow-md disabled:opacity-50">
@@ -726,9 +726,9 @@ export default function InterviewPanelPage() {
 
       {/* View Scorecard Modal */}
       {viewScorecardModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#163B5C]/60 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-primary/60 backdrop-blur-md">
           <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
-            <div className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-[#163B5C] text-white flex items-center justify-between sticky top-0 z-10">
+            <div className="p-4 sm:p-5 border-b border-accent-soft bg-primary text-white flex items-center justify-between sticky top-0 z-10">
               <div>
                 <h3 className="font-black text-lg">Full Interview Scorecard</h3>
                 <p className="text-xs text-white/70 font-medium">Candidate: {viewScorecardModal.interview?.candidate} ({viewScorecardModal.interview?.desig})</p>
@@ -740,30 +740,30 @@ export default function InterviewPanelPage() {
             
             <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 text-xs">
               {viewScorecardModal.interview?.hrScore ? (
-                <div className="bg-[#F4F6F9] border border-[#E2E8F0] rounded-2xl p-4 sm:p-5">
+                <div className="bg-background border border-accent-soft rounded-2xl p-4 sm:p-5">
                   <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider">HR Round 1 Details</h4>
-                    <span className="font-black text-lg text-[#4E8ABF]">{viewScorecardModal.interview.hrScore.total} / {viewScorecardModal.interview.hrScore.maxTotal}</span>
+                    <h4 className="font-extrabold text-primary text-sm uppercase tracking-wider">HR Round 1 Details</h4>
+                    <span className="font-black text-lg text-accent">{viewScorecardModal.interview.hrScore.total} / {viewScorecardModal.interview.hrScore.maxTotal}</span>
                   </div>
                   <div className="space-y-2 mb-4">
                     {viewScorecardModal.hrQuestions.map((hq: any, idx: number) => (
-                      <div key={hq.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-[#E2E8F0]">
-                        <span className="font-bold text-[#163B5C] text-[11px] max-w-[80%]">{hq.text}</span>
-                        <span className="font-black text-xs text-[#4E8ABF]">
+                      <div key={hq.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-accent-soft">
+                        <span className="font-bold text-primary text-[11px] max-w-[80%]">{hq.text}</span>
+                        <span className="font-black text-xs text-accent">
                           {viewScorecardModal.interview.hrScore.scores?.[idx] || 0} / {hq.max || 10}
                         </span>
                       </div>
                     ))}
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0]">
-                    <span className="block text-[10px] font-black uppercase text-[#5F6E7E] mb-1">Evaluator Remarks</span>
-                    <p className="text-xs font-medium text-[#163B5C]">
+                  <div className="bg-white p-3 rounded-xl border border-accent-soft">
+                    <span className="block text-[10px] font-black uppercase text-primary/70 mb-1">Evaluator Remarks</span>
+                    <p className="text-xs font-medium text-primary">
                       {viewScorecardModal.interview.hrScore.remarks || 'No remarks provided.'}
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="text-[#64748B] font-medium text-center py-4 bg-[#F4F6F9] rounded-2xl border border-[#E2E8F0] border-dashed">
+                <div className="text-[#64748B] font-medium text-center py-4 bg-background rounded-2xl border border-accent-soft border-dashed">
                   HR Round 1 evaluation has not been completed yet.
                 </div>
               )}
@@ -786,7 +786,7 @@ export default function InterviewPanelPage() {
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-blue-100">
                     <span className="block text-[10px] font-black uppercase text-blue-600 mb-1">Evaluator Remarks</span>
-                    <p className="text-xs font-medium text-[#163B5C]">
+                    <p className="text-xs font-medium text-primary">
                       {viewScorecardModal.interview.assignedScore.remarks || 'No remarks provided.'}
                     </p>
                   </div>

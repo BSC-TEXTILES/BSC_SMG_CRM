@@ -461,7 +461,7 @@ export default function DepartmentHiringPage() {
   const isHR = session?.role === 'HR' || session?.role === 'Admin' || session?.role === 'Super Admin';
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
 
       <Sidebar 
@@ -482,11 +482,11 @@ export default function DepartmentHiringPage() {
           {/* Header Banner */}
           <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#4E8ABF]" />
+              <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-accent" />
                 <span>BSC Textiles - Sales Executive Workforce Dashboard</span>
               </h2>
-              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">
+              <p className="text-xs text-primary/70 font-medium mt-0.5">
                 Tree-based department &amp; section-wise Required, Filled and Remaining Sales Executives status.
               </p>
             </div>
@@ -559,23 +559,23 @@ export default function DepartmentHiringPage() {
 
           {/* Filter Bar & Quick Controls */}
           <div className="card-glass p-4 space-y-3">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-2.5">
-              <div className="text-xs font-black text-[#163B5C] uppercase tracking-wider flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[#4E8ABF]" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-accent-soft pb-2.5">
+              <div className="text-xs font-black text-primary uppercase tracking-wider flex items-center gap-2">
+                <Filter className="w-4 h-4 text-accent" />
                 <span>Filter Department &amp; Section Hierarchy</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={expandAllTree}
-                  className="px-2.5 py-1 rounded-xl bg-white border border-[#E2E8F0] text-[#163B5C] hover:bg-[#F4F6F9] text-xs font-extrabold flex items-center gap-1 shadow-xs"
+                  className="px-2.5 py-1 rounded-xl bg-white border border-accent-soft text-primary hover:bg-background text-xs font-extrabold flex items-center gap-1 shadow-xs"
                 >
                   <Maximize2 className="w-3 h-3" />
                   <span>Expand All</span>
                 </button>
                 <button
                   onClick={collapseAllTree}
-                  className="px-2.5 py-1 rounded-xl bg-white border border-[#E2E8F0] text-[#163B5C] hover:bg-[#F4F6F9] text-xs font-extrabold flex items-center gap-1 shadow-xs"
+                  className="px-2.5 py-1 rounded-xl bg-white border border-accent-soft text-primary hover:bg-background text-xs font-extrabold flex items-center gap-1 shadow-xs"
                 >
                   <Minimize2 className="w-3 h-3" />
                   <span>Collapse All</span>
@@ -590,7 +590,7 @@ export default function DepartmentHiringPage() {
                 <select
                   value={selectedDept}
                   onChange={(e) => { setSelectedDept(e.target.value); setSelectedSection('All'); }}
-                  className="w-full px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-bold text-[#163B5C] focus:outline-none focus:border-[#163B5C]"
+                  className="w-full px-2.5 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-bold text-primary focus:outline-none focus:border-primary"
                 >
                   <option value="All">All Departments</option>
                   {activeDepartmentsList.map(d => (
@@ -605,7 +605,7 @@ export default function DepartmentHiringPage() {
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-bold text-[#163B5C] focus:outline-none focus:border-[#163B5C]"
+                  className="w-full px-2.5 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-bold text-primary focus:outline-none focus:border-primary"
                 >
                   <option value="All">All Sections</option>
                   {sectionFilterOptions.map(s => (
@@ -620,7 +620,7 @@ export default function DepartmentHiringPage() {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-bold text-[#163B5C] focus:outline-none focus:border-[#163B5C]"
+                  className="w-full px-2.5 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-bold text-primary focus:outline-none focus:border-primary"
                 >
                   <option value="All">All Statuses</option>
                   <option value="Completed">Completed (Green 100%)</option>
@@ -634,13 +634,13 @@ export default function DepartmentHiringPage() {
               <div>
                 <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Search</label>
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5F6E7E]" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/70" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search dept or section..."
-                    className="w-full pl-8 pr-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-bold text-[#163B5C] focus:outline-none focus:border-[#163B5C]"
+                    className="w-full pl-8 pr-2.5 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-bold text-primary focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -649,14 +649,14 @@ export default function DepartmentHiringPage() {
 
           {/* TREE-BASED ENTERPRISE HIERARCHY LAYOUT */}
           <div className="card-glass p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <div>
-                <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center gap-2">
-                  <FolderOpen className="w-5 h-5 text-[#4E8ABF]" />
+                <h3 className="font-extrabold text-primary text-base tracking-tight flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5 text-accent" />
                   <span>Showroom Department &amp; Section Workforce Tree</span>
                 </h3>
-                <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">
-                  Designation Target: <span className="font-bold text-[#163B5C] bg-[#4E8ABF]/20 px-2 py-0.5 rounded-md">Sales Executive</span>
+                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  Designation Target: <span className="font-bold text-primary bg-accent/20 px-2 py-0.5 rounded-md">Sales Executive</span>
                 </p>
               </div>
             </div>
@@ -675,23 +675,23 @@ export default function DepartmentHiringPage() {
                   return (
                     <div 
                       key={deptNode.department} 
-                      className="border border-[#E2E8F0] rounded-2xl bg-white/80 overflow-hidden shadow-xs transition-all"
+                      className="border border-accent-soft rounded-2xl bg-white/80 overflow-hidden shadow-xs transition-all"
                     >
                       {/* Department Root Row */}
                       <div 
                         onClick={() => toggleExpandDept(deptNode.department)}
-                        className="p-4 bg-[#F4F6F9] hover:bg-[#F4F6F9]/60 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0]/80"
+                        className="p-4 bg-background hover:bg-background/60 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-accent-soft/80"
                       >
                         <div className="flex items-center gap-3">
-                          <button className="p-1 rounded-lg bg-[#163B5C]/10 text-[#163B5C] hover:bg-[#163B5C] hover:text-white transition-colors">
+                          <button className="p-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
                             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                           </button>
-                          <Building2 className="w-5 h-5 text-[#163B5C]" />
+                          <Building2 className="w-5 h-5 text-primary" />
                           <div>
-                            <h4 className="font-black text-[#163B5C] text-base tracking-tight">
+                            <h4 className="font-black text-primary text-base tracking-tight">
                               {deptNode.department}
                             </h4>
-                            <p className="text-[11px] text-[#5F6E7E] font-medium">
+                            <p className="text-[11px] text-primary/70 font-medium">
                               {deptNode.sections.length} Showroom Sections
                             </p>
                           </div>
@@ -700,8 +700,8 @@ export default function DepartmentHiringPage() {
                         {/* Department Summary Metrics & Progress */}
                         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                           <div className="text-right text-xs">
-                            <span className="text-[10px] text-[#5F6E7E] font-extrabold uppercase block">Required</span>
-                            <span className="font-extrabold text-[#163B5C] text-sm">{deptNode.required}</span>
+                            <span className="text-[10px] text-primary/70 font-extrabold uppercase block">Required</span>
+                            <span className="font-extrabold text-primary text-sm">{deptNode.required}</span>
                           </div>
 
                           <div className="text-right text-xs">
@@ -716,15 +716,15 @@ export default function DepartmentHiringPage() {
 
                           {/* Progress Bar */}
                           <div className="w-36 sm:w-44 space-y-1">
-                            <div className="flex items-center justify-between text-[11px] font-extrabold text-[#163B5C]">
+                            <div className="flex items-center justify-between text-[11px] font-extrabold text-primary">
                               <span>{deptNode.filled} / {deptNode.required}</span>
                               <span>{deptNode.percentage}%</span>
                             </div>
-                            <div className="w-full h-2.5 bg-[#E2E8F0] rounded-full overflow-hidden shadow-inner">
+                            <div className="w-full h-2.5 bg-accent-soft rounded-full overflow-hidden shadow-inner">
                               <div 
                                 className={`h-full rounded-full transition-all duration-500 ${
                                   deptNode.percentage >= 100 ? 'bg-emerald-600' :
-                                  deptNode.percentage >= 75 ? 'bg-[#4E8ABF]' :
+                                  deptNode.percentage >= 75 ? 'bg-accent' :
                                   deptNode.percentage > 0 ? 'bg-sky-600' : 'bg-rose-500'
                                 }`}
                                 style={{ width: `${Math.min(deptNode.percentage, 100)}%` }}
@@ -738,7 +738,7 @@ export default function DepartmentHiringPage() {
 
                       {/* Expanded Children: Sections Tree Branches */}
                       {isExpanded && (
-                        <div className="divide-y divide-[#E2E8F0]/50 bg-white">
+                        <div className="divide-y divide-accent-soft/50 bg-white">
                           {deptNode.sections.map((secNode) => {
                             let secBadgeColor = 'blue';
                             if (secNode.status === 'Completed') secBadgeColor = 'green';
@@ -748,16 +748,16 @@ export default function DepartmentHiringPage() {
                             return (
                               <div 
                                 key={secNode.section}
-                                className="p-3.5 pl-6 sm:pl-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F4F6F9]/80 transition-colors font-medium border-l-4 border-l-[#4E8ABF]/40 ml-3 sm:ml-6 my-1"
+                                className="p-3.5 pl-6 sm:pl-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-background/80 transition-colors font-medium border-l-4 border-l-accent/40 ml-3 sm:ml-6 my-1"
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="text-[#4E8ABF] font-mono font-bold text-sm">├──</span>
-                                  <Layers className="w-4 h-4 text-[#4E8ABF]" />
+                                  <span className="text-accent font-mono font-bold text-sm">├──</span>
+                                  <Layers className="w-4 h-4 text-accent" />
                                   <div>
-                                    <span className="font-extrabold text-[#163B5C] text-xs sm:text-sm">
+                                    <span className="font-extrabold text-primary text-xs sm:text-sm">
                                       {secNode.section}
                                     </span>
-                                    <span className="text-[10px] text-[#5F6E7E] block font-medium">
+                                    <span className="text-[10px] text-primary/70 block font-medium">
                                       Sales Executive Target
                                     </span>
                                   </div>
@@ -765,8 +765,8 @@ export default function DepartmentHiringPage() {
 
                                 <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                                   <div className="text-right text-xs">
-                                    <span className="text-[9.5px] text-[#5F6E7E] font-bold block">Required</span>
-                                    <span className="font-extrabold text-[#163B5C]">{secNode.required}</span>
+                                    <span className="text-[9.5px] text-primary/70 font-bold block">Required</span>
+                                    <span className="font-extrabold text-primary">{secNode.required}</span>
                                   </div>
 
                                   <div className="text-right text-xs">
@@ -781,15 +781,15 @@ export default function DepartmentHiringPage() {
 
                                   {/* Section Progress Bar */}
                                   <div className="w-32 sm:w-36 space-y-1">
-                                    <div className="flex items-center justify-between text-[10.5px] font-bold text-[#163B5C]">
+                                    <div className="flex items-center justify-between text-[10.5px] font-bold text-primary">
                                       <span>{secNode.filled} / {secNode.required}</span>
                                       <span>{secNode.percentage}%</span>
                                     </div>
-                                    <div className="w-full h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                                    <div className="w-full h-2 bg-accent-soft rounded-full overflow-hidden">
                                       <div 
                                         className={`h-full rounded-full transition-all duration-500 ${
                                           secNode.percentage >= 100 ? 'bg-emerald-600' :
-                                          secNode.percentage >= 75 ? 'bg-[#4E8ABF]' :
+                                          secNode.percentage >= 75 ? 'bg-accent' :
                                           secNode.percentage > 0 ? 'bg-sky-600' : 'bg-rose-500'
                                         }`}
                                         style={{ width: `${Math.min(secNode.percentage, 100)}%` }}
@@ -809,7 +809,7 @@ export default function DepartmentHiringPage() {
                                         required: secNode.required,
                                         remarks: secNode.remarks
                                       })}
-                                      className="px-2.5 py-1 rounded-lg bg-[#163B5C]/10 text-[#163B5C] hover:bg-[#163B5C] hover:text-white font-bold text-xs transition-colors flex items-center gap-1"
+                                      className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-bold text-xs transition-colors flex items-center gap-1"
                                     >
                                       <Edit3 className="w-3.5 h-3.5" />
                                       <span>Edit</span>
@@ -825,7 +825,7 @@ export default function DepartmentHiringPage() {
                   );
                 })
               ) : (
-                <div className="py-12 text-center text-xs text-[#5F6E7E] font-semibold bg-white rounded-2xl border border-[#E2E8F0]">
+                <div className="py-12 text-center text-xs text-primary/70 font-semibold bg-white rounded-2xl border border-accent-soft">
                   No department hiring hierarchy data matches your filters.
                 </div>
               )}
@@ -836,20 +836,20 @@ export default function DepartmentHiringPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Department Hiring Comparison Bar Chart */}
             <div className="card-glass p-5 space-y-4">
-              <h3 className="font-extrabold text-[#163B5C] text-sm tracking-tight flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#4E8ABF]" />
+              <h3 className="font-extrabold text-primary text-sm tracking-tight flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-accent" />
                 <span>Department-Wise Required vs Filled Sales Executives</span>
               </h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={deptChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="department" tick={{ fontSize: 10, fontWeight: 700, fill: '#163B5C' }} />
-                    <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: '#163B5C' }} />
-                    <Tooltip contentStyle={{ backgroundColor: '#163B5C', borderRadius: '12px', color: '#fff', fontSize: '12px' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-accent-soft)" />
+                    <XAxis dataKey="department" tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--color-primary)' }} />
+                    <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--color-primary)' }} />
+                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-primary)', borderRadius: '12px', color: '#fff', fontSize: '12px' }} />
                     <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 700 }} />
-                    <Bar dataKey="required" name="Required Target" fill="#163B5C" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="filled" name="Filled Staff" fill="#4E8ABF" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="required" name="Required Target" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="filled" name="Filled Staff" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -857,14 +857,14 @@ export default function DepartmentHiringPage() {
 
             {/* Top Performing vs Needing Recruitment Panels */}
             <div className="card-glass p-5 space-y-4 flex flex-col justify-between">
-              <h3 className="font-extrabold text-[#163B5C] text-sm tracking-tight flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#4E8ABF]" />
+              <h3 className="font-extrabold text-primary text-sm tracking-tight flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-accent" />
                 <span>Department Hiring Performance Overview</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Top Performing */}
-                <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] space-y-2.5">
+                <div className="p-3.5 rounded-2xl bg-white border border-accent-soft space-y-2.5">
                   <h4 className="font-black text-xs text-emerald-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-emerald-100 pb-1.5">
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                     <span>Top Performing Departments</span>
@@ -872,7 +872,7 @@ export default function DepartmentHiringPage() {
                   <div className="space-y-2 text-xs">
                     {topPerformingDepts.map(d => (
                       <div key={d.department} className="flex justify-between items-center font-semibold">
-                        <span className="text-[#163B5C]">{d.department}</span>
+                        <span className="text-primary">{d.department}</span>
                         <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold">
                           {d.percentage}% ({d.filled}/{d.required})
                         </span>
@@ -882,7 +882,7 @@ export default function DepartmentHiringPage() {
                 </div>
 
                 {/* Needing Recruitment */}
-                <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] space-y-2.5">
+                <div className="p-3.5 rounded-2xl bg-white border border-accent-soft space-y-2.5">
                   <h4 className="font-black text-xs text-rose-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-rose-100 pb-1.5">
                     <AlertTriangle className="w-4 h-4 text-rose-600" />
                     <span>Needing Recruitment</span>
@@ -890,7 +890,7 @@ export default function DepartmentHiringPage() {
                   <div className="space-y-2 text-xs">
                     {needingRecruitmentDepts.map(d => (
                       <div key={d.department} className="flex justify-between items-center font-semibold">
-                        <span className="text-[#163B5C]">{d.department}</span>
+                        <span className="text-primary">{d.department}</span>
                         <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-extrabold">
                           {d.remaining} Vacant
                         </span>
@@ -906,24 +906,24 @@ export default function DepartmentHiringPage() {
 
       {/* Edit Required Openings Target Modal */}
       {editModal.open && (
-        <div className="fixed inset-0 z-50 bg-[#163B5C]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#F4F6F9] rounded-2xl border border-[#E2E8F0] shadow-2xl w-full max-w-md p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+        <div className="fixed inset-0 z-50 bg-primary/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-background rounded-2xl border border-accent-soft shadow-2xl w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <div>
-                <h3 className="font-extrabold text-[#163B5C] text-base">Edit Sales Executive Target</h3>
-                <p className="text-xs text-[#5F6E7E] font-medium">
+                <h3 className="font-extrabold text-primary text-base">Edit Sales Executive Target</h3>
+                <p className="text-xs text-primary/70 font-medium">
                   {editModal.department} · {editModal.section}
                 </p>
               </div>
               <button 
                 onClick={() => setEditModal(prev => ({ ...prev, open: false }))}
-                className="w-8 h-8 rounded-full bg-[#163B5C]/10 hover:bg-[#163B5C] hover:text-white text-[#163B5C] flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs font-semibold text-[#163B5C]">
+            <div className="space-y-4 text-xs font-semibold text-primary">
               <div>
                 <label className="block text-[11px] font-black uppercase mb-1">
                   Required Sales Executives Target
@@ -933,7 +933,7 @@ export default function DepartmentHiringPage() {
                   min={1}
                   value={editModal.required}
                   onChange={(e) => setEditModal(prev => ({ ...prev, required: parseInt(e.target.value, 10) || 1 }))}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white font-bold text-sm"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft bg-white font-bold text-sm"
                 />
               </div>
 
@@ -944,15 +944,15 @@ export default function DepartmentHiringPage() {
                   value={editModal.remarks}
                   onChange={(e) => setEditModal(prev => ({ ...prev, remarks: e.target.value }))}
                   placeholder="Enter notes or recruitment urgency..."
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white font-medium text-xs focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft bg-white font-medium text-xs focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-accent-soft">
               <button
                 onClick={() => setEditModal(prev => ({ ...prev, open: false }))}
-                className="px-4 py-2 rounded-xl border border-[#E2E8F0] bg-white text-[#163B5C] font-bold text-xs hover:bg-[#F4F6F9]"
+                className="px-4 py-2 rounded-xl border border-accent-soft bg-white text-primary font-bold text-xs hover:bg-background"
               >
                 Cancel
               </button>

@@ -429,7 +429,7 @@ export default function OfferProcessPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3.5">
               <div>
                 <h3 className="font-extrabold text-slate-900 text-base tracking-tight flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-[#4E8ABF]" />
+                  <TrendingUp className="w-5 h-5 text-accent" />
                   <span>Recruitment Analytics &amp; Pipeline</span>
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -452,7 +452,7 @@ export default function OfferProcessPage() {
                     onClick={() => { setActiveRange(range.key as any); setFromDate(''); setToDate(''); }}
                     className={`px-3 py-1.5 rounded-xl transition-all ${
                       activeRange === range.key
-                        ? 'bg-[#163B5C] text-white font-extrabold shadow-xs'
+                        ? 'bg-primary text-white font-extrabold shadow-xs'
                         : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-white'
                     }`}
                   >
@@ -585,7 +585,7 @@ export default function OfferProcessPage() {
                             <td className="py-3.5 px-3 text-center font-bold text-slate-400">{idx + 1}</td>
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-[#163B5C] text-white font-extrabold text-xs shadow-xs flex items-center justify-center border border-[#4E8ABF]/30 flex-shrink-0">
+                                <div className="w-9 h-9 rounded-xl bg-primary text-white font-extrabold text-xs shadow-xs flex items-center justify-center border border-accent/30 flex-shrink-0">
                                   {o.initials || o.name?.substring(0, 2).toUpperCase()}
                                 </div>
                                 <div>
@@ -690,7 +690,7 @@ export default function OfferProcessPage() {
                     <div key={o.appNo} onClick={() => openProfile(o)} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs relative cursor-pointer active:scale-[0.99] transition-all">
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#163B5C] text-white font-extrabold text-sm shadow-xs flex items-center justify-center border border-[#4E8ABF]/30 flex-shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-primary text-white font-extrabold text-sm shadow-xs flex items-center justify-center border border-accent/30 flex-shrink-0">
                             {o.initials || o.name?.substring(0, 2).toUpperCase()}
                           </div>
                           <div>
@@ -758,7 +758,7 @@ export default function OfferProcessPage() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200 bg-white">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#163B5C] text-white font-extrabold flex items-center justify-center shadow-md border border-[#4E8ABF]/30 flex-shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-primary text-white font-extrabold flex items-center justify-center shadow-md border border-accent/30 flex-shrink-0">
                   {detailOffer.initials || detailOffer.name?.substring(0, 2).toUpperCase()}
                 </div>
                 <div>

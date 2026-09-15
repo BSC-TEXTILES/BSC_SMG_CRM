@@ -133,13 +133,13 @@ export default function Greeter() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-[#163B5C] to-[#0E2A44] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary flex items-center justify-center p-4 relative overflow-hidden">
         {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4E8ABF]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="bg-white/10 backdrop-blur-2xl p-8 max-w-md w-full text-center space-y-6 animate-scale-in border border-white/20 rounded-3xl shadow-2xl relative z-10 text-white">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#163B5C] to-[#0B1F35] text-[#4E8ABF] rounded-3xl flex items-center justify-center mx-auto shadow-xl border border-white/10">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary to-[#0B1F35] text-accent rounded-3xl flex items-center justify-center mx-auto shadow-xl border border-white/10">
             <UserCheck className="w-8 h-8" />
           </div>
           <div>
@@ -159,7 +159,7 @@ export default function Greeter() {
                 placeholder="••••"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                className="w-full text-center tracking-[1em] text-2xl font-black py-3 rounded-2xl border border-white/20 bg-white/10 text-white focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/30 transition-all placeholder:text-white/30"
+                className="w-full text-center tracking-[1em] text-2xl font-black py-3 rounded-2xl border border-white/20 bg-white/10 text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all placeholder:text-white/30"
               />
               <KeyRound className="w-5 h-5 text-white/50 absolute left-4 top-4" />
             </div>
@@ -176,9 +176,9 @@ export default function Greeter() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-[#163B5C] to-[#0E2A44] text-white p-4 sm:p-6 flex flex-col justify-between max-w-xl mx-auto select-none relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary text-white p-4 sm:p-6 flex flex-col justify-between max-w-xl mx-auto select-none relative overflow-hidden">
       {/* Background Ambient Glows */}
-      <div className="absolute top-10 -left-20 w-80 h-80 bg-[#4E8ABF]/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-10 -left-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-10 -right-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
       {/* Top Header Section */}

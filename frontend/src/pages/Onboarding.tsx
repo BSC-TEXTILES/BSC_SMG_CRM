@@ -100,7 +100,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
           rightElement={
             <button
               onClick={() => setNewModal(true)}
-              className="px-3 py-1.5 rounded-lg bg-[#163B5C] text-white text-xs font-bold hover:bg-[#0E2A44] flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
               <span>New Onboarding</span>
@@ -126,7 +126,7 @@ export default function OnboardingPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E2E8F0] text-[10px] font-black uppercase text-[#64748B]">
+                  <tr className="border-b border-accent-soft text-[10px] font-black uppercase text-[#64748B]">
                     <th className="py-2.5 px-3 text-center w-12">SL.NO</th>
                     <th className="py-2.5 px-3">Employee</th>
                     <th className="py-2.5 px-3">Designation</th>
@@ -136,18 +136,18 @@ export default function OnboardingPage() {
                     <th className="py-2.5 px-3">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/50">
+                <tbody className="divide-y divide-accent-soft/50">
                   {filtered.length > 0 ? (
                     filtered.map((r, idx) => (
                       <tr key={r.recordId} className="hover:bg-black/5 font-medium">
-                        <td className="py-3 px-3 text-center font-bold text-[#5F6E7E]">{idx + 1}</td>
-                        <td className="py-3 px-3 font-bold text-[#163B5C]">{r.empName}</td>
+                        <td className="py-3 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                        <td className="py-3 px-3 font-bold text-primary">{r.empName}</td>
                         <td className="py-3 px-3">{r.desig}</td>
                         <td className="py-3 px-3">{r.joiningDate}</td>
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-[#EEF2F6] h-1.5 rounded-full overflow-hidden">
-                              <div className="bg-[#4E8ABF] h-full" style={{ width: `${r.progress}%` }} />
+                              <div className="bg-accent h-full" style={{ width: `${r.progress}%` }} />
                             </div>
                             <span className="font-bold text-[10px]">{r.progress}%</span>
                           </div>
@@ -158,7 +158,7 @@ export default function OnboardingPage() {
                         <td className="py-3 px-3">
                           <button
                             onClick={() => openChecklist(r)}
-                            className="px-2.5 py-1 rounded bg-[#163B5C] text-white font-bold text-[11px]"
+                            className="px-2.5 py-1 rounded bg-primary text-white font-bold text-[11px]"
                           >
                             Open Checklist
                           </button>
@@ -180,7 +180,7 @@ export default function OnboardingPage() {
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerRecord(null)} />
           <div className="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col z-10 animate-fade-in">
-            <div className="bg-[#163B5C] p-5 text-white flex items-center justify-between">
+            <div className="bg-primary p-5 text-white flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold text-base">{drawerRecord.empName}</h3>
                 <div className="text-[11px] text-white/60">{drawerRecord.desig} · Onboarding Checklist</div>
@@ -191,13 +191,13 @@ export default function OnboardingPage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
               {Object.keys(sections).map(sec => (
                 <div key={sec} className="space-y-2">
-                  <div className="text-[10px] font-black uppercase text-[#163B5C] tracking-wider p-2 bg-[#F4F6F9] rounded-md border-l-4 border-l-[#4E8ABF]">
+                  <div className="text-[10px] font-black uppercase text-primary tracking-wider p-2 bg-background rounded-md border-l-4 border-l-accent">
                     {sec}
                   </div>
                   {sections[sec].map(item => (
-                    <div key={item.itemId} className="p-3 rounded-xl border border-[#E2E8F0] flex items-center justify-between gap-3 bg-white">
+                    <div key={item.itemId} className="p-3 rounded-xl border border-accent-soft flex items-center justify-between gap-3 bg-white">
                       <div>
-                        <div className="font-semibold text-[#163B5C]">{item.item}</div>
+                        <div className="font-semibold text-primary">{item.item}</div>
                         {item.mandatory && <span className="text-[9px] text-red-600 font-bold">★ Mandatory</span>}
                       </div>
                       <div className="flex gap-1">
@@ -227,39 +227,39 @@ export default function OnboardingPage() {
       {newModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white rounded-2xl p-5 space-y-4 shadow-2xl">
-            <h3 className="font-black text-[#163B5C] text-base">New Onboarding</h3>
+            <h3 className="font-black text-primary text-base">New Onboarding</h3>
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Employee Name *</label>
+                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Employee Name *</label>
                 <input
                   type="text"
                   value={empName}
                   onChange={(e) => setEmpName(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9]"
+                  className="w-full p-2.5 rounded-lg border border-accent-soft bg-background"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Designation *</label>
+                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Designation *</label>
                 <input
                   type="text"
                   value={desig}
                   onChange={(e) => setDesig(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9]"
+                  className="w-full p-2.5 rounded-lg border border-accent-soft bg-background"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Joining Date *</label>
+                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Joining Date *</label>
                 <input
                   type="date"
                   value={joiningDate}
                   onChange={(e) => setJoiningDate(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9]"
+                  className="w-full p-2.5 rounded-lg border border-accent-soft bg-background"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setNewModal(false)} className="px-4 py-2 rounded-lg border border-[#E2E8F0] text-xs font-bold">Cancel</button>
-              <button onClick={handleCreateOnboarding} className="px-4 py-2 rounded-lg bg-[#163B5C] text-white text-xs font-bold">Create</button>
+              <button onClick={() => setNewModal(false)} className="px-4 py-2 rounded-lg border border-accent-soft text-xs font-bold">Cancel</button>
+              <button onClick={handleCreateOnboarding} className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-bold">Create</button>
             </div>
           </div>
         </div>

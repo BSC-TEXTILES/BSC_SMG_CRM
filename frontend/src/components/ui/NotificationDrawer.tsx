@@ -54,13 +54,13 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
   return (
     <>
       <div className="fixed inset-0 z-50 flex justify-end">
-        <div className="fixed inset-0 bg-[#163B5C]/50 backdrop-blur-xs transition-opacity" onClick={onClose} />
+        <div className="fixed inset-0 bg-primary/50 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
-        <aside className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col z-10 animate-fade-in border-l border-[#E2E8F0]">
+        <aside className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col z-10 animate-fade-in border-l border-accent-soft">
           {/* Header */}
-          <div className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-[#163B5C] text-white flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-accent-soft bg-primary text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-white/10 text-[#4E8ABF] border border-white/10">
+              <div className="p-2 rounded-xl bg-white/10 text-accent border border-white/10">
                 <Bell className="w-5 h-5" />
               </div>
               <div>
@@ -75,7 +75,7 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
                 className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors"
                 title="Direct Text Messaging"
               >
-                <MessageSquare className="w-4 h-4 text-[#4E8ABF]" />
+                <MessageSquare className="w-4 h-4 text-accent" />
               </button>
               <button
                 onClick={() => setPrefsOpen(true)}
@@ -91,15 +91,15 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
           </div>
 
           {/* Search & Tabs */}
-          <div className="p-3 bg-[#F4F6F9] border-b border-[#E2E8F0] space-y-2">
+          <div className="p-3 bg-background border-b border-accent-soft space-y-2">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5F6E7E]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary/70" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search alerts & broadcasts..."
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-white text-xs text-[#163B5C] font-semibold focus:outline-none focus:border-[#163B5C]"
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-accent-soft bg-white text-xs text-primary font-semibold focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -117,7 +117,7 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
                     onClick={() => setActiveTab(t.key as any)}
                     className={`
                       px-2.5 py-1 rounded-lg text-[10.5px] transition-all whitespace-nowrap
-                      ${activeTab === t.key ? 'bg-[#163B5C] text-white font-extrabold' : 'text-[#5F6E7E] hover:bg-[#E2E8F0]/50'}
+                      ${activeTab === t.key ? 'bg-primary text-white font-extrabold' : 'text-primary/70 hover:bg-accent-soft/50'}
                     `}
                   >
                     {t.label}
@@ -127,7 +127,7 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
 
               <button
                 onClick={() => NotificationService.markAllAsRead()}
-                className="text-[10.5px] text-[#4E8ABF] font-extrabold hover:underline flex items-center gap-1 flex-shrink-0 ml-2"
+                className="text-[10.5px] text-accent font-extrabold hover:underline flex items-center gap-1 flex-shrink-0 ml-2"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>Mark All Read</span>
@@ -145,19 +145,19 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
                     key={n.id}
                     className={`
                       p-3.5 rounded-2xl border transition-all duration-150 relative space-y-2 group
-                      ${!n.read ? 'bg-sky-50/60 border-sky-200 shadow-xs' : 'bg-white border-[#E2E8F0]'}
+                      ${!n.read ? 'bg-sky-50/60 border-sky-200 shadow-xs' : 'bg-white border-accent-soft'}
                     `}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         {!n.read && <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse flex-shrink-0" />}
-                        <h3 className="font-extrabold text-xs text-[#163B5C] leading-tight">{n.title}</h3>
+                        <h3 className="font-extrabold text-xs text-primary leading-tight">{n.title}</h3>
                       </div>
                       <div className="flex items-center gap-1">
                         {getPriorityBadge(n.priority)}
                         <button
                           onClick={() => NotificationService.togglePin(n.id)}
-                          className={`p-1 rounded hover:bg-black/5 ${n.pinned ? 'text-[#4E8ABF]' : 'text-[#94A3B8]'}`}
+                          className={`p-1 rounded hover:bg-black/5 ${n.pinned ? 'text-accent' : 'text-[#94A3B8]'}`}
                           title="Pin message"
                         >
                           <Pin className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
 
                     {/* Read Acknowledgement Button */}
                     {n.requireAcknowledgement && (
-                      <div className="pt-2 border-t border-[#E2E8F0]/40 flex items-center justify-between">
+                      <div className="pt-2 border-t border-accent-soft/40 flex items-center justify-between">
                         {isAcked ? (
                           <span className="text-[10px] font-black text-emerald-700 flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -192,12 +192,12 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
                         ) : (
                           <button
                             onClick={() => NotificationService.acknowledgeRead(n.id, username)}
-                            className="px-3 py-1.5 rounded-xl bg-[#163B5C] text-white text-[10.5px] font-extrabold shadow-xs hover:bg-[#0E2A44]"
+                            className="px-3 py-1.5 rounded-xl bg-primary text-white text-[10.5px] font-extrabold shadow-xs hover:bg-primary"
                           >
                             I Have Read &amp; Acknowledge
                           </button>
                         )}
-                        <span className="text-[9.5px] text-[#5F6E7E] font-semibold">
+                        <span className="text-[9.5px] text-primary/70 font-semibold">
                           {(n.acknowledgedBy?.length || 0)} Acknowledgements
                         </span>
                       </div>
@@ -208,7 +208,7 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
                       {!n.read && (
                         <button
                           onClick={() => NotificationService.markAsRead(n.id)}
-                          className="text-[#163B5C] font-extrabold hover:underline"
+                          className="text-primary font-extrabold hover:underline"
                         >
                           Mark Read
                         </button>
@@ -219,10 +219,10 @@ export default function NotificationDrawer({ isOpen, onClose }: NotificationDraw
               })
             ) : (
               <div className="text-center py-12 space-y-2">
-                <div className="w-12 h-12 rounded-full bg-[#F4F6F9] border border-[#E2E8F0] flex items-center justify-center mx-auto text-[#5F6E7E]">
+                <div className="w-12 h-12 rounded-full bg-background border border-accent-soft flex items-center justify-center mx-auto text-primary/70">
                   <Bell className="w-6 h-6 stroke-[1.5]" />
                 </div>
-                <div className="text-xs font-extrabold text-[#163B5C]">No Notifications</div>
+                <div className="text-xs font-extrabold text-primary">No Notifications</div>
                 <p className="text-[11px] text-[#64748B] max-w-xs mx-auto">You're all caught up! Broadcasts and alerts will appear here.</p>
               </div>
             )}

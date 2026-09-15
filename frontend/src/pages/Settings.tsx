@@ -136,9 +136,23 @@ export default function SettingsPage() {
   }, [navigate, loadAll]);
 
   // Users Handlers
+  // Validate password utility
+  const validatePassword = (pwd: string) => {
+    const hasLength = pwd.length >= 8;
+    const hasLetter = /[a-zA-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
+    return hasLength && hasLetter && hasNumber && hasSpecial;
+  };
+
   const handleAddUser = async () => {
     if (!newName.trim() || !newUname.trim() || !newPwd.trim()) {
       showToast('All fields required', 'error');
+      return;
+    }
+    
+    if (!validatePassword(newPwd.trim())) {
+      showToast('Password must be at least 8 characters long and contain letters, numbers, and special characters', 'error');
       return;
     }
     try {
@@ -177,6 +191,12 @@ export default function SettingsPage() {
   const handleResetUserPassword = async (username: string) => {
     const newPassword = window.prompt(`Enter new password for user ${username}:`);
     if (!newPassword || !newPassword.trim()) return;
+
+    if (!validatePassword(newPassword.trim())) {
+      showToast('Password must be at least 8 characters long and contain letters, numbers, and special characters', 'error');
+      return;
+    }
+
     try {
       await API.updateUser({ username, password: newPassword.trim() });
       showToast(`Password for user ${username} updated successfully!`, 'success');
@@ -286,7 +306,7 @@ export default function SettingsPage() {
   }, [activeTab, loadSecurityEvents]);
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -302,16 +322,16 @@ export default function SettingsPage() {
           {/* Header */}
           <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
-                <Settings className="w-5 h-5 text-[#4E8ABF]" />
+              <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                <Settings className="w-5 h-5 text-accent" />
                 <span>Enterprise Administration Hub</span>
               </h2>
-              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Manage user credentials, role permissions, interview evaluation rubrics &amp; company designations.</p>
+              <p className="text-xs text-primary/70 font-medium mt-0.5">Manage user credentials, role permissions, interview evaluation rubrics &amp; company designations.</p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-1 overflow-x-auto scrollbar-none text-xs font-bold">
+          <div className="flex items-center gap-2 border-b border-accent-soft pb-1 overflow-x-auto scrollbar-none text-xs font-bold">
             {tabs.map(t => {
               const Icon = t.icon;
               return (
@@ -321,8 +341,8 @@ export default function SettingsPage() {
                   className={`
                     px-4 py-2.5 rounded-xl transition-all duration-150 flex items-center gap-2 shadow-xs whitespace-nowrap
                     ${activeTab === t.key 
-                      ? 'bg-[#163B5C] text-white shadow-md font-extrabold' 
-                      : 'bg-white text-[#475569] border border-[#E2E8F0] hover:bg-[#F4F6F9]'}
+                      ? 'bg-primary text-white shadow-md font-extrabold' 
+                      : 'bg-white text-[#475569] border border-accent-soft hover:bg-background'}
                   `}
                 >
                   <Icon className="w-4 h-4" />
@@ -336,34 +356,34 @@ export default function SettingsPage() {
           {activeTab === 'users' && (
             <div className="space-y-6 animate-fade-in">
               {/* System Credentials Quick Reference Card */}
-              <div className="card-glass p-5 border-2 border-[#4E8ABF]/30 space-y-3 bg-gradient-to-r from-sky-50/60 to-sky-100/40">
-                <div className="flex items-center justify-between border-b border-[#4E8ABF]/30 pb-2">
-                  <h3 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-[#4E8ABF]" />
+              <div className="card-glass p-5 border-2 border-accent/30 space-y-3 bg-gradient-to-r from-sky-50/60 to-sky-100/40">
+                <div className="flex items-center justify-between border-b border-accent/30 pb-2">
+                  <h3 className="font-extrabold text-primary text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-accent" />
                     <span>Built-in System Accounts Reference</span>
                   </h3>
-                  <span className="text-[10px] font-black text-[#4E8ABF] bg-amber-200/60 px-2 py-0.5 rounded-full uppercase">
+                  <span className="text-[10px] font-black text-accent bg-amber-200/60 px-2 py-0.5 rounded-full uppercase">
                     {session?.locationName || 'Multi-Location System'}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-semibold">
-                  <div className="p-3 bg-white rounded-xl border border-[#E2E8F0]">
-                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase">System Admin</div>
-                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">admin@bsctextiles.com</div>
+                  <div className="p-3 bg-white rounded-xl border border-accent-soft">
+                    <div className="text-[10px] font-black text-primary/70 uppercase">System Admin</div>
+                    <div className="font-extrabold text-primary font-mono mt-0.5">admin@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
                     </div>
                   </div>
-                  <div className="p-3 bg-white rounded-xl border border-[#E2E8F0]">
-                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase">HR Specialist</div>
-                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">hr@bsctextiles.com</div>
+                  <div className="p-3 bg-white rounded-xl border border-accent-soft">
+                    <div className="text-[10px] font-black text-primary/70 uppercase">HR Specialist</div>
+                    <div className="font-extrabold text-primary font-mono mt-0.5">hr@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
                     </div>
                   </div>
-                  <div className="p-3 bg-white rounded-xl border border-[#E2E8F0]">
-                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase">Store Manager</div>
-                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">manager@bsctextiles.com</div>
+                  <div className="p-3 bg-white rounded-xl border border-accent-soft">
+                    <div className="text-[10px] font-black text-primary/70 uppercase">Store Manager</div>
+                    <div className="font-extrabold text-primary font-mono mt-0.5">manager@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
                     </div>
@@ -373,21 +393,21 @@ export default function SettingsPage() {
                       <span>Greeter Desk</span>
                       <span className="px-1.5 py-[2px] rounded bg-emerald-600 text-white font-mono text-[9px]">NEW</span>
                     </div>
-                    <div className="font-extrabold text-[#163B5C] font-mono mt-0.5">greeter@bsctextiles.com</div>
+                    <div className="font-extrabold text-primary font-mono mt-0.5">greeter@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
                     </div>
                   </div>
                 </div>
-                <p className="text-[10px] text-[#5F6E7E] font-medium">
+                <p className="text-[10px] text-primary/70 font-medium">
                   Passwords are never displayed anywhere in the application. They are stored as one-way bcrypt hashes;
                   use the form below to set or change a user's password.
                 </p>
               </div>
 
               <div className="card-glass p-6 space-y-4">
-                <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#4E8ABF]" />
+                <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
+                  <Users className="w-4 h-4 text-accent" />
                   <span>Add New System User Account</span>
                 </h3>
 
@@ -455,11 +475,11 @@ export default function SettingsPage() {
               </div>
 
               <div className="card-glass p-5 space-y-4">
-                <h3 className="font-extrabold text-[#163B5C] text-sm tracking-tight">Registered User Accounts &amp; Role Management</h3>
+                <h3 className="font-extrabold text-primary text-sm tracking-tight">Registered User Accounts &amp; Role Management</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] bg-[#F4F6F9]/60">
+                      <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/60">
                         <th className="py-3 px-4">Full Name</th>
                         <th className="py-3 px-4">Username</th>
                         <th className="py-3 px-4">Location</th>
@@ -468,10 +488,10 @@ export default function SettingsPage() {
                         <th className="py-3 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E2E8F0]/60">
+                    <tbody className="divide-y divide-accent-soft/60">
                       {users.map(u => (
                         <tr key={u.username} className="hover:bg-black/5 font-medium">
-                          <td className="py-3.5 px-4 font-extrabold text-[#163B5C]">{u.fullName}</td>
+                          <td className="py-3.5 px-4 font-extrabold text-primary">{u.fullName}</td>
                           <td className="py-3.5 px-4 text-[#475569] font-mono">{u.username}</td>
                           <td className="py-3.5 px-4">
                             {u.location_id === null || u.location_id === undefined ? (
@@ -479,7 +499,7 @@ export default function SettingsPage() {
                                 🌐 All Locations
                               </span>
                             ) : (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#163B5C]/10 text-[#163B5C] flex items-center gap-1 w-fit">
+                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary flex items-center gap-1 w-fit">
                                 📍 {u.location_name || u.location_code || 'Davanagere'}
                               </span>
                             )}
@@ -488,7 +508,7 @@ export default function SettingsPage() {
                             <select
                               value={u.role}
                               onChange={(e) => handleChangeUserRole(u.username, e.target.value)}
-                              className="p-1.5 rounded-xl border border-[#163B5C]/30 bg-white font-bold text-[#163B5C] text-xs shadow-xs"
+                              className="p-1.5 rounded-xl border border-primary/30 bg-white font-bold text-primary text-xs shadow-xs"
                             >
                               <option value="Admin">Admin</option>
                               <option value="HR">HR</option>
@@ -513,7 +533,7 @@ export default function SettingsPage() {
                               </button>
                               <button
                                 onClick={() => handleResetUserPassword(u.username)}
-                                className="px-3 py-1.5 rounded-xl border border-[#163B5C] text-[#163B5C] font-bold text-[11px] hover:bg-[#163B5C] hover:text-white transition-all flex items-center gap-1 shadow-xs"
+                                className="px-3 py-1.5 rounded-xl border border-primary text-primary font-bold text-[11px] hover:bg-primary hover:text-white transition-all flex items-center gap-1 shadow-xs"
                               >
                                 <Key className="w-3.5 h-3.5" /> Reset Password
                               </button>
@@ -533,25 +553,25 @@ export default function SettingsPage() {
             <div className="space-y-6 animate-fade-in">
               <div className="card-glass p-6 space-y-6">
                 <div>
-                  <h3 className="font-extrabold text-[#163B5C] text-base flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-[#4E8ABF]" />
+                  <h3 className="font-extrabold text-primary text-base flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-accent" />
                     <span>Store Operational PINs &amp; Access Controls</span>
                   </h3>
-                  <p className="text-xs text-[#5F6E7E] font-medium mt-1">
+                  <p className="text-xs text-primary/70 font-medium mt-1">
                     Manage security PIN codes for hardware kiosks, TV monitor display, entrance greeter clicker, and daily POS cash settlement desk.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Greeter PIN */}
-                  <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
+                  <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
                     <div>
-                      <div className="font-extrabold text-sm text-[#163B5C]">Entrance Greeter Kiosk PIN</div>
-                      <div className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">Used by entrance staff on `/greeter` tablet</div>
+                      <div className="font-extrabold text-sm text-primary">Entrance Greeter Kiosk PIN</div>
+                      <div className="text-[11px] text-primary/70 font-medium mt-0.5">Used by entrance staff on `/greeter` tablet</div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Access PIN Code</label>
+                      <label className="text-[10.5px] font-black uppercase text-primary/70">Access PIN Code</label>
                       <div className="relative">
                         <input
                           type={showGreeterPin ? "text" : "password"}
@@ -559,7 +579,7 @@ export default function SettingsPage() {
                           value={greeterPin}
                           placeholder={pinStatus.greeter ? 'Configured - type a new PIN to change' : 'Not configured - factory default 1234'}
                           onChange={(e) => setGreeterPin(e.target.value)}
-                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-[#163B5C]"
+                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-primary"
                         />
                         <button
                           type="button"
@@ -573,14 +593,14 @@ export default function SettingsPage() {
                   </div>
 
                   {/* TV Display PIN */}
-                  <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
+                  <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
                     <div>
-                      <div className="font-extrabold text-sm text-[#163B5C]">Live Store TV Screen PIN</div>
-                      <div className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">Used for launch monitoring on `/tv` monitor</div>
+                      <div className="font-extrabold text-sm text-primary">Live Store TV Screen PIN</div>
+                      <div className="text-[11px] text-primary/70 font-medium mt-0.5">Used for launch monitoring on `/tv` monitor</div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Access PIN Code</label>
+                      <label className="text-[10.5px] font-black uppercase text-primary/70">Access PIN Code</label>
                       <div className="relative">
                         <input
                           type={showTvPin ? "text" : "password"}
@@ -588,7 +608,7 @@ export default function SettingsPage() {
                           value={tvPin}
                           placeholder={pinStatus.tv ? 'Configured - type a new PIN to change' : 'Not configured - factory default 1234'}
                           onChange={(e) => setTvPin(e.target.value)}
-                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-[#163B5C]"
+                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-primary"
                         />
                         <button
                           type="button"
@@ -602,14 +622,14 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Cash Settlement PIN */}
-                  <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
+                  <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
                     <div>
-                      <div className="font-extrabold text-sm text-[#163B5C]">Cash Settlement Desk PIN</div>
-                      <div className="text-[11px] text-[#5F6E7E] font-medium mt-0.5">Used to unlock `/cash-settlement` daily audit</div>
+                      <div className="font-extrabold text-sm text-primary">Cash Settlement Desk PIN</div>
+                      <div className="text-[11px] text-primary/70 font-medium mt-0.5">Used to unlock `/cash-settlement` daily audit</div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Access PIN Code</label>
+                      <label className="text-[10.5px] font-black uppercase text-primary/70">Access PIN Code</label>
                       <div className="relative">
                         <input
                           type={showCashPin ? "text" : "password"}
@@ -617,7 +637,7 @@ export default function SettingsPage() {
                           value={cashPin}
                           placeholder={pinStatus.cash ? 'Configured - type a new PIN to change' : 'Not configured - factory default 1234'}
                           onChange={(e) => setCashPin(e.target.value)}
-                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-[#163B5C]"
+                          className="input-modern font-mono text-sm tracking-wider pr-10 font-black text-primary"
                         />
                         <button
                           type="button"
@@ -631,7 +651,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2 border-t border-[#E2E8F0]">
+                <div className="flex justify-end pt-2 border-t border-accent-soft">
                   <button
                     onClick={handleSavePins}
                     disabled={savingPins}
@@ -647,10 +667,10 @@ export default function SettingsPage() {
           {/* TAB 2: PAGE VISIBILITY */}
           {activeTab === 'visibility' && (
             <div className="card-glass p-6 space-y-5 animate-fade-in">
-              <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-3">
+              <div className="flex justify-between items-center border-b border-accent-soft pb-3">
                 <div>
-                  <h3 className="font-extrabold text-[#163B5C] text-base">Role-Based Page Visibility Matrix</h3>
-                  <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Control module access permissions per role</p>
+                  <h3 className="font-extrabold text-primary text-base">Role-Based Page Visibility Matrix</h3>
+                  <p className="text-xs text-primary/70 font-medium mt-0.5">Control module access permissions per role</p>
                 </div>
                 <button onClick={handleSaveVisibility} className="btn-primary text-xs shadow-md">
                   Save Visibility Settings
@@ -659,21 +679,21 @@ export default function SettingsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                 {['HR', 'Manager', 'Greeter', 'Recruiter', 'Interviewer'].map(roleName => (
-                  <div key={roleName} className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] space-y-3">
-                    <div className="font-black text-sm text-[#163B5C] border-b border-[#E2E8F0] pb-2 uppercase tracking-wider">{roleName} Access</div>
+                  <div key={roleName} className="p-4 rounded-2xl border border-accent-soft bg-background space-y-3">
+                    <div className="font-black text-sm text-primary border-b border-accent-soft pb-2 uppercase tracking-wider">{roleName} Access</div>
                     <div className="space-y-2">
                       {['dashboard', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'broadcast', 'settings'].map(pageKey => {
                         const key = `${roleName.toLowerCase()}_${pageKey}`;
                         const allowed = pageSettings[key] !== false;
 
                         return (
-                          <label key={pageKey} className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#E2E8F0] cursor-pointer font-bold text-[#163B5C]">
+                          <label key={pageKey} className="flex items-center justify-between p-2 rounded-xl bg-white border border-accent-soft cursor-pointer font-bold text-primary">
                             <span className="capitalize">{pageKey.replace('_', ' ')} Module</span>
                             <input
                               type="checkbox"
                               checked={allowed}
                               onChange={(e) => setPageSettings({ ...pageSettings, [key]: e.target.checked })}
-                              className="accent-[#163B5C] rounded"
+                              className="accent-primary rounded"
                             />
                           </label>
                         );
@@ -689,7 +709,7 @@ export default function SettingsPage() {
           {activeTab === 'questions' && (
             <div className="space-y-6 animate-fade-in">
               <div className="card-glass p-6 space-y-4">
-                <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider">Add Interview Rubric Question</h3>
+                <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider">Add Interview Rubric Question</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
                   <select value={qDesig} onChange={(e) => setQDesig(e.target.value)} className="select-modern font-bold">
                     {designations.map(d => <option key={d} value={d}>{d}</option>)}
@@ -708,13 +728,13 @@ export default function SettingsPage() {
               </div>
 
               <div className="card-glass p-5 space-y-4">
-                <h3 className="font-extrabold text-[#163B5C] text-sm">Active Evaluation Questions</h3>
+                <h3 className="font-extrabold text-primary text-sm">Active Evaluation Questions</h3>
                 <div className="space-y-2 text-xs">
                   {questions.map((q) => (
-                    <div key={q.id} className="p-3.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] flex items-center justify-between gap-3">
+                    <div key={q.id} className="p-3.5 rounded-xl border border-accent-soft bg-background flex items-center justify-between gap-3">
                       <div>
-                        <div className="font-extrabold text-[#163B5C]">{q.question}</div>
-                        <div className="text-[10px] text-[#5F6E7E] font-semibold">{q.designation} · {q.round} · Max Score: {q.max_score || 10}</div>
+                        <div className="font-extrabold text-primary">{q.question}</div>
+                        <div className="text-[10px] text-primary/70 font-semibold">{q.designation} · {q.round} · Max Score: {q.max_score || 10}</div>
                       </div>
                       <button onClick={() => handleDeleteQuestion(q.id)} className="p-1.5 rounded-lg border border-rose-200 text-rose-600 font-bold hover:bg-rose-50">
                         <Trash2 className="w-4 h-4" />
@@ -729,7 +749,7 @@ export default function SettingsPage() {
           {/* TAB 4: DESIGNATIONS */}
           {activeTab === 'roles' && (
             <div className="card-glass p-6 space-y-5 animate-fade-in">
-              <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider">Company Designations Master List</h3>
+              <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider">Company Designations Master List</h3>
 
               <div className="flex items-center gap-3">
                 <input
@@ -746,7 +766,7 @@ export default function SettingsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2">
                 {designations.map((d) => (
-                  <div key={d} className="p-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] flex items-center justify-between font-bold text-[#163B5C]">
+                  <div key={d} className="p-3 rounded-xl border border-accent-soft bg-background flex items-center justify-between font-bold text-primary">
                     <span>{d}</span>
                     <button onClick={() => handleDeleteDesig(d)} className="text-rose-600 hover:text-rose-800 p-1">
                       <Trash2 className="w-4 h-4" />
@@ -760,13 +780,13 @@ export default function SettingsPage() {
           {activeTab === 'security' && (
             <div className="space-y-6 animate-fade-in">
               <div className="card-glass p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-accent-soft pb-3">
                   <div>
-                    <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
-                      <ShieldAlert className="w-4 h-4 text-[#4E8ABF]" />
+                    <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-accent" />
                       <span>Developer Tools Shield</span>
                     </h3>
-                    <p className="text-xs text-[#5F6E7E] font-medium mt-1">
+                    <p className="text-xs text-primary/70 font-medium mt-1">
                       The shield is <b>off by default</b>. When you enable it, every device actively tracks
                       browser developer tools: the app locks and shows &ldquo;Please turn off Developer
                       Tools&rdquo; until they are closed. All detections are recorded below.
@@ -797,28 +817,28 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Shield Status</div>
-                    <div className={`font-black text-sm mt-1 flex items-center gap-1.5 ${shieldEnabled ? 'text-emerald-700' : 'text-[#5F6E7E]'}`}>
-                      <span className={`w-2 h-2 rounded-full ${shieldEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-[#8896A6]'}`} />
+                  <div className="p-4 rounded-xl bg-background border border-accent-soft">
+                    <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Shield Status</div>
+                    <div className={`font-black text-sm mt-1 flex items-center gap-1.5 ${shieldEnabled ? 'text-emerald-700' : 'text-primary/70'}`}>
+                      <span className={`w-2 h-2 rounded-full ${shieldEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-primary/60'}`} />
                       {shieldEnabled ? 'Active on all devices' : 'Disabled (tap the switch to arm)'}
                     </div>
                   </div>
-                  <div className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Detections Logged</div>
-                    <div className="text-[#163B5C] font-black text-sm mt-1">
+                  <div className="p-4 rounded-xl bg-background border border-accent-soft">
+                    <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Detections Logged</div>
+                    <div className="text-primary font-black text-sm mt-1">
                       {securityEvents.filter(e => e.action === 'DEVTOOLS_DETECTED').length} total
                     </div>
                   </div>
-                  <div className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0]">
-                    <div className="text-[10px] font-black text-[#5F6E7E] uppercase tracking-wider">Enforcement</div>
-                    <div className="text-[#163B5C] font-black text-sm mt-1">Block + audit trail</div>
+                  <div className="p-4 rounded-xl bg-background border border-accent-soft">
+                    <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Enforcement</div>
+                    <div className="text-primary font-black text-sm mt-1">Block + audit trail</div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
+                <div className="rounded-xl border border-accent-soft overflow-hidden">
                   <table className="w-full text-xs">
-                    <thead className="bg-[#163B5C] text-white">
+                    <thead className="bg-primary text-white">
                       <tr>
                         <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">When</th>
                         <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">User</th>
@@ -829,16 +849,16 @@ export default function SettingsPage() {
                     <tbody>
                       {securityEvents.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-[#5F6E7E] font-semibold">
+                          <td colSpan={4} className="px-4 py-8 text-center text-primary/70 font-semibold">
                             No security events recorded yet — the shield is monitoring silently.
                           </td>
                         </tr>
                       ) : securityEvents.map(ev => (
-                        <tr key={ev.id} className="border-t border-[#E2E8F0] bg-white">
-                          <td className="px-4 py-2.5 font-semibold text-[#1B2A3B] whitespace-nowrap">
+                        <tr key={ev.id} className="border-t border-accent-soft bg-white">
+                          <td className="px-4 py-2.5 font-semibold text-primary whitespace-nowrap">
                             {ev.createdAt ? new Date(ev.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
                           </td>
-                          <td className="px-4 py-2.5 font-bold text-[#163B5C]">{ev.username || 'Unknown'}</td>
+                          <td className="px-4 py-2.5 font-bold text-primary">{ev.username || 'Unknown'}</td>
                           <td className="px-4 py-2.5">
                             <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
                               ev.action === 'DEVTOOLS_DETECTED'
@@ -848,7 +868,7 @@ export default function SettingsPage() {
                               {ev.action === 'DEVTOOLS_DETECTED' ? 'DevTools Opened' : 'DevTools Closed'}
                             </span>
                           </td>
-                          <td className="px-4 py-2.5 font-mono text-[#5F6E7E] hidden sm:table-cell">{ev.ipAddress || '—'}</td>
+                          <td className="px-4 py-2.5 font-mono text-primary/70 hidden sm:table-cell">{ev.ipAddress || '—'}</td>
                         </tr>
                       ))}
                     </tbody>

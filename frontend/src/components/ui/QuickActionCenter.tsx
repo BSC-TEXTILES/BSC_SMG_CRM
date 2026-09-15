@@ -25,10 +25,10 @@ export default function QuickActionCenter() {
   }
 
   const actions = [
-    { label: 'Register Candidate', icon: UserPlus, href: '/candidate-entry', target: '_blank', color: 'bg-[#163B5C]' },
+    { label: 'Register Candidate', icon: UserPlus, href: '/candidate-entry', target: '_blank', color: 'bg-primary' },
     { label: 'Section Allocation', icon: Calendar, href: '/section-allocation', color: 'bg-indigo-600' },
-    { label: 'Broadcast Notification', icon: Send, href: '/broadcast-center', color: 'bg-[#4E8ABF]' },
-    { label: 'Employee Directory', icon: UserCheck, href: '/employees', color: 'bg-[#3D74A3]' },
+    { label: 'Broadcast Notification', icon: Send, href: '/broadcast-center', color: 'bg-accent' },
+    { label: 'Employee Directory', icon: UserCheck, href: '/employees', color: 'bg-accent' },
     { label: 'Manpower Openings', icon: Briefcase, href: '/openings', color: 'bg-amber-600' },
     { label: 'Offer Desk', icon: FileText, href: '/offer-process', color: 'bg-emerald-700' }
   ];
@@ -51,9 +51,9 @@ export default function QuickActionCenter() {
                     navigate(act.href);
                   }
                 }}
-                className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] shadow-xl hover:shadow-2xl transition-all duration-150 group text-left"
+                className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white border border-accent-soft shadow-xl hover:shadow-2xl transition-all duration-150 group text-left"
               >
-                <span className="text-xs font-bold text-[#163B5C] whitespace-nowrap group-hover:text-[#4E8ABF]">
+                <span className="text-xs font-bold text-primary whitespace-nowrap group-hover:text-accent">
                   {act.label}
                 </span>
                 <div className={`p-2 rounded-lg text-white ${act.color} shadow-xs group-hover:scale-110 transition-transform`}>
@@ -69,8 +69,8 @@ export default function QuickActionCenter() {
       <button
         onClick={() => setOpen(!open)}
         className={`
-          w-14 h-14 rounded-2xl bg-[#163B5C] text-white flex items-center justify-center shadow-2xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95
-          ${open ? 'rotate-45 bg-rose-600' : 'bg-[#163B5C]'}
+          w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-2xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95
+          ${open ? 'rotate-45 bg-rose-600' : 'bg-primary'}
         `}
         title="Quick Action Center"
       >

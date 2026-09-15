@@ -122,13 +122,13 @@ export default function TVDisplay() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-[#163B5C] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-primary flex items-center justify-center p-4">
         <div className="card-glass p-8 max-w-md w-full text-center space-y-6 animate-scale-in">
-          <div className="w-16 h-16 bg-[#4E8ABF] text-white rounded-3xl flex items-center justify-center mx-auto shadow-lg">
+          <div className="w-16 h-16 bg-accent text-white rounded-3xl flex items-center justify-center mx-auto shadow-lg">
             <Tv className="w-8 h-8" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-[#163B5C]">Store TV Display Gate</h2>
+            <h2 className="text-2xl font-black text-primary">Store TV Display Gate</h2>
             <p className="text-gray-600 text-xs font-semibold mt-1">Enter TV PIN code to launch store monitor mode</p>
           </div>
 
@@ -158,14 +158,14 @@ export default function TVDisplay() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-[#163B5C] to-[#0E2A44] text-white p-6 sm:p-8 flex flex-col justify-between overflow-hidden select-none">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary text-white p-6 sm:p-8 flex flex-col justify-between overflow-hidden select-none">
       {/* Top Monitor Header */}
       <div className="flex items-center justify-between border-b border-white/15 pb-6">
         <div className="flex items-center gap-4">
           <img src="/logo.png" alt="Logo" className="w-14 h-14 bg-white p-1.5 rounded-2xl shadow-lg border border-white/20" />
           <div>
             <h1 className="text-3xl font-black tracking-tight text-white drop-shadow-md">BSC EXCLUSIVE DAVANAGERE</h1>
-            <div className="text-xs font-extrabold text-[#4E8ABF] uppercase tracking-widest mt-0.5 flex items-center gap-2">
+            <div className="text-xs font-extrabold text-accent uppercase tracking-widest mt-0.5 flex items-center gap-2">
               <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               <span>Realtime Operations & Footfall Broadcast</span>
             </div>

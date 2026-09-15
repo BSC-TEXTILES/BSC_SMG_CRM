@@ -120,11 +120,11 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#163B5C]/70 backdrop-blur-md transition-all animate-fade-in select-none">
-      <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#F4F6F9] rounded-3xl shadow-2xl flex flex-col z-10 overflow-hidden border-2 border-[#4E8ABF]/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-primary/70 backdrop-blur-md transition-all animate-fade-in select-none">
+      <div className="relative w-full max-w-4xl max-h-[92vh] bg-background rounded-3xl shadow-2xl flex flex-col z-10 overflow-hidden border-2 border-accent/50">
         
         {/* Top Header Banner */}
-        <div className="bg-gradient-to-r from-[#163B5C] via-[#0E2A44] to-[#0B1F35] text-white p-5 sm:p-6 border-b-2 border-[#4E8ABF]/40 relative">
+        <div className="bg-gradient-to-r from-primary via-primary to-[#0B1F35] text-white p-5 sm:p-6 border-b-2 border-accent/40 relative">
           <div className="absolute top-4 right-4 flex items-center gap-2">
             {!isEditing ? (
               <button
@@ -161,11 +161,11 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 <img
                   src={photo}
                   alt={name}
-                  className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-[#4E8ABF] shadow-2xl bg-white p-1"
+                  className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-accent shadow-2xl bg-white p-1"
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               ) : (
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-[#163B5C] to-[#1F4D77] text-white font-black text-3xl sm:text-4xl flex items-center justify-center border-4 border-[#4E8ABF] shadow-2xl">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-primary to-primary-hover text-white font-black text-3xl sm:text-4xl flex items-center justify-center border-4 border-accent shadow-2xl">
                   {currentCand.initials || name.slice(0, 2).toUpperCase()}
                 </div>
               )}
@@ -178,7 +178,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 <StatusBadge status={currentCand.status || currentCand.offerStatus || 'New'} size="sm" />
               </div>
 
-              <div className="text-xs text-[#4E8ABF] font-extrabold font-mono flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <div className="text-xs text-accent font-extrabold font-mono flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <span className="px-2.5 py-0.5 rounded-lg bg-white/10 border border-white/15 text-amber-300">{appNo}</span>
                 <span>•</span>
                 <span className="text-white font-bold">{desig}</span>
@@ -195,7 +195,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 )}
                 {currentCand.email && (
                   <a href={`mailto:${currentCand.email}`} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-white/90 font-semibold border border-white/10">
-                    <Mail className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                    <Mail className="w-3.5 h-3.5 text-accent" />
                     <span>{currentCand.email}</span>
                   </a>
                 )}
@@ -208,7 +208,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
         </div>
 
         {/* 8 Complete Tabs Navigation Bar */}
-        <div className="flex items-center gap-1.5 p-2 sm:px-6 bg-white border-b border-[#E2E8F0] overflow-x-auto text-xs font-bold scrollbar-none sticky top-0 z-10 shadow-xs">
+        <div className="flex items-center gap-1.5 p-2 sm:px-6 bg-white border-b border-accent-soft overflow-x-auto text-xs font-bold scrollbar-none sticky top-0 z-10 shadow-xs">
           {[
             { id: 'overview', label: '👤 Overview' },
             { id: 'personal', label: '📋 Personal Info' },
@@ -224,8 +224,8 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               onClick={() => setActiveTab(t.id as any)}
               className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all text-xs font-black ${
                 activeTab === t.id
-                  ? 'bg-[#163B5C] text-[#4E8ABF] shadow-md ring-1 ring-[#4E8ABF]/30'
-                  : 'text-[#475569] hover:bg-[#F4F6F9] hover:text-[#163B5C]'
+                  ? 'bg-primary text-accent shadow-md ring-1 ring-accent/30'
+                  : 'text-[#475569] hover:bg-background hover:text-primary'
               }`}
             >
               {t.label}
@@ -243,40 +243,40 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               {activeTab === 'overview' && (
                 <div className="space-y-4 animate-fade-in">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-1">
-                      <span className="text-[10px] uppercase font-black text-[#5F6E7E]">Pipeline Status</span>
-                      <div className="text-sm font-black text-[#163B5C]">
+                    <div className="p-4 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-1">
+                      <span className="text-[10px] uppercase font-black text-primary/70">Pipeline Status</span>
+                      <div className="text-sm font-black text-primary">
                         <StatusBadge status={currentCand.status || currentCand.offerStatus || 'New'} size="sm" />
                       </div>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-1">
-                      <span className="text-[10px] uppercase font-black text-[#5F6E7E]">Target Department</span>
-                      <div className="text-base font-extrabold text-[#163B5C]">{dept}</div>
+                    <div className="p-4 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-1">
+                      <span className="text-[10px] uppercase font-black text-primary/70">Target Department</span>
+                      <div className="text-base font-extrabold text-primary">{dept}</div>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-1">
-                      <span className="text-[10px] uppercase font-black text-[#5F6E7E]">Assigned Floor Section</span>
-                      <div className="text-base font-extrabold text-[#4E8ABF]">{section}</div>
+                    <div className="p-4 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-1">
+                      <span className="text-[10px] uppercase font-black text-primary/70">Assigned Floor Section</span>
+                      <div className="text-base font-extrabold text-accent">{section}</div>
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-3">
-                    <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                      <Building className="w-4 h-4 text-[#4E8ABF]" />
+                  <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-3">
+                    <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                      <Building className="w-4 h-4 text-accent" />
                       <span>Role Placement & Placement Meta</span>
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Designation Role</span><span className="font-extrabold text-[#163B5C] text-sm">{desig}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Offered / Expected Salary</span><span className="font-extrabold text-emerald-800 text-sm font-mono">{currentCand.salary || currentCand.expectedSalary ? `₹${currentCand.salary || currentCand.expectedSalary}` : '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Estimated DOJ</span><span className="font-extrabold text-[#163B5C]">{currentCand.offeredDoj || currentCand.estDoj || currentCand.doj || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Store Branch</span><span className="font-extrabold text-[#163B5C]">{currentCand.branch || 'BSC EXCLUSIVE DAVANAGERE'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Referrer Name</span><span className="font-bold text-[#163B5C]">{currentCand.referrer ? `${currentCand.referrer} (${currentCand.referrerEmpNo || ''})` : '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Application Date</span><span className="font-bold text-[#163B5C]">{currentCand.date || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Designation Role</span><span className="font-extrabold text-primary text-sm">{desig}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Offered / Expected Salary</span><span className="font-extrabold text-emerald-800 text-sm font-mono">{currentCand.salary || currentCand.expectedSalary ? `₹${currentCand.salary || currentCand.expectedSalary}` : '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Estimated DOJ</span><span className="font-extrabold text-primary">{currentCand.offeredDoj || currentCand.estDoj || currentCand.doj || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Store Branch</span><span className="font-extrabold text-primary">{currentCand.branch || 'BSC EXCLUSIVE DAVANAGERE'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Referrer Name</span><span className="font-bold text-primary">{currentCand.referrer ? `${currentCand.referrer} (${currentCand.referrerEmpNo || ''})` : '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Application Date</span><span className="font-bold text-primary">{currentCand.date || '—'}</span></div>
                     </div>
 
                     {currentCand.remarks && (
-                      <div className="pt-2 border-t border-[#E2E8F0]">
-                        <span className="text-[#5F6E7E] block text-[10.5px] mb-1 font-bold uppercase">Shortlisting & Recruiter Remarks:</span>
-                        <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] text-xs font-semibold text-[#163B5C]">
+                      <div className="pt-2 border-t border-accent-soft">
+                        <span className="text-primary/70 block text-[10.5px] mb-1 font-bold uppercase">Shortlisting & Recruiter Remarks:</span>
+                        <div className="p-3 rounded-xl bg-background border border-accent-soft text-xs font-semibold text-primary">
                           {currentCand.remarks}
                         </div>
                       </div>
@@ -287,42 +287,42 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
 
               {/* TAB 2: PERSONAL INFO */}
               {activeTab === 'personal' && (
-                <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 animate-fade-in">
-                  <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4 animate-fade-in">
+                  <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-accent" />
                     <span>Personal Profile Information</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Full Applicant Name:</span><span className="font-extrabold text-[#163B5C] text-sm">{name}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Mobile Phone Number:</span><span className="font-extrabold text-[#163B5C] font-mono text-sm">{currentCand.phone || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Email Address:</span><span className="font-bold text-[#163B5C]">{currentCand.email || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Gender:</span><span className="font-bold text-[#163B5C]">{currentCand.gender || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Date of Birth:</span><span className="font-bold text-[#163B5C]">{currentCand.dob || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Blood Group:</span><span className="font-bold text-rose-700">{currentCand.bloodGroup || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Aadhaar Number (12 Digits):</span><span className="font-extrabold text-[#163B5C] font-mono">{currentCand.aadhaarNumber || currentCand.aadharNumber || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Religion:</span><span className="font-bold text-[#163B5C]">{currentCand.religion || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Caste / Category:</span><span className="font-bold text-[#163B5C]">{currentCand.caste || currentCand.religionCaste || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Full Applicant Name:</span><span className="font-extrabold text-primary text-sm">{name}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Mobile Phone Number:</span><span className="font-extrabold text-primary font-mono text-sm">{currentCand.phone || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Email Address:</span><span className="font-bold text-primary">{currentCand.email || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Gender:</span><span className="font-bold text-primary">{currentCand.gender || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Date of Birth:</span><span className="font-bold text-primary">{currentCand.dob || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Blood Group:</span><span className="font-bold text-rose-700">{currentCand.bloodGroup || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Aadhaar Number (12 Digits):</span><span className="font-extrabold text-primary font-mono">{currentCand.aadhaarNumber || currentCand.aadharNumber || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Religion:</span><span className="font-bold text-primary">{currentCand.religion || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Caste / Category:</span><span className="font-bold text-primary">{currentCand.caste || currentCand.religionCaste || '—'}</span></div>
                   </div>
                 </div>
               )}
 
               {/* TAB 3: ADDRESS */}
               {activeTab === 'address' && (
-                <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 animate-fade-in">
-                  <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4 animate-fade-in">
+                  <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-accent" />
                     <span>Residential Address & Location Details</span>
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <span className="text-[#5F6E7E] block text-[10.5px] mb-1">Complete Residential Address:</span>
-                      <div className="p-3.5 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] font-semibold text-[#163B5C] leading-relaxed">
+                      <span className="text-primary/70 block text-[10.5px] mb-1">Complete Residential Address:</span>
+                      <div className="p-3.5 rounded-xl bg-background border border-accent-soft font-semibold text-primary leading-relaxed">
                         {currentCand.address || currentCand.cityState || '—'}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div><span className="text-[#5F6E7E] block text-[10.5px]">City / Location:</span><span className="font-bold text-[#163B5C]">{currentCand.cityState || currentCand.city || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px]">State / Region:</span><span className="font-bold text-[#163B5C]">{currentCand.state || 'Karnataka'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px]">City / Location:</span><span className="font-bold text-primary">{currentCand.cityState || currentCand.city || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px]">State / Region:</span><span className="font-bold text-primary">{currentCand.state || 'Karnataka'}</span></div>
                     </div>
                   </div>
                 </div>
@@ -330,19 +330,19 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
 
               {/* TAB 4: FAMILY */}
               {activeTab === 'family' && (
-                <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 animate-fade-in">
-                  <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4 animate-fade-in">
+                  <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-accent" />
                     <span>Family & Parental Background</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="p-3.5 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-1">
-                      <span className="text-[#5F6E7E] text-[10.5px] font-bold block">Father's Name & Occupation</span>
-                      <span className="font-extrabold text-[#163B5C] block">{currentCand.fatherDetails || '—'}</span>
+                    <div className="p-3.5 rounded-xl bg-background border border-accent-soft space-y-1">
+                      <span className="text-primary/70 text-[10.5px] font-bold block">Father's Name & Occupation</span>
+                      <span className="font-extrabold text-primary block">{currentCand.fatherDetails || '—'}</span>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-1">
-                      <span className="text-[#5F6E7E] text-[10.5px] font-bold block">Mother's Name & Occupation</span>
-                      <span className="font-extrabold text-[#163B5C] block">{currentCand.motherDetails || '—'}</span>
+                    <div className="p-3.5 rounded-xl bg-background border border-accent-soft space-y-1">
+                      <span className="text-primary/70 text-[10.5px] font-bold block">Mother's Name & Occupation</span>
+                      <span className="font-extrabold text-primary block">{currentCand.motherDetails || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -350,14 +350,14 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
 
               {/* TAB 5: EDUCATION */}
               {activeTab === 'education' && (
-                <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 animate-fade-in">
-                  <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <FileCheck className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4 animate-fade-in">
+                  <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <FileCheck className="w-4 h-4 text-accent" />
                     <span>Educational Qualifications</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Highest Qualification:</span><span className="font-extrabold text-[#163B5C] text-sm">{currentCand.qualification || '—'}</span></div>
-                    <div><span className="text-[#5F6E7E] block text-[10.5px]">Total Work Experience:</span><span className="font-extrabold text-[#163B5C] text-sm">{currentCand.experience || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Highest Qualification:</span><span className="font-extrabold text-primary text-sm">{currentCand.qualification || '—'}</span></div>
+                    <div><span className="text-primary/70 block text-[10.5px]">Total Work Experience:</span><span className="font-extrabold text-primary text-sm">{currentCand.experience || '—'}</span></div>
                   </div>
                 </div>
               )}
@@ -365,18 +365,18 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               {/* TAB 6: EMPLOYMENT */}
               {activeTab === 'employment' && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
-                    <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-[#4E8ABF]" />
+                  <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4">
+                    <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-accent" />
                       <span>Work Experience & Salary Details</span>
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Total Experience</span><span className="font-extrabold text-[#163B5C]">{currentCand.experience || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Retail Industry Experience</span><span className="font-extrabold text-[#163B5C]">{currentCand.retailExperience || currentCand.retail_experience || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Previous Company</span><span className="font-extrabold text-[#163B5C]">{currentCand.previousCompany || currentCand.previous_company || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Previous Designation</span><span className="font-extrabold text-[#163B5C]">{currentCand.previousDesignation || currentCand.previous_designation || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Previous Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.previousSalary || currentCand.currentSalary || '—'}</span></div>
-                      <div><span className="text-[#5F6E7E] block text-[10.5px] font-bold">Expected Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.expectedSalary || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Total Experience</span><span className="font-extrabold text-primary">{currentCand.experience || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Retail Industry Experience</span><span className="font-extrabold text-primary">{currentCand.retailExperience || currentCand.retail_experience || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Previous Company</span><span className="font-extrabold text-primary">{currentCand.previousCompany || currentCand.previous_company || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Previous Designation</span><span className="font-extrabold text-primary">{currentCand.previousDesignation || currentCand.previous_designation || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Previous Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.previousSalary || currentCand.currentSalary || '—'}</span></div>
+                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Expected Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.expectedSalary || '—'}</span></div>
                     </div>
                   </div>
                 </div>
@@ -384,20 +384,20 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
 
               {/* TAB 7: LANGUAGES */}
               {activeTab === 'languages' && (
-                <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 animate-fade-in">
-                  <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4 animate-fade-in">
+                  <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-accent" />
                     <span>Languages Known</span>
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {currentCand.languagesKnown ? (
                       (Array.isArray(currentCand.languagesKnown) ? currentCand.languagesKnown : JSON.parse(currentCand.languagesKnown)).map((lang: string) => (
-                        <span key={lang} className="px-3.5 py-1.5 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] font-extrabold text-xs text-[#163B5C]">
+                        <span key={lang} className="px-3.5 py-1.5 rounded-xl bg-background border border-accent-soft font-extrabold text-xs text-primary">
                           🗣️ {lang}
                         </span>
                       ))
                     ) : (
-                      <span className="text-[#5F6E7E] font-semibold italic">No languages specified</span>
+                      <span className="text-primary/70 font-semibold italic">No languages specified</span>
                     )}
                   </div>
                 </div>
@@ -406,9 +406,9 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               {/* TAB 8: DOCUMENTS */}
               {activeTab === 'documents' && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
-                    <h4 className="font-black text-[#163B5C] uppercase text-xs tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-[#4E8ABF]" />
+                  <div className="p-5 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-4">
+                    <h4 className="font-black text-primary uppercase text-xs tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-accent" />
                       <span>Verified Applicant Documents</span>
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -417,39 +417,39 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                           href={fileUrl(currentCand.photoUrl)!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all flex flex-col items-center gap-2 font-bold group"
+                          className="p-4 rounded-2xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all flex flex-col items-center gap-2 font-bold group"
                         >
                           <span className="text-2xl">📷</span>
                           <span>Staff Profile Photo</span>
-                          <span className="text-[10px] text-[#4E8ABF] group-hover:text-white underline">View Document ↗</span>
+                          <span className="text-[10px] text-accent group-hover:text-white underline">View Document ↗</span>
                         </a>
-                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-[#F4F6F9] font-bold">No Photo Uploaded</div>}
+                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-background font-bold">No Photo Uploaded</div>}
 
                       {fileUrl(currentCand.aadhaarUrl || currentCand.aadharUrl || currentCand.aadhaar_url || currentCand.aadhar_url) ? (
                         <a
                           href={fileUrl(currentCand.aadhaarUrl || currentCand.aadharUrl || currentCand.aadhaar_url || currentCand.aadhar_url)!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all flex flex-col items-center gap-2 font-bold group"
+                          className="p-4 rounded-2xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all flex flex-col items-center gap-2 font-bold group"
                         >
                           <span className="text-2xl">📄</span>
                           <span>Aadhaar Card Document</span>
-                          <span className="text-[10px] text-[#4E8ABF] group-hover:text-white underline">View Document ↗</span>
+                          <span className="text-[10px] text-accent group-hover:text-white underline">View Document ↗</span>
                         </a>
-                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-[#F4F6F9] font-bold">No Aadhaar Uploaded</div>}
+                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-background font-bold">No Aadhaar Uploaded</div>}
 
                       {fileUrl(currentCand.resumeUrl) ? (
                         <a
                           href={fileUrl(currentCand.resumeUrl)!}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-[#163B5C] hover:text-white transition-all flex flex-col items-center gap-2 font-bold group"
+                          className="p-4 rounded-2xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all flex flex-col items-center gap-2 font-bold group"
                         >
                           <span className="text-2xl">📑</span>
                           <span>Candidate Resume / CV</span>
-                          <span className="text-[10px] text-[#4E8ABF] group-hover:text-white underline">View Document ↗</span>
+                          <span className="text-[10px] text-accent group-hover:text-white underline">View Document ↗</span>
                         </a>
-                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-[#F4F6F9] font-bold">No Resume Uploaded</div>}
+                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-background font-bold">No Resume Uploaded</div>}
                     </div>
                   </div>
                 </div>
@@ -457,19 +457,19 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
             </>
           ) : (
             /* EDIT FORM MODE */
-            <div className="space-y-4 animate-fade-in bg-white p-5 rounded-2xl border border-[#4E8ABF]/40 shadow-md">
-              <h3 className="font-black text-[#163B5C] text-sm uppercase tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-[#4E8ABF]" />
+            <div className="space-y-4 animate-fade-in bg-white p-5 rounded-2xl border border-accent/40 shadow-md">
+              <h3 className="font-black text-primary text-sm uppercase tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-accent" />
                 <span>Edit Candidate Details, Status & Placement</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Pipeline Status</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Pipeline Status</label>
                   <select
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-black text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-black text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   >
                     <option value="New">🌱 New Candidate</option>
                     <option value="Shortlisted">📋 Shortlisted (Moved to Offer Desk)</option>
@@ -480,11 +480,11 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Target Department</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Target Department</label>
                   <select
                     value={form.department}
                     onChange={(e) => setForm({ ...form, department: e.target.value, section: '' })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   >
                     {BSC_DEPARTMENTS.map(d => (
                       <option key={d} value={d}>{d}</option>
@@ -493,15 +493,15 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1 flex items-center justify-between">
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1 flex items-center justify-between">
                     <span>Floor Section</span>
-                    <span className="text-[10px] text-[#5F6E7E] uppercase font-bold">(Optional)</span>
+                    <span className="text-[10px] text-primary/70 uppercase font-bold">(Optional)</span>
                   </label>
                   {availableSections.length > 0 ? (
                     <select
                       value={form.section}
                       onChange={(e) => setForm({ ...form, section: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#4E8ABF] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                      className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40"
                     >
                       <option value="">-- Optional / Unassigned --</option>
                       {availableSections.map(sec => (
@@ -514,69 +514,69 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                       placeholder="Optional section (e.g. Ethnic Wear)"
                       value={form.section}
                       onChange={(e) => setForm({ ...form, section: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#4E8ABF] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                      className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40"
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Designation Role</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Designation Role</label>
                   <input
                     type="text"
                     value={form.desig}
                     onChange={(e) => setForm({ ...form, desig: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Full Candidate Name</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Full Candidate Name</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Offered Monthly Salary (₹)</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Offered Monthly Salary (₹)</label>
                   <input
                     type="text"
                     value={form.salary}
                     onChange={(e) => setForm({ ...form, salary: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-mono font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-mono font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Mobile Phone</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Mobile Phone</label>
                   <input
                     type="text"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Email Address</label>
+                  <label className="block text-[11px] font-black text-primary uppercase mb-1">Email Address</label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-[#163B5C] uppercase mb-1">Recruiter & Screening Remarks</label>
+                <label className="block text-[11px] font-black text-primary uppercase mb-1">Recruiter & Screening Remarks</label>
                 <textarea
                   rows={2}
                   value={form.remarks}
                   onChange={(e) => setForm({ ...form, remarks: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-semibold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-semibold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                 />
               </div>
             </div>
@@ -584,8 +584,8 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-[#F4F6F9] border-t border-[#E2E8F0] flex items-center justify-between">
-          <div className="text-[11px] text-[#5F6E7E] font-bold">
+        <div className="p-4 bg-background border-t border-accent-soft flex items-center justify-between">
+          <div className="text-[11px] text-primary/70 font-bold">
             BSC EXCLUSIVE RECRUITMENT CRM
           </div>
           
@@ -594,7 +594,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               <>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 rounded-xl border border-[#E2E8F0] bg-white font-extrabold text-xs text-[#475569]"
+                  className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#475569]"
                 >
                   Cancel
                 </button>

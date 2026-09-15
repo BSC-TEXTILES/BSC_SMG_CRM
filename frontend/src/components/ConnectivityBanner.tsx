@@ -38,7 +38,7 @@ export default function ConnectivityBanner() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[9998] flex justify-center pointer-events-none px-3 pt-3">
       {offline ? (
-        <div className="pointer-events-auto flex items-center gap-3 bg-[#0E2A44] text-white px-5 py-3 rounded-2xl shadow-2xl border border-red-400/40 animate-slide-down">
+        <div className="pointer-events-auto flex items-center gap-3 bg-primary text-white px-5 py-3 rounded-2xl shadow-2xl border border-red-400/40 animate-slide-down">
           <WifiOff className="w-5 h-5 text-red-400 animate-pulse" />
           <div>
             <div className="text-xs font-black tracking-wide">No Internet Connection</div>

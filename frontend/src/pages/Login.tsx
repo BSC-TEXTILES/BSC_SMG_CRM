@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API, Auth } from '../services/api';
 import ToastContainer, { showToast } from '../components/Toast';
-import { ShieldCheck, Lock, User, ArrowRight, MapPin, RefreshCw, Hash } from 'lucide-react';
+import { ShieldCheck, Lock, User, ArrowRight, MapPin, RefreshCw, Hash, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -14,6 +14,17 @@ export default function LoginPage() {
   const [captchaId, setCaptchaId] = useState('');
   const [captchaText, setCaptchaText] = useState('');
   const [captchaLoading, setCaptchaLoading] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Validate password utility
+  const validatePassword = (pwd: string) => {
+    const hasLength = pwd.length >= 8;
+    const hasLetter = /[a-zA-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
+    return hasLength && hasLetter && hasNumber && hasSpecial;
+  };
 
   // ── Numeric captcha: fetched from the server, auto-refreshed every 30 s,
   // and reloaded automatically after any failed sign-in attempt. ──
@@ -36,7 +47,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     loadCaptcha();
-    const t = setInterval(loadCaptcha, 30 * 1000);
+    setCountdown(30);
+    const t = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          loadCaptcha();
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
     return () => clearInterval(t);
   }, [loadCaptcha]);
 
@@ -50,6 +70,11 @@ export default function LoginPage() {
     e.preventDefault();
     if (!username.trim() || !password) {
       setErrorMsg('Please enter both username and password');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setErrorMsg('Password must be at least 8 characters long and contain letters, numbers, and special characters.');
       return;
     }
 
@@ -124,16 +149,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6">
       <ToastContainer />
 
-      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#E2E8F0] animate-fade-in">
+      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-accent-soft animate-fade-in">
         {/* Card Header */}
-        <div className="bg-[#163B5C] p-6 flex items-center gap-4 border-b border-[#4E8ABF]/30">
-          <img src="/logo.png" alt="BSC Logo" className="w-12 h-12 object-contain rounded-2xl bg-white p-1.5 shadow-md border border-[#4E8ABF]/30" />
+        <div className="bg-primary p-6 flex items-center gap-4 border-b border-accent/30">
+          <img src="/logo.png" alt="BSC Logo" className="w-12 h-12 object-contain rounded-2xl bg-white p-1.5 shadow-md border border-accent/30" />
           <div>
             <h2 className="text-lg font-black text-white leading-tight tracking-tight">Enterprise Operations Portal</h2>
-            <div className="text-[10px] text-[#4E8ABF] font-bold uppercase tracking-widest mt-0.5">
+            <div className="text-[10px] text-accent font-bold uppercase tracking-widest mt-0.5">
               BSC EXCLUSIVE · MULTI-LOCATION SYSTEM
             </div>
           </div>
@@ -142,8 +167,8 @@ export default function LoginPage() {
         {/* Card Body */}
         <form onSubmit={handleLogin} className="p-7 space-y-5">
           <div>
-            <h3 className="text-xl font-black text-[#1B2A3B] tracking-tight">Welcome Back</h3>
-            <p className="text-xs text-[#5F6E7E] font-medium mt-1">Sign in with your authorized system credentials. Your location will be loaded automatically.</p>
+            <h3 className="text-xl font-black text-primary tracking-tight">Welcome Back</h3>
+            <p className="text-xs text-primary/70 font-medium mt-1">Sign in with your authorized system credentials. Your location will be loaded automatically.</p>
           </div>
 
           {errorMsg && (
@@ -153,11 +178,11 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-[10.5px] font-black uppercase tracking-wider text-[#1B2A3B]">
+            <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">
               Username / Email
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5F6E7E]" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/70" />
               <input
                 type="text"
                 name="username"
@@ -165,48 +190,55 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin@bsctextiles.com"
-                className="w-full text-xs font-semibold pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-[#1B2A3B] placeholder-[#8896A6] focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/20 transition-all shadow-xs"
+                className="w-full text-xs font-semibold pl-10 pr-4 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[10.5px] font-black uppercase tracking-wider text-[#1B2A3B]">
+            <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5F6E7E]" />
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/70" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••"
-                className="w-full text-xs font-semibold pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-[#1B2A3B] placeholder-[#8896A6] focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/20 transition-all shadow-xs"
+                className="w-full text-xs font-semibold pl-10 pr-10 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-primary/60 hover:text-primary transition-colors focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[10.5px] font-black uppercase tracking-wider text-[#321923]">
+            <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">
               Security Code
             </label>
             <div className="flex items-center gap-2.5">
               <div className="relative flex-1">
-                <Hash className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A726D]" />
+                <Hash className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/70" />
                 <input
                   type="text"
-                  inputMode="numeric"
                   name="captcha"
                   autoComplete="off"
-                  maxLength={4}
+                  maxLength={8}
                   value={captchaText}
-                  onChange={(e) => setCaptchaText(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Enter the 4 digits"
-                  className="w-full text-xs font-semibold pl-10 pr-3 py-3 rounded-xl border border-[#EAE4DC] bg-white text-[#321923] placeholder-[#8E8883] focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/20 transition-all shadow-xs tracking-[0.35em]"
+                  onChange={(e) => setCaptchaText(e.target.value)}
+                  placeholder="Enter 8 characters"
+                  className="w-full text-xs font-semibold pl-10 pr-3 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs tracking-widest"
                   required
                 />
               </div>
@@ -215,16 +247,16 @@ export default function LoginPage() {
                   <img
                     src={captchaSvg}
                     alt="Security captcha - 4 digit numeric code"
-                    className="h-[42px] w-[120px] rounded-lg border border-[#EAE4DC] bg-white shadow-xs select-none"
+                    className="h-[42px] w-[120px] rounded-lg border border-accent-soft bg-white shadow-xs select-none"
                     draggable={false}
                   />
                 ) : (
-                  <div className="h-[42px] w-[120px] rounded-lg border border-[#EAE4DC] bg-white animate-pulse" />
+                  <div className="h-[42px] w-[120px] rounded-lg border border-accent-soft bg-white animate-pulse" />
                 )}
                 <button
                   type="button"
-                  onClick={loadCaptcha}
-                  className="p-2 rounded-lg border border-[#EAE4DC] text-[#163B5C] hover:bg-[#F4F6F9] transition-colors"
+                  onClick={() => { loadCaptcha(); setCountdown(30); }}
+                  className="p-2 rounded-lg border border-accent-soft text-primary hover:bg-background transition-colors"
                   title="Load a new security code"
                   aria-label="Refresh captcha"
                 >
@@ -232,14 +264,14 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <p className="text-[10px] text-[#7A726D] font-medium">Refreshes automatically every 30 seconds for your security.</p>
+            <p className="text-[10px] text-primary/70 font-medium">Refreshes automatically in {countdown}s for your security.</p>
           </div>
 
           <div className="flex justify-end">
             <button
               type="button"
               onClick={() => showToast('Please contact your System Administrator to reset your password', 'info')}
-              className="text-xs text-[#4E8ABF] font-bold hover:underline"
+              className="text-xs text-accent font-bold hover:underline"
             >
               Forgot password?
             </button>
@@ -248,7 +280,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#163B5C] text-white font-extrabold text-xs tracking-wide hover:bg-[#1F4D77] active:scale-[0.99] transition-all shadow-lg shadow-[#163B5C]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-xl bg-primary text-white font-extrabold text-xs tracking-wide hover:bg-primary-hover active:scale-[0.99] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -263,11 +295,11 @@ export default function LoginPage() {
             )}
           </button>
 
-          <div className="pt-2 border-t border-[#E2E8F0]">
+          <div className="pt-2 border-t border-accent-soft">
             <button
               type="button"
               onClick={() => navigate('/candidate-entry')}
-              className="w-full py-3 px-4 rounded-xl border-2 border-[#163B5C] text-[#163B5C] bg-white font-extrabold text-xs tracking-wide hover:bg-[#F4F6F9] active:scale-[0.99] transition-all shadow-xs flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl border-2 border-primary text-primary bg-white font-extrabold text-xs tracking-wide hover:bg-background active:scale-[0.99] transition-all shadow-xs flex items-center justify-center gap-2"
             >
               <span>Apply as a Candidate</span>
               <User className="w-4 h-4" />
@@ -276,18 +308,18 @@ export default function LoginPage() {
         </form>
 
         {/* Card Footer */}
-        <div className="bg-[#F4F6F9] px-7 py-3.5 border-t border-[#E2E8F0] flex items-center justify-between text-[10px] text-[#5F6E7E] font-semibold">
+        <div className="bg-background px-7 py-3.5 border-t border-accent-soft flex items-center justify-between text-[10px] text-primary/70 font-semibold">
           <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#4E8ABF]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-accent" />
             <span>Authorized access only · Location auto-assigned</span>
           </span>
-          <span className="font-black text-[#163B5C]">BSC v3.0</span>
+          <span className="font-black text-primary">BSC v3.0</span>
         </div>
       </div>
 
       {/* Location Info Note */}
-      <div className="mt-4 flex items-center gap-1.5 text-[10px] text-[#5F6E7E] font-medium">
-        <MapPin className="w-3 h-3 text-[#4E8ABF]" />
+      <div className="mt-4 flex items-center gap-1.5 text-[10px] text-primary/70 font-medium">
+        <MapPin className="w-3 h-3 text-accent" />
         <span>Your location (Belagavi / Davanagere / Shivamogga) is assigned by the System Admin</span>
       </div>
     </div>

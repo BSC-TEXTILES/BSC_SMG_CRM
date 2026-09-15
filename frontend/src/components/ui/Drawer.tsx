@@ -44,7 +44,7 @@ export default function Drawer({
         className={`relative w-full ${widthMap[width]} bg-white h-full shadow-2xl flex flex-col z-10 animate-fade-in`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-[#163B5C] p-5 text-white flex items-center justify-between">
+        <div className="bg-primary p-5 text-white flex items-center justify-between">
           <div>
             <h3 className="font-extrabold text-base leading-tight">{title}</h3>
             {subtitle && <div className="text-[11px] text-white/60 mt-0.5">{subtitle}</div>}
@@ -56,7 +56,7 @@ export default function Drawer({
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">{children}</div>
 
-        {footer && <div className="p-4 border-t border-[#E2E8F0] bg-[#F4F6F9]">{footer}</div>}
+        {footer && <div className="p-4 border-t border-accent-soft bg-background">{footer}</div>}
       </div>
     </div>
   );

@@ -218,22 +218,22 @@ export default function Divert() {
       <div className="space-y-6">
 
         {/* Page Header Banner */}
-        <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-2 border-[#163B5C]/10">
+        <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-2 border-primary/10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#163B5C] text-[#4E8ABF] text-[10px] font-black uppercase tracking-widest mb-1.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary text-accent text-[10px] font-black uppercase tracking-widest mb-1.5">
               <Target className="w-3.5 h-3.5" />
               <span>Floor Sourcing Desk</span>
             </div>
-            <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
+            <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
               <span>Customer Sourcing Diverts</span>
             </h2>
-            <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Real-time store floor customer requirement logs and Purchase Manager sourcing queue.</p>
+            <p className="text-xs text-primary/70 font-medium mt-0.5">Real-time store floor customer requirement logs and Purchase Manager sourcing queue.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleExportExcel}
-              className="px-4 py-2 rounded-xl border border-[#E2E8F0] bg-white text-xs font-bold text-[#163B5C] hover:bg-[#F4F6F9] flex items-center gap-1.5 shadow-xs"
+              className="px-4 py-2 rounded-xl border border-accent-soft bg-white text-xs font-bold text-primary hover:bg-background flex items-center gap-1.5 shadow-xs"
             >
               <Download className="w-4 h-4" /> Export Report
             </button>
@@ -281,9 +281,9 @@ export default function Divert() {
 
         {/* Modern Filters Bar */}
         <div className="card-glass p-5 space-y-3">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-            <h3 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-[#4E8ABF]" />
+          <div className="flex items-center justify-between border-b border-accent-soft pb-2">
+            <h3 className="font-extrabold text-primary text-xs uppercase tracking-wider flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-accent" />
               <span>Filter Sourcing Register</span>
             </h3>
             {(searchQuery || statusFilter || sectionFilter || reasonFilter || fromDate || toDate) && (
@@ -378,8 +378,8 @@ export default function Divert() {
 
         {/* Diverts Main Register Table */}
         <div className="card-glass p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-            <h3 className="font-extrabold text-[#163B5C] text-sm tracking-tight">
+          <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+            <h3 className="font-extrabold text-primary text-sm tracking-tight">
               Sourcing Divert Logs ({filteredDiverts.length} Entries)
             </h3>
           </div>
@@ -392,7 +392,7 @@ export default function Divert() {
             ) : (
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] bg-[#F4F6F9]/60">
+                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/60">
                     <th className="py-3 px-3 text-center">#</th>
                     <th className="py-3 px-4">Ref No</th>
                     <th className="py-3 px-4">Date</th>
@@ -405,34 +405,34 @@ export default function Divert() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/60">
+                <tbody className="divide-y divide-accent-soft/60">
                   {filteredDiverts.map((item, idx) => (
                     <tr 
                       key={item.id || idx} 
                       onClick={() => setSelectedDivert(item)} 
                       className="hover:bg-black/5 cursor-pointer transition-colors font-medium"
                     >
-                      <td className="py-3.5 px-3 text-center font-bold text-[#5F6E7E]">{idx + 1}</td>
-                      <td className="py-3.5 px-4 font-mono font-extrabold text-[#163B5C]">
+                      <td className="py-3.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                      <td className="py-3.5 px-4 font-mono font-extrabold text-primary">
                         #{item.refNo || item.id?.slice(0, 6)}
                       </td>
                       <td className="py-3.5 px-4 text-[#475569] font-semibold">
                         {item.entryDate ? new Date(item.entryDate).toLocaleDateString('en-IN') : '—'}
                       </td>
-                      <td className="py-3.5 px-4 font-extrabold text-[#163B5C]">
+                      <td className="py-3.5 px-4 font-extrabold text-primary">
                         {item.productWanted}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#163B5C]">
+                      <td className="py-3.5 px-4 font-mono font-bold text-primary">
                         {item.quantity || 1} pcs
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded-lg bg-[#F4F6F9] border border-[#E2E8F0] text-[#475569] font-bold text-[10.5px]">
+                        <span className="px-2 py-0.5 rounded-lg bg-background border border-accent-soft text-[#475569] font-bold text-[10.5px]">
                           {item.reasonCode || 'OUT_OF_STOCK'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="font-extrabold text-[#163B5C]">{item.customerName || 'Walk-in Customer'}</div>
-                        <div className="text-[10px] text-[#5F6E7E] font-mono">{item.customerMobile || '—'}</div>
+                        <div className="font-extrabold text-primary">{item.customerName || 'Walk-in Customer'}</div>
+                        <div className="text-[10px] text-primary/70 font-mono">{item.customerMobile || '—'}</div>
                       </td>
                       <td className="py-3.5 px-4">
                         {getStatusBadge(item.status)}
@@ -443,7 +443,7 @@ export default function Divert() {
                       <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setSelectedDivert(item)}
-                          className="px-3 py-1.5 rounded-xl border border-[#163B5C] text-[#163B5C] font-extrabold hover:bg-[#163B5C] hover:text-white transition-all text-xs flex items-center gap-1 ml-auto shadow-2xs"
+                          className="px-3 py-1.5 rounded-xl border border-primary text-primary font-extrabold hover:bg-primary hover:text-white transition-all text-xs flex items-center gap-1 ml-auto shadow-2xs"
                         >
                           <Eye className="w-3.5 h-3.5" /> Details
                         </button>
@@ -458,16 +458,16 @@ export default function Divert() {
 
         {/* Raise New Sourcing Divert Modal */}
         {showRaiseModal && (
-          <div className="fixed inset-0 bg-[#163B5C]/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-[#4E8ABF]/40 animate-scale-in">
-              <div className="bg-[#163B5C] text-white p-5 flex items-center justify-between border-b border-[#4E8ABF]/30">
+          <div className="fixed inset-0 bg-primary/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-accent/40 animate-scale-in">
+              <div className="bg-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#4E8ABF] text-white font-black text-lg flex items-center justify-center shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-accent text-white font-black text-lg flex items-center justify-center shadow-md">
                     <Target className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-white text-base">Raise New Sourcing Divert</h3>
-                    <p className="text-xs text-[#4E8ABF] font-medium">Log unavailable floor stock requirement</p>
+                    <p className="text-xs text-accent font-medium">Log unavailable floor stock requirement</p>
                   </div>
                 </div>
 
@@ -476,23 +476,23 @@ export default function Divert() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateDivert} className="p-6 space-y-4 text-xs bg-[#F4F6F9]">
-                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] space-y-3 shadow-xs">
+              <form onSubmit={handleCreateDivert} className="p-6 space-y-4 text-xs bg-background">
+                <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-3 shadow-xs">
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Product / Fabric Requested *</label>
+                    <label className="block font-bold text-primary mb-1">Product / Fabric Requested *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Pure Kanjivaram Silk Saree (Bottle Green/Gold border)"
                       value={productWanted}
                       onChange={(e) => setProductWanted(e.target.value)}
-                      className="input-modern font-extrabold text-[#163B5C]"
+                      className="input-modern font-extrabold text-primary"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-[#163B5C] mb-1">Store Section</label>
+                      <label className="block font-bold text-primary mb-1">Store Section</label>
                       <select
                         value={sectionId}
                         onChange={(e) => setSectionId(e.target.value)}
@@ -510,7 +510,7 @@ export default function Divert() {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-bold text-[#163B5C] mb-1">Quantity Requested</label>
+                      <label className="block font-bold text-primary mb-1">Quantity Requested</label>
                       <input
                         type="number"
                         min="1"
@@ -523,7 +523,7 @@ export default function Divert() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-[#163B5C] mb-1">Target Price Range</label>
+                      <label className="block font-bold text-primary mb-1">Target Price Range</label>
                       <input
                         type="text"
                         placeholder="e.g. ₹5,000 - ₹8,000"
@@ -533,7 +533,7 @@ export default function Divert() {
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-[#163B5C] mb-1">Reason Code</label>
+                      <label className="block font-bold text-primary mb-1">Reason Code</label>
                       <select
                         value={reasonCode}
                         onChange={(e) => setReasonCode(e.target.value)}
@@ -548,13 +548,13 @@ export default function Divert() {
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] space-y-3 shadow-xs">
-                  <h4 className="font-extrabold text-[#163B5C] text-xs border-b border-[#E2E8F0] pb-1.5 uppercase tracking-wider">
+                <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-3 shadow-xs">
+                  <h4 className="font-extrabold text-primary text-xs border-b border-accent-soft pb-1.5 uppercase tracking-wider">
                     Customer Details (Optional)
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-[#163B5C] mb-1">Customer Full Name</label>
+                      <label className="block font-bold text-primary mb-1">Customer Full Name</label>
                       <input
                         type="text"
                         placeholder="e.g. Anitha Kumar"
@@ -564,7 +564,7 @@ export default function Divert() {
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-[#163B5C] mb-1">Customer Mobile Phone</label>
+                      <label className="block font-bold text-primary mb-1">Customer Mobile Phone</label>
                       <input
                         type="tel"
                         placeholder="e.g. 9876543210"
@@ -576,11 +576,11 @@ export default function Divert() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-accent-soft">
                   <button
                     type="button"
                     onClick={() => setShowRaiseModal(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-[#475569] bg-white border border-[#E2E8F0]"
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-[#475569] bg-white border border-accent-soft"
                   >
                     Cancel
                   </button>
@@ -599,19 +599,19 @@ export default function Divert() {
 
         {/* Centered Details Popup Modal Card with Approval Timeline */}
         {selectedDivert && (
-          <div className="fixed inset-0 bg-[#163B5C]/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-[#4E8ABF]/40 animate-scale-in flex flex-col max-h-[90vh]">
+          <div className="fixed inset-0 bg-primary/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-accent/40 animate-scale-in flex flex-col max-h-[90vh]">
               {/* Header */}
-              <div className="bg-[#163B5C] text-white p-5 flex items-center justify-between border-b border-[#4E8ABF]/30">
+              <div className="bg-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#4E8ABF] text-white font-black text-lg flex items-center justify-center shadow-md">
+                  <div className="w-10 h-10 rounded-xl bg-accent text-white font-black text-lg flex items-center justify-center shadow-md">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-white text-base">
                       Sourcing Request Details — #{selectedDivert.refNo || selectedDivert.id?.slice(0, 6)}
                     </h3>
-                    <div className="text-xs text-[#4E8ABF] font-bold font-mono mt-0.5">
+                    <div className="text-xs text-accent font-bold font-mono mt-0.5">
                       Logged on: {selectedDivert.entryDate ? new Date(selectedDivert.entryDate).toLocaleDateString('en-IN') : 'Today'}
                     </div>
                   </div>
@@ -623,83 +623,83 @@ export default function Divert() {
               </div>
 
               {/* Scrollable Modal Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs bg-[#F4F6F9]">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs bg-background">
                 {/* Product & Status Box */}
-                <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] space-y-3 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-[10.5px] font-black uppercase text-[#5F6E7E]">Sourcing Status</span>
+                <div className="bg-white p-5 rounded-2xl border border-accent-soft space-y-3 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-accent-soft pb-2">
+                    <span className="text-[10.5px] font-black uppercase text-primary/70">Sourcing Status</span>
                     {getStatusBadge(selectedDivert.status)}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                     <div>
-                      <span className="text-[10.5px] font-black text-[#5F6E7E] block uppercase">Product Requested</span>
-                      <span className="font-extrabold text-sm text-[#163B5C] block mt-0.5">{selectedDivert.productWanted}</span>
+                      <span className="text-[10.5px] font-black text-primary/70 block uppercase">Product Requested</span>
+                      <span className="font-extrabold text-sm text-primary block mt-0.5">{selectedDivert.productWanted}</span>
                     </div>
                     <div>
-                      <span className="text-[10.5px] font-black text-[#5F6E7E] block uppercase">Requested Quantity</span>
-                      <span className="font-mono font-black text-sm text-[#163B5C] block mt-0.5">{selectedDivert.quantity || 1} Pcs</span>
+                      <span className="text-[10.5px] font-black text-primary/70 block uppercase">Requested Quantity</span>
+                      <span className="font-mono font-black text-sm text-primary block mt-0.5">{selectedDivert.quantity || 1} Pcs</span>
                     </div>
                     <div>
-                      <span className="text-[10.5px] font-black text-[#5F6E7E] block uppercase">Target Price Range</span>
-                      <span className="font-extrabold text-xs text-[#4E8ABF] block mt-0.5">{selectedDivert.priceRange || 'Standard Pricing'}</span>
+                      <span className="text-[10.5px] font-black text-primary/70 block uppercase">Target Price Range</span>
+                      <span className="font-extrabold text-xs text-accent block mt-0.5">{selectedDivert.priceRange || 'Standard Pricing'}</span>
                     </div>
                     <div>
-                      <span className="text-[10.5px] font-black text-[#5F6E7E] block uppercase">Reason Code</span>
-                      <span className="font-bold text-xs text-[#163B5C] block mt-0.5">{selectedDivert.reasonCode || 'OUT_OF_STOCK'}</span>
+                      <span className="text-[10.5px] font-black text-primary/70 block uppercase">Reason Code</span>
+                      <span className="font-bold text-xs text-primary block mt-0.5">{selectedDivert.reasonCode || 'OUT_OF_STOCK'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Customer Details */}
-                <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] space-y-3 shadow-xs">
-                  <h4 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="bg-white p-5 rounded-2xl border border-accent-soft space-y-3 shadow-xs">
+                  <h4 className="font-extrabold text-primary text-xs uppercase tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-accent" />
                     <span>Customer Contact Information</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <span className="text-[#5F6E7E] block text-[10.5px]">Customer Name</span>
-                      <span className="font-extrabold text-[#163B5C]">{selectedDivert.customerName || 'Walk-in Customer'}</span>
+                      <span className="text-primary/70 block text-[10.5px]">Customer Name</span>
+                      <span className="font-extrabold text-primary">{selectedDivert.customerName || 'Walk-in Customer'}</span>
                     </div>
                     <div>
-                      <span className="text-[#5F6E7E] block text-[10.5px]">Mobile Phone</span>
-                      <span className="font-mono font-extrabold text-[#163B5C]">{selectedDivert.customerMobile || '—'}</span>
+                      <span className="text-primary/70 block text-[10.5px]">Mobile Phone</span>
+                      <span className="font-mono font-extrabold text-primary">{selectedDivert.customerMobile || '—'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* PM Sourcing Notes */}
-                <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] space-y-2 shadow-xs">
-                  <h4 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="bg-white p-5 rounded-2xl border border-accent-soft space-y-2 shadow-xs">
+                  <h4 className="font-extrabold text-primary text-xs uppercase tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-accent" />
                     <span>Purchase Manager Review &amp; Vendor Remarks</span>
                   </h4>
-                  <div className="p-3 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] text-xs font-semibold text-[#163B5C] italic">
+                  <div className="p-3 rounded-xl bg-background border border-accent-soft text-xs font-semibold text-primary italic">
                     {selectedDivert.pmNotes || 'Request logged in system. Awaiting Purchase Manager sourcing review & vendor check.'}
                   </div>
                 </div>
 
                 {/* Beautiful Approval & Lifecycle Timeline */}
-                <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] space-y-4 shadow-xs">
-                  <h4 className="font-extrabold text-[#163B5C] text-xs uppercase tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="bg-white p-5 rounded-2xl border border-accent-soft space-y-4 shadow-xs">
+                  <h4 className="font-extrabold text-primary text-xs uppercase tracking-wider border-b border-accent-soft pb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-accent" />
                     <span>Sourcing Approval &amp; Lifecycle Timeline</span>
                   </h4>
 
-                  <div className="relative pl-6 space-y-4 before:absolute before:left-2 font-medium before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E2E8F0]">
+                  <div className="relative pl-6 space-y-4 before:absolute before:left-2 font-medium before:top-2 before:bottom-2 before:w-0.5 before:bg-accent-soft">
                     {/* Step 1: Created */}
                     <div className="relative">
                       <div className="absolute -left-6 top-0 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">✓</div>
-                      <div className="font-extrabold text-[#163B5C] text-xs">Request Created</div>
-                      <div className="text-[10.5px] text-[#5F6E7E]">Floor Staff logged request for {selectedDivert.productWanted}</div>
+                      <div className="font-extrabold text-primary text-xs">Request Created</div>
+                      <div className="text-[10.5px] text-primary/70">Floor Staff logged request for {selectedDivert.productWanted}</div>
                     </div>
 
                     {/* Step 2: Floor Manager Review */}
                     <div className="relative">
                       <div className="absolute -left-6 top-0 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">✓</div>
-                      <div className="font-extrabold text-[#163B5C] text-xs">Floor Manager Review</div>
-                      <div className="text-[10.5px] text-[#5F6E7E]">Verified out-of-stock floor condition</div>
+                      <div className="font-extrabold text-primary text-xs">Floor Manager Review</div>
+                      <div className="text-[10.5px] text-primary/70">Verified out-of-stock floor condition</div>
                     </div>
 
                     {/* Step 3: Purchase Sourcing Review */}
@@ -709,8 +709,8 @@ export default function Divert() {
                       }`}>
                         {selectedDivert.status !== 'open' ? '✓' : '•'}
                       </div>
-                      <div className="font-extrabold text-[#163B5C] text-xs">Purchase Manager Sourcing</div>
-                      <div className="text-[10.5px] text-[#5F6E7E]">Vendor procurement &amp; merchandise availability check</div>
+                      <div className="font-extrabold text-primary text-xs">Purchase Manager Sourcing</div>
+                      <div className="text-[10.5px] text-primary/70">Vendor procurement &amp; merchandise availability check</div>
                     </div>
 
                     {/* Step 4: Resolution */}
@@ -720,8 +720,8 @@ export default function Divert() {
                       }`}>
                         {(selectedDivert.status || '').toLowerCase() === 'available' ? '✓' : '○'}
                       </div>
-                      <div className="font-extrabold text-[#163B5C] text-xs">Merchandise Resolution</div>
-                      <div className="text-[10.5px] text-[#5F6E7E]">Stock fulfilled &amp; customer notified</div>
+                      <div className="font-extrabold text-primary text-xs">Merchandise Resolution</div>
+                      <div className="text-[10.5px] text-primary/70">Stock fulfilled &amp; customer notified</div>
                     </div>
                   </div>
                 </div>
@@ -729,10 +729,10 @@ export default function Divert() {
               </div>
 
               {/* Footer */}
-              <div className="p-4 bg-[#F4F6F9] border-t border-[#E2E8F0] flex items-center justify-end">
+              <div className="p-4 bg-background border-t border-accent-soft flex items-center justify-end">
                 <button
                   onClick={() => setSelectedDivert(null)}
-                  className="px-5 py-2 rounded-xl bg-[#163B5C] text-white font-extrabold text-xs shadow-md"
+                  className="px-5 py-2 rounded-xl bg-primary text-white font-extrabold text-xs shadow-md"
                 >
                   Close Details
                 </button>

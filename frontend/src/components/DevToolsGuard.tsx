@@ -66,6 +66,7 @@ const SHIELD_FLAG_KEY = 'bsc_shield_enabled';
 
 function readCachedFlag(): boolean {
   try {
+    if (localStorage.getItem('bsc_shield_bypass') === 'true') return false;
     return localStorage.getItem(SHIELD_FLAG_KEY) === 'true';
   } catch {
     return false;
@@ -93,16 +94,24 @@ export default function DevToolsGuard() {
         try {
           localStorage.setItem(SHIELD_FLAG_KEY, enabled ? 'true' : 'false');
         } catch { /* private mode */ }
-        if (!disposed) setArmed(enabled);
+        if (!disposed) {
+          const bypassed = localStorage.getItem('bsc_shield_bypass') === 'true';
+          setArmed(bypassed ? false : enabled);
+        }
       } catch {
         /* offline: keep last known flag */
       }
     };
     load();
     const timer = window.setInterval(load, 60_000);
+    
+    const onToggle = () => load();
+    window.addEventListener('dev_tools_bypass_changed', onToggle);
+
     return () => {
       disposed = true;
       window.clearInterval(timer);
+      window.removeEventListener('dev_tools_bypass_changed', onToggle);
     };
   }, []);
 
@@ -212,7 +221,7 @@ export default function DevToolsGuard() {
   if (!detected) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0E2A44]/95 backdrop-blur-xl px-4 animate-fade-in">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-primary/95 backdrop-blur-xl px-4 animate-fade-in">
       <div className="max-w-md w-full text-center">
         <div className="mx-auto w-20 h-20 rounded-2xl bg-[#C43D4B]/15 border border-[#C43D4B]/40 flex items-center justify-center mb-6 shadow-2xl">
           <XOctagon className="w-10 h-10 text-[#E8828D]" strokeWidth={1.75} />
@@ -224,7 +233,7 @@ export default function DevToolsGuard() {
           For the security of customer and business data, this application is
           locked while developer tools are open.
         </p>
-        <p className="text-[#4E8ABF] font-bold text-sm mb-8">
+        <p className="text-accent font-bold text-sm mb-8">
           Please turn off Developer Tools to continue.
         </p>
         <div className="flex items-center justify-center gap-2 text-[#8FA9C0] text-xs font-semibold uppercase tracking-widest">

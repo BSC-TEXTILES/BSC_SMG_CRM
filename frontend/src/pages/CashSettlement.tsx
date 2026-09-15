@@ -100,11 +100,11 @@ export default function CashSettlement() {
       <DashboardLayout title="Cash Settlement Desk" subtitle="Daily POS Billing Counter Settlement & Cashier Reconciliation">
         <div className="max-w-md mx-auto my-12">
           <div className="card-glass p-8 text-center space-y-6 animate-scale-in">
-            <div className="w-16 h-16 bg-[#163B5C] text-[#4E8ABF] rounded-3xl flex items-center justify-center mx-auto shadow-lg">
+            <div className="w-16 h-16 bg-primary text-accent rounded-3xl flex items-center justify-center mx-auto shadow-lg">
               <Lock className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-[#163B5C]">Cash Desk Locked</h2>
+              <h2 className="text-2xl font-black text-primary">Cash Desk Locked</h2>
               <p className="text-gray-600 text-xs font-semibold mt-1">Please enter your 4-digit Cash PIN code to access settlement features</p>
             </div>
 
@@ -144,9 +144,9 @@ export default function CashSettlement() {
         {/* Date & Overall Summary */}
         <div className="card-glass p-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-6 h-6 text-[#4E8ABF]" />
+            <Calendar className="w-6 h-6 text-accent" />
             <div>
-              <label className="block text-xs font-extrabold uppercase text-[#163B5C]/60 tracking-wider">Settlement Date</label>
+              <label className="block text-xs font-extrabold uppercase text-primary/60 tracking-wider">Settlement Date</label>
               <input
                 type="date"
                 value={date}
@@ -156,7 +156,7 @@ export default function CashSettlement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 bg-[#163B5C] text-white px-6 py-3 rounded-2xl">
+          <div className="flex items-center gap-6 bg-primary text-white px-6 py-3 rounded-2xl">
             <div>
               <div className="text-[10px] uppercase tracking-widest text-amber-300 font-bold">Total Sales Amount</div>
               <div className="text-2xl font-black">₹{saleAmount.toLocaleString()}</div>
@@ -178,7 +178,7 @@ export default function CashSettlement() {
 
         {/* Master Totals Form */}
         <div className="card-glass p-6 space-y-4">
-          <h3 className="text-sm font-extrabold text-[#163B5C] uppercase tracking-wider border-b pb-2">Day Settlement Summary</h3>
+          <h3 className="text-sm font-extrabold text-primary uppercase tracking-wider border-b pb-2">Day Settlement Summary</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Total Sale (₹)</label>
@@ -186,7 +186,7 @@ export default function CashSettlement() {
                 type="number"
                 value={saleAmount || ''}
                 onChange={(e) => setSaleAmount(parseFloat(e.target.value) || 0)}
-                className="input-modern font-black text-lg text-[#163B5C]"
+                className="input-modern font-black text-lg text-primary"
               />
             </div>
 
@@ -196,7 +196,7 @@ export default function CashSettlement() {
                 type="number"
                 value={billsCount || ''}
                 onChange={(e) => setBillsCount(parseInt(e.target.value, 10) || 0)}
-                className="input-modern font-black text-lg text-[#163B5C]"
+                className="input-modern font-black text-lg text-primary"
               />
             </div>
 

@@ -253,24 +253,24 @@ export default function CandidateEntryPage() {
   const LANGUAGES = ['Kannada', 'English', 'Hindi', 'Telugu', 'Tamil', 'Marathi', 'Others'];
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] pb-12">
+    <div className="min-h-screen bg-background pb-12">
       <ToastContainer />
 
       {/* Modern Header */}
-      <header className="bg-[#163B5C] p-4 sm:p-5 text-white shadow-lg sticky top-0 z-30 border-b border-[#4E8ABF]/30">
+      <header className="bg-primary p-4 sm:p-5 text-white shadow-lg sticky top-0 z-30 border-b border-accent/30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md border border-white/20" />
             <div>
               <h1 className="font-extrabold text-base sm:text-lg leading-tight tracking-tight">BSC Applicant Registration</h1>
-              <div className="text-[10px] text-[#4E8ABF] font-bold uppercase tracking-widest mt-0.5">
+              <div className="text-[10px] text-accent font-bold uppercase tracking-widest mt-0.5">
                 BSC EXCLUSIVE DAVANAGERE
               </div>
             </div>
           </div>
 
           <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
-            <ShieldCheck className="w-4 h-4 text-[#4E8ABF]" />
+            <ShieldCheck className="w-4 h-4 text-accent" />
             <span>Official Recruitment Portal</span>
           </div>
         </div>
@@ -281,16 +281,16 @@ export default function CandidateEntryPage() {
         {step !== 3 && (
           <div className="card-glass p-4 text-xs font-extrabold space-y-2">
             <div className="flex items-center justify-between">
-              <div className={`flex items-center gap-2 ${step === 1 ? 'text-[#163B5C]' : 'text-emerald-700'}`}>
-                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step === 1 ? 'bg-[#163B5C] text-white shadow-md ring-2 ring-[#4E8ABF]' : 'bg-emerald-600 text-white'}`}>
+              <div className={`flex items-center gap-2 ${step === 1 ? 'text-primary' : 'text-emerald-700'}`}>
+                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step === 1 ? 'bg-primary text-white shadow-md ring-2 ring-accent' : 'bg-emerald-600 text-white'}`}>
                   {step > 1 ? '✓' : '1'}
                 </span>
                 <span className="hidden sm:inline">Step 1: Personal &amp; Career Info</span>
                 <span className="sm:hidden">Step 1</span>
               </div>
 
-              <div className={`flex items-center gap-2 ${step === 2 ? 'text-[#163B5C]' : 'text-[#64748B]'}`}>
-                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step === 2 ? 'bg-[#163B5C] text-white shadow-md ring-2 ring-[#4E8ABF]' : 'bg-[#F4F6F9] border border-[#E2E8F0]'}`}>
+              <div className={`flex items-center gap-2 ${step === 2 ? 'text-primary' : 'text-[#64748B]'}`}>
+                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step === 2 ? 'bg-primary text-white shadow-md ring-2 ring-accent' : 'bg-background border border-accent-soft'}`}>
                   2
                 </span>
                 <span className="hidden sm:inline">Step 2: Documents &amp; Declaration</span>
@@ -299,9 +299,9 @@ export default function CandidateEntryPage() {
             </div>
 
             {/* Animated Progress Bar Line */}
-            <div className="h-1.5 w-full bg-[#E2E8F0] rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-accent-soft rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#163B5C] to-[#4E8ABF] transition-all duration-500 ease-out"
+                className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
                 style={{ width: step === 1 ? '50%' : '100%' }}
               />
             </div>
@@ -313,16 +313,16 @@ export default function CandidateEntryPage() {
           <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
             {/* Section 1: Personal Details */}
             <div className="space-y-4">
-              <div className="border-b border-[#E2E8F0] pb-3 flex items-center gap-2">
-                <User className="w-5 h-5 text-[#4E8ABF]" />
-                <h2 className="text-sm font-extrabold uppercase text-[#163B5C] tracking-wider">
+              <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
+                <User className="w-5 h-5 text-accent" />
+                <h2 className="text-sm font-extrabold uppercase text-primary tracking-wider">
                   1. Personal &amp; Contact Details
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Full Name (As per Aadhaar) *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Full Name (As per Aadhaar) *</label>
                   <input
                     type="text"
                     value={name}
@@ -333,9 +333,9 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Mobile Phone Number *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Mobile Phone Number *</label>
                   <div className="flex">
-                    <span className="p-2.5 bg-[#E2E8F0]/50 border border-r-0 border-[#E2E8F0] rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
                       +91
                     </span>
                     <input
@@ -355,7 +355,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Email Address (Optional)</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Email Address (Optional)</label>
                   <input
                     type="email"
                     value={email}
@@ -366,7 +366,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Gender *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Gender *</label>
                   <select value={gender} onChange={(e) => setGender(e.target.value)} className="select-modern">
                     <option value="">Select Gender</option>
                     <option value="MALE">MALE</option>
@@ -375,7 +375,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Date of Birth *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Date of Birth *</label>
                   <input
                     type="date"
                     value={dob}
@@ -385,7 +385,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Blood Group *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Blood Group *</label>
                   <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)} className="select-modern">
                     <option value="">Select Blood Group</option>
                     {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Not Known'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
@@ -394,7 +394,7 @@ export default function CandidateEntryPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#163B5C] mb-1">Complete Residential Address *</label>
+                <label className="block text-xs font-bold text-primary mb-1">Complete Residential Address *</label>
                 <textarea
                   rows={2}
                   value={address}
@@ -406,7 +406,7 @@ export default function CandidateEntryPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Aadhaar Number (12 Digits) *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Aadhaar Number (12 Digits) *</label>
                   <input
                     type="text"
                     maxLength={12}
@@ -418,7 +418,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Religion *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Religion *</label>
                   <select value={religion} onChange={(e) => setReligion(e.target.value)} className="select-modern">
                     <option value="">Select Religion</option>
                     {['Hindu', 'Muslim', 'Christian', 'Jain', 'Sikh', 'Buddhist', 'Other'].map(r => (
@@ -428,7 +428,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Caste / Category *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Caste / Category *</label>
                   <input
                     type="text"
                     value={caste}
@@ -439,7 +439,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Father's Name &amp; Occupation (Optional)</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Father's Name &amp; Occupation (Optional)</label>
                   <input
                     type="text"
                     value={fatherDetails}
@@ -450,7 +450,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Mother's Name &amp; Occupation (Optional)</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Mother's Name &amp; Occupation (Optional)</label>
                   <input
                     type="text"
                     value={motherDetails}
@@ -462,15 +462,15 @@ export default function CandidateEntryPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#163B5C] mb-2">Languages Known *</label>
+                <label className="block text-xs font-bold text-primary mb-2">Languages Known *</label>
                 <div className="flex flex-wrap gap-2">
                   {LANGUAGES.map(lang => (
-                    <label key={lang} className="flex items-center gap-1.5 bg-[#F4F6F9] border border-[#E2E8F0] px-3.5 py-2 rounded-xl cursor-pointer font-semibold text-xs text-[#163B5C] hover:bg-white transition-colors">
+                    <label key={lang} className="flex items-center gap-1.5 bg-background border border-accent-soft px-3.5 py-2 rounded-xl cursor-pointer font-semibold text-xs text-primary hover:bg-white transition-colors">
                       <input
                         type="checkbox"
                         checked={languagesKnown.includes(lang)}
                         onChange={() => handleLangToggle(lang)}
-                        className="rounded accent-[#163B5C]"
+                        className="rounded accent-primary"
                       />
                       <span>{lang}</span>
                     </label>
@@ -480,17 +480,17 @@ export default function CandidateEntryPage() {
             </div>
 
             {/* Section 2: Professional Information */}
-            <div className="space-y-4 pt-4 border-t border-[#E2E8F0]">
-              <div className="border-b border-[#E2E8F0] pb-3 flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-[#4E8ABF]" />
-                <h2 className="text-sm font-extrabold uppercase text-[#163B5C] tracking-wider">
+            <div className="space-y-4 pt-4 border-t border-accent-soft">
+              <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-accent" />
+                <h2 className="text-sm font-extrabold uppercase text-primary tracking-wider">
                   2. Position &amp; Professional Details
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Position Applied For *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Position Applied For *</label>
                   <select value={desig} onChange={(e) => setDesig(e.target.value)} className="select-modern font-extrabold">
                     <option value="">Select Desired Role</option>
                     {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -498,7 +498,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Highest Qualification *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Highest Qualification *</label>
                   <select value={qualification} onChange={(e) => setQualification(e.target.value)} className="select-modern">
                     <option value="">Select Qualification</option>
                     {QUALIFICATIONS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -506,7 +506,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Total Work Experience *</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Total Work Experience *</label>
                   <select value={experience} onChange={(e) => setExperience(e.target.value)} className="select-modern">
                     <option value="">Select Experience Level</option>
                     {EXP_LEVELS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -514,7 +514,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Earliest Date of Joining (Earliest Availability)</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Earliest Date of Joining (Earliest Availability)</label>
                   <input
                     type="date"
                     value={offeredDoj}
@@ -525,7 +525,7 @@ export default function CandidateEntryPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-[#163B5C]">Prior work experience? *</label>
+                <label className="block text-xs font-bold text-primary">Prior work experience? *</label>
                 <div className="space-y-2">
                   {[
                     'Yes, in a clothing/apparel store',
@@ -533,14 +533,14 @@ export default function CandidateEntryPage() {
                     'Worked but not in the retail field',
                     'No, fresher / no prior work experience'
                   ].map((opt) => (
-                    <label key={opt} className="flex items-center gap-2 p-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] cursor-pointer text-xs font-semibold text-[#163B5C] hover:bg-white transition-colors">
+                    <label key={opt} className="flex items-center gap-2 p-3 rounded-xl border border-accent-soft bg-background cursor-pointer text-xs font-semibold text-primary hover:bg-white transition-colors">
                       <input
                         type="radio"
                         name="retailExp"
                         value={opt}
                         checked={retailExperience === opt}
                         onChange={(e) => setRetailExperience(e.target.value)}
-                        className="accent-[#163B5C]"
+                        className="accent-primary"
                       />
                       <span>{opt}</span>
                     </label>
@@ -550,7 +550,7 @@ export default function CandidateEntryPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Previous Company / Store Name</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Previous Company / Store Name</label>
                   <input
                     type="text"
                     value={previousCompany}
@@ -561,7 +561,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Previous Designation / Role</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Previous Designation / Role</label>
                   <input
                     type="text"
                     value={previousDesignation}
@@ -572,7 +572,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Previous Salary (₹ Monthly)</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Previous Salary (₹ Monthly)</label>
                   <input
                     type="text"
                     value={previousSalary}
@@ -583,7 +583,7 @@ export default function CandidateEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#163B5C] mb-1">Expected Salary (₹ Monthly)</label>
+                  <label className="block text-xs font-bold text-primary mb-1">Expected Salary (₹ Monthly)</label>
                   <input
                     type="text"
                     value={expectedSalary}
@@ -596,7 +596,7 @@ export default function CandidateEntryPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end pt-4 border-t border-[#E2E8F0]">
+            <div className="flex justify-end pt-4 border-t border-accent-soft">
               <button
                 type="button"
                 onClick={handleGoStep2}
@@ -612,18 +612,18 @@ export default function CandidateEntryPage() {
         {/* STEP 2 FORM */}
         {step === 2 && (
           <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
-            <div className="border-b border-[#E2E8F0] pb-3 flex items-center gap-2">
-              <Upload className="w-5 h-5 text-[#4E8ABF]" />
-              <h2 className="text-sm font-extrabold uppercase text-[#163B5C] tracking-wider">
+            <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-accent" />
+              <h2 className="text-sm font-extrabold uppercase text-primary tracking-wider">
                 3. Mandatory Document Uploads &amp; Declaration
               </h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Photo Upload */}
-              <div className="p-4 rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-[#F4F6F9] text-center space-y-2 hover:border-[#163B5C] transition-colors">
-                <ImageIcon className="w-8 h-8 text-[#4E8ABF] mx-auto" />
-                <div className="font-extrabold text-xs text-[#163B5C]">Candidate Passport Photo *</div>
+              <div className="p-4 rounded-2xl border-2 border-dashed border-accent-soft bg-background text-center space-y-2 hover:border-primary transition-colors">
+                <ImageIcon className="w-8 h-8 text-accent mx-auto" />
+                <div className="font-extrabold text-xs text-primary">Candidate Passport Photo *</div>
                 <input
                   type="file"
                   accept="image/*"
@@ -631,15 +631,15 @@ export default function CandidateEntryPage() {
                   className="hidden"
                   id="photo-input"
                 />
-                <label htmlFor="photo-input" className="inline-block px-3 py-1.5 rounded-lg bg-white border border-[#E2E8F0] text-xs font-bold text-[#163B5C] cursor-pointer hover:bg-[#163B5C] hover:text-white transition-colors">
+                <label htmlFor="photo-input" className="inline-block px-3 py-1.5 rounded-lg bg-white border border-accent-soft text-xs font-bold text-primary cursor-pointer hover:bg-primary hover:text-white transition-colors">
                   {photoFile ? photoFile.name : (existingPhoto ? 'Change Photo' : 'Choose Image')}
                 </label>
               </div>
 
               {/* Aadhaar Upload */}
-              <div className="p-4 rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-[#F4F6F9] text-center space-y-2 hover:border-[#163B5C] transition-colors">
-                <FileCheck className="w-8 h-8 text-[#4E8ABF] mx-auto" />
-                <div className="font-extrabold text-xs text-[#163B5C]">Aadhaar Card (Front/Back) *</div>
+              <div className="p-4 rounded-2xl border-2 border-dashed border-accent-soft bg-background text-center space-y-2 hover:border-primary transition-colors">
+                <FileCheck className="w-8 h-8 text-accent mx-auto" />
+                <div className="font-extrabold text-xs text-primary">Aadhaar Card (Front/Back) *</div>
                 <input
                   type="file"
                   accept="image/*,application/pdf"
@@ -647,15 +647,15 @@ export default function CandidateEntryPage() {
                   className="hidden"
                   id="aadhar-input"
                 />
-                <label htmlFor="aadhar-input" className="inline-block px-3 py-1.5 rounded-lg bg-white border border-[#E2E8F0] text-xs font-bold text-[#163B5C] cursor-pointer hover:bg-[#163B5C] hover:text-white transition-colors">
+                <label htmlFor="aadhar-input" className="inline-block px-3 py-1.5 rounded-lg bg-white border border-accent-soft text-xs font-bold text-primary cursor-pointer hover:bg-primary hover:text-white transition-colors">
                   {aadhaarFile ? aadhaarFile.name : (existingAadhaar ? 'Change Aadhaar' : 'Choose Document')}
                 </label>
               </div>
 
               {/* Resume Upload */}
-              <div className="p-4 rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-[#F4F6F9] text-center space-y-2 hover:border-[#163B5C] transition-colors">
-                <FileText className="w-8 h-8 text-[#4E8ABF] mx-auto" />
-                <div className="font-extrabold text-xs text-[#163B5C]">Resume / CV Document *</div>
+              <div className="p-4 rounded-2xl border-2 border-dashed border-accent-soft bg-background text-center space-y-2 hover:border-primary transition-colors">
+                <FileText className="w-8 h-8 text-accent mx-auto" />
+                <div className="font-extrabold text-xs text-primary">Resume / CV Document *</div>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,image/*"
@@ -663,7 +663,7 @@ export default function CandidateEntryPage() {
                   className="hidden"
                   id="resume-input"
                 />
-                <label htmlFor="resume-input" className="inline-block px-3 py-1.5 rounded-lg bg-white border border-[#E2E8F0] text-xs font-bold text-[#163B5C] cursor-pointer hover:bg-[#163B5C] hover:text-white transition-colors">
+                <label htmlFor="resume-input" className="inline-block px-3 py-1.5 rounded-lg bg-white border border-accent-soft text-xs font-bold text-primary cursor-pointer hover:bg-primary hover:text-white transition-colors">
                   {resumeFile ? resumeFile.name : (existingResume ? 'Change Resume' : 'Choose File')}
                 </label>
               </div>
@@ -671,12 +671,12 @@ export default function CandidateEntryPage() {
 
             {/* Declaration Checkbox */}
             <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2">
-              <label className="flex items-start gap-3 cursor-pointer text-xs font-semibold text-[#163B5C]">
+              <label className="flex items-start gap-3 cursor-pointer text-xs font-semibold text-primary">
                 <input
                   type="checkbox"
                   checked={declaration}
                   onChange={(e) => setDeclaration(e.target.checked)}
-                  className="mt-0.5 rounded accent-[#163B5C]"
+                  className="mt-0.5 rounded accent-primary"
                 />
                 <span>
                   I hereby declare that all information provided in this registration form is true, correct, and complete to the best of my knowledge. I understand that any false statement or omission may lead to immediate disqualification.
@@ -685,11 +685,11 @@ export default function CandidateEntryPage() {
             </div>
 
             {/* Step 2 Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-[#E2E8F0]">
+            <div className="flex items-center justify-between pt-4 border-t border-accent-soft">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C] hover:bg-[#F4F6F9] flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary hover:bg-background flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Step 1</span>
@@ -722,16 +722,16 @@ export default function CandidateEntryPage() {
             </div>
 
             <div>
-              <h2 className="text-2xl font-black text-[#163B5C] tracking-tight">Registration Successfully Submitted! 🎉</h2>
-              <p className="text-sm text-[#5F6E7E] font-medium mt-1">Thank you for submitting your application to BSC The Textile Mall.</p>
+              <h2 className="text-2xl font-black text-primary tracking-tight">Registration Successfully Submitted! 🎉</h2>
+              <p className="text-sm text-primary/70 font-medium mt-1">Thank you for submitting your application to BSC The Textile Mall.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#163B5C]/5 border border-[#163B5C]/10 inline-block">
-              <span className="text-xs uppercase font-black text-[#5F6E7E] block">Application Reference Number</span>
-              <span className="text-2xl font-mono font-black text-[#163B5C] tracking-wider">{successAppNo}</span>
+            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 inline-block">
+              <span className="text-xs uppercase font-black text-primary/70 block">Application Reference Number</span>
+              <span className="text-2xl font-mono font-black text-primary tracking-wider">{successAppNo}</span>
             </div>
 
-            <div className="pt-4 border-t border-[#E2E8F0] flex justify-center gap-3">
+            <div className="pt-4 border-t border-accent-soft flex justify-center gap-3">
               <button
                 onClick={() => window.location.href = '/candidate-entry'}
                 className="btn-primary text-xs"

@@ -89,19 +89,19 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 p-4 bg-black/40 backdrop-blur-xs">
-      <div className="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#E2E8F0] animate-fade-in">
+      <div className="w-full max-w-xl bg-white rounded-3xl overflow-hidden shadow-2xl border border-accent-soft animate-fade-in">
         {/* Search Bar Input */}
-        <div className="p-4 border-b border-[#E2E8F0] flex items-center gap-3 bg-[#F4F6F9]">
-          <Search className="w-5 h-5 text-[#4E8ABF]" />
+        <div className="p-4 border-b border-accent-soft flex items-center gap-3 bg-background">
+          <Search className="w-5 h-5 text-accent" />
           <input
             type="text"
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type to search candidates, employees, openings, modules... (ESC to exit)"
-            className="w-full text-sm font-semibold bg-transparent text-[#163B5C] focus:outline-none placeholder-[#64748B]"
+            className="w-full text-sm font-semibold bg-transparent text-primary focus:outline-none placeholder-[#64748B]"
           />
-          <button onClick={onClose} className="p-1 rounded-lg text-[#64748B] hover:text-[#163B5C]">
+          <button onClick={onClose} className="p-1 rounded-lg text-[#64748B] hover:text-primary">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -109,7 +109,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
         {/* Results List */}
         <div className="max-h-96 overflow-y-auto p-3 space-y-1 text-xs">
           {loading && (
-            <div className="p-6 text-center text-[#5F6E7E] font-semibold flex items-center justify-center gap-2">
+            <div className="p-6 text-center text-primary/70 font-semibold flex items-center justify-center gap-2">
               <span className="spinner" />
               <span>Searching enterprise directory...</span>
             </div>
@@ -123,16 +123,16 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
                   onClose();
                   navigate(r.href);
                 }}
-                className="w-full p-3 rounded-2xl flex items-center justify-between gap-3 hover:bg-[#F4F6F9] text-left transition-colors font-medium border border-transparent hover:border-[#E2E8F0]"
+                className="w-full p-3 rounded-2xl flex items-center justify-between gap-3 hover:bg-background text-left transition-colors font-medium border border-transparent hover:border-accent-soft"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#163B5C]/10 text-[#163B5C]">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-primary/10 text-primary">
                       {r.type}
                     </span>
-                    <span className="font-extrabold text-[#163B5C]">{r.title}</span>
+                    <span className="font-extrabold text-primary">{r.title}</span>
                   </div>
-                  <div className="text-[11px] text-[#5F6E7E] mt-0.5">{r.subtitle}</div>
+                  <div className="text-[11px] text-primary/70 mt-0.5">{r.subtitle}</div>
                 </div>
                 <ArrowRight className="w-4 h-4 text-[#64748B]" />
               </button>
@@ -140,19 +140,19 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
           )}
 
           {!loading && query.trim() && results.length === 0 && (
-            <div className="p-8 text-center text-[#5F6E7E] font-semibold">
+            <div className="p-8 text-center text-primary/70 font-semibold">
               No matching candidate or system records found for "{query}".
             </div>
           )}
 
           {!query.trim() && (
-            <div className="p-6 text-center text-[#5F6E7E] font-semibold text-xs space-y-2">
+            <div className="p-6 text-center text-primary/70 font-semibold text-xs space-y-2">
               <div>Quick Search Shortcuts</div>
               <div className="flex flex-wrap justify-center gap-2">
-                <span className="px-2.5 py-1 rounded-xl bg-[#F4F6F9] border font-mono">Ctrl + K</span>
-                <span className="px-2.5 py-1 rounded-xl bg-[#F4F6F9] border font-mono">Candidate Names</span>
-                <span className="px-2.5 py-1 rounded-xl bg-[#F4F6F9] border font-mono">Application Numbers</span>
-                <span className="px-2.5 py-1 rounded-xl bg-[#F4F6F9] border font-mono">Phone Numbers</span>
+                <span className="px-2.5 py-1 rounded-xl bg-background border font-mono">Ctrl + K</span>
+                <span className="px-2.5 py-1 rounded-xl bg-background border font-mono">Candidate Names</span>
+                <span className="px-2.5 py-1 rounded-xl bg-background border font-mono">Application Numbers</span>
+                <span className="px-2.5 py-1 rounded-xl bg-background border font-mono">Phone Numbers</span>
               </div>
             </div>
           )}

@@ -17,12 +17,12 @@ export default function PageHeader({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 className="text-2xl font-black text-[#1B2A3B] tracking-tight flex items-center gap-2.5">
-          {Icon && <Icon className="w-6 h-6 text-[#4E8ABF]" />}
+        <h1 className="text-2xl font-black text-primary tracking-tight flex items-center gap-2.5">
+          {Icon && <Icon className="w-6 h-6 text-accent" />}
           <span>{title}</span>
         </h1>
         {description && (
-          <p className="text-xs sm:text-sm text-[#5F6E7E] font-medium mt-1">
+          <p className="text-xs sm:text-sm text-primary/70 font-medium mt-1">
             {description}
           </p>
         )}

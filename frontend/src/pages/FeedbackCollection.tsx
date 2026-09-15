@@ -182,7 +182,7 @@ export default function FeedbackCollection() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -198,21 +198,21 @@ export default function FeedbackCollection() {
           {/* Header & Quick Action Bar */}
           <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#163B5C] text-[#4E8ABF] text-[10px] font-black uppercase tracking-widest mb-1.5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-accent text-[10px] font-black uppercase tracking-widest mb-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>BSC Exclusive Davanagere</span>
               </div>
-              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-[#4E8ABF]" />
+              <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-accent" />
                 <span>Customer Feedback Repository</span>
               </h2>
-              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Real-time log of customer survey responses, satisfaction scores &amp; voice of customer notes.</p>
+              <p className="text-xs text-primary/70 font-medium mt-0.5">Real-time log of customer survey responses, satisfaction scores &amp; voice of customer notes.</p>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
               <button
                 onClick={loadFeedbacks}
-                className="px-3.5 py-2 rounded-xl bg-white border border-[#E2E8F0] text-[#163B5C] text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 rounded-xl bg-white border border-accent-soft text-primary text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
@@ -232,21 +232,21 @@ export default function FeedbackCollection() {
             {/* Total Feedbacks */}
             <div className="card-glass p-5 flex items-center justify-between">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-[#5F6E7E]">Total Feedbacks</div>
-                <div className="text-2xl font-black text-[#163B5C] mt-1">{stats.total || feedbacks.length}</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Total Feedbacks</div>
+                <div className="text-2xl font-black text-primary mt-1">{stats.total || feedbacks.length}</div>
                 <div className="text-[11px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" /> All Submitted Visits
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-[#163B5C]/10 text-[#163B5C] flex items-center justify-center font-black">
-                <MessageSquare className="w-6 h-6 text-[#163B5C]" />
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black">
+                <MessageSquare className="w-6 h-6 text-primary" />
               </div>
             </div>
 
             {/* Satisfaction Rate / NPS */}
             <div className="card-glass p-5 flex items-center justify-between">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-[#5F6E7E]">Satisfaction Rate</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Satisfaction Rate</div>
                 <div className="text-2xl font-black text-emerald-600 mt-1">{stats.npsScore || 100}%</div>
                 <div className="text-[11px] text-gray-500 font-semibold mt-0.5">CSAT Index Score</div>
               </div>
@@ -258,7 +258,7 @@ export default function FeedbackCollection() {
             {/* Positive Feedbacks */}
             <div className="card-glass p-5 flex items-center justify-between">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-[#5F6E7E]">Positive Ratings</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Positive Ratings</div>
                 <div className="text-2xl font-black text-emerald-700 mt-1">{stats.positive || 0}</div>
                 <div className="text-[11px] text-emerald-600 font-bold mt-0.5">Satisfied Shoppers</div>
               </div>
@@ -270,7 +270,7 @@ export default function FeedbackCollection() {
             {/* Negative Escalations */}
             <div className="card-glass p-5 flex items-center justify-between border-l-4 border-l-rose-500">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-[#5F6E7E]">Needs Follow-up</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Needs Follow-up</div>
                 <div className="text-2xl font-black text-rose-600 mt-1">{stats.negative || 0}</div>
                 <div className="text-[11px] text-rose-600 font-bold mt-0.5 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" /> Auto-Escalated to Queue
@@ -298,7 +298,7 @@ export default function FeedbackCollection() {
 
             {/* Sentiment Filter */}
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Filter className="w-3.5 h-3.5 text-[#4E8ABF] hidden sm:block" />
+              <Filter className="w-3.5 h-3.5 text-accent hidden sm:block" />
               <select
                 value={sentimentFilter}
                 onChange={(e) => setSentimentFilter(e.target.value)}
@@ -310,7 +310,7 @@ export default function FeedbackCollection() {
               </select>
 
               {/* Date Preset Filter */}
-              <Calendar className="w-3.5 h-3.5 text-[#4E8ABF] hidden sm:block ml-2" />
+              <Calendar className="w-3.5 h-3.5 text-accent hidden sm:block ml-2" />
               <select
                 value={datePreset}
                 onChange={(e) => setDatePreset(e.target.value)}
@@ -349,30 +349,30 @@ export default function FeedbackCollection() {
 
           {/* Feedback Data Table */}
           <div className="card-glass p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#4E8ABF]" />
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+              <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-accent" />
                 <span>Collected Survey Log ({feedbacks.length})</span>
               </h3>
-              <span className="text-xs text-[#5F6E7E] font-semibold">Showing real-time records</span>
+              <span className="text-xs text-primary/70 font-semibold">Showing real-time records</span>
             </div>
 
             {loading ? (
               <div className="py-12 text-center text-xs font-bold text-gray-500 flex flex-col items-center gap-2">
-                <RefreshCw className="w-6 h-6 animate-spin text-[#4E8ABF]" />
+                <RefreshCw className="w-6 h-6 animate-spin text-accent" />
                 <span>Loading feedback entries...</span>
               </div>
             ) : feedbacks.length === 0 ? (
               <div className="py-12 text-center text-xs font-bold text-gray-500 space-y-2">
                 <MessageSquare className="w-10 h-10 text-gray-300 mx-auto" />
-                <div className="text-sm text-[#163B5C] font-extrabold">No Feedback Submissions Found</div>
+                <div className="text-sm text-primary font-extrabold">No Feedback Submissions Found</div>
                 <p className="text-gray-400 font-medium">Customer responses from the Customer Experience Survey will appear here in real-time.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] bg-[#F4F6F9]/80">
+                    <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/80">
                       <th className="py-3 px-4">Date &amp; Time</th>
                       <th className="py-3 px-4">Customer Details</th>
                       <th className="py-3 px-4">Overall Experience</th>
@@ -382,7 +382,7 @@ export default function FeedbackCollection() {
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E2E8F0]/60">
+                  <tbody className="divide-y divide-accent-soft/60">
                     {feedbacks.map((f: any) => {
                       const ans = f.answers || {};
                       const overallExp = ans['q1'] || 'Satisfied';
@@ -391,19 +391,19 @@ export default function FeedbackCollection() {
                       return (
                         <tr key={f.id} className="hover:bg-black/5 font-medium transition-colors">
                           <td className="py-3.5 px-4 text-[#475569]">
-                            <div className="font-bold text-[#163B5C] font-mono text-[11px]">
+                            <div className="font-bold text-primary font-mono text-[11px]">
                               {f.entryDate || 'Today'}
                             </div>
                             {f.entryTime && (
                               <div className="text-[10.5px] text-gray-500 font-semibold flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3 text-[#4E8ABF]" />
+                                <Clock className="w-3 h-3 text-accent" />
                                 <span>{f.entryTime}</span>
                               </div>
                             )}
                           </td>
                           <td className="py-3.5 px-4">
-                            <div className="font-extrabold text-[#163B5C] flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                            <div className="font-extrabold text-primary flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5 text-accent" />
                               <span>{f.customerName || 'Anonymous'}</span>
                             </div>
                             {f.mobile && (
@@ -414,7 +414,7 @@ export default function FeedbackCollection() {
                             )}
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-[#163B5C]/10 text-[#163B5C]">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-primary/10 text-primary">
                               {overallExp}
                             </span>
                           </td>
@@ -450,7 +450,7 @@ export default function FeedbackCollection() {
                           <td className="py-3.5 px-4 text-right">
                             <button
                               onClick={() => handleOpenModal(f)}
-                              className="px-3 py-1.5 rounded-xl border border-[#163B5C] text-[#163B5C] font-extrabold text-[11px] hover:bg-[#163B5C] hover:text-white transition-all flex items-center gap-1 ml-auto shadow-xs"
+                              className="px-3 py-1.5 rounded-xl border border-primary text-primary font-extrabold text-[11px] hover:bg-primary hover:text-white transition-all flex items-center gap-1 ml-auto shadow-xs"
                             >
                               <Eye className="w-3.5 h-3.5" /> View Ticket
                             </button>
@@ -466,11 +466,11 @@ export default function FeedbackCollection() {
 
           {/* Executive Customer Resolution Dashboard Modal */}
           {selectedFeedback && (
-            <div className="fixed inset-0 bg-[#163B5C]/70 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
-              <div className="card-glass max-w-5xl w-full p-6 sm:p-8 space-y-6 animate-scale-in max-h-[92vh] overflow-y-auto shadow-2xl rounded-3xl border border-white/40 bg-white/95 text-[#163B5C]">
+            <div className="fixed inset-0 bg-primary/70 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
+              <div className="card-glass max-w-5xl w-full p-6 sm:p-8 space-y-6 animate-scale-in max-h-[92vh] overflow-y-auto shadow-2xl rounded-3xl border border-white/40 bg-white/95 text-primary">
                 
                 {/* 1. Header Redesign */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-accent-soft pb-5">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1.5">
                       {selectedFeedback.isNegative ? (
@@ -482,26 +482,26 @@ export default function FeedbackCollection() {
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Satisfied Customer Survey
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#163B5C] text-[#4E8ABF] text-[10px] font-black uppercase tracking-widest">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-accent text-[10px] font-black uppercase tracking-widest">
                         BSC EXCLUSIVE RETAIL
                       </span>
                     </div>
 
-                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#163B5C]">
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-primary">
                       {selectedFeedback.customerName || 'Valued Customer'}
                     </h2>
 
-                    <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#5F6E7E] pt-1">
+                    <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-primary/70 pt-1">
                       <span className="flex items-center gap-1.5 font-mono">
-                        <Phone className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                        <Phone className="w-3.5 h-3.5 text-accent" />
                         {selectedFeedback.mobile || 'No Mobile Provided'}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                        <Clock className="w-3.5 h-3.5 text-accent" />
                         Collection Time: <strong>{selectedFeedback.entryDate || 'Today'} {selectedFeedback.entryTime ? `at ${selectedFeedback.entryTime}` : ''}</strong>
                       </span>
                       <span className="flex items-center gap-1.5 font-mono text-[11px]">
-                        <Hash className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                        <Hash className="w-3.5 h-3.5 text-accent" />
                         ID: #{String(selectedFeedback.id).startsWith('FB-') ? selectedFeedback.id : `FB-${selectedFeedback.id}`}
                       </span>
                     </div>
@@ -553,42 +553,42 @@ export default function FeedbackCollection() {
 
                 {/* 3. Customer Satisfaction Summary (Correct Question Mapping Grid) */}
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-[#163B5C]/70 flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 text-accent" />
                     <span>Customer Satisfaction Summary</span>
                   </h4>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-[#5F6E7E] tracking-wider">Overall CSAT</div>
+                    <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
+                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Overall CSAT</div>
                       <div className={`text-sm font-black mt-1.5 ${selectedFeedback.isNegative ? 'text-rose-600' : 'text-emerald-600'}`}>
                         {selectedFeedback.answers?.q1 || selectedFeedback.q1 || (selectedFeedback.isNegative ? 'Dissatisfied' : 'Very satisfied')}
                       </div>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-[#5F6E7E] tracking-wider">Product Found</div>
-                      <div className="text-sm font-black text-[#163B5C] mt-1.5">
+                    <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
+                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Product Found</div>
+                      <div className="text-sm font-black text-primary mt-1.5">
                         {selectedFeedback.answers?.q2 || selectedFeedback.q2 || 'Yes, exactly'}
                       </div>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-[#5F6E7E] tracking-wider">Collection Quality</div>
-                      <div className="text-sm font-black text-[#163B5C] mt-1.5">
+                    <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
+                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Collection Quality</div>
+                      <div className="text-sm font-black text-primary mt-1.5">
                         {selectedFeedback.answers?.q3 || selectedFeedback.q3 || 'Excellent'}
                       </div>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-[#5F6E7E] tracking-wider">Staff Courtesy</div>
-                      <div className="text-sm font-black text-[#163B5C] mt-1.5">
+                    <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
+                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Staff Courtesy</div>
+                      <div className="text-sm font-black text-primary mt-1.5">
                         {selectedFeedback.answers?.q4 || selectedFeedback.q4 || 'Extremely helpful'}
                       </div>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center col-span-2 sm:col-span-1">
-                      <div className="text-[10px] font-extrabold uppercase text-[#5F6E7E] tracking-wider">Recommendation</div>
+                    <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center col-span-2 sm:col-span-1">
+                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Recommendation</div>
                       <div className={`text-sm font-black mt-1.5 ${selectedFeedback.isNegative ? 'text-rose-600' : 'text-emerald-600'}`}>
                         {selectedFeedback.answers?.q5 || selectedFeedback.q5 || 'Definitely recommend'}
                       </div>
@@ -598,8 +598,8 @@ export default function FeedbackCollection() {
 
                 {/* 4. Mapped Questionnaire Responses Grid */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-[#163B5C]/70 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-accent" />
                     <span>Survey Questionnaire Responses</span>
                   </h4>
 
@@ -615,8 +615,8 @@ export default function FeedbackCollection() {
                       const isNegVal = ['dissatisfied', 'very dissatisfied', 'poor', 'very poor', 'no', 'partially', 'not recommend'].some(k => valStr.toLowerCase().includes(k));
 
                       return (
-                        <div key={idx} className="p-3.5 rounded-2xl bg-white border border-[#E2E8F0] flex items-center justify-between gap-3 shadow-xs">
-                          <span className="text-xs font-bold text-[#163B5C] uppercase tracking-wider">
+                        <div key={idx} className="p-3.5 rounded-2xl bg-white border border-accent-soft flex items-center justify-between gap-3 shadow-xs">
+                          <span className="text-xs font-bold text-primary uppercase tracking-wider">
                             {qItem.label}
                           </span>
                           <span className={`px-3 py-1 rounded-xl text-xs font-extrabold shadow-2xs ${
@@ -634,8 +634,8 @@ export default function FeedbackCollection() {
 
                 {/* 5. Voice of Customer Section (3 Accent Cards) */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-[#163B5C]/70 flex items-center gap-1.5">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-accent" />
                     <span>Voice of Customer Detailed Notes</span>
                   </h4>
 
@@ -677,54 +677,54 @@ export default function FeedbackCollection() {
                 </div>
 
                 {/* 6. Action Timeline */}
-                <div className="space-y-3 pt-1 border-t border-[#E2E8F0]">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-[#163B5C]/70 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                <div className="space-y-3 pt-1 border-t border-accent-soft">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-accent" />
                     <span>Customer Journey Escalation Timeline</span>
                   </h4>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div className="p-3 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] text-center">
+                    <div className="p-3 rounded-2xl bg-background border border-accent-soft text-center">
                       <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-xs flex items-center justify-center mx-auto mb-1">1</div>
-                      <div className="text-[11px] font-extrabold text-[#163B5C]">QR Submitted</div>
+                      <div className="text-[11px] font-extrabold text-primary">QR Submitted</div>
                       <div className="text-[9.5px] text-gray-500 font-mono mt-0.5">{selectedFeedback.entryDate || 'Today'}</div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] text-center">
+                    <div className="p-3 rounded-2xl bg-background border border-accent-soft text-center">
                       <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-xs flex items-center justify-center mx-auto mb-1">2</div>
-                      <div className="text-[11px] font-extrabold text-[#163B5C]">Feedback Recorded</div>
+                      <div className="text-[11px] font-extrabold text-primary">Feedback Recorded</div>
                       <div className="text-[9.5px] text-gray-500 mt-0.5">{selectedFeedback.isNegative ? 'Escalation Triggered' : 'Positive Rating'}</div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] text-center">
+                    <div className="p-3 rounded-2xl bg-background border border-accent-soft text-center">
                       <div className={`w-6 h-6 rounded-full font-bold text-xs flex items-center justify-center mx-auto mb-1 ${
                         selectedFeedback.isNegative ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'
                       }`}>3</div>
-                      <div className="text-[11px] font-extrabold text-[#163B5C]">{selectedFeedback.isNegative ? 'Call Queue Added' : 'Survey Completed'}</div>
+                      <div className="text-[11px] font-extrabold text-primary">{selectedFeedback.isNegative ? 'Call Queue Added' : 'Survey Completed'}</div>
                       <div className="text-[9.5px] text-gray-500 mt-0.5">{selectedFeedback.isNegative ? 'Telecaller Pending' : 'CSAT Verified'}</div>
                     </div>
 
-                    <div className="p-3 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] text-center">
-                      <div className="w-6 h-6 rounded-full bg-[#163B5C] text-[#4E8ABF] font-bold text-xs flex items-center justify-center mx-auto mb-1">4</div>
-                      <div className="text-[11px] font-extrabold text-[#163B5C]">Closed</div>
+                    <div className="p-3 rounded-2xl bg-background border border-accent-soft text-center">
+                      <div className="w-6 h-6 rounded-full bg-primary text-accent font-bold text-xs flex items-center justify-center mx-auto mb-1">4</div>
+                      <div className="text-[11px] font-extrabold text-primary">Closed</div>
                       <div className="text-[9.5px] text-gray-500 mt-0.5">{selectedFeedback.isNegative ? 'Executive Workspace' : 'Status: Closed'}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* 7. Resolution Workspace */}
-                <div className="p-5 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-4">
-                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-[#163B5C] flex items-center gap-2">
-                      <UserCheck className="w-4 h-4 text-[#4E8ABF]" />
+                <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
+                  <div className="flex items-center justify-between border-b border-accent-soft pb-2">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-accent" />
                       <span>Resolution Workspace & Telecaller Logging</span>
                     </h4>
-                    <span className="text-[10px] font-bold text-[#5F6E7E]">BSC Operational CRM Desk</span>
+                    <span className="text-[10px] font-bold text-primary/70">BSC Operational CRM Desk</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider mb-1">
+                      <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-1">
                         Follow-Up Action Status
                       </label>
                       <select
@@ -739,7 +739,7 @@ export default function FeedbackCollection() {
                     </div>
 
                     <div>
-                      <label className="block text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider mb-1">
+                      <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-1">
                         Assigned Executive / Priority
                       </label>
                       <input
@@ -752,7 +752,7 @@ export default function FeedbackCollection() {
                   </div>
 
                   <div>
-                    <label className="block text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider mb-1">
+                    <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-1">
                       Internal Telecaller Resolution Notes
                     </label>
                     <textarea
@@ -766,10 +766,10 @@ export default function FeedbackCollection() {
                 </div>
 
                 {/* 8. Action Buttons (Modal Footer) */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#E2E8F0]">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-accent-soft">
                   <button
                     onClick={() => setSelectedFeedback(null)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] hover:bg-gray-100 text-[#475569] font-extrabold text-xs transition-all shadow-xs"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-accent-soft bg-background hover:bg-gray-100 text-[#475569] font-extrabold text-xs transition-all shadow-xs"
                   >
                     Close Dashboard
                   </button>

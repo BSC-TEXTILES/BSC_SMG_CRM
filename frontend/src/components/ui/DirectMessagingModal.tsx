@@ -42,11 +42,11 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-      <div className="w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#E2E8F0] flex flex-col h-[520px] animate-fade-in">
+      <div className="w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-accent-soft flex flex-col h-[520px] animate-fade-in">
         {/* Header */}
-        <div className="p-4 border-b border-[#E2E8F0] bg-[#163B5C] text-white flex items-center justify-between">
+        <div className="p-4 border-b border-accent-soft bg-primary text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <MessageSquare className="w-5 h-5 text-[#4E8ABF]" />
+            <MessageSquare className="w-5 h-5 text-accent" />
             <div>
               <h3 className="font-extrabold text-sm tracking-tight">Direct Text Messaging</h3>
               <p className="text-[10px] text-white/60">Secure text-only staff communication</p>
@@ -58,12 +58,12 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
         </div>
 
         {/* Recipient Selector */}
-        <div className="p-3 bg-[#F4F6F9] border-b border-[#E2E8F0] flex items-center gap-2 text-xs">
-          <span className="font-extrabold text-[#163B5C]">Send To:</span>
+        <div className="p-3 bg-background border-b border-accent-soft flex items-center gap-2 text-xs">
+          <span className="font-extrabold text-primary">Send To:</span>
           <select
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            className="flex-1 p-1.5 rounded-xl border border-[#E2E8F0] bg-white font-bold text-[#163B5C]"
+            className="flex-1 p-1.5 rounded-xl border border-accent-soft bg-white font-bold text-primary"
           >
             <option value="All HR Staff">All HR Staff</option>
             <option value="Store Managers">Store Managers</option>
@@ -74,19 +74,19 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
         </div>
 
         {/* Thread History */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#F4F6F9]/50 text-xs">
+        <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-background/50 text-xs">
           {messages.length > 0 ? (
             messages.map((m) => {
               const isMe = m.senderUsername === (session?.username || 'user');
               return (
                 <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                  <div className="text-[10px] text-[#5F6E7E] font-semibold mb-0.5">
+                  <div className="text-[10px] text-primary/70 font-semibold mb-0.5">
                     {m.senderName} · <span className="font-mono">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <div
                     className={`
                       p-3 rounded-2xl max-w-[80%] font-medium shadow-xs leading-relaxed
-                      ${isMe ? 'bg-[#163B5C] text-white rounded-tr-none' : 'bg-white border border-[#E2E8F0] text-[#163B5C] rounded-tl-none'}
+                      ${isMe ? 'bg-primary text-white rounded-tr-none' : 'bg-white border border-accent-soft text-primary rounded-tl-none'}
                     `}
                   >
                     {m.text}
@@ -106,7 +106,7 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
         </div>
 
         {/* Messaging Input */}
-        <form onSubmit={handleSend} className="p-3 border-t border-[#E2E8F0] bg-white flex items-center gap-2">
+        <form onSubmit={handleSend} className="p-3 border-t border-accent-soft bg-white flex items-center gap-2">
           <input
             type="text"
             value={text}

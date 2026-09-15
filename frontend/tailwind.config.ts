@@ -16,38 +16,56 @@ const config: Config = {
     },
     extend: {
       colors: {
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)'
+        },
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          hover: 'var(--color-accent-hover)',
+          soft: 'var(--color-accent-soft)',
+          softHover: 'var(--color-accent-soft-hover)'
+        },
+        background: 'var(--color-background)',
+        // Keeping legacy names mapped to new colors to avoid breaking standard tailwind classes currently used
         burgundy: {
-          DEFAULT: '#163B5C',
-          dark: '#0E2A44',
-          light: '#1F4D77',
-          hover: '#27476E'
+          DEFAULT: 'var(--color-primary)',
+          dark: 'var(--color-primary-hover)',
+          light: 'var(--color-primary-hover)',
+          hover: 'var(--color-primary-hover)'
         },
         champagne: {
-          DEFAULT: '#4E8ABF',
-          dark: '#3D74A3',
-          light: '#6FA3D0',
-          hover: '#3D74A3'
+          DEFAULT: 'var(--color-accent)',
+          dark: 'var(--color-accent-hover)',
+          light: 'var(--color-accent-soft)',
+          hover: 'var(--color-accent-hover)'
         },
         ivory: {
-          DEFAULT: '#F4F6F9',
+          DEFAULT: 'var(--color-background)',
           card: '#FFFFFF',
-          border: '#DFE6EE'
+          border: 'var(--color-accent-soft)'
         },
-        // Legacy aliases (burgundy/champagne keys kept for compatibility; values are the corporate slate-blue theme)
         navy: {
-          DEFAULT: '#163B5C',
-          dark: '#0E2A44',
-          light: '#1F4D77'
+          DEFAULT: 'var(--color-primary)',
+          dark: 'var(--color-primary-hover)',
+          light: 'var(--color-primary-hover)'
         },
         gold: {
-          DEFAULT: '#4E8ABF',
-          dark: '#3D74A3',
-          light: '#6FA3D0'
+          DEFAULT: 'var(--color-accent)',
+          dark: 'var(--color-accent-hover)',
+          light: 'var(--color-accent-soft)'
         },
         cream: {
-          DEFAULT: '#F4F6F9',
-          bg: '#F4F6F9'
+          DEFAULT: 'var(--color-background)',
+          bg: 'var(--color-background)'
         }
+      },
+      textColor: {
+        primary: {
+          DEFAULT: '#1B2A3B', // Original dark blue text
+          hover: '#0E2A44'
+        },
+        'primary-hover': '#0E2A44'
       }
     },
   },

@@ -107,21 +107,21 @@ export default function Attendance() {
         </div>
 
         {/* Date Selector & Search Filters Container */}
-        <div className="card-glass p-5 lg:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-[#E2E8F0]/80 bg-white/70 backdrop-blur-xl shadow-md rounded-2xl">
+        <div className="card-glass p-5 lg:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-accent-soft/80 bg-white/70 backdrop-blur-xl shadow-md rounded-2xl">
           <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#163B5C] text-[#4E8ABF] flex items-center justify-center shadow-sm shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-primary text-accent flex items-center justify-center shadow-sm shrink-0">
                 <Calendar className="w-5 h-5" />
               </div>
               <div>
-                <label className="block text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider mb-0.5">
+                <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-0.5">
                   Attendance Register Date
                 </label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-white font-extrabold text-xs text-[#163B5C] outline-none shadow-xs focus:ring-2 focus:ring-[#4E8ABF]/40 transition-all"
+                  className="px-3 py-1.5 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-primary outline-none shadow-xs focus:ring-2 focus:ring-accent/40 transition-all"
                 />
               </div>
             </div>
@@ -134,8 +134,8 @@ export default function Attendance() {
                   onClick={() => setDepartmentFilter(dept)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                     departmentFilter === dept
-                      ? 'bg-[#163B5C] text-[#4E8ABF] shadow-xs'
-                      : 'bg-white/80 border border-[#E2E8F0] text-[#475569] hover:bg-white'
+                      ? 'bg-primary text-accent shadow-xs'
+                      : 'bg-white/80 border border-accent-soft text-[#475569] hover:bg-white'
                   }`}
                 >
                   {dept}
@@ -152,7 +152,7 @@ export default function Attendance() {
                 placeholder="Search staff by name, code, desig..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs font-semibold pl-9 pr-4 py-2 rounded-xl border border-[#E2E8F0] bg-white text-[#163B5C] focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/20 transition-all shadow-2xs"
+                className="w-full text-xs font-semibold pl-9 pr-4 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
             </div>
@@ -168,15 +168,15 @@ export default function Attendance() {
         </div>
 
         {/* Enterprise Attendance Register Data Table */}
-        <div className="card-glass overflow-hidden border border-[#E2E8F0]/80 shadow-lg rounded-2xl bg-white/80 backdrop-blur-xl">
-          <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-white/60">
+        <div className="card-glass overflow-hidden border border-accent-soft/80 shadow-lg rounded-2xl bg-white/80 backdrop-blur-xl">
+          <div className="p-5 border-b border-accent-soft flex items-center justify-between bg-white/60">
             <div className="flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-[#4E8ABF]" />
-              <h3 className="font-extrabold text-sm text-[#163B5C] uppercase tracking-wider">
+              <UserCheck className="w-5 h-5 text-accent" />
+              <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider">
                 Daily Staff Attendance Register
               </h3>
             </div>
-            <span className="badge b-sel font-extrabold text-xs py-1.5 px-3 rounded-full bg-[#163B5C]/5 border border-[#163B5C]/10 text-[#163B5C]">
+            <span className="badge b-sel font-extrabold text-xs py-1.5 px-3 rounded-full bg-primary/5 border border-primary/10 text-primary">
               Showing {filteredEmployees.length} of {employees.length} Staff
             </span>
           </div>
@@ -188,7 +188,7 @@ export default function Attendance() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-semibold border-collapse">
-                <thead className="bg-[#163B5C] text-white uppercase text-[10px] tracking-wider">
+                <thead className="bg-primary text-white uppercase text-[10px] tracking-wider">
                   <tr>
                     <th className="p-4">Employee Code</th>
                     <th className="p-4">Employee Name</th>
@@ -200,21 +200,21 @@ export default function Attendance() {
                     <th className="p-4">Check Out</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/60">
+                <tbody className="divide-y divide-accent-soft/60">
                   {filteredEmployees.map((emp) => (
-                    <tr key={emp.id || emp.appNo} className="hover:bg-[#163B5C]/5 transition-colors font-medium">
-                      <td className="p-4 font-mono font-black text-[#163B5C]">{emp.employeeCode || emp.empNo || emp.appNo || `EMP-${emp.id}`}</td>
-                      <td className="p-4 font-extrabold text-[#163B5C]">
+                    <tr key={emp.id || emp.appNo} className="hover:bg-primary/5 transition-colors font-medium">
+                      <td className="p-4 font-mono font-black text-primary">{emp.employeeCode || emp.empNo || emp.appNo || `EMP-${emp.id}`}</td>
+                      <td className="p-4 font-extrabold text-primary">
                         <button
                           onClick={() => setSelectedEmployee(emp)}
-                          className="hover:text-[#4E8ABF] hover:underline text-left transition-colors flex items-center gap-1.5"
+                          className="hover:text-accent hover:underline text-left transition-colors flex items-center gap-1.5"
                           title="Click to view full employee overview card"
                         >
                           <span>{emp.name || emp.fullName || '—'}</span>
                         </button>
                       </td>
                       <td className="p-4 text-[#475569] font-semibold">{emp.department || 'Retail Sales'}</td>
-                      <td className="p-4 text-[#4E8ABF] font-extrabold">{emp.desig || emp.designation || 'Staff'}</td>
+                      <td className="p-4 text-accent font-extrabold">{emp.desig || emp.designation || 'Staff'}</td>
                       <td className="p-4 text-[#475569]">General Shift (10 AM - 9 PM)</td>
                       <td className="p-4">
                         <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100/90 text-emerald-800 border border-emerald-300/50 shadow-2xs inline-flex items-center gap-1.5">

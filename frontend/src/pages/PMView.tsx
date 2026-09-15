@@ -55,8 +55,8 @@ export default function PMView() {
       <div className="space-y-6">
         <div className="card-glass overflow-hidden">
           <div className="p-5 border-b flex items-center justify-between">
-            <h3 className="font-extrabold text-sm text-[#163B5C] uppercase tracking-wider flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-[#4E8ABF]" />
+            <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-accent" />
               <span>Pending Sourcing Requests</span>
             </h3>
             <button onClick={fetchDiverts} className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1">
@@ -72,7 +72,7 @@ export default function PMView() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs font-semibold">
-                <thead className="bg-[#163B5C] text-white uppercase text-[10px] tracking-wider">
+                <thead className="bg-primary text-white uppercase text-[10px] tracking-wider">
                   <tr>
                     <th className="p-4">Ref No</th>
                     <th className="p-4">Product Details</th>
@@ -87,8 +87,8 @@ export default function PMView() {
                 <tbody className="divide-y divide-gray-100">
                   {diverts.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="p-4 font-black text-[#163B5C]">#{item.refNo || item.id.slice(0, 6)}</td>
-                      <td className="p-4 font-bold text-[#163B5C]">{item.productWanted}</td>
+                      <td className="p-4 font-black text-primary">#{item.refNo || item.id.slice(0, 6)}</td>
+                      <td className="p-4 font-bold text-primary">{item.productWanted}</td>
                       <td className="p-4">{item.quantity} pcs</td>
                       <td className="p-4 text-gray-600">{item.priceRange || 'N/A'}</td>
                       <td className="p-4">
@@ -127,11 +127,11 @@ export default function PMView() {
         {selectedDivert && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
             <div className="card-glass p-6 max-w-md w-full animate-scale-in">
-              <h3 className="text-lg font-black text-[#163B5C] mb-4">Update Sourcing Status</h3>
+              <h3 className="text-lg font-black text-primary mb-4">Update Sourcing Status</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1">Product</label>
-                  <div className="font-extrabold text-sm text-[#163B5C]">{selectedDivert.productWanted}</div>
+                  <div className="font-extrabold text-sm text-primary">{selectedDivert.productWanted}</div>
                 </div>
 
                 <div>

@@ -78,18 +78,18 @@ function InterviewFormContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center p-4">
-        <div className="text-xs font-bold text-[#163B5C] animate-pulse">Loading Interview Evaluation Form...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-xs font-bold text-primary animate-pulse">Loading Interview Evaluation Form...</div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded-2xl border border-red-200 text-center space-y-3 max-w-md shadow-xl">
           <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 font-bold text-xl flex items-center justify-center mx-auto">✕</div>
-          <h2 className="font-black text-[#163B5C] text-base">Evaluation Link Error</h2>
+          <h2 className="font-black text-primary text-base">Evaluation Link Error</h2>
           <p className="text-xs text-red-600 font-medium">{error || 'Unable to load evaluation form.'}</p>
         </div>
       </div>
@@ -98,10 +98,10 @@ function InterviewFormContent() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl border border-[#E2E8F0] text-center space-y-4 max-w-md shadow-xl">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl border border-accent-soft text-center space-y-4 max-w-md shadow-xl">
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 font-black text-3xl flex items-center justify-center mx-auto">✓</div>
-          <h2 className="font-black text-[#163B5C] text-xl">Feedback Submitted!</h2>
+          <h2 className="font-black text-primary text-xl">Feedback Submitted!</h2>
           <p className="text-xs text-[#64748B]">Thank you for submitting your candidate evaluation score.</p>
         </div>
       </div>
@@ -109,35 +109,35 @@ function InterviewFormContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] p-4 lg:p-6">
+    <div className="min-h-screen bg-background p-4 lg:p-6">
       <ToastContainer />
       <div className="max-w-2xl mx-auto space-y-5">
-        <div className="bg-[#163B5C] p-4 rounded-2xl text-white flex items-center justify-between shadow-lg">
+        <div className="bg-primary p-4 rounded-2xl text-white flex items-center justify-between shadow-lg">
           <div>
             <h1 className="font-extrabold text-base">Candidate Evaluation Form</h1>
             <div className="text-[10px] text-white/50 uppercase tracking-widest mt-0.5">BSC Interview Panel Portal</div>
           </div>
-          <div className="px-3 py-1 rounded-full bg-[#4E8ABF] text-white font-extrabold text-xs">
+          <div className="px-3 py-1 rounded-full bg-accent text-white font-extrabold text-xs">
             {data.round || 'Round 2'}
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-md space-y-3 text-xs">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+        <div className="bg-white p-5 rounded-2xl border border-accent-soft shadow-md space-y-3 text-xs">
+          <div className="flex items-center justify-between border-b border-accent-soft pb-3">
             <div>
-              <div className="font-black text-sm text-[#163B5C]">{data.candidateName}</div>
+              <div className="font-black text-sm text-primary">{data.candidateName}</div>
               <div className="text-[11px] text-[#64748B]">{data.designation} · {data.appNo}</div>
             </div>
             <div className="text-right">
               <div className="text-[10px] text-[#64748B] font-bold">Evaluator</div>
-              <div className="font-bold text-[#163B5C]">{data.evaluatorName || 'Panelist'}</div>
+              <div className="font-bold text-primary">{data.evaluatorName || 'Panelist'}</div>
             </div>
           </div>
 
           <div className="space-y-4 pt-2">
             {(data.questions || []).map((q: string, idx: number) => (
-              <div key={idx} className="p-4 rounded-xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-2">
-                <div className="font-bold text-[#163B5C]">{idx + 1}. {q}</div>
+              <div key={idx} className="p-4 rounded-xl bg-background border border-accent-soft space-y-2">
+                <div className="font-bold text-primary">{idx + 1}. {q}</div>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {[0, 3, 6, 9, 12, 15].map(val => (
                     <button
@@ -147,8 +147,8 @@ function InterviewFormContent() {
                       className={`
                         px-3 py-1.5 rounded-lg text-xs font-black transition-all border
                         ${scores[idx] === val 
-                          ? 'bg-[#163B5C] text-white border-transparent shadow' 
-                          : 'bg-white text-[#163B5C] border-[#E2E8F0] hover:bg-black/5'}
+                          ? 'bg-primary text-white border-transparent shadow' 
+                          : 'bg-white text-primary border-accent-soft hover:bg-black/5'}
                       `}
                     >
                       {val} pts
@@ -161,7 +161,7 @@ function InterviewFormContent() {
             <div className="p-4 rounded-xl bg-[#FFF7E6] border border-amber-200 flex items-center justify-between">
               <div>
                 <div className="text-[10px] font-bold text-amber-800 uppercase">Total Evaluation Score</div>
-                <div className="text-xl font-black text-[#163B5C]">{totalScore} / {maxScore}</div>
+                <div className="text-xl font-black text-primary">{totalScore} / {maxScore}</div>
               </div>
               <div className={`px-3 py-1.5 rounded-lg font-black text-xs ${pct >= 60 ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
                 {pct}% ({pct >= 60 ? 'PASS' : 'FAIL'})
@@ -169,20 +169,20 @@ function InterviewFormContent() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-extrabold uppercase text-[#5F6E7E] mb-1">Evaluator Remarks *</label>
+              <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">Evaluator Remarks *</label>
               <textarea
                 rows={3}
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Enter mandatory evaluation feedback and observations..."
-                className="w-full p-2.5 rounded-lg border border-[#E2E8F0] bg-[#F4F6F9] text-xs"
+                className="w-full p-2.5 rounded-lg border border-accent-soft bg-background text-xs"
               />
             </div>
 
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full py-3 rounded-xl bg-[#163B5C] text-white font-bold text-xs shadow-lg hover:bg-[#0E2A44] disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-primary text-white font-bold text-xs shadow-lg hover:bg-primary disabled:opacity-50"
             >
               {submitting ? 'Submitting Score...' : 'Submit Final Evaluation'}
             </button>
@@ -195,7 +195,7 @@ function InterviewFormContent() {
 
 export default function EvaluatorInterviewFormPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center text-xs font-bold text-[#163B5C]">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-xs font-bold text-primary">Loading...</div>}>
       <InterviewFormContent />
     </Suspense>
   );

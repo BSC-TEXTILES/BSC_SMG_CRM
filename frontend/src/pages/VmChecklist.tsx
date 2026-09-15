@@ -67,7 +67,7 @@ export default function VmChecklist() {
         <div className="card-glass p-5 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div>
-              <label className="block text-xs font-extrabold uppercase text-[#163B5C]/60 tracking-wider">Audit Shift</label>
+              <label className="block text-xs font-extrabold uppercase text-primary/60 tracking-wider">Audit Shift</label>
               <select
                 value={shift}
                 onChange={(e) => setShift(e.target.value)}
@@ -80,7 +80,7 @@ export default function VmChecklist() {
             </div>
 
             <div>
-              <label className="block text-xs font-extrabold uppercase text-[#163B5C]/60 tracking-wider">Floor Section</label>
+              <label className="block text-xs font-extrabold uppercase text-primary/60 tracking-wider">Floor Section</label>
               <select
                 value={floor}
                 onChange={(e) => setFloor(e.target.value)}
@@ -108,14 +108,14 @@ export default function VmChecklist() {
 
         {/* Audit Points List */}
         <div className="card-glass p-6 space-y-4">
-          <h3 className="text-sm font-extrabold text-[#163B5C] uppercase tracking-wider border-b pb-2">Floor Display Check Points</h3>
+          <h3 className="text-sm font-extrabold text-primary uppercase tracking-wider border-b pb-2">Floor Display Check Points</h3>
           <div className="space-y-4">
             {points.map((p, idx) => {
               const current = scores[p.id] || { score: 'Pass', remarks: '' };
               return (
                 <div key={p.id} className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <div className="font-extrabold text-sm text-[#163B5C]">{idx + 1}. {p.title}</div>
+                    <div className="font-extrabold text-sm text-primary">{idx + 1}. {p.title}</div>
                     <div className="text-xs text-gray-500 font-medium">{p.section}</div>
                   </div>
 

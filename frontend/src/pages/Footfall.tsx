@@ -162,13 +162,13 @@ export default function Footfall() {
         
         {/* Top Controls: Glass Date Selector + Excel Export Button */}
         <div className="space-y-5">
-          <div className="card-glass p-5 lg:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-[#E2E8F0]/80 bg-white/70 backdrop-blur-xl shadow-md rounded-2xl">
+          <div className="card-glass p-5 lg:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-accent-soft/80 bg-white/70 backdrop-blur-xl shadow-md rounded-2xl">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#163B5C] to-[#0E2A44] text-[#4E8ABF] flex items-center justify-center shadow-lg shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary text-accent flex items-center justify-center shadow-lg shrink-0">
                 <Calendar className="w-6 h-6" />
               </div>
               <div>
-                <label className="block text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-widest mb-1">
+                <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-widest mb-1">
                   Store Log Register Date
                 </label>
                 <div className="flex flex-wrap items-center gap-2">
@@ -176,14 +176,14 @@ export default function Footfall() {
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="px-3.5 py-2 rounded-xl border border-[#E2E8F0] bg-white/90 font-extrabold text-xs text-[#163B5C] outline-none shadow-xs focus:ring-2 focus:ring-[#4E8ABF]/40 transition-all"
+                    className="px-3.5 py-2 rounded-xl border border-accent-soft bg-white/90 font-extrabold text-xs text-primary outline-none shadow-xs focus:ring-2 focus:ring-accent/40 transition-all"
                   />
                   <button
                     onClick={() => setDate(todayStr)}
                     className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
                       isTodaySelected 
-                        ? 'bg-[#163B5C] text-[#4E8ABF] shadow-md ring-1 ring-[#4E8ABF]/30' 
-                        : 'bg-[#F4F6F9] border border-[#E2E8F0] text-[#475569] hover:bg-white'
+                        ? 'bg-primary text-accent shadow-md ring-1 ring-accent/30' 
+                        : 'bg-background border border-accent-soft text-[#475569] hover:bg-white'
                     }`}
                   >
                     Today
@@ -194,7 +194,7 @@ export default function Footfall() {
                       d.setDate(d.getDate() - 1);
                       setDate(d.toISOString().split('T')[0]);
                     }}
-                    className="px-3.5 py-2 rounded-xl text-xs font-black bg-[#F4F6F9] border border-[#E2E8F0] text-[#475569] hover:bg-white transition-all"
+                    className="px-3.5 py-2 rounded-xl text-xs font-black bg-background border border-accent-soft text-[#475569] hover:bg-white transition-all"
                   >
                     Yesterday
                   </button>
@@ -252,16 +252,16 @@ export default function Footfall() {
         </div>
 
         {/* Peak Hour Traffic Visual Heatmap Chart */}
-        <div className="card-glass p-5 lg:p-6 border border-[#E2E8F0]/80 bg-white/80 backdrop-blur-xl shadow-lg rounded-2xl space-y-3">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+        <div className="card-glass p-5 lg:p-6 border border-accent-soft/80 bg-white/80 backdrop-blur-xl shadow-lg rounded-2xl space-y-3">
+          <div className="flex items-center justify-between border-b border-accent-soft pb-3">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#4E8ABF]" />
-              <h3 className="font-extrabold text-[#163B5C] text-sm uppercase tracking-wider">
+              <TrendingUp className="w-5 h-5 text-accent" />
+              <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider">
                 Store Hourly Traffic Distribution Heatmap
               </h3>
             </div>
-            <span className="text-xs font-bold text-[#5F6E7E] font-mono">
-              Peak Slot: <strong className="text-[#4E8ABF]">{peakHourSlot.hourStr} ({peakHourSlot.count} Visitors)</strong>
+            <span className="text-xs font-bold text-primary/70 font-mono">
+              Peak Slot: <strong className="text-accent">{peakHourSlot.hourStr} ({peakHourSlot.count} Visitors)</strong>
             </span>
           </div>
 
@@ -270,18 +270,18 @@ export default function Footfall() {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="visitorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4E8ABF" stopOpacity={0.6}/>
-                    <stop offset="95%" stopColor="#163B5C" stopOpacity={0.05}/>
+                    <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.6}/>
+                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0.05}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="time" stroke="#5F6E7E" fontSize={11} tickLine={false} />
-                <YAxis stroke="#5F6E7E" fontSize={11} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-accent-soft)" />
+                <XAxis dataKey="time" stroke="var(--color-primary)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--color-primary)" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#163B5C', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                  itemStyle={{ color: '#4E8ABF' }}
+                  contentStyle={{ backgroundColor: 'var(--color-primary)', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                  itemStyle={{ color: 'var(--color-accent)' }}
                 />
-                <Area type="monotone" dataKey="visitors" stroke="#4E8ABF" strokeWidth={3} fillOpacity={1} fill="url(#visitorGradient)" />
+                <Area type="monotone" dataKey="visitors" stroke="var(--color-accent)" strokeWidth={3} fillOpacity={1} fill="url(#visitorGradient)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -296,19 +296,19 @@ export default function Footfall() {
         )}
 
         {/* Section Header */}
-        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+        <div className="flex items-center justify-between border-b border-accent-soft pb-3">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-[#4E8ABF]" />
-            <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight">Hourly Store Entry Slots</h3>
+            <BarChart3 className="w-5 h-5 text-accent" />
+            <h3 className="font-extrabold text-primary text-base tracking-tight">Hourly Store Entry Slots</h3>
           </div>
-          <span className="text-xs font-bold text-[#5F6E7E] bg-white/60 px-3 py-1 rounded-full border border-[#E2E8F0]">
+          <span className="text-xs font-bold text-primary/70 bg-white/60 px-3 py-1 rounded-full border border-accent-soft">
             12 Hourly Slots (10 AM - 10 PM)
           </span>
         </div>
 
         {/* Hourly Slot Entry Responsive Grid */}
         {loading ? (
-          <div className="card-glass p-12 text-center text-xs text-[#5F6E7E] font-bold">
+          <div className="card-glass p-12 text-center text-xs text-primary/70 font-bold">
             Loading hourly footfall register for {date}...
           </div>
         ) : (
@@ -326,28 +326,28 @@ export default function Footfall() {
                   key={hour} 
                   className={`card-glass p-5 flex flex-col justify-between transition-all duration-200 relative group hover:-translate-y-1 hover:shadow-xl rounded-2xl ${
                     isCurrentSlot
-                      ? 'border-2 border-[#4E8ABF] shadow-xl ring-4 ring-[#4E8ABF]/15 bg-gradient-to-br from-amber-50/60 to-amber-100/30'
+                      ? 'border-2 border-accent shadow-xl ring-4 ring-accent/15 bg-gradient-to-br from-amber-50/60 to-amber-100/30'
                       : isSaved
                       ? 'border-l-4 border-l-emerald-600 bg-white/80'
-                      : 'border-l-4 border-l-[#163B5C]/30 bg-white/60'
+                      : 'border-l-4 border-l-primary/30 bg-white/60'
                   }`}
                 >
                   <div>
                     {/* Time Slot Header */}
-                    <div className="flex items-center justify-between border-b border-[#E2E8F0]/80 pb-3 mb-3">
+                    <div className="flex items-center justify-between border-b border-accent-soft/80 pb-3 mb-3">
                       <div>
-                        <div className="flex items-center gap-1.5 font-black text-[#163B5C] text-sm tracking-tight">
-                          <Clock className={`w-4 h-4 ${isCurrentSlot ? 'text-[#4E8ABF] animate-pulse' : 'text-[#163B5C]'}`} />
+                        <div className="flex items-center gap-1.5 font-black text-primary text-sm tracking-tight">
+                          <Clock className={`w-4 h-4 ${isCurrentSlot ? 'text-accent animate-pulse' : 'text-primary'}`} />
                           <span>{formatHour} – {formatEndHour}</span>
                         </div>
-                        <div className="text-[10px] text-[#5F6E7E] font-bold font-mono mt-0.5">
+                        <div className="text-[10px] text-primary/70 font-bold font-mono mt-0.5">
                           Slot {hour - 9} of 12
                         </div>
                       </div>
 
                       {/* Status Badges */}
                       {isCurrentSlot ? (
-                        <span className="px-2.5 py-1 rounded-full bg-[#4E8ABF] text-white text-[10px] font-black uppercase tracking-wider shadow-xs flex items-center gap-1">
+                        <span className="px-2.5 py-1 rounded-full bg-accent text-white text-[10px] font-black uppercase tracking-wider shadow-xs flex items-center gap-1">
                           <Sparkles className="w-3 h-3" /> Current
                         </span>
                       ) : isSaved ? (
@@ -355,7 +355,7 @@ export default function Footfall() {
                           <Check className="w-3 h-3 text-emerald-600" /> Saved
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-full bg-[#F4F6F9] border border-[#E2E8F0] text-[#5F6E7E] text-[10px] font-bold uppercase tracking-wider">
+                        <span className="px-2.5 py-1 rounded-full bg-background border border-accent-soft text-primary/70 text-[10px] font-bold uppercase tracking-wider">
                           Pending
                         </span>
                       )}
@@ -364,7 +364,7 @@ export default function Footfall() {
                     {/* Inputs */}
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-[11px] font-extrabold text-[#163B5C] mb-1">
+                        <label className="block text-[11px] font-extrabold text-primary mb-1">
                           Visitor Footfall Count
                         </label>
                         <div className="relative">
@@ -377,14 +377,14 @@ export default function Footfall() {
                               [hour]: { ...slot, visitors: parseInt(e.target.value, 10) || 0 }
                             })}
                             placeholder="0"
-                            className="w-full text-base font-black font-mono pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-[#163B5C] focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/20 transition-all shadow-2xs"
+                            className="w-full text-base font-black font-mono pl-9 pr-3 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
                           />
-                          <Users className="w-4 h-4 text-[#5F6E7E] absolute left-3 top-3" />
+                          <Users className="w-4 h-4 text-primary/70 absolute left-3 top-3" />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-extrabold text-[#163B5C] mb-1">
+                        <label className="block text-[11px] font-extrabold text-primary mb-1">
                           Floor Notes / Remarks
                         </label>
                         <div className="relative">
@@ -396,9 +396,9 @@ export default function Footfall() {
                               [hour]: { ...slot, remarks: e.target.value }
                             })}
                             placeholder="e.g. Rush in Womens Sarees"
-                            className="w-full text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-[#163B5C] focus:outline-none focus:border-[#4E8ABF] focus:ring-2 focus:ring-[#4E8ABF]/20 transition-all shadow-2xs"
+                            className="w-full text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
                           />
-                          <FileText className="w-3.5 h-3.5 text-[#5F6E7E] absolute left-3 top-2.5" />
+                          <FileText className="w-3.5 h-3.5 text-primary/70 absolute left-3 top-2.5" />
                         </div>
                       </div>
                     </div>
@@ -410,10 +410,10 @@ export default function Footfall() {
                     disabled={savingSlot === hour}
                     className={`mt-4 w-full py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-xs active:scale-[0.98] disabled:opacity-50 ${
                       isCurrentSlot
-                        ? 'bg-[#4E8ABF] text-white hover:bg-[#b07d20] shadow-md'
+                        ? 'bg-accent text-white hover:bg-[#b07d20] shadow-md'
                         : isSaved
-                        ? 'bg-[#163B5C] text-white hover:bg-[#0E2A44]'
-                        : 'bg-[#163B5C] text-white hover:bg-[#0E2A44]'
+                        ? 'bg-primary text-white hover:bg-primary'
+                        : 'bg-primary text-white hover:bg-primary'
                     }`}
                   >
                     <Save className="w-3.5 h-3.5" />

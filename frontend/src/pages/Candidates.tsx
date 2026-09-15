@@ -377,45 +377,45 @@ export default function CandidatesPage() {
   const canDelete = session?.role === 'Admin' || session?.role === 'Super Admin';
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       
       {/* Professional Status Change Confirmation Modal */}
       {confirmStatusModal.open && confirmStatusModal.candidate && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#163B5C]/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-[#E2E8F0] space-y-5 animate-scale-in">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-primary/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-accent-soft space-y-5 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#163B5C] text-white flex items-center justify-center font-black text-sm shadow-md">
+                <div className="w-10 h-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-sm shadow-md">
                   {confirmStatusModal.candidate.initials}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-[#163B5C] text-base">Move Candidate Status</h3>
-                  <div className="text-xs text-[#5F6E7E] font-semibold">{confirmStatusModal.candidate.name} ({confirmStatusModal.candidate.appNo})</div>
+                  <h3 className="font-extrabold text-primary text-base">Move Candidate Status</h3>
+                  <div className="text-xs text-primary/70 font-semibold">{confirmStatusModal.candidate.name} ({confirmStatusModal.candidate.appNo})</div>
                 </div>
               </div>
-              <button onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })} className="text-[#64748B] hover:text-[#163B5C]">
+              <button onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })} className="text-[#64748B] hover:text-primary">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-[#F4F6F9] p-4 rounded-2xl border border-[#E2E8F0] space-y-3">
+            <div className="bg-background p-4 rounded-2xl border border-accent-soft space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#5F6E7E] uppercase text-[10px]">Current Status</span>
+                <span className="font-bold text-primary/70 uppercase text-[10px]">Current Status</span>
                 <StatusBadge status={confirmStatusModal.candidate.status} size="sm" />
               </div>
-              <div className="flex justify-center text-[#4E8ABF]">
+              <div className="flex justify-center text-accent">
                 <ChevronRight className="w-5 h-5 animate-pulse" />
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#5F6E7E] uppercase text-[10px]">New Status</span>
+                <span className="font-bold text-primary/70 uppercase text-[10px]">New Status</span>
                 <StatusBadge status={confirmStatusModal.newStatus} size="sm" />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#E2E8F0]">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-accent-soft">
               <button 
                 onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })} 
-                className="px-4 py-2 rounded-xl border border-[#E2E8F0] font-bold text-xs text-[#163B5C] hover:bg-[#F4F6F9] transition-colors"
+                className="px-4 py-2 rounded-xl border border-accent-soft font-bold text-xs text-primary hover:bg-background transition-colors"
               >
                 Cancel
               </button>
@@ -454,14 +454,14 @@ export default function CandidatesPage() {
 
         <main className="p-4 lg:p-6 space-y-5 flex-1 overflow-y-auto">
           {/* Recruitment Analytics & Pipeline Banner */}
-          <div className="card-glass p-5 space-y-4 border-2 border-[#163B5C]/10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-3.5">
+          <div className="card-glass p-5 space-y-4 border-2 border-primary/10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-accent-soft pb-3.5">
               <div>
-                <h3 className="font-extrabold text-[#163B5C] text-base tracking-tight flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-[#4E8ABF]" />
+                <h3 className="font-extrabold text-primary text-base tracking-tight flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-accent" />
                   <span>Recruitment Analytics &amp; Pipeline</span>
                 </h3>
-                <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">
+                <p className="text-xs text-primary/70 font-medium mt-0.5">
                   Real-time candidate metrics, funnel conversion &amp; team performance.
                 </p>
               </div>
@@ -481,8 +481,8 @@ export default function CandidatesPage() {
                     onClick={() => { setActiveRange(range.key as any); setFromDate(''); setToDate(''); }}
                     className={`px-3 py-1.5 rounded-xl transition-all ${
                       activeRange === range.key
-                        ? 'bg-[#163B5C] text-white font-extrabold shadow-xs'
-                        : 'bg-[#F4F6F9] text-[#475569] border border-[#E2E8F0] hover:bg-white'
+                        ? 'bg-primary text-white font-extrabold shadow-xs'
+                        : 'bg-background text-[#475569] border border-accent-soft hover:bg-white'
                     }`}
                   >
                     {range.label}
@@ -492,22 +492,22 @@ export default function CandidatesPage() {
             </div>
 
             {/* Custom Date Range Picker */}
-            <div className="flex flex-wrap items-center gap-3 bg-[#F4F6F9] p-3 rounded-2xl border border-[#E2E8F0] text-xs font-bold text-[#163B5C]">
-              <span className="text-[#5F6E7E] uppercase text-[10.5px] font-black">Custom Range:</span>
+            <div className="flex flex-wrap items-center gap-3 bg-background p-3 rounded-2xl border border-accent-soft text-xs font-bold text-primary">
+              <span className="text-primary/70 uppercase text-[10.5px] font-black">Custom Range:</span>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
                   value={fromDate}
                   onChange={(e) => { setFromDate(e.target.value); setActiveRange('custom'); }}
-                  className="px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white font-semibold outline-none text-xs"
+                  className="px-2.5 py-1.5 rounded-xl border border-accent-soft bg-white font-semibold outline-none text-xs"
                   placeholder="dd-mm-yyyy"
                 />
-                <span className="text-[#5F6E7E] font-extrabold">to</span>
+                <span className="text-primary/70 font-extrabold">to</span>
                 <input
                   type="date"
                   value={toDate}
                   onChange={(e) => { setToDate(e.target.value); setActiveRange('custom'); }}
-                  className="px-2.5 py-1.5 rounded-xl border border-[#E2E8F0] bg-white font-semibold outline-none text-xs"
+                  className="px-2.5 py-1.5 rounded-xl border border-accent-soft bg-white font-semibold outline-none text-xs"
                   placeholder="dd-mm-yyyy"
                 />
               </div>
@@ -540,12 +540,12 @@ export default function CandidatesPage() {
                   className={`
                     px-3.5 py-1.5 rounded-full border whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 shadow-xs
                     ${activeStatus === p.key 
-                      ? 'bg-[#163B5C] text-white border-[#163B5C] shadow-sm font-black' 
-                      : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F4F6F9] hover:text-[#163B5C] font-semibold'}
+                      ? 'bg-primary text-white border-primary shadow-sm font-black' 
+                      : 'bg-white text-[#475569] border-accent-soft hover:bg-background hover:text-primary font-semibold'}
                   `}
                 >
                   <span>{p.label}</span>
-                  <span className={`text-[10px] px-1.5 py-[2px] rounded-full ${activeStatus === p.key ? 'bg-white/20 text-white' : 'bg-black/5 text-[#5F6E7E]'}`}>
+                  <span className={`text-[10px] px-1.5 py-[2px] rounded-full ${activeStatus === p.key ? 'bg-white/20 text-white' : 'bg-black/5 text-primary/70'}`}>
                     {count}
                   </span>
                 </button>
@@ -557,20 +557,20 @@ export default function CandidatesPage() {
           <div className="card-glass p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-3 flex-1">
               <div className="relative min-w-[240px]">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5F6E7E]" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary/70" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search name, phone, app no..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-semibold text-[#163B5C] focus:outline-none focus:border-[#163B5C] shadow-xs"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary focus:outline-none focus:border-primary shadow-xs"
                 />
               </div>
 
               <select
                 value={desigFilter}
                 onChange={(e) => setDesigFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-semibold text-[#163B5C]"
+                className="px-3 py-2 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary"
               >
                 <option value="">All Designations</option>
                 {Array.from(new Set((candidates || []).map(c => c.desig).filter(Boolean))).map(d => (
@@ -581,7 +581,7 @@ export default function CandidatesPage() {
               <select
                 value={sourceFilter}
                 onChange={(e) => setSourceFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-[#E2E8F0] bg-[#F4F6F9] text-xs font-semibold text-[#163B5C]"
+                className="px-3 py-2 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary"
               >
                 <option value="">All Sources</option>
                 <option value="Walk-in">Walk-in</option>
@@ -594,7 +594,7 @@ export default function CandidatesPage() {
             <div className="flex items-center gap-2 font-bold">
               <button
                 onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-                className="px-3.5 py-2 rounded-xl border border-[#E2E8F0] bg-white text-[#163B5C] hover:bg-[#F4F6F9] transition-colors shadow-xs"
+                className="px-3.5 py-2 rounded-xl border border-accent-soft bg-white text-primary hover:bg-background transition-colors shadow-xs"
               >
                 {sortDir === 'asc' ? '↑ Date Applied (Asc)' : '↓ Date Applied (Desc)'}
               </button>
@@ -606,7 +606,7 @@ export default function CandidatesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E2E8F0] text-[10.5px] font-black uppercase text-[#5F6E7E] tracking-wider bg-[#F4F6F9]/60">
+                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 tracking-wider bg-background/60">
                     <th className="py-3 px-3 text-center w-12">SL.NO</th>
                     <th className="py-3 px-4">App No</th>
                     <th className="py-3 px-4">Candidate Name</th>
@@ -619,28 +619,28 @@ export default function CandidatesPage() {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]/60">
+                <tbody className="divide-y divide-accent-soft/60">
                   {filtered.length > 0 ? (
                     (filtered || []).map((c, idx) => (
                       <tr key={c.appNo} className="hover:bg-black/5 transition-colors font-medium">
-                        <td className="py-3.5 px-3 text-center font-bold text-[#5F6E7E]">{idx + 1}</td>
+                        <td className="py-3.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
                         <td className="py-3.5 px-4 font-mono text-[11px] text-[#475569] font-bold">{c.appNo}</td>
                         <td className="py-3.5 px-4">
                           <button
                             onClick={() => openDrawer(c)}
                             className="flex items-center gap-3 group text-left"
                           >
-                            <div className="w-8 h-8 rounded-full bg-[#163B5C] text-white font-black text-xs flex items-center justify-center shadow-xs">
+                            <div className="w-8 h-8 rounded-full bg-primary text-white font-black text-xs flex items-center justify-center shadow-xs">
                               {c.initials}
                             </div>
-                            <span className="font-extrabold text-[#163B5C] group-hover:underline">{formatName(c.name)}</span>
+                            <span className="font-extrabold text-primary group-hover:underline">{formatName(c.name)}</span>
                           </button>
                         </td>
                         <td className="py-3.5 px-4 font-mono text-[#475569]">{maskPhone(c.phone)}</td>
                         <td className="py-3.5 px-4 text-[#475569] font-semibold">{c.gender || '—'}</td>
-                        <td className="py-3.5 px-4 text-[#163B5C] font-extrabold">{c.desig}</td>
+                        <td className="py-3.5 px-4 text-primary font-extrabold">{c.desig}</td>
                         <td className="py-3.5 px-4 text-[#475569] font-medium">{c.source}</td>
-                        <td className="py-3.5 px-4 text-[#5F6E7E] whitespace-nowrap font-medium">{c.date}</td>
+                        <td className="py-3.5 px-4 text-primary/70 whitespace-nowrap font-medium">{c.date}</td>
                         <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
                           <select
                             value={c.status || 'New'}
@@ -666,7 +666,7 @@ export default function CandidatesPage() {
                             {c.status === 'New' && (
                               <button
                                 onClick={() => handleStatusChange('shortlist', c)}
-                                className="px-3 py-1.5 rounded-xl bg-[#4E8ABF] text-white font-black hover:bg-[#b08123] transition-all text-[11px] shadow-xs flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-xl bg-accent text-white font-black hover:bg-[#b08123] transition-all text-[11px] shadow-xs flex items-center gap-1"
                               >
                                 Shortlist & Offer Desk ↗
                               </button>
@@ -674,7 +674,7 @@ export default function CandidatesPage() {
                             {c.status === 'Shortlisted' && (
                               <button
                                 onClick={() => navigate('/offer-process')}
-                                className="px-3 py-1.5 rounded-xl bg-[#163B5C] text-white font-extrabold hover:bg-[#0E2A44] transition-all text-[11px] shadow-xs flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-xl bg-primary text-white font-extrabold hover:bg-primary transition-all text-[11px] shadow-xs flex items-center gap-1"
                               >
                                 📄 View on Offer Desk ↗
                               </button>
@@ -701,7 +701,7 @@ export default function CandidatesPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-xs text-[#5F6E7E] font-semibold">
+                      <td colSpan={9} className="py-12 text-center text-xs text-primary/70 font-semibold">
                         No candidates found matching criteria.
                       </td>
                     </tr>
@@ -711,7 +711,7 @@ export default function CandidatesPage() {
             </div>
 
             {/* Bottom Panel Views */}
-            <div className="pt-3 border-t border-[#E2E8F0] flex items-center gap-3">
+            <div className="pt-3 border-t border-accent-soft flex items-center gap-3">
               <button
                 onClick={() => handleViewSelRej('selected')}
                 className="px-3.5 py-1.5 rounded-xl border border-emerald-600 text-emerald-700 font-bold hover:bg-emerald-50 text-xs flex items-center gap-1.5 transition-colors shadow-xs"
@@ -731,13 +731,13 @@ export default function CandidatesPage() {
 
           {/* Selected / Rejected Quick View Modal */}
           {selRejPanel && (
-            <div className="card-glass p-5 space-y-4 animate-fade-in border-2 border-[#163B5C]/20">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                <h3 className="font-extrabold text-[#163B5C] text-base capitalize flex items-center gap-2">
-                  <FileCheck className="w-5 h-5 text-[#4E8ABF]" />
+            <div className="card-glass p-5 space-y-4 animate-fade-in border-2 border-primary/20">
+              <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+                <h3 className="font-extrabold text-primary text-base capitalize flex items-center gap-2">
+                  <FileCheck className="w-5 h-5 text-accent" />
                   <span>{selRejPanel} Candidates</span>
                 </h3>
-                <button onClick={() => setSelRejPanel(null)} className="text-[#64748B] hover:text-[#163B5C] p-1">
+                <button onClick={() => setSelRejPanel(null)} className="text-[#64748B] hover:text-primary p-1">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -745,18 +745,18 @@ export default function CandidatesPage() {
               <div className="overflow-x-auto max-h-64">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#E2E8F0] text-[10px] font-black uppercase text-[#5F6E7E]">
+                    <tr className="border-b border-accent-soft text-[10px] font-black uppercase text-primary/70">
                       <th className="py-2.5 px-3">App No</th>
                       <th className="py-2.5 px-3">Name</th>
                       <th className="py-2.5 px-3">Designation</th>
                       <th className="py-2.5 px-3">Phone</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E2E8F0]/50">
+                  <tbody className="divide-y divide-accent-soft/50">
                     {(selRejData || []).map((c, idx) => (
                       <tr key={idx} className="hover:bg-black/5 font-medium">
                         <td className="py-2.5 px-3 font-mono">{c.appNo}</td>
-                        <td className="py-2.5 px-3 font-bold text-[#163B5C]">{formatName(c.name)}</td>
+                        <td className="py-2.5 px-3 font-bold text-primary">{formatName(c.name)}</td>
                         <td className="py-2.5 px-3">{c.desig}</td>
                         <td className="py-2.5 px-3 font-mono">{c.phone}</td>
                       </tr>
@@ -782,43 +782,43 @@ export default function CandidatesPage() {
 
       {/* Direct Shortlisting & Offer Desk Modal */}
       {directOfferModal.open && directOfferModal.candidate && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#163B5C]/70 backdrop-blur-md transition-all animate-fade-in">
-          <div className="w-full max-w-lg bg-[#F4F6F9] rounded-3xl p-6 space-y-4 shadow-2xl animate-fade-in border-2 border-[#4E8ABF]/50">
-            <div className="flex items-center justify-between border-b border-[#4E8ABF]/30 pb-3">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-primary/70 backdrop-blur-md transition-all animate-fade-in">
+          <div className="w-full max-w-lg bg-background rounded-3xl p-6 space-y-4 shadow-2xl animate-fade-in border-2 border-accent/50">
+            <div className="flex items-center justify-between border-b border-accent/30 pb-3">
               <div>
-                <span className="text-[10px] font-black text-[#4E8ABF] uppercase tracking-wider block">Candidate Shortlisting</span>
-                <h3 className="font-black text-[#163B5C] text-lg">Shortlist & Send to Offer Desk — {directOfferModal.candidate.name}</h3>
+                <span className="text-[10px] font-black text-accent uppercase tracking-wider block">Candidate Shortlisting</span>
+                <h3 className="font-black text-primary text-lg">Shortlist & Send to Offer Desk — {directOfferModal.candidate.name}</h3>
               </div>
-              <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="p-2 rounded-xl bg-white/60 text-[#163B5C] hover:bg-white transition-all">
+              <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="p-2 rounded-xl bg-white/60 text-primary hover:bg-white transition-all">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs bg-white p-5 rounded-2xl border border-[#E2E8F0]">
+            <div className="space-y-3 text-xs bg-white p-5 rounded-2xl border border-accent-soft">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1">Offered Base Salary (₹) *</label>
-                  <input type="text" value={offerForm.salary} onChange={(e) => setOfferForm({ ...offerForm, salary: e.target.value })} placeholder="e.g. 18000" className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-mono font-bold text-emerald-800 outline-none focus:ring-2 focus:ring-[#4E8ABF]/40" />
+                  <label className="block font-black text-primary uppercase text-[11px] mb-1">Offered Base Salary (₹) *</label>
+                  <input type="text" value={offerForm.salary} onChange={(e) => setOfferForm({ ...offerForm, salary: e.target.value })} placeholder="e.g. 18000" className="w-full px-3 py-2 rounded-xl border border-accent-soft font-mono font-bold text-emerald-800 outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
 
                 <div>
-                  <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1">Incentive (₹) (Optional)</label>
-                  <input type="text" value={offerForm.incentive || ''} onChange={(e) => setOfferForm({ ...offerForm, incentive: e.target.value })} placeholder="e.g. 2000" className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-mono font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-[#4E8ABF]/40" />
+                  <label className="block font-black text-primary uppercase text-[11px] mb-1">Incentive (₹) (Optional)</label>
+                  <input type="text" value={offerForm.incentive || ''} onChange={(e) => setOfferForm({ ...offerForm, incentive: e.target.value })} placeholder="e.g. 2000" className="w-full px-3 py-2 rounded-xl border border-accent-soft font-mono font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
 
                 <div>
-                  <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1">Estimated Date of Joining</label>
-                  <input type="date" value={offerForm.doj} onChange={(e) => setOfferForm({ ...offerForm, doj: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40" />
+                  <label className="block font-black text-primary uppercase text-[11px] mb-1">Estimated Date of Joining</label>
+                  <input type="date" value={offerForm.doj} onChange={(e) => setOfferForm({ ...offerForm, doj: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-accent-soft font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
 
                 <div>
-                  <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1">Finalized Designation</label>
-                  <input type="text" value={offerForm.desig} onChange={(e) => setOfferForm({ ...offerForm, desig: e.target.value })} placeholder="Designation role" className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40" />
+                  <label className="block font-black text-primary uppercase text-[11px] mb-1">Finalized Designation</label>
+                  <input type="text" value={offerForm.desig} onChange={(e) => setOfferForm({ ...offerForm, desig: e.target.value })} placeholder="Designation role" className="w-full px-3 py-2 rounded-xl border border-accent-soft font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40" />
                 </div>
 
                 <div>
-                  <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1">Allocated Department</label>
-                  <select value={offerForm.department} onChange={(e) => setOfferForm({ ...offerForm, department: e.target.value, section: '' })} className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-bold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40">
+                  <label className="block font-black text-primary uppercase text-[11px] mb-1">Allocated Department</label>
+                  <select value={offerForm.department} onChange={(e) => setOfferForm({ ...offerForm, department: e.target.value, section: '' })} className="w-full px-3 py-2 rounded-xl border border-accent-soft font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40">
                     {BSC_DEPARTMENTS.map(d => (
                       <option key={d} value={d}>{d}</option>
                     ))}
@@ -826,39 +826,39 @@ export default function CandidatesPage() {
                 </div>
 
                 <div>
-                  <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1 flex items-center justify-between">
+                  <label className="block font-black text-primary uppercase text-[11px] mb-1 flex items-center justify-between">
                     <span>Floor Section</span>
-                    <span className="text-[10px] font-bold text-[#5F6E7E] uppercase">(Optional)</span>
+                    <span className="text-[10px] font-bold text-primary/70 uppercase">(Optional)</span>
                   </label>
                   {getSectionsForDepartment(offerForm.department).length > 0 ? (
-                    <select value={offerForm.section} onChange={(e) => setOfferForm({ ...offerForm, section: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-bold text-[#4E8ABF] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40">
+                    <select value={offerForm.section} onChange={(e) => setOfferForm({ ...offerForm, section: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-accent-soft font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40">
                       <option value="">-- Optional / Unassigned --</option>
                       {getSectionsForDepartment(offerForm.department).map(sec => (
                         <option key={sec} value={sec}>{sec}</option>
                       ))}
                     </select>
                   ) : (
-                    <input type="text" placeholder="Optional section" value={offerForm.section} onChange={(e) => setOfferForm({ ...offerForm, section: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-bold text-[#4E8ABF] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40" />
+                    <input type="text" placeholder="Optional section" value={offerForm.section} onChange={(e) => setOfferForm({ ...offerForm, section: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-accent-soft font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40" />
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block font-black text-[#163B5C] uppercase text-[11px] mb-1">Shortlisting & Recruiter Remarks</label>
+                <label className="block font-black text-primary uppercase text-[11px] mb-1">Shortlisting & Recruiter Remarks</label>
                 <textarea
                   rows={2}
                   value={offerForm.remarks || ''}
                   onChange={(e) => setOfferForm({ ...offerForm, remarks: e.target.value })}
                   placeholder="Enter shortlisting notes, recruiter remarks or special conditions..."
-                  className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] font-semibold text-[#163B5C] outline-none focus:ring-2 focus:ring-[#4E8ABF]/40"
+                  className="w-full px-3 py-2 rounded-xl border border-accent-soft font-semibold text-primary outline-none focus:ring-2 focus:ring-accent/40"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-[#E2E8F0]">
-              <span className="text-[11px] font-bold text-[#5F6E7E]">Candidate status updates to <strong className="text-[#163B5C]">Shortlisted</strong></span>
+            <div className="flex items-center justify-between pt-2 border-t border-accent-soft">
+              <span className="text-[11px] font-bold text-primary/70">Candidate status updates to <strong className="text-primary">Shortlisted</strong></span>
               <div className="flex items-center gap-2">
-                <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="px-4 py-2 rounded-xl border border-[#E2E8F0] bg-white font-extrabold text-xs text-[#475569]">
+                <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#475569]">
                   Cancel
                 </button>
                 <button onClick={handleDirectOfferSubmit} disabled={actionLoading} className="btn-gold text-xs px-5 py-2 shadow-md font-black flex items-center gap-1.5 disabled:opacity-50">

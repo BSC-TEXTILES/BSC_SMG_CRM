@@ -18,13 +18,13 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const variantStyles = {
-    primary: 'bg-[#163B5C] text-white hover:bg-[#1F4D77] active:scale-[0.99] border-transparent shadow-sm',
-    secondary: 'bg-[#4E8ABF] text-[#1B2A3B] hover:bg-[#3D74A3] active:scale-[0.99] border-transparent shadow-sm font-black',
-    outline: 'bg-white text-[#163B5C] border-[#4E8ABF] hover:bg-[#F4F6F9]',
+    primary: 'bg-primary text-white hover:bg-primary-hover active:scale-[0.99] border-transparent shadow-sm',
+    secondary: 'bg-accent text-primary hover:bg-accent active:scale-[0.99] border-transparent shadow-sm font-black',
+    outline: 'bg-white text-primary border-accent hover:bg-background',
     danger: 'bg-[#C43D4B] text-white hover:bg-[#A82D3B] active:scale-[0.99] border-transparent shadow-sm',
     success: 'bg-[#27805B] text-white hover:bg-[#1E6849] active:scale-[0.99] border-transparent shadow-sm',
     warning: 'bg-[#C58A24] text-white hover:bg-[#B27B1E] active:scale-[0.99] border-transparent shadow-sm',
-    ghost: 'bg-transparent text-[#1B2A3B] hover:bg-[#F4F6F9] border-transparent'
+    ghost: 'bg-transparent text-primary hover:bg-background border-transparent'
   };
 
   const sizeStyles = {

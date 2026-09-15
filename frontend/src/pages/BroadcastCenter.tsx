@@ -117,7 +117,7 @@ export default function BroadcastCenterPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <ToastContainer />
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -133,11 +133,11 @@ export default function BroadcastCenterPage() {
           {/* Header Bar */}
           <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-[#163B5C] tracking-tight flex items-center gap-2">
-                <Megaphone className="w-6 h-6 text-[#4E8ABF]" />
+              <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                <Megaphone className="w-6 h-6 text-accent" />
                 <span>Enterprise Broadcast &amp; Notification Control Desk</span>
               </h2>
-              <p className="text-xs text-[#5F6E7E] font-medium mt-0.5">Commercial-grade role-based messaging, real-time alerts &amp; read acknowledgements (Messaging-Only).</p>
+              <p className="text-xs text-primary/70 font-medium mt-0.5">Commercial-grade role-based messaging, real-time alerts &amp; read acknowledgements (Messaging-Only).</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export default function BroadcastCenterPage() {
                   onClick={() => setActiveTab(t.key as any)}
                   className={`
                     px-4 py-2 rounded-xl text-xs font-black transition-all shadow-xs
-                    ${activeTab === t.key ? 'bg-[#163B5C] text-white shadow-md' : 'bg-white border border-[#E2E8F0] text-[#163B5C] hover:bg-[#F4F6F9]'}
+                    ${activeTab === t.key ? 'bg-primary text-white shadow-md' : 'bg-white border border-accent-soft text-primary hover:bg-background'}
                   `}
                 >
                   {t.label}
@@ -173,15 +173,15 @@ export default function BroadcastCenterPage() {
 
               {/* Recent Activity Table */}
               <div className="card-glass p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                  <h3 className="font-extrabold text-[#163B5C] text-base">Active Broadcast Announcements</h3>
-                  <span className="text-xs font-bold text-[#5F6E7E] font-mono">{broadcasts.length} Broadcast Logs</span>
+                <div className="flex items-center justify-between border-b border-accent-soft pb-3">
+                  <h3 className="font-extrabold text-primary text-base">Active Broadcast Announcements</h3>
+                  <span className="text-xs font-bold text-primary/70 font-mono">{broadcasts.length} Broadcast Logs</span>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-[#E2E8F0] text-[#5F6E7E] font-extrabold uppercase text-[10px] tracking-wider">
+                      <tr className="border-b border-accent-soft text-primary/70 font-extrabold uppercase text-[10px] tracking-wider">
                         <th className="py-2.5 px-3 text-center w-12">SL.NO</th>
                         <th className="py-2.5 px-3">Priority</th>
                         <th className="py-2.5 px-3">Title &amp; Subject</th>
@@ -192,10 +192,10 @@ export default function BroadcastCenterPage() {
                         <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E2E8F0]">
+                    <tbody className="divide-y divide-accent-soft">
                       {broadcasts.map((b, idx) => (
-                        <tr key={b.id} className="hover:bg-[#F4F6F9] transition-colors">
-                          <td className="py-3 px-3 text-center font-bold text-[#5F6E7E]">{idx + 1}</td>
+                        <tr key={b.id} className="hover:bg-background transition-colors">
+                          <td className="py-3 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
                           <td className="py-3 px-3">
                             <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase ${
                               b.priority === 'critical' ? 'bg-rose-100 text-rose-800' :
@@ -205,13 +205,13 @@ export default function BroadcastCenterPage() {
                             </span>
                           </td>
                           <td className="py-3 px-3">
-                            <div className="font-extrabold text-[#163B5C]">{b.title}</div>
-                            <div className="text-[10.5px] text-[#5F6E7E]">{b.subject || b.message.slice(0, 45)}</div>
+                            <div className="font-extrabold text-primary">{b.title}</div>
+                            <div className="text-[10.5px] text-primary/70">{b.subject || b.message.slice(0, 45)}</div>
                           </td>
-                          <td className="py-3 px-3 font-semibold text-[#163B5C]">{b.category}</td>
-                          <td className="py-3 px-3 font-bold text-[#4E8ABF]">{b.targetRole || 'Everyone'}</td>
+                          <td className="py-3 px-3 font-semibold text-primary">{b.category}</td>
+                          <td className="py-3 px-3 font-bold text-accent">{b.targetRole || 'Everyone'}</td>
                           <td className="py-3 px-3 font-extrabold text-emerald-700">{b.status || 'Sent'}</td>
-                          <td className="py-3 px-3 font-mono font-bold text-[#163B5C]">{b.acknowledgedBy?.length || 0}</td>
+                          <td className="py-3 px-3 font-mono font-bold text-primary">{b.acknowledgedBy?.length || 0}</td>
                           <td className="py-3 px-3 text-right">
                             {isAdmin && (
                             <button onClick={() => handleDelete(b.id)} className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50">
@@ -231,11 +231,11 @@ export default function BroadcastCenterPage() {
           {/* CREATE BROADCAST TAB */}
           {activeTab === 'create' && (
             <div className="card-glass p-6 max-w-4xl mx-auto space-y-6">
-              <div className="border-b border-[#E2E8F0] pb-3 flex items-center gap-2">
-                <Send className="w-5 h-5 text-[#4E8ABF]" />
+              <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
+                <Send className="w-5 h-5 text-accent" />
                 <div>
-                  <h3 className="font-extrabold text-[#163B5C] text-base">Create Enterprise Broadcast Notice</h3>
-                  <p className="text-xs text-[#5F6E7E]">Dispatch text messages, announcements &amp; alerts (Pure messaging-only, no attachments).</p>
+                  <h3 className="font-extrabold text-primary text-base">Create Enterprise Broadcast Notice</h3>
+                  <p className="text-xs text-primary/70">Dispatch text messages, announcements &amp; alerts (Pure messaging-only, no attachments).</p>
                 </div>
               </div>
 
@@ -243,7 +243,7 @@ export default function BroadcastCenterPage() {
                 {/* Title & Subject */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Broadcast Title *</label>
+                    <label className="block font-bold text-primary mb-1">Broadcast Title *</label>
                     <input
                       type="text"
                       value={title}
@@ -253,7 +253,7 @@ export default function BroadcastCenterPage() {
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Subject / Header</label>
+                    <label className="block font-bold text-primary mb-1">Subject / Header</label>
                     <input
                       type="text"
                       value={subject}
@@ -267,7 +267,7 @@ export default function BroadcastCenterPage() {
                 {/* Priority & Category */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Priority Level</label>
+                    <label className="block font-bold text-primary mb-1">Priority Level</label>
                     <select
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as any)}
@@ -280,7 +280,7 @@ export default function BroadcastCenterPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Broadcast Category</label>
+                    <label className="block font-bold text-primary mb-1">Broadcast Category</label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as any)}
@@ -301,7 +301,7 @@ export default function BroadcastCenterPage() {
 
                 {/* Recipient Role Selection */}
                 <div>
-                  <label className="block font-bold text-[#163B5C] mb-2">Target Audience / Recipient Groups *</label>
+                  <label className="block font-bold text-primary mb-2">Target Audience / Recipient Groups *</label>
                   <div className="flex flex-wrap gap-2">
                     {RECIPIENT_ROLES.map(r => (
                       <button
@@ -310,7 +310,7 @@ export default function BroadcastCenterPage() {
                         onClick={() => handleToggleRole(r)}
                         className={`
                           px-3.5 py-2 rounded-xl border text-xs font-bold transition-all
-                          ${targetRoles.includes(r) ? 'bg-[#163B5C] text-white border-[#163B5C]' : 'bg-[#F4F6F9] border-[#E2E8F0] text-[#163B5C] hover:bg-white'}
+                          ${targetRoles.includes(r) ? 'bg-primary text-white border-primary' : 'bg-background border-accent-soft text-primary hover:bg-white'}
                         `}
                       >
                         {r}
@@ -322,7 +322,7 @@ export default function BroadcastCenterPage() {
                 {/* Dates & Schedule */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Schedule Dispatch Date &amp; Time (Optional)</label>
+                    <label className="block font-bold text-primary mb-1">Schedule Dispatch Date &amp; Time (Optional)</label>
                     <input
                       type="datetime-local"
                       value={scheduledAt}
@@ -331,7 +331,7 @@ export default function BroadcastCenterPage() {
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-[#163B5C] mb-1">Expiry Date (Optional)</label>
+                    <label className="block font-bold text-primary mb-1">Expiry Date (Optional)</label>
                     <input
                       type="date"
                       value={expiryDate}
@@ -343,7 +343,7 @@ export default function BroadcastCenterPage() {
 
                 {/* Messaging Content */}
                 <div>
-                  <label className="block font-bold text-[#163B5C] mb-1">Broadcast Message Body * (Text Only)</label>
+                  <label className="block font-bold text-primary mb-1">Broadcast Message Body * (Text Only)</label>
                   <textarea
                     rows={5}
                     value={message}
@@ -355,33 +355,33 @@ export default function BroadcastCenterPage() {
                 </div>
 
                 {/* Options Checkboxes */}
-                <div className="p-4 rounded-2xl bg-[#F4F6F9] border border-[#E2E8F0] space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer font-bold text-[#163B5C]">
+                <div className="p-4 rounded-2xl bg-background border border-accent-soft space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-primary">
                     <input
                       type="checkbox"
                       checked={pinNotification}
                       onChange={(e) => setPinNotification(e.target.checked)}
-                      className="w-4 h-4 rounded accent-[#163B5C]"
+                      className="w-4 h-4 rounded accent-primary"
                     />
                     <span>Pin Announcement to Top of User Notification Drawer</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer font-bold text-[#163B5C]">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-primary">
                     <input
                       type="checkbox"
                       checked={requireAck}
                       onChange={(e) => setRequireAck(e.target.checked)}
-                      className="w-4 h-4 rounded accent-[#163B5C]"
+                      className="w-4 h-4 rounded accent-primary"
                     />
                     <span>Require Mandatory "I Have Read" Acknowledgement Click</span>
                   </label>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-accent-soft">
                   <button
                     type="button"
                     onClick={() => handleDispatch(true)}
-                    className="px-4 py-2.5 rounded-xl border border-[#E2E8F0] font-bold text-xs bg-white hover:bg-[#F4F6F9]"
+                    className="px-4 py-2.5 rounded-xl border border-accent-soft font-bold text-xs bg-white hover:bg-background"
                   >
                     Save Draft
                   </button>
@@ -401,22 +401,22 @@ export default function BroadcastCenterPage() {
           {/* HISTORY TAB */}
           {activeTab === 'history' && (
             <div className="card-glass p-6 space-y-4">
-              <h3 className="font-extrabold text-[#163B5C] text-base border-b border-[#E2E8F0] pb-3">Complete Broadcast Audit &amp; History Log</h3>
+              <h3 className="font-extrabold text-primary text-base border-b border-accent-soft pb-3">Complete Broadcast Audit &amp; History Log</h3>
               <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                 {broadcasts.map((b) => (
-                  <div key={b.id} className="p-4 rounded-2xl border border-[#E2E8F0] bg-[#F4F6F9] space-y-2">
+                  <div key={b.id} className="p-4 rounded-2xl border border-accent-soft bg-background space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-sm text-[#163B5C]">{b.title}</span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#163B5C]/10 text-[#163B5C]">
+                        <span className="font-extrabold text-sm text-primary">{b.title}</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-primary/10 text-primary">
                           {b.targetRole || 'Everyone'}
                         </span>
                       </div>
-                      <span className="text-[10.5px] text-[#5F6E7E] font-mono">{new Date(b.timestamp).toLocaleString()}</span>
+                      <span className="text-[10.5px] text-primary/70 font-mono">{new Date(b.timestamp).toLocaleString()}</span>
                     </div>
                     <p className="text-xs text-[#475569] font-medium leading-relaxed">{b.message}</p>
-                    <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-1 border-t border-[#E2E8F0]/50 font-semibold">
-                      <span>Sender: <strong className="text-[#163B5C]">{b.senderName || 'HR Desk'}</strong></span>
+                    <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-1 border-t border-accent-soft/50 font-semibold">
+                      <span>Sender: <strong className="text-primary">{b.senderName || 'HR Desk'}</strong></span>
                       <span>Read Acknowledgements: <strong className="text-emerald-700 font-mono">{b.acknowledgedBy?.length || 0} Users</strong></span>
                     </div>
                   </div>

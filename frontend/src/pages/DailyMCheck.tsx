@@ -19,8 +19,8 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; 
 };
 
 const MODULE_COLORS = [
-  { bar: 'bg-[#163B5C]', ring: 'border-[#163B5C]', light: 'bg-blue-50' },
-  { bar: 'bg-[#4E8ABF]', ring: 'border-[#4E8ABF]', light: 'bg-amber-50' },
+  { bar: 'bg-primary', ring: 'border-primary', light: 'bg-blue-50' },
+  { bar: 'bg-accent', ring: 'border-accent', light: 'bg-amber-50' },
   { bar: 'bg-emerald-600', ring: 'border-emerald-600', light: 'bg-emerald-50' },
   { bar: 'bg-purple-600', ring: 'border-purple-600', light: 'bg-purple-50' },
   { bar: 'bg-rose-600', ring: 'border-rose-600', light: 'bg-rose-50' },
@@ -45,7 +45,7 @@ const ACCURACY_OPTIONS = [
 const STATUS_OPTIONS = ['PENDING', 'IN_PROGRESS', 'DONE', 'NOT_DONE', 'POSTPONED'];
 
 function Toast({ msg, type }: { msg: string; type: 'success' | 'error' | 'info' }) {
-  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-[#163B5C]';
+  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-primary';
   return (
     <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>
       {msg}
@@ -316,7 +316,7 @@ export default function DailyMCheck() {
         <Icon className="w-5 h-5 text-white" />
       </div>
       <div className="min-w-0">
-        <div className="text-2xl font-black text-[#163B5C] leading-tight">{value}</div>
+        <div className="text-2xl font-black text-primary leading-tight">{value}</div>
         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide truncate">{label}</div>
       </div>
     </div>
@@ -338,7 +338,7 @@ export default function DailyMCheck() {
   const moduleStats: any[] = dashData?.moduleStats || [];
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] flex">
+    <div className="min-h-screen bg-background flex">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
         <Topbar session={session} onMenuClick={() => setSidebarOpen(true)} title="Daily MCheck" breadcrumbs={[{ label: 'Daily Operations' }, { label: 'Daily MCheck' }]} />
@@ -349,8 +349,8 @@ export default function DailyMCheck() {
           {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-black text-[#163B5C] flex items-center gap-2">
-                <ClipboardList className="w-7 h-7 text-[#4E8ABF]" />
+              <h1 className="text-2xl font-black text-primary flex items-center gap-2">
+                <ClipboardList className="w-7 h-7 text-accent" />
                 Daily MCheck
               </h1>
               <p className="text-sm text-gray-500 mt-0.5">Daily Management Checklist & Operational Verification System</p>
@@ -360,7 +360,7 @@ export default function DailyMCheck() {
               <div className="relative">
                 <button
                   onClick={() => setShowDatePicker(v => !v)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#163B5C] text-[#163B5C] text-sm font-bold bg-white shadow-sm hover:bg-[#163B5C] hover:text-white transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary text-primary text-sm font-bold bg-white shadow-sm hover:bg-primary hover:text-white transition-all"
                 >
                   <Calendar className="w-4 h-4" />
                   {dashData?.dateDisplay || selectedDate}
@@ -394,7 +394,7 @@ export default function DailyMCheck() {
                             setSelectedModule(null);
                             setModuleData(null);
                           }}
-                          className="text-xs font-bold px-3 py-2 rounded-lg bg-[#163B5C]/5 text-[#163B5C] hover:bg-[#163B5C] hover:text-white transition-all"
+                          className="text-xs font-bold px-3 py-2 rounded-lg bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all"
                         >
                           {label as string}
                         </button>
@@ -407,16 +407,16 @@ export default function DailyMCheck() {
               {/* Admin Config Button */}
               <button
                 onClick={loadAdminStructure}
-                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-[#163B5C] hover:border-[#163B5C] text-xs font-bold transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-primary hover:border-primary text-xs font-bold transition-all shadow-sm"
                 title="Checkpoint Configuration"
               >
-                <Settings className="w-4 h-4 text-[#4E8ABF]" />
+                <Settings className="w-4 h-4 text-accent" />
                 <span className="hidden sm:inline">Admin Config</span>
               </button>
 
               <button
                 onClick={() => { setSelectedModule(null); setModuleData(null); loadDashboard(); }}
-                className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-[#163B5C] hover:text-white hover:border-[#163B5C] transition-all shadow-sm"
+                className="p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -428,9 +428,9 @@ export default function DailyMCheck() {
           {!selectedModule ? (
             <>
               {/* Date Banner */}
-              <div className="bg-[#163B5C] rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-md border border-white/10">
+              <div className="bg-primary rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-md border border-white/10">
                 <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-[#4E8ABF] mb-1">BSC SMG CRM — DAILY MANAGEMENT CHECKLIST</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">BSC SMG CRM — DAILY MANAGEMENT CHECKLIST</div>
                   <div className="text-2xl font-black">{dashData?.dateDisplay || selectedDate}</div>
                   <div className="text-sm text-white/70 mt-0.5">
                     {dashLoading ? 'Loading metrics...' : `${kpi?.total ?? 0} Total Daily Checkpoints`}
@@ -438,14 +438,14 @@ export default function DailyMCheck() {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <div className="text-4xl font-black text-[#4E8ABF]">{dashLoading ? '—' : `${kpi?.completionPct || 0}%`}</div>
+                    <div className="text-4xl font-black text-accent">{dashLoading ? '—' : `${kpi?.completionPct || 0}%`}</div>
                     <div className="text-[10px] font-bold text-white/60 uppercase tracking-wide">Overall Completion</div>
                   </div>
                   <div className="w-14 h-14 rounded-full border-4 border-white/20 flex items-center justify-center relative">
                     <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 56 56">
                       <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="5" />
                       <circle
-                        cx="28" cy="28" r="24" fill="none" stroke="#4E8ABF" strokeWidth="5"
+                        cx="28" cy="28" r="24" fill="none" stroke="var(--color-accent)" strokeWidth="5"
                         strokeDasharray={`${((kpi?.completionPct || 0) / 100) * 150.8} 150.8`}
                         strokeLinecap="round"
                       />
@@ -464,13 +464,13 @@ export default function DailyMCheck() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-                  <KpiCard label="Total" value={kpi?.total ?? 0} color="bg-[#163B5C]" icon={Target} />
+                  <KpiCard label="Total" value={kpi?.total ?? 0} color="bg-primary" icon={Target} />
                   <KpiCard label="Completed" value={kpi?.done ?? 0} color="bg-emerald-600" icon={CheckCircle2} />
                   <KpiCard label="Pending" value={kpi?.pending ?? 0} color="bg-gray-400" icon={Circle} />
                   <KpiCard label="Not Done" value={kpi?.notDone ?? 0} color="bg-red-500" icon={XCircle} />
                   <KpiCard label="In Progress" value={kpi?.inProgress ?? 0} color="bg-amber-500" icon={Clock} />
                   <KpiCard label="Postponed" value={kpi?.postponed ?? 0} color="bg-purple-600" icon={AlertCircle} />
-                  <KpiCard label="Completion" value={`${kpi?.completionPct ?? 0}%`} color="bg-[#4E8ABF]" icon={Zap} />
+                  <KpiCard label="Completion" value={`${kpi?.completionPct ?? 0}%`} color="bg-accent" icon={Zap} />
                 </div>
               )}
 
@@ -485,11 +485,11 @@ export default function DailyMCheck() {
                       <button
                         key={mod.module_id || idx}
                         onClick={() => mod.module_id && loadModule(mod)}
-                        className="bg-white border border-gray-200 rounded-2xl text-left p-5 group transition-all cursor-pointer hover:shadow-lg hover:border-[#4E8ABF] shadow-xs"
+                        className="bg-white border border-gray-200 rounded-2xl text-left p-5 group transition-all cursor-pointer hover:shadow-lg hover:border-accent shadow-xs"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1 min-w-0">
-                            <div className="font-black text-[#163B5C] text-base truncate group-hover:text-[#4E8ABF] transition-colors">
+                            <div className="font-black text-primary text-base truncate group-hover:text-accent transition-colors">
                               {mod.module_name}
                             </div>
                             <div className="text-[11px] text-gray-500 font-medium mt-0.5">
@@ -497,7 +497,7 @@ export default function DailyMCheck() {
                             </div>
                           </div>
                           <div className="ml-2 flex flex-col items-end">
-                            <span className={`text-2xl font-black ${pct === 100 ? 'text-emerald-600' : pct >= 50 ? 'text-[#163B5C]' : 'text-amber-600'}`}>
+                            <span className={`text-2xl font-black ${pct === 100 ? 'text-emerald-600' : pct >= 50 ? 'text-primary' : 'text-amber-600'}`}>
                               {pct}%
                             </span>
                           </div>
@@ -526,7 +526,7 @@ export default function DailyMCheck() {
                           ))}
                         </div>
 
-                        <div className="mt-3 pt-2 text-[11px] text-[#4E8ABF] font-bold flex items-center justify-between">
+                        <div className="mt-3 pt-2 text-[11px] text-accent font-bold flex items-center justify-between">
                           <span>Open Checklist</span>
                           <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                         </div>
@@ -542,7 +542,7 @@ export default function DailyMCheck() {
               {/* Back to Modules Navigation */}
               <button
                 onClick={() => { setSelectedModule(null); setModuleData(null); }}
-                className="flex items-center gap-2 text-sm font-bold text-[#163B5C] hover:text-[#4E8ABF] transition-colors"
+                className="flex items-center gap-2 text-sm font-bold text-primary hover:text-accent transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Modules</span>
@@ -551,7 +551,7 @@ export default function DailyMCheck() {
               {moduleLoading ? (
                 <div className="bg-white border border-gray-200 p-12 flex items-center justify-center rounded-2xl shadow-sm">
                   <div className="flex items-center gap-3 text-gray-500">
-                    <div className="w-5 h-5 border-2 border-[#163B5C] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     <span className="font-semibold text-sm">Loading module checkpoints...</span>
                   </div>
                 </div>
@@ -561,10 +561,10 @@ export default function DailyMCheck() {
                   <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
-                        <div className="text-2xl font-black text-[#163B5C]">{moduleData.module.module_name}</div>
-                        <div className="text-xs text-[#4E8ABF] font-bold mt-0.5">{dashData?.dateDisplay || selectedDate}</div>
+                        <div className="text-2xl font-black text-primary">{moduleData.module.module_name}</div>
+                        <div className="text-xs text-accent font-bold mt-0.5">{dashData?.dateDisplay || selectedDate}</div>
                         <div className="text-sm text-gray-600 font-medium mt-1">
-                          Module Progress: <span className="font-bold text-[#163B5C]">{moduleData.stats.done} of {moduleData.stats.total} submitted</span>
+                          Module Progress: <span className="font-bold text-primary">{moduleData.stats.done} of {moduleData.stats.total} submitted</span>
                         </div>
                       </div>
 
@@ -572,12 +572,12 @@ export default function DailyMCheck() {
                         <button
                           onClick={handleSubmitAll}
                           disabled={submitAllLoading}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#163B5C] text-white text-xs font-bold hover:bg-[#0E2A44] transition-all shadow-sm disabled:opacity-60"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary transition-all shadow-sm disabled:opacity-60"
                         >
                           {submitAllLoading ? (
                             <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           ) : (
-                            <Send className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                            <Send className="w-3.5 h-3.5 text-accent" />
                           )}
                           <span>Submit All</span>
                         </button>
@@ -587,7 +587,7 @@ export default function DailyMCheck() {
                     {/* Progress Bar */}
                     <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#4E8ABF] rounded-full transition-all duration-700"
+                        className="h-full bg-accent rounded-full transition-all duration-700"
                         style={{ width: `${moduleData.stats.completionPct}%` }}
                       />
                     </div>
@@ -616,7 +616,7 @@ export default function DailyMCheck() {
                                 {idx + 1}.
                               </span>
                               <div className="min-w-0 flex-1">
-                                <div className="font-extrabold text-[#163B5C] text-sm truncate">
+                                <div className="font-extrabold text-primary text-sm truncate">
                                   {cp.checkpoint_title}
                                 </div>
                                 <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-500 flex-wrap">
@@ -650,7 +650,7 @@ export default function DailyMCheck() {
                               <div className="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                                 <div>
                                   <span className="text-gray-400 uppercase font-bold text-[10px] block">Checkpoint</span>
-                                  <strong className="text-[#163B5C] text-sm">{cp.checkpoint_title}</strong>
+                                  <strong className="text-primary text-sm">{cp.checkpoint_title}</strong>
                                 </div>
                                 <div>
                                   <span className="text-gray-400 uppercase font-bold text-[10px] block">Responsible Department</span>
@@ -787,8 +787,8 @@ export default function DailyMCheck() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#4E8ABF] hover:bg-amber-50/50 transition-all text-xs text-gray-600 font-bold bg-white">
-                                    <Camera className="w-4 h-4 text-[#4E8ABF]" />
+                                  <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-accent hover:bg-amber-50/50 transition-all text-xs text-gray-600 font-bold bg-white">
+                                    <Camera className="w-4 h-4 text-accent" />
                                     <span>Take Photo / Choose from Gallery</span>
                                     <input
                                       type="file"
@@ -820,12 +820,12 @@ export default function DailyMCheck() {
                                   type="button"
                                   onClick={() => handleSave(cp.id, true)}
                                   disabled={saving[cp.id]}
-                                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#163B5C] text-white text-xs font-bold hover:bg-[#0E2A44] transition-all disabled:opacity-60 shadow-md"
+                                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary transition-all disabled:opacity-60 shadow-md"
                                 >
                                   {saving[cp.id] ? (
                                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                   ) : (
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#4E8ABF]" />
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
                                   )}
                                   <span>Submit Verification</span>
                                 </button>
@@ -845,13 +845,13 @@ export default function DailyMCheck() {
 
       {/* Admin Configuration Modal (Section 19) */}
       {showAdminModal && (
-        <div className="fixed inset-0 bg-[#163B5C]/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-primary/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
             {/* Modal Header */}
-            <div className="bg-[#163B5C] px-6 py-4 text-white flex items-center justify-between">
+            <div className="bg-primary px-6 py-4 text-white flex items-center justify-between">
               <div>
                 <h3 className="font-black text-lg flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-[#4E8ABF]" />
+                  <Settings className="w-5 h-5 text-accent" />
                   MCheck Administrator Configuration
                 </h3>
                 <p className="text-xs text-white/70">Manage modules, checkpoints, assignments, and verification schedules</p>
@@ -879,7 +879,7 @@ export default function DailyMCheck() {
                         }}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                           adminSelectedModId === mod.id
-                            ? 'bg-[#163B5C] text-white shadow-sm'
+                            ? 'bg-primary text-white shadow-sm'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
@@ -897,7 +897,7 @@ export default function DailyMCheck() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-black text-sm text-[#163B5C]">{currentMod.module_name} Checkpoints</h4>
+                            <h4 className="font-black text-sm text-primary">{currentMod.module_name} Checkpoints</h4>
                             <p className="text-xs text-gray-400">Manage daily checkpoints and assigned responsibility</p>
                           </div>
                           {!isAddingCheckpoint && !editingCheckpoint && (
@@ -923,7 +923,7 @@ export default function DailyMCheck() {
                         {/* Add / Edit Form */}
                         {(isAddingCheckpoint || editingCheckpoint) && (
                           <form onSubmit={handleSaveCheckpointAdmin} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                            <div className="text-xs font-black text-[#163B5C] uppercase">
+                            <div className="text-xs font-black text-primary uppercase">
                               {editingCheckpoint ? 'Edit Checkpoint' : 'Add New Checkpoint'}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -983,7 +983,7 @@ export default function DailyMCheck() {
                                     type="checkbox"
                                     checked={checkpointForm.is_active === 1}
                                     onChange={e => setCheckpointForm({ ...checkpointForm, is_active: e.target.checked ? 1 : 0 })}
-                                    className="rounded text-[#163B5C]"
+                                    className="rounded text-primary"
                                   />
                                   <span>Enabled / Active</span>
                                 </label>
@@ -1011,7 +1011,7 @@ export default function DailyMCheck() {
                               <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <span className="text-gray-400 font-bold w-5">{i + 1}.</span>
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-extrabold text-[#163B5C] truncate">{cp.checkpoint_title}</div>
+                                  <div className="font-extrabold text-primary truncate">{cp.checkpoint_title}</div>
                                   <div className="text-[10px] text-gray-400">
                                     {cp.responsible_department} · {cp.responsible_person || 'Unassigned'} · {cp.scheduled_time || 'Daily'}
                                   </div>
@@ -1051,7 +1051,7 @@ export default function DailyMCheck() {
                                       is_active: cp.is_active ?? 1
                                     });
                                   }}
-                                  className="p-1.5 rounded-lg bg-[#163B5C]/10 hover:bg-[#163B5C] hover:text-white transition-all text-[#163B5C]"
+                                  className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary hover:text-white transition-all text-primary"
                                   title="Edit Checkpoint"
                                 >
                                   <Edit2 className="w-3 h-3" />
