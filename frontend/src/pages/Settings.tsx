@@ -5,6 +5,7 @@ import Topbar from '../components/Topbar';
 import ToastContainer, { showToast } from '../components/Toast';
 import { API, Auth, UserSession, apiFetch } from '../services/api';
 import { Settings, Users, Eye, EyeOff, HelpCircle, Tag, Plus, Trash2, Key, Shield, Check, X, Lock, ShieldAlert, RefreshCw } from 'lucide-react';
+import DevToolsMonitoringPanel from '../components/DevToolsMonitoringPanel';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -43,50 +44,7 @@ export default function SettingsPage() {
   // Designations
   const [designations, setDesignations] = useState<string[]>([]);
   const [newDesigInput, setNewDesigInput] = useState('');
-  const [securityEvents, setSecurityEvents] = useState<any[]>([]);
-  const [securityLoading, setSecurityLoading] = useState(false);
   const [pinStatus, setPinStatus] = useState({ greeter: false, tv: false, cash: false });
-  const [shieldEnabled, setShieldEnabled] = useState(false);
-  const [shieldBusy, setShieldBusy] = useState(false);
-
-  const loadSecurityEvents = useCallback(async () => {
-    setSecurityLoading(true);
-    try {
-      const [evRes, flagRes] = await Promise.all([
-        apiFetch('/security/events'),
-        apiFetch('/security/shield-status').catch(() => ({ enabled: false }))
-      ]);
-      if (evRes && evRes.events) setSecurityEvents(evRes.events);
-      setShieldEnabled(!!(flagRes && flagRes.enabled));
-    } catch {
-      /* panel stays empty — non-fatal */
-    } finally {
-      setSecurityLoading(false);
-    }
-  }, []);
-
-  const handleShieldToggle = async () => {
-    setShieldBusy(true);
-    try {
-      const res = await apiFetch('/security/shield-toggle', {
-        method: 'POST',
-        body: JSON.stringify({ enabled: !shieldEnabled })
-      });
-      if (res && res.success) {
-        setShieldEnabled(res.enabled);
-        showToast(res.enabled
-          ? 'Developer Tools Shield ENABLED — all devices will lock when DevTools open'
-          : 'Developer Tools Shield DISABLED — devices unlock within a minute', 'success');
-        loadSecurityEvents();
-      } else {
-        showToast('Could not update shield setting', 'error');
-      }
-    } catch (e: any) {
-      showToast('Error: ' + (e.message || 'update failed'), 'error');
-    } finally {
-      setShieldBusy(false);
-    }
-  };
 
   const loadAll = useCallback(async () => {
     try {
@@ -301,10 +259,6 @@ export default function SettingsPage() {
     { key: 'roles', label: 'Designations Master', icon: Tag }
   ];
 
-  useEffect(() => {
-    if (activeTab === 'security') loadSecurityEvents();
-  }, [activeTab, loadSecurityEvents]);
-
   return (
     <div className="min-h-screen bg-background flex">
       <ToastContainer />
@@ -355,6 +309,32 @@ export default function SettingsPage() {
           {/* TAB 1: USERS */}
           {activeTab === 'users' && (
             <div className="space-y-6 animate-fade-in">
+              {/* Promotion banner to Full User Management Module */}
+              <div className="card-glass p-4 border border-accent/40 bg-gradient-to-r from-accent/10 via-primary/5 to-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary text-accent flex items-center justify-center font-black shrink-0">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-primary uppercase tracking-wider flex items-center gap-2">
+                      <span>Full Access Control &amp; User Management Hub</span>
+                      <span className="px-2 py-0.2 rounded-full text-[9px] font-black bg-accent/20 text-accent uppercase">Production Feature</span>
+                    </h4>
+                    <p className="text-[11px] text-primary/70 font-medium mt-0.5">
+                      Configure granular section-by-section permissions (View, Add, Edit, Delete, Export, Approve), manage user limits &amp; audit security events.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/user-management')}
+                  className="btn-gold text-xs px-4 py-2 font-extrabold flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Open User Management</span>
+                </button>
+              </div>
+
               {/* System Credentials Quick Reference Card */}
               <div className="card-glass p-5 border-2 border-accent/30 space-y-3 bg-gradient-to-r from-sky-50/60 to-sky-100/40">
                 <div className="flex items-center justify-between border-b border-accent/30 pb-2">
@@ -779,102 +759,7 @@ export default function SettingsPage() {
           {/* TAB 5: SECURITY & DEVTOOLS SHIELD */}
           {activeTab === 'security' && (
             <div className="space-y-6 animate-fade-in">
-              <div className="card-glass p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-accent-soft pb-3">
-                  <div>
-                    <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
-                      <ShieldAlert className="w-4 h-4 text-accent" />
-                      <span>Developer Tools Shield</span>
-                    </h3>
-                    <p className="text-xs text-primary/70 font-medium mt-1">
-                      The shield is <b>off by default</b>. When you enable it, every device actively tracks
-                      browser developer tools: the app locks and shows &ldquo;Please turn off Developer
-                      Tools&rdquo; until they are closed. All detections are recorded below.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <button
-                      onClick={handleShieldToggle}
-                      disabled={shieldBusy}
-                      aria-pressed={shieldEnabled}
-                      className={`relative inline-flex h-8 w-[68px] items-center rounded-full transition-colors duration-200 flex-shrink-0 ${shieldEnabled ? 'bg-emerald-600' : 'bg-[#B6C2D2]'} ${shieldBusy ? 'opacity-60 cursor-wait' : ''}`}
-                      title={shieldEnabled ? 'Shield is ON — click to disable' : 'Shield is OFF — click to enable'}
-                    >
-                      <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ${shieldEnabled ? 'translate-x-[36px]' : 'translate-x-1'}`} />
-                      <span className={`absolute text-[9px] font-black uppercase tracking-wider ${shieldEnabled ? 'left-2.5 text-white' : 'right-2 text-[#475569]'}`}>
-                        {shieldEnabled ? 'ON' : 'OFF'}
-                      </span>
-                    </button>
-                    <button
-                      onClick={loadSecurityEvents}
-                      className="btn-primary text-xs shadow-md flex items-center gap-2"
-                      disabled={securityLoading}
-                    >
-                      <RefreshCw className={`w-4 h-4 ${securityLoading ? 'animate-spin' : ''}`} />
-                      <span>{securityLoading ? 'Loading…' : 'Refresh'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-4 rounded-xl bg-background border border-accent-soft">
-                    <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Shield Status</div>
-                    <div className={`font-black text-sm mt-1 flex items-center gap-1.5 ${shieldEnabled ? 'text-emerald-700' : 'text-primary/70'}`}>
-                      <span className={`w-2 h-2 rounded-full ${shieldEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-primary/60'}`} />
-                      {shieldEnabled ? 'Active on all devices' : 'Disabled (tap the switch to arm)'}
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-background border border-accent-soft">
-                    <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Detections Logged</div>
-                    <div className="text-primary font-black text-sm mt-1">
-                      {securityEvents.filter(e => e.action === 'DEVTOOLS_DETECTED').length} total
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-background border border-accent-soft">
-                    <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Enforcement</div>
-                    <div className="text-primary font-black text-sm mt-1">Block + audit trail</div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-accent-soft overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead className="bg-primary text-white">
-                      <tr>
-                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">When</th>
-                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">User</th>
-                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px]">Event</th>
-                        <th className="text-left px-4 py-2.5 font-black uppercase tracking-wider text-[10px] hidden sm:table-cell">IP Address</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {securityEvents.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-primary/70 font-semibold">
-                            No security events recorded yet — the shield is monitoring silently.
-                          </td>
-                        </tr>
-                      ) : securityEvents.map(ev => (
-                        <tr key={ev.id} className="border-t border-accent-soft bg-white">
-                          <td className="px-4 py-2.5 font-semibold text-primary whitespace-nowrap">
-                            {ev.createdAt ? new Date(ev.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
-                          </td>
-                          <td className="px-4 py-2.5 font-bold text-primary">{ev.username || 'Unknown'}</td>
-                          <td className="px-4 py-2.5">
-                            <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
-                              ev.action === 'DEVTOOLS_DETECTED'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-emerald-100 text-emerald-700'
-                            }`}>
-                              {ev.action === 'DEVTOOLS_DETECTED' ? 'DevTools Opened' : 'DevTools Closed'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5 font-mono text-primary/70 hidden sm:table-cell">{ev.ipAddress || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <DevToolsMonitoringPanel session={session} />
             </div>
           )}
         </main>

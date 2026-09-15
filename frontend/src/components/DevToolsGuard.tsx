@@ -1,74 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ShieldAlert, XOctagon } from 'lucide-react';
 import { Auth } from '../services/api';
 import { NotificationService } from '../services/notificationService';
-
-/**
- * DevToolsGuard
- * ─────────────
- * Multi-layer Developer Tools Detection and Security Shield.
- *
- * Capabilities:
- *   1. Viewport Delta — Detects docked DevTools (Chrome, Edge, Firefox, Safari)
- *      when outer/inner window dimensions differ by >= 160px.
- *   2. Debugger Execution Timing — Detects undocked DevTools, attached debuggers
- *      (such as VS Code JS debugging, Chrome remote debugging, mobile remote inspection)
- *      via execution latency caused by attached debugger engines.
- *   3. Console Serialization Probes — Detects open developer consoles via RegExp
- *      and DOM property lazy-evaluation probes.
- *   4. Mobile Injected Debuggers — Detects mobile inspection tools like Eruda & vConsole.
- *   5. DevTools Shortcut Interception — Intercepts F12, Ctrl+Shift+I/J/C, Cmd+Option+I/J/C
- *      and triggers immediate protection.
- *   6. Context Menu Protection — Disables inspect element via right click when armed.
- *
- * Controls:
- *   - Controlled strictly by the Admin Dashboard Toggle (stored in backend database).
- *   - Live push via Socket.IO + 15-second polling fallback.
- *   - Real-time audit logging of DEVTOOLS_DETECTED & DEVTOOLS_CLOSED to server.
- */
-
-const SIZE_THRESHOLD = 160;     // px — docked panel minimum dimension
-const POLL_INTERVAL = 500;       // ms between active checks
-const REPORT_COOLDOWN = 30_000;  // ms — throttle server audit reports
-
-/** Coarse device hint for audit logging */
-function deviceClass(): 'mobile' | 'tablet' | 'desktop' {
-  try {
-    const ua = navigator.userAgent || '';
-    const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-    const w = window.innerWidth || 0;
-    if (coarse && w > 0 && w < 480) return 'mobile';
-    if (coarse && w >= 480 && w <= 1024) return 'tablet';
-    if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return w <= 1024 ? 'mobile' : 'tablet';
-    return 'desktop';
-  } catch {
-    return 'desktop';
-  }
-}
-
-function reportEvent(event: 'DEVTOOLS_DETECTED' | 'DEVTOOLS_CLOSED') {
-  try {
-    const session = Auth.get();
-    fetch('/api/security/log-event', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: session?.token ? `Bearer ${session.token}` : '',
-        'x-auth-token': session?.token || ''
-      },
-      body: JSON.stringify({
-        event,
-        details: {
-          page: window.location.pathname,
-          device: deviceClass(),
-          timestamp: new Date().toISOString()
-        }
-      })
-    }).catch(() => {});
-  } catch {
-    /* logging must never crash the app */
-  }
-}
+import { DevToolsDetector } from '../services/devToolsDetector';
 
 const SHIELD_FLAG_KEY = 'bsc_shield_enabled';
 
@@ -81,13 +15,30 @@ function readCachedFlag(): boolean {
 }
 
 export default function DevToolsGuard() {
-  const [detected, setDetected] = useState(false);
   const [armed, setArmed] = useState<boolean>(() => readCachedFlag());
+  const [isOpen, setIsOpen] = useState(false);
+  const [bypass, setBypass] = useState(false);
 
-  const reportedRef = useRef(0);
-  const detectedRef = useRef(false);
+  // Sync bypass state from localStorage and custom events
+  useEffect(() => {
+    const updateBypass = () => {
+      try {
+        const bp = localStorage.getItem('bsc_shield_bypass') === 'true';
+        setBypass(bp);
+      } catch {
+        setBypass(false);
+      }
+    };
+    updateBypass();
+    window.addEventListener('dev_tools_bypass_changed', updateBypass);
+    window.addEventListener('storage', updateBypass);
+    return () => {
+      window.removeEventListener('dev_tools_bypass_changed', updateBypass);
+      window.removeEventListener('storage', updateBypass);
+    };
+  }, []);
 
-  // Synchronize shield state from server (on mount, interval, and Socket.IO push)
+  // Synchronize shield armed state from server (on mount, interval, and Socket.IO push)
   useEffect(() => {
     let disposed = false;
 
@@ -98,9 +49,10 @@ export default function DevToolsGuard() {
         const enabled = json && json.enabled === true;
         try {
           localStorage.setItem(SHIELD_FLAG_KEY, enabled ? 'true' : 'false');
-        } catch { /* private mode safe */ }
+        } catch {}
         if (!disposed) {
           setArmed(enabled);
+          DevToolsDetector.arm(enabled);
         }
       } catch {
         /* offline fallback */
@@ -110,10 +62,10 @@ export default function DevToolsGuard() {
     fetchStatus();
     const intervalId = window.setInterval(fetchStatus, 15_000);
 
-    // Live Socket.IO push notification when an Admin flips the toggle
     const unsubscribe = NotificationService.onShieldChanged((enabled) => {
       if (!disposed) {
         setArmed(enabled);
+        DevToolsDetector.arm(enabled);
         try {
           localStorage.setItem(SHIELD_FLAG_KEY, enabled ? 'true' : 'false');
         } catch {}
@@ -127,167 +79,29 @@ export default function DevToolsGuard() {
     };
   }, []);
 
-  // When shield is disabled by Admin, immediately clear lock overlay
+  // Subscribe to live DevToolsDetector state
   useEffect(() => {
-    if (!armed) {
-      if (detectedRef.current) {
-        detectedRef.current = false;
-        setDetected(false);
-      }
-    }
+    const unsub = DevToolsDetector.subscribe((state) => {
+      setIsOpen(state.isOpen);
+    });
+    return unsub;
+  }, []);
+
+  // Arm/disarm detector when armed flag changes
+  useEffect(() => {
+    DevToolsDetector.arm(armed);
   }, [armed]);
 
-  // Detection Engine
-  useEffect(() => {
-    if (!armed) return;
+  // If shield is off, or DevTools are closed, or admin has bypassed protection, do not block screen
+  const session = Auth.get();
+  const isAdmin = session?.role === 'Admin' || session?.role === 'Super Admin';
+  // Allow Admins to view the Admin Dashboard (/dashboard) and Settings (/settings) without blocking screen
+  // so they can monitor telemetry and configure DevTools detection live
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isAdminMonitoringPage = pathname === '/dashboard' || pathname === '/settings';
+  const shouldBlock = armed && isOpen && !(isAdmin && (bypass || isAdminMonitoringPage));
 
-    let disposed = false;
-
-    const trigger = () => {
-      if (detectedRef.current) return;
-      detectedRef.current = true;
-      setDetected(true);
-      const now = Date.now();
-      if (now - reportedRef.current > REPORT_COOLDOWN) {
-        reportedRef.current = now;
-        reportEvent('DEVTOOLS_DETECTED');
-      }
-    };
-
-    const clearIfQuiet = () => {
-      if (!detectedRef.current) return;
-      detectedRef.current = false;
-      setDetected(false);
-      reportEvent('DEVTOOLS_CLOSED');
-    };
-
-    // ── Check 1: Docked DevTools viewport dimension difference ──
-    const checkDocked = (): boolean => {
-      if (typeof window === 'undefined') return false;
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      // Normal browser chrome (title bar, scrollbars) is < 80px.
-      // Any docked developer panel takes at least 160px.
-      return widthDiff > SIZE_THRESHOLD || heightDiff > SIZE_THRESHOLD;
-    };
-
-    // ── Check 2: Debugger execution timing (undocked DevTools, attached debuggers) ──
-    const checkDebuggerTiming = (): boolean => {
-      const start = performance.now();
-      // eslint-disable-next-line no-debugger
-      (function() { debugger; })();
-      const elapsed = performance.now() - start;
-      // When devtools / debugger is open or attached, execution pauses or delays > 50ms
-      return elapsed > 50;
-    };
-
-    // ── Check 3: Console Object / RegExp toString probe ──
-    let consoleProbeTriggered = false;
-    const probeRegExp = /./;
-    probeRegExp.toString = function() {
-      consoleProbeTriggered = true;
-      return 'bsc-devtools-probe';
-    };
-
-    const checkConsole = (): boolean => {
-      consoleProbeTriggered = false;
-      // Modern devtools console evaluates arguments when rendered
-      console.log('%c', probeRegExp);
-      console.clear();
-      return consoleProbeTriggered;
-    };
-
-    // ── Check 4: Mobile in-page debuggers (Eruda, vConsole) ──
-    const checkMobileDebuggers = (): boolean => {
-      const anyWin = window as any;
-      if (anyWin.eruda || anyWin.__eruda || anyWin.vConsole || anyWin.__vconsole) {
-        return true;
-      }
-      if (document.getElementById('eruda') || document.getElementById('__vconsole')) {
-        return true;
-      }
-      return false;
-    };
-
-    // Master check routine
-    const runCheck = () => {
-      if (disposed) return;
-      try {
-        const isDocked = checkDocked();
-        const isMobileTool = checkMobileDebuggers();
-        const isConsoleOpen = checkConsole();
-        const isDebuggerAttached = checkDebuggerTiming();
-
-        if (isDocked || isMobileTool || isConsoleOpen || isDebuggerAttached) {
-          trigger();
-        } else {
-          clearIfQuiet();
-        }
-      } catch {
-        /* never crash check loop */
-      }
-    };
-
-    // Immediate initial check
-    runCheck();
-
-    // Polling interval
-    const timer = window.setInterval(runCheck, POLL_INTERVAL);
-
-    // Event hooks for instant detection
-    const handleResize = () => runCheck();
-    const handleFocus = () => runCheck();
-
-    // Keyboard shortcut prevention and trigger
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // F12
-      if (e.key === 'F12' || e.keyCode === 123) {
-        e.preventDefault();
-        e.stopPropagation();
-        trigger();
-        return;
-      }
-      // Ctrl+Shift+I / J / C or Cmd+Option+I / J / C
-      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-      if (isCtrlOrCmd && e.shiftKey) {
-        const k = e.key.toLowerCase();
-        if (k === 'i' || k === 'j' || k === 'c') {
-          e.preventDefault();
-          e.stopPropagation();
-          trigger();
-          return;
-        }
-      }
-      // Ctrl+U / Cmd+U (View Source)
-      if (isCtrlOrCmd && (e.key.toLowerCase() === 'u')) {
-        e.preventDefault();
-        e.stopPropagation();
-        trigger();
-        return;
-      }
-    };
-
-    // Context menu prevention (prevent right-click Inspect)
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('keydown', handleKeyDown, true);
-    window.addEventListener('contextmenu', handleContextMenu, true);
-
-    return () => {
-      disposed = true;
-      window.clearInterval(timer);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('keydown', handleKeyDown, true);
-      window.removeEventListener('contextmenu', handleContextMenu, true);
-    };
-  }, [armed]);
-
-  if (!detected) return null;
+  if (!shouldBlock) return null;
 
   return (
     <div

@@ -349,6 +349,22 @@ async function autoInitializeDatabase(pool) {
         \`remarks\` TEXT NULL,
         \`done_by\` VARCHAR(150) NULL,
         \`done_at\` DATETIME NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+      // User Management — granular per-user module-level permissions
+      `CREATE TABLE IF NOT EXISTS \`user_permissions\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`user_id\` INT NOT NULL,
+        \`module\` VARCHAR(100) NOT NULL,
+        \`can_view\` BOOLEAN DEFAULT FALSE,
+        \`can_add\` BOOLEAN DEFAULT FALSE,
+        \`can_edit\` BOOLEAN DEFAULT FALSE,
+        \`can_delete\` BOOLEAN DEFAULT FALSE,
+        \`can_export\` BOOLEAN DEFAULT FALSE,
+        \`can_approve\` BOOLEAN DEFAULT FALSE,
+        \`granted_by\` VARCHAR(150) NULL,
+        \`granted_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY \`user_module_idx\` (\`user_id\`, \`module\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     ];
 
@@ -521,7 +537,12 @@ async function autoInitializeDatabase(pool) {
       "ALTER TABLE candidate_activities ADD COLUMN location_id INT NOT NULL DEFAULT 2",
       "ALTER TABLE department_hiring_targets ADD COLUMN location_id INT NOT NULL DEFAULT 2",
       "ALTER TABLE section_allocations ADD COLUMN location_id INT NOT NULL DEFAULT 2",
-      "ALTER TABLE department_sections ADD COLUMN location_id INT NOT NULL DEFAULT 2"
+      "ALTER TABLE department_sections ADD COLUMN location_id INT NOT NULL DEFAULT 2",
+
+      // User Management module columns
+      "ALTER TABLE users ADD COLUMN max_modules INT NULL DEFAULT NULL",
+      "ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP NULL",
+      "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
     ];
 
     for (const sql of migrations) {

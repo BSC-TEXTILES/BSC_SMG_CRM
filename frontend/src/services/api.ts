@@ -9,6 +9,7 @@ const getApiBase = () => {
 };
 
 export interface UserSession {
+  id?: number | string;
   username: string;
   role: 'HR' | 'Manager' | 'Admin' | 'Super Admin' | string;
   fullName: string;
@@ -180,6 +181,18 @@ export const API = {
     return apiFetch('/security/shield-toggle', {
       method: 'POST',
       body: JSON.stringify({ enabled })
+    });
+  },
+  async getSecurityEvents(limit: number = 50) {
+    return apiFetch(`/security/events?limit=${limit}`);
+  },
+  async clearSecurityEvents() {
+    return apiFetch('/security/clear-events', { method: 'POST' });
+  },
+  async logSecurityEvent(event: string, details?: any) {
+    return apiFetch('/security/log-event', {
+      method: 'POST',
+      body: JSON.stringify({ event, details })
     });
   },
 
@@ -379,6 +392,19 @@ export const API = {
   async getPublicDesignations() { return API.call('getPublicDesignations'); },
   async addDesignation(name: string) { return apiFetch('/settings/designations/add', { method: 'POST', body: JSON.stringify({ name }) }); },
   async deleteDesignation(name: string) { return apiFetch('/settings/designations/delete', { method: 'POST', body: JSON.stringify({ name }) }); },
+
+  // ── User Management (Admin) ─────────────────────────────────
+  async getAdminUsers() { return apiFetch('/admin/users'); },
+  async getAdminUser(id: number | string) { return apiFetch(`/admin/users/${id}`); },
+  async createAdminUser(data: any) { return apiFetch('/admin/users', { method: 'POST', body: JSON.stringify(data) }); },
+  async updateAdminUser(id: number | string, data: any) { return apiFetch(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }); },
+  async deleteAdminUser(id: number | string) { return apiFetch(`/admin/users/${id}`, { method: 'DELETE' }); },
+  async getAdminUserPermissions(id: number | string) { return apiFetch(`/admin/users/${id}/permissions`); },
+  async updateAdminUserPermissions(id: number | string, permissions: any[]) { return apiFetch(`/admin/users/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ permissions }) }); },
+  async toggleAdminUserStatus(id: number | string) { return apiFetch(`/admin/users/${id}/toggle-status`, { method: 'POST' }); },
+  async resetAdminUserPassword(id: number | string, password: string) { return apiFetch(`/admin/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify({ password }) }); },
+  async getAdminModules() { return apiFetch('/admin/users/modules'); },
+  async getMyPermissions() { return apiFetch('/my-permissions'); },
 
   // Broadcasts
   async getBroadcasts() { return apiFetch('/broadcasts'); },

@@ -38,6 +38,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import EmployeeProfileModal from '../components/ui/EmployeeProfileModal';
+import DevToolsMonitoringPanel from '../components/DevToolsMonitoringPanel';
 import { NotificationService } from '../services/notificationService';
 
 export default function DashboardPage() {
@@ -141,52 +142,22 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [loadData, navigate]);
 
-  // Login / logout activity & Developer Tools Detection Shield (admins only)
-  const [shieldEnabled, setShieldEnabled] = useState(false);
-  const [shieldBusy, setShieldBusy] = useState(false);
-
+  // Login / logout activity (admins only)
   useEffect(() => {
     const role = Auth.get()?.role;
     if (role !== 'Admin' && role !== 'Super Admin') return;
     let disposed = false;
     const load = async () => {
       try {
-        const [res, sRes] = await Promise.all([
-          apiFetch('/security/login-activity').catch(() => null),
-          apiFetch('/security/shield-status').catch(() => null)
-        ]);
+        const res = await apiFetch('/security/login-activity').catch(() => null);
         if (!disposed && res && res.summary) setAuthActivity(res);
-        if (!disposed && sRes && typeof sRes.enabled === 'boolean') setShieldEnabled(sRes.enabled);
       } catch { /* panel simply stays hidden */ }
     };
     load();
     const t = setInterval(load, 20000);
 
-    // Real-time socket sync for shield changes
-    const unsub = NotificationService.onShieldChanged((enabled) => {
-      if (!disposed) setShieldEnabled(enabled);
-    });
-
-    return () => { disposed = true; clearInterval(t); unsub(); };
+    return () => { disposed = true; clearInterval(t); };
   }, []);
-
-  const handleToggleShield = async () => {
-    const nextState = !shieldEnabled;
-    setShieldBusy(true);
-    try {
-      const res = await API.toggleShield(nextState);
-      if (res && res.success) {
-        setShieldEnabled(res.enabled);
-        try {
-          localStorage.setItem('bsc_shield_enabled', res.enabled ? 'true' : 'false');
-        } catch {}
-      }
-    } catch (err: any) {
-      console.error('Failed to toggle Developer Tools Detection:', err.message);
-    } finally {
-      setShieldBusy(false);
-    }
-  };
 
   // Gender Statistics for Active Employees
   const femaleEmployees = useMemo(() => {
@@ -435,58 +406,9 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* ── Developer Tools Detection Toggle (Admin Dashboard Only) ─────────────────────── */}
+              {/* ── Developer Tools Detection & Live Monitoring (Admin Dashboard Only) ────────── */}
               {(session?.role === 'Admin' || session?.role === 'Super Admin') && (
-                <div className="card-glass p-5 border-2 border-accent/20 bg-gradient-to-r from-white via-white to-background">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="space-y-1 max-w-xl">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wider">
-                        <ShieldAlert className="w-3.5 h-3.5 text-accent" />
-                        <span>Security Protection Control</span>
-                      </div>
-                      <h3 className="font-black text-primary text-base tracking-tight flex items-center gap-2">
-                        <span>Developer Tools Detection</span>
-                      </h3>
-                      <p className="text-xs text-primary/70 font-medium leading-relaxed">
-                        When enabled, the system automatically detects open browser developer inspection tools, attached debuggers, and mobile remote inspection modes. Protected screens block viewing and log security audit events until tools are closed.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-background/80 p-2 sm:p-2.5 rounded-2xl border border-accent-soft self-stretch sm:self-auto justify-between sm:justify-end">
-                      <div className="text-right sm:pr-1">
-                        <div className="text-[10px] font-black uppercase tracking-wider text-primary/70">Shield Status</div>
-                        <div className={`text-xs font-black ${shieldEnabled ? 'text-emerald-700' : 'text-primary/70'}`}>
-                          {shieldEnabled ? 'Armed & Active' : 'Disabled'}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleToggleShield}
-                        disabled={shieldBusy}
-                        aria-pressed={shieldEnabled}
-                        aria-label="Toggle Developer Tools Detection"
-                        title={shieldEnabled ? 'Developer Tools Detection is ON — click to turn OFF' : 'Developer Tools Detection is OFF — click to turn ON'}
-                        className={`relative inline-flex h-9 w-[78px] items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent flex-shrink-0 cursor-pointer ${
-                          shieldEnabled ? 'bg-emerald-600' : 'bg-[#B6C2D2]'
-                        } ${shieldBusy ? 'opacity-60 cursor-wait' : ''}`}
-                      >
-                        <span
-                          className={`inline-block h-7 w-7 transform rounded-full bg-white shadow-md transition-transform duration-200 ${
-                            shieldEnabled ? 'translate-x-[44px]' : 'translate-x-1'
-                          }`}
-                        />
-                        <span
-                          className={`absolute text-[10px] font-black uppercase tracking-wider select-none ${
-                            shieldEnabled ? 'left-3 text-white' : 'right-2.5 text-[#475569]'
-                          }`}
-                        >
-                          {shieldEnabled ? 'ON' : 'OFF'}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <DevToolsMonitoringPanel session={session} />
               )}
 
               {/* ── Authentication Activity (Admin) ─────────────────────── */}

@@ -146,6 +146,7 @@ export default function LoginPage() {
 
         // Save full session including location fields from server JWT
         Auth.save({
+          id: user.id,
           username: user.username,
           role: user.role,
           fullName: user.fullName,

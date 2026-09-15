@@ -17,7 +17,8 @@ import {
   Sparkles,
   Megaphone,
   CheckSquare,
-  Menu
+  Menu,
+  Shield
 } from 'lucide-react';
 import { 
   getSidebarCollapsed, 
@@ -50,8 +51,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   };
 
   const roleNavMap: Record<string, string[]> = {
-    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
-    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
+    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
+    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
     'HR':          ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
     'Recruiter':   ['dashboard', 'wedding_crm', 'candidates', 'interview', 'form', 'broadcast'],
     'Interviewer': ['interview', 'candidates'],
@@ -100,28 +101,46 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'tv', href: '/tv', label: 'Live TV Kiosk', icon: BarChart3, section: 'Public Portals', target: '_blank' },
     { key: 'greeter', href: '/greeter', label: 'Greeter Kiosk', icon: UserCheck, section: 'Public Portals', target: '_blank' },
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
+    { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
     { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' }
   ];
 
   useEffect(() => {
-    API.getPageSettings().then(res => {
-      const settingsObj = (res && res.settings) ? res.settings : (res || {});
-      const defaultAllowed = roleNavMap[role] || roleNavMap['HR'];
-      
-      if (settingsObj && Object.keys(settingsObj).length > 0) {
-        const allKeys = navItems.map(item => item.key);
-        
-        const newAllowed = allKeys.filter(key => {
-          const dbKey = `${role}_${key}`;
-          if (settingsObj[dbKey] !== undefined) {
-            return settingsObj[dbKey] === true;
-          }
-          return defaultAllowed.includes(key);
-        });
-        
-        setAllowed(newAllowed);
+    // 1. Check user-specific permissions first
+    API.getMyPermissions().then(myPerms => {
+      if (myPerms && myPerms.custom && Array.isArray(myPerms.modules) && myPerms.modules.length > 0) {
+        setAllowed(myPerms.modules);
+        return;
       }
-    }).catch(() => {});
+
+      // 2. Fall back to role-based page visibility settings
+      API.getPageSettings().then(res => {
+        const settingsObj = (res && res.settings) ? res.settings : (res || {});
+        const defaultAllowed = roleNavMap[role] || roleNavMap['HR'];
+        
+        if (settingsObj && Object.keys(settingsObj).length > 0) {
+          const allKeys = navItems.map(item => item.key);
+          
+          const newAllowed = allKeys.filter(key => {
+            const dbKey = `${role}_${key}`;
+            if (settingsObj[dbKey] !== undefined) {
+              return settingsObj[dbKey] === true;
+            }
+            return defaultAllowed.includes(key);
+          });
+          
+          setAllowed(newAllowed);
+        } else {
+          setAllowed(defaultAllowed);
+        }
+      }).catch(() => {
+        setAllowed(roleNavMap[role] || roleNavMap['HR']);
+      });
+    }).catch(() => {
+      // Graceful fallback
+      const defaultAllowed = roleNavMap[role] || roleNavMap['HR'];
+      setAllowed(defaultAllowed);
+    });
   }, [role]);
 
   const initials = session?.fullName

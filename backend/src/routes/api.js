@@ -17,6 +17,7 @@ const deptHiringController = require('../controllers/deptHiringController');
 const crmController = require('../controllers/crmController');
 const mcheckController = require('../controllers/mcheckController');
 const locationController = require('../controllers/locationController');
+const userMgmtController = require('../controllers/userManagementController');
 
 // ── Auth Routes ──────────────────────────────────────────────
 router.get('/auth/captcha', authController.captcha);
@@ -297,21 +298,45 @@ router.post('/security/log-event', authenticate, async (req, res) => {
     const eventKey = `${eventIdentity}:${event}`;
     const now = Date.now();
     if (now - (lastSecurityEventAt.get(eventKey) || 0) < SECURITY_EVENT_MIN_INTERVAL_MS) {
-      return res.json({ success: true }); // throttled — acknowledged without writing
+      return res.json({ success: true, throttled: true }); // throttled — acknowledged without writing duplicate
     }
     if (lastSecurityEventAt.size > 5000) lastSecurityEventAt.clear(); // bounded memory
     lastSecurityEventAt.set(eventKey, now);
     const ua = String(req.headers['user-agent'] || '').substring(0, 250);
-    await pool.query(
+    const username = req.user ? (req.user.username || req.user.fullName || 'unknown') : 'unknown';
+    const eventDetails = {
+      ...(details || {}),
+      userAgent: ua
+    };
+
+    const [insertResult] = await pool.query(
       `INSERT INTO audit_logs (username, action, module, details, ip_address) VALUES (?, ?, 'Security', ?, ?)`,
       [
-        req.user ? (req.user.username || req.user.fullName || 'unknown') : 'unknown',
+        username,
         event,
-        JSON.stringify({ details: details || null, userAgent: ua }).substring(0, 900),
+        JSON.stringify(eventDetails).substring(0, 950),
         req.ip || null
       ]
     );
-    return res.json({ success: true });
+
+    // Push real-time event to Admin Dashboard via Socket.IO
+    try {
+      const io = req.app && req.app.get('io');
+      if (io && typeof io.emit === 'function') {
+        io.emit('security:event_logged', {
+          id: insertResult.insertId,
+          username,
+          action: event,
+          details: eventDetails,
+          ipAddress: req.ip || null,
+          createdAt: new Date().toISOString()
+        });
+      }
+    } catch (pushErr) {
+      /* best-effort push */
+    }
+
+    return res.json({ success: true, id: insertResult.insertId });
   } catch (err) {
     console.error('[Security log-event Error]', err.message);
     return res.json({ success: true }); // never break the client over logging
@@ -320,15 +345,55 @@ router.post('/security/log-event', authenticate, async (req, res) => {
 
 router.get('/security/events', authenticate, authorize('Admin', 'Super Admin'), async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 10), 200);
     const [rows] = await pool.query(
       `SELECT id, username, action, details, ip_address AS ipAddress, created_at AS createdAt
        FROM audit_logs WHERE module = 'Security'
-       ORDER BY id DESC LIMIT 50`
+       ORDER BY id DESC LIMIT ?`,
+      [limit]
     );
-    return res.json({ success: true, events: rows || [] });
+
+    const parsedEvents = (rows || []).map(r => {
+      let d = null;
+      try {
+        d = typeof r.details === 'string' ? JSON.parse(r.details) : r.details;
+      } catch (e) {
+        d = { raw: r.details };
+      }
+      return {
+        id: r.id,
+        username: r.username,
+        action: r.action,
+        details: d,
+        ipAddress: r.ipAddress,
+        createdAt: r.createdAt
+      };
+    });
+
+    return res.json({ success: true, events: parsedEvents });
   } catch (err) {
     console.error('[Security events Error]', err.message);
     return res.json({ success: true, events: [] });
+  }
+});
+
+router.post('/security/clear-events', authenticate, authorize('Admin', 'Super Admin'), async (req, res) => {
+  try {
+    await pool.query(
+      `DELETE FROM audit_logs WHERE module = 'Security' AND action IN ('DEVTOOLS_DETECTED', 'DEVTOOLS_CLOSED')`
+    );
+
+    try {
+      const io = req.app && req.app.get('io');
+      if (io && typeof io.emit === 'function') {
+        io.emit('security:events_cleared');
+      }
+    } catch (e) {}
+
+    return res.json({ success: true, message: 'Developer tools detection history cleared' });
+  } catch (err) {
+    console.error('[Security clear-events Error]', err.message);
+    return errorRes(res, 'Failed to clear security events', [err.message], 500);
   }
 });
 
@@ -520,5 +585,18 @@ router.post('/legacy', async (req, res) => {
   }
   return errorRes(res, `Unknown action: ${action}`, [], 400);
 });
+
+// ── User Management (Admin Only) ─────────────────────────────────
+router.get('/admin/users', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.listUsers);
+router.get('/admin/users/modules', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.listModules);
+router.get('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.getUser);
+router.post('/admin/users', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.createUser);
+router.put('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.updateUser);
+router.delete('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.deleteUser);
+router.get('/admin/users/:id/permissions', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.getUserPermissions);
+router.put('/admin/users/:id/permissions', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.updatePermissions);
+router.post('/admin/users/:id/toggle-status', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.toggleStatus);
+router.post('/admin/users/:id/reset-password', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.resetPassword);
+router.get('/my-permissions', authenticate, userMgmtController.getMyPermissions);
 
 module.exports = router;

@@ -62,6 +62,9 @@ class NotificationEngine {
   private initialized = false;
   // Live subscribers for the Developer Tools shield toggle (DevToolsGuard)
   private shieldListeners = new Set<(enabled: boolean) => void>();
+  // Live subscribers for security detection events (Admin Dashboard)
+  private securityEventListeners = new Set<(event: any) => void>();
+  private securityClearedListeners = new Set<() => void>();
 
   constructor() {
     this.loadSettings();
@@ -142,6 +145,18 @@ class NotificationEngine {
       const enabled = !!(payload && payload.enabled);
       this.shieldListeners.forEach((fn) => {
         try { fn(enabled); } catch { /* a broken listener must not kill the socket */ }
+      });
+    });
+
+    this.socket.on('security:event_logged', (eventData: any) => {
+      this.securityEventListeners.forEach((fn) => {
+        try { fn(eventData); } catch {}
+      });
+    });
+
+    this.socket.on('security:events_cleared', () => {
+      this.securityClearedListeners.forEach((fn) => {
+        try { fn(); } catch {}
       });
     });
 
@@ -376,6 +391,20 @@ class NotificationEngine {
     this.shieldListeners.add(listener);
     return () => {
       this.shieldListeners.delete(listener);
+    };
+  }
+
+  public onSecurityEvent(listener: (event: any) => void): () => void {
+    this.securityEventListeners.add(listener);
+    return () => {
+      this.securityEventListeners.delete(listener);
+    };
+  }
+
+  public onSecurityEventsCleared(listener: () => void): () => void {
+    this.securityClearedListeners.add(listener);
+    return () => {
+      this.securityClearedListeners.delete(listener);
     };
   }
 

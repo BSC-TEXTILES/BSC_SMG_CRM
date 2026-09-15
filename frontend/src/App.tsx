@@ -10,6 +10,7 @@ import Employees from './pages/Employees';
 import Openings from './pages/Openings';
 import Settings from './pages/Settings';
 import BroadcastCenter from './pages/BroadcastCenter';
+import UserManagement from './pages/UserManagement';
 import DepartmentHiring from './pages/DepartmentHiring';
 import SectionAllocation from './pages/SectionAllocation';
 import Footfall from './pages/Footfall';
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/section-allocation" element={<SectionAllocation />} />
         <Route path="/openings" element={<Openings />} />
         <Route path="/broadcast-center" element={<BroadcastCenter />} />
+        <Route path="/user-management" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

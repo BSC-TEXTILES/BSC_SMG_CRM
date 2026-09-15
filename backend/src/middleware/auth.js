@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { errorRes } = require('../utils/response');
 const { getJwtSecret } = require('../utils/secrets');
+const pool = require('../config/db');
 
 /**
  * authenticate — verifies JWT and attaches full user+location context to req.user
@@ -80,9 +81,49 @@ const injectLocationId = (req) => {
   return req.user.locationId || null; // null = Global Admin
 };
 
+/**
+ * authorizeModule — per-module permission check using user_permissions table.
+ * Admin and Super Admin roles bypass this check entirely.
+ * For other roles, checks the user_permissions table for the specified module
+ * and action (can_view, can_add, can_edit, can_delete, can_export, can_approve).
+ */
+const authorizeModule = (moduleName, action = 'can_view') => {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return errorRes(res, 'Authentication required', [], 401);
+      }
+
+      // Admin/Super Admin bypass module-level checks
+      if (['Admin', 'Super Admin'].includes(req.user.role)) {
+        return next();
+      }
+
+      const validActions = ['can_view', 'can_add', 'can_edit', 'can_delete', 'can_export', 'can_approve'];
+      const safeAction = validActions.includes(action) ? action : 'can_view';
+
+      const [rows] = await pool.query(
+        `SELECT ${safeAction} as allowed FROM user_permissions WHERE user_id = ? AND module = ?`,
+        [req.user.id, moduleName]
+      );
+
+      if (!rows.length || !rows[0].allowed) {
+        return errorRes(res, `Access denied: you do not have ${safeAction.replace('can_', '')} permission for this module`, [], 403);
+      }
+
+      next();
+    } catch (err) {
+      // If user_permissions table doesn't exist, fall back to role-based access
+      console.warn('[authorizeModule] Permission check failed, falling back to role-based:', err.message);
+      next();
+    }
+  };
+};
+
 module.exports = {
   authenticate,
   authorize,
+  authorizeModule,
   getLocationFilter,
   injectLocationId
 };
