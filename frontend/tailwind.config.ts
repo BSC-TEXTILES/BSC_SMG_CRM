@@ -62,10 +62,10 @@ const config: Config = {
       },
       textColor: {
         primary: {
-          DEFAULT: '#1B2A3B', // Original dark blue text
-          hover: '#0E2A44'
+          DEFAULT: '#21181A', // Rich deep charcoal (non-blue)
+          hover: '#611427'
         },
-        'primary-hover': '#0E2A44'
+        'primary-hover': '#611427'
       }
     },
   },

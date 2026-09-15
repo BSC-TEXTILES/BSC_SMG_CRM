@@ -5,25 +5,25 @@
 @tailwind utilities;
 
 :root {
-  /* Original Dark Blue Theme */
+  /* BSC Luxury Burgundy & Champagne Gold Theme */
   
-  /* Primary Brand Color */
-  --color-primary: #163B5C;
-  --color-primary-hover: #1F4D77;
+  /* Primary Brand Color — Deep Imperial Burgundy */
+  --color-primary: #611427;
+  --color-primary-hover: #781D33;
   
-  /* Accent Color */
-  --color-accent: #4E8ABF;
-  --color-accent-hover: #3D74A3;
-  --color-accent-soft: #DFE6EE; 
-  --color-accent-soft-hover: #D0D9E5;
+  /* Accent Color — Warm Champagne Gold */
+  --color-accent: #B88D42;
+  --color-accent-hover: #9E742E;
+  --color-accent-soft: #EFE6DA; 
+  --color-accent-soft-hover: #E3D6C5;
 
-  /* Neutral Background */
-  --color-background: #F4F6F9;
+  /* Neutral Background — Warm Luxe Ivory / Cream */
+  --color-background: #F9F6F0;
   
-  /* Standardized Status Indicators (Keeping for legacy if used, otherwise mapped) */
-  --green: #27805B;
-  --amber: #C58A24;
-  --red: #C43D4B;
+  /* Standardized Status Indicators */
+  --green: #1F7A54;
+  --amber: #B87B19;
+  --red: #B82837;
 
   /* Legacy variable mappings to new theme for backward compatibility */
   --burgundy: var(--color-primary);
@@ -35,17 +35,17 @@
   --cream: var(--color-background);
   --bg: var(--color-background);
   --surface: #FFFFFF;
-  --text-main: var(--color-primary);
-  --text-muted: var(--color-primary);
-  --border: var(--color-accent-soft);
-  --border-warm: var(--color-accent-soft);
+  --text-main: #21181A;
+  --text-muted: #6B5B5E;
+  --border: #E8DED2;
+  --border-warm: #DFCFC0;
   
   --navy: var(--color-primary);
   --navy-dark: var(--color-primary-hover);
   --navy-light: var(--color-primary-hover);
   --gold: var(--color-accent);
   --gold-dark: var(--color-accent-hover);
-  --muted: var(--color-primary);
+  --muted: #6B5B5E;
 }
 
 body {
@@ -79,12 +79,12 @@ body {
   background: #FFFFFF;
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(22, 59, 92, 0.03);
+  box-shadow: 0 4px 16px rgba(97, 20, 39, 0.04);
   border-radius: 16px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-glass-hover:hover {
-  box-shadow: 0 8px 24px rgba(22, 59, 92, 0.07);
+  box-shadow: 0 8px 24px rgba(97, 20, 39, 0.08);
   transform: translateY(-1px);
 }
 
@@ -101,15 +101,15 @@ body {
   letter-spacing: 0.01em;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
-.b-new { background: #EDF4FB; color: #163B5C; border: 1px solid #B9D2E8; }
-.b-short { background: #FDF7EC; color: #C58A24; border: 1px solid #F5DEB4; }
-.b-int { background: #EDF4FB; color: #163B5C; border: 1px solid #C4D9EC; }
-.b-sel { background: #EAF5F0; color: #27805B; border: 1px solid #BBE3D1; }
-.b-offer { background: #FBF7EE; color: #8E6F2D; border: 1px solid #E8D5AA; }
-.b-hold { background: #FDF7EC; color: #C58A24; border: 1px solid #F5DEB4; }
-.b-rej { background: #FDF0F2; color: #C43D4B; border: 1px solid #F6C8CE; }
-.b-board { background: #EEF2F6; color: #163B5C; border: 1px solid #D5DEE8; }
-.b-info { background: #EEF2F6; color: #475569; border: 1px solid #E2E8F0; }
+.b-new { background: #FAF4E8; color: #8F6B23; border: 1px solid #ECD8B5; }
+.b-short { background: #FDF7EC; color: #B87B19; border: 1px solid #F5DEB4; }
+.b-int { background: #F8EDEF; color: #611427; border: 1px solid #E6CCD2; }
+.b-sel { background: #EAF5F0; color: #1F7A54; border: 1px solid #BBE3D1; }
+.b-offer { background: #FAF3E7; color: #8F6B23; border: 1px solid #ECD8B5; }
+.b-hold { background: #FDF7EC; color: #B87B19; border: 1px solid #F5DEB4; }
+.b-rej { background: #FDF0F2; color: #B82837; border: 1px solid #F6C8CE; }
+.b-board { background: #F6F1EA; color: #523D26; border: 1px solid #E0D4C5; }
+.b-info { background: #F6F1EA; color: #6B5B5E; border: 1px solid #E8DED2; }
 
 /* Status Chips */
 .sc-chip {
@@ -200,7 +200,7 @@ body {
   outline: none;
   border-color: var(--champagne);
   background-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(78, 138, 191, 0.2);
+  box-shadow: 0 0 0 3px rgba(184, 141, 66, 0.22);
 }
 
 /* Modern Buttons — Primary & Accent */
@@ -211,21 +211,21 @@ body {
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(22, 59, 92, 0.2);
+  box-shadow: 0 2px 8px rgba(97, 20, 39, 0.22);
 }
 .btn-primary:hover {
   background-color: var(--burgundy-light);
   transform: translateY(-0.5px);
-  box-shadow: 0 4px 12px rgba(22, 59, 92, 0.28);
+  box-shadow: 0 4px 14px rgba(97, 20, 39, 0.32);
 }
 .btn-gold {
   background-color: var(--champagne);
-  color: #1B2A3B;
+  color: #21181A;
   font-weight: 800;
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(78, 138, 191, 0.22);
+  box-shadow: 0 2px 8px rgba(184, 141, 66, 0.25);
 }
 .btn-gold:hover {
   background-color: var(--champagne-dark);
