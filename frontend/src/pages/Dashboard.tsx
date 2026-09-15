@@ -177,6 +177,9 @@ export default function DashboardPage() {
       const res = await API.toggleShield(nextState);
       if (res && res.success) {
         setShieldEnabled(res.enabled);
+        try {
+          localStorage.setItem('bsc_shield_enabled', res.enabled ? 'true' : 'false');
+        } catch {}
       }
     } catch (err: any) {
       console.error('Failed to toggle Developer Tools Detection:', err.message);

@@ -214,14 +214,19 @@ const SECURITY_EVENT_TYPES = new Set([
   'SESSION_EXPIRED'
 ]);
 
+let inMemoryShieldState = false;
+
 async function getShieldEnabled() {
   try {
     const [rows] = await pool.query(
       `SELECT settingValue FROM Setting WHERE settingKey = 'devtools_shield_enabled' LIMIT 1`
     );
-    return rows && rows.length > 0 && String(rows[0].settingValue) === 'true';
+    if (rows && rows.length > 0) {
+      return String(rows[0].settingValue) === 'true';
+    }
+    return inMemoryShieldState;
   } catch (err) {
-    return false; // table missing / DB down — shield stays off, never breaks the app
+    return inMemoryShieldState; // table missing / DB down — shield fallback
   }
 }
 
@@ -234,20 +239,32 @@ router.get('/security/shield-status', async (req, res) => {
 router.post('/security/shield-toggle', authenticate, authorize('Admin', 'Super Admin'), async (req, res) => {
   try {
     const enabled = !!(req.body && (req.body.enabled === true || req.body.enabled === 'true'));
-    await pool.query(
-      `INSERT INTO Setting (settingKey, settingValue, category) VALUES ('devtools_shield_enabled', ?, 'Security')
-       ON DUPLICATE KEY UPDATE settingValue = VALUES(settingValue)`,
-      [enabled ? 'true' : 'false']
-    );
-    await pool.query(
-      `INSERT INTO audit_logs (username, action, module, details, ip_address) VALUES (?, 'SHIELD_TOGGLED', 'Security', ?, ?)`,
-      [req.user.username || 'admin', JSON.stringify({ enabled }), req.ip || null]
-    );
+    inMemoryShieldState = enabled;
+
+    try {
+      await pool.query(
+        `CREATE TABLE IF NOT EXISTS Setting (
+          settingKey VARCHAR(100) PRIMARY KEY,
+          settingValue TEXT,
+          category VARCHAR(50) DEFAULT 'General',
+          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )`
+      );
+      await pool.query(
+        `INSERT INTO Setting (settingKey, settingValue, category) VALUES ('devtools_shield_enabled', ?, 'Security')
+         ON DUPLICATE KEY UPDATE settingValue = VALUES(settingValue)`,
+        [enabled ? 'true' : 'false']
+      );
+      await pool.query(
+        `INSERT INTO audit_logs (username, action, module, details, ip_address) VALUES (?, 'SHIELD_TOGGLED', 'Security', ?, ?)`,
+        [req.user.username || 'admin', JSON.stringify({ enabled }), req.ip || null]
+      );
+    } catch (dbErr) {
+      console.warn('[Security shield-toggle DB Note]', dbErr.message);
+    }
+
     // Push the change to every connected device immediately so the Admin's
     // toggle takes effect without waiting for the periodic re-check.
-    // Socket.IO is optional infrastructure — a push failure must never fail
-    // the request (clients also re-poll as a fallback). The payload is a
-    // single boolean; no user or security data is broadcast.
     try {
       const io = req.app && req.app.get('io');
       if (io && typeof io.emit === 'function') {
