@@ -17,7 +17,7 @@
 
 const crypto = require('crypto');
 
-const CODE_LENGTH = 8;
+const CODE_LENGTH = 4;
 const TTL_MS = 90 * 1000; // 90 s — comfortably covers the 30 s client refresh
 const MAX_STORE = 5000;   // memory guard: prune when too many entries pile up
 
@@ -31,21 +31,11 @@ function prune() {
 }
 
 function randomCode() {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*';
   let code = '';
-  // Ensure at least one of each required type
-  code += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[crypto.randomInt(0, 26)];
-  code += 'abcdefghijklmnopqrstuvwxyz'[crypto.randomInt(0, 26)];
-  code += '0123456789'[crypto.randomInt(0, 10)];
-  code += '!@#$%&*'[crypto.randomInt(0, 7)];
-  
-  // Fill the rest randomly
-  for (let i = 4; i < CODE_LENGTH; i++) {
-    code += chars[crypto.randomInt(0, chars.length)];
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    code += String(crypto.randomInt(0, 10));
   }
-  
-  // Shuffle the string
-  return code.split('').sort(() => 0.5 - Math.random()).join('');
+  return code;
 }
 
 /**
