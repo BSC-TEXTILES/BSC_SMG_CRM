@@ -1230,7 +1230,11 @@ export default function UserManagementPage() {
                   </div>
                   {!formAllLocations && (
                     <div className="flex flex-wrap gap-3">
-                      {locations.map((loc: any) => (
+                      {(locations.length > 0 ? locations : [
+                        { id: 1, location_name: 'Belagavi', location_code: 'BEL' },
+                        { id: 2, location_name: 'Davanagere', location_code: 'DAV' },
+                        { id: 3, location_name: 'Shivamogga', location_code: 'SHI' }
+                      ]).map((loc: any) => (
                         <label key={loc.id} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -1403,7 +1407,11 @@ export default function UserManagementPage() {
                   </div>
                   {!editAllLocations && (
                     <div className="flex flex-wrap gap-3">
-                      {locations.map((loc: any) => (
+                      {(locations.length > 0 ? locations : [
+                        { id: 1, location_name: 'Belagavi', location_code: 'BEL' },
+                        { id: 2, location_name: 'Davanagere', location_code: 'DAV' },
+                        { id: 3, location_name: 'Shivamogga', location_code: 'SHI' }
+                      ]).map((loc: any) => (
                         <label key={loc.id} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
