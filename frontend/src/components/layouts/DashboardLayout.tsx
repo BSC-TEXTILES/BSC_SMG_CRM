@@ -7,12 +7,14 @@ import { Auth, UserSession } from "../../services/api";
 import { Plus, X, UserCheck, BarChart3, Target, PhoneCall, Zap } from 'lucide-react';
 
 import { getSidebarCollapsed, subscribeSidebarCollapsed } from '../../utils/sidebarState';
+import { BreadcrumbCrumb } from '../../utils/breadcrumbs';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
-  breadcrumbs?: { label: string; href?: string }[];
+  /** Optional dynamic sub-crumb(s) under the route-derived page crumb. */
+  breadcrumbs?: BreadcrumbCrumb[] | null;
   rightElement?: React.ReactNode;
 }
 

@@ -196,6 +196,18 @@ export const API = {
     });
   },
 
+  // System Administrator endpoints
+  async getSystemLogs(params?: { limit?: number; offset?: number; module?: string; action?: string }) {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return apiFetch(`/security/system-logs${q ? `?${q}` : ''}`);
+  },
+  async getLiveActivity(limit?: number) {
+    return apiFetch(`/security/live-activity${limit ? `?limit=${limit}` : ''}`);
+  },
+  async getDashboardStats() {
+    return apiFetch('/security/dashboard-stats');
+  },
+
   // Candidates
   async uploadDocuments(formData: FormData, candName?: string, appNo?: string) {
     const session = Auth.get();

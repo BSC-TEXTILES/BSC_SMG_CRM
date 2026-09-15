@@ -438,7 +438,6 @@ export default function CandidatesPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
           title="Candidate CRM"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Candidates' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
           rightElement={

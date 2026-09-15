@@ -107,11 +107,11 @@ export default function ProfileDropdown({
 
             {session?.role === 'Admin' || session?.role === 'Super Admin' ? (
               <button
-                onClick={() => { setOpen(false); navigate('/settings'); }}
+                onClick={() => { setOpen(false); navigate('/system-admin'); }}
                 className="w-full flex items-center gap-2 p-2 rounded-xl text-primary hover:bg-background"
               >
                 <Settings className="w-4 h-4 text-[#C58A24]" />
-                <span>System Governance</span>
+                <span>System Administrator</span>
               </button>
             ) : null}
 

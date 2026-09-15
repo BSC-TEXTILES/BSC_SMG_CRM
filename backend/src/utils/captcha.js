@@ -80,21 +80,21 @@ function renderSvg(code) {
     const size = rand(24, 32); // slightly smaller font to fit well
     chars += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})" `
       + `font-family="Georgia, 'Times New Roman', serif" font-size="${size.toFixed(1)}" font-weight="700" `
-      + `fill="var(--color-primary, #611427)" text-anchor="middle">${code[i]}</text>`;
+      + `fill="#611427" text-anchor="middle">${code[i]}</text>`;
   }
 
   let noise = '';
   for (let i = 0; i < 4; i++) {
     noise += `<path d="M ${rand(0, W * 0.3).toFixed(0)} ${rand(0, H).toFixed(0)} `
       + `Q ${rand(0, W).toFixed(0)} ${rand(0, H).toFixed(0)} ${rand(W * 0.7, W).toFixed(0)} ${rand(0, H).toFixed(0)}" `
-      + `stroke="var(--color-accent, #B88D42)" stroke-width="${rand(0.8, 1.6).toFixed(1)}" fill="none" opacity="${rand(0.25, 0.5).toFixed(2)}"/>`;
+      + `stroke="#B88D42" stroke-width="${rand(0.8, 1.6).toFixed(1)}" fill="none" opacity="${rand(0.25, 0.5).toFixed(2)}"/>`;
   }
   for (let i = 0; i < 40; i++) {
-    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.9).toFixed(1)}" fill="var(--color-primary, #6B5B5E)" opacity="${rand(0.12, 0.3).toFixed(2)}"/>`;
+    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.9).toFixed(1)}" fill="#6B5B5E" opacity="${rand(0.12, 0.3).toFixed(2)}"/>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="complex captcha">`
-    + `<rect width="${W}" height="${H}" fill="var(--color-background, #F9F6F0)"/>${noise}${chars}</svg>`;
+    + `<rect width="${W}" height="${H}" fill="#F9F6F0"/>${noise}${chars}</svg>`;
 }
 
 module.exports = { createCaptcha, verifyCaptcha, TTL_MS };

@@ -106,10 +106,10 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
       setEvents([]);
     });
 
-    // Background polling fallback every 5 seconds for events
+    // Background polling fallback every 15 seconds for events
     const pollInterval = window.setInterval(() => {
       loadEvents();
-    }, 5000);
+    }, 15000);
 
     return () => {
       unsubDetector();
@@ -146,7 +146,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
 
   // Clear Event History
   const handleClearHistory = async () => {
-    if (!window.confirm('Are you sure you want to clear the Developer Tools detection history log?')) {
+    if (!window.confirm('Clear all Developer Tools detection history? This action cannot be undone.')) {
       return;
     }
     setClearing(true);
@@ -429,7 +429,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
                         {/* Timestamp */}
                         <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary/80">
                           {ev.createdAt
-                            ? new Date(ev.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'medium' })
+                            ? new Date(ev.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
                             : '—'}
                         </td>
 

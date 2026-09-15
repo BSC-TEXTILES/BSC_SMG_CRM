@@ -365,6 +365,14 @@ async function autoInitializeDatabase(pool) {
         \`granted_by\` VARCHAR(150) NULL,
         \`granted_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY \`user_module_idx\` (\`user_id\`, \`module\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+      `CREATE TABLE IF NOT EXISTS \`user_locations\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`user_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL,
+        \`assigned_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY \`user_location_idx\` (\`user_id\`, \`location_id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     ];
 
@@ -542,7 +550,8 @@ async function autoInitializeDatabase(pool) {
       // User Management module columns
       "ALTER TABLE users ADD COLUMN max_modules INT NULL DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP NULL",
-      "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+      "CREATE TABLE IF NOT EXISTS `user_locations` (`id` INT AUTO_INCREMENT PRIMARY KEY, `user_id` INT NOT NULL, `location_id` INT NOT NULL, `assigned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY `user_location_idx` (`user_id`, `location_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     ];
 
     for (const sql of migrations) {

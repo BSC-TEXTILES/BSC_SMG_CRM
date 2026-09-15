@@ -339,7 +339,6 @@ export default function SectionAllocationPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar 
           title="Section Allocation" 
-          breadcrumbs={[{ label: 'Talent Management' }, { label: 'Section Allocation' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />

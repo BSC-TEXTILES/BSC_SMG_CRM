@@ -599,4 +599,103 @@ router.post('/admin/users/:id/toggle-status', authenticate, authorize('Admin', '
 router.post('/admin/users/:id/reset-password', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.resetPassword);
 router.get('/my-permissions', authenticate, userMgmtController.getMyPermissions);
 
+// ── System Administrator Endpoints ──────────────────────────────────────
+
+router.get('/security/system-logs', authenticate, authorize('Admin', 'Super Admin'), async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 10), 200);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const moduleFilter = req.query.module || null;
+    const actionFilter = req.query.action || null;
+    
+    let whereClause = "WHERE module != 'Security'";
+    const params = [];
+    
+    if (moduleFilter) {
+      whereClause += ' AND module = ?';
+      params.push(moduleFilter);
+    }
+    if (actionFilter) {
+      whereClause += ' AND action = ?';
+      params.push(actionFilter);
+    }
+    
+    const [rows] = await pool.query(
+      `SELECT id, username, action, module, details, ip_address AS ipAddress, created_at AS createdAt
+       FROM audit_logs ${whereClause}
+       ORDER BY id DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+    
+    const [countResult] = await pool.query(
+      `SELECT COUNT(*) as total FROM audit_logs ${whereClause}`,
+      params
+    );
+    
+    const parsedLogs = (rows || []).map(r => {
+      let d = null;
+      try { d = typeof r.details === 'string' ? JSON.parse(r.details) : r.details; } catch { d = { raw: r.details }; }
+      return { id: r.id, username: r.username, action: r.action, module: r.module, details: d, ipAddress: r.ipAddress, createdAt: r.createdAt };
+    });
+    
+    return res.json({ success: true, logs: parsedLogs, total: countResult[0]?.total || 0, limit, offset });
+  } catch (err) {
+    console.error('[System logs Error]', err.message);
+    return res.json({ success: true, logs: [], total: 0 });
+  }
+});
+
+router.get('/security/live-activity', authenticate, authorize('Admin', 'Super Admin'), async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 5), 100);
+    const [rows] = await pool.query(
+      `SELECT id, username, action, module, details, ip_address AS ipAddress, created_at AS createdAt
+       FROM audit_logs
+       ORDER BY id DESC LIMIT ?`,
+      [limit]
+    );
+    
+    const parsedActivity = (rows || []).map(r => {
+      let d = null;
+      try { d = typeof r.details === 'string' ? JSON.parse(r.details) : r.details; } catch { d = { raw: r.details }; }
+      return { id: r.id, username: r.username, action: r.action, module: r.module, details: d, ipAddress: r.ipAddress, createdAt: r.createdAt };
+    });
+    
+    return res.json({ success: true, activity: parsedActivity });
+  } catch (err) {
+    console.error('[Live activity Error]', err.message);
+    return res.json({ success: true, activity: [] });
+  }
+});
+
+router.get('/security/dashboard-stats', authenticate, authorize('Admin', 'Super Admin'), async (req, res) => {
+  try {
+    const [securityCount] = await pool.query(
+      `SELECT COUNT(*) as total FROM audit_logs WHERE module = 'Security'`
+    );
+    const [authCount] = await pool.query(
+      `SELECT COUNT(*) as total FROM audit_logs WHERE module = 'Auth'`
+    );
+    const [systemCount] = await pool.query(
+      `SELECT COUNT(*) as total FROM audit_logs WHERE module NOT IN ('Security', 'Auth')`
+    );
+    const [todayEvents] = await pool.query(
+      `SELECT COUNT(*) as total FROM audit_logs WHERE created_at >= CURDATE()`
+    );
+    
+    return res.json({
+      success: true,
+      stats: {
+        securityEvents: securityCount[0]?.total || 0,
+        authEvents: authCount[0]?.total || 0,
+        systemLogs: systemCount[0]?.total || 0,
+        todayEvents: todayEvents[0]?.total || 0
+      }
+    });
+  } catch (err) {
+    console.error('[Dashboard stats Error]', err.message);
+    return res.json({ success: true, stats: { securityEvents: 0, authEvents: 0, systemLogs: 0, todayEvents: 0 } });
+  }
+});
+
 module.exports = router;

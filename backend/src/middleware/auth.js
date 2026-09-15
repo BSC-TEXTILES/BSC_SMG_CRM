@@ -48,17 +48,22 @@ const authorize = (...roles) => {
 /**
  * getLocationFilter — returns a WHERE clause fragment and params for location isolation.
  *
- * Usage in controllers:
- *   const { clause, params } = getLocationFilter(req, 'c');
+ * Supports multi-location users via the user_locations junction table.
+ *
+ * Usage in controllers (async):
+ *   const { clause, params } = await getLocationFilter(req, 'c');
  *   db.query(`SELECT * FROM candidates c WHERE 1=1 ${clause}`, params);
  *
- * Global Admin: clause = '' (no filter, sees all locations)
- * Branch user:  clause = 'AND c.location_id = ?' with [locationId]
+ * Global Admin (no locationId):  clause = '' (no filter, sees all locations)
+ * Single-location user:          clause = 'AND c.location_id = ?' with [locationId]
+ * Multi-location user:           clause = 'AND c.location_id IN (?, ?, ?)' with [id1, id2, ...]
+ * Fallback (no user_locations):  clause = 'AND c.location_id = ?' with [locationId]
  *
- * @param {object} req       — Express request with req.user populated
+ * @param {object} req        — Express request with req.user populated
  * @param {string} tableAlias — table alias prefix (e.g. 'c' → 'c.location_id')
+ * @returns {Promise<{clause: string, params: Array}>}
  */
-const getLocationFilter = (req, tableAlias = '') => {
+const getLocationFilter = async (req, tableAlias = '') => {
   const col = tableAlias ? `${tableAlias}.location_id` : 'location_id';
   const locationId = req.user ? req.user.locationId : null;
   const isGlobalAdmin = !locationId;
@@ -66,6 +71,27 @@ const getLocationFilter = (req, tableAlias = '') => {
   if (isGlobalAdmin) {
     return { clause: '', params: [] };
   }
+
+  // Try to query user_locations for multi-location support
+  try {
+    const [rows] = await pool.query(
+      'SELECT location_id FROM user_locations WHERE user_id = ?',
+      [req.user.id]
+    );
+
+    if (rows.length > 0) {
+      const locationIds = rows.map(r => r.location_id);
+      const placeholders = locationIds.map(() => '?').join(', ');
+      return {
+        clause: `AND ${col} IN (${placeholders})`,
+        params: locationIds
+      };
+    }
+  } catch (err) {
+    // user_locations table doesn't exist or query failed — fall through to single-location fallback
+  }
+
+  // Fallback: single location_id from the JWT
   return {
     clause: `AND ${col} = ?`,
     params: [locationId]

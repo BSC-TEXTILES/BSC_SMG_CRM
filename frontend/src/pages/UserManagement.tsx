@@ -73,6 +73,7 @@ interface UserData {
   last_login_at: string | null;
   created_at: string;
   updated_at?: string;
+  assigned_locations?: Array<{ id: number; name: string }>;
 }
 
 interface AuditLog {
@@ -133,6 +134,8 @@ export default function UserManagementPage() {
   const [formDesignation, setFormDesignation] = useState('');
   const [formRole, setFormRole] = useState('HR');
   const [formLocationId, setFormLocationId] = useState<string>('2');
+  const [formLocationIds, setFormLocationIds] = useState<string[]>(['2']);
+  const [formAllLocations, setFormAllLocations] = useState<boolean>(false);
   const [formMaxModules, setFormMaxModules] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -145,6 +148,8 @@ export default function UserManagementPage() {
   const [editDesignation, setEditDesignation] = useState('');
   const [editRole, setEditRole] = useState('HR');
   const [editLocationId, setEditLocationId] = useState<string>('2');
+  const [editLocationIds, setEditLocationIds] = useState<string[]>(['2']);
+  const [editAllLocations, setEditAllLocations] = useState<boolean>(false);
   const [editMaxModules, setEditMaxModules] = useState<string>('');
   const [editActive, setEditActive] = useState(true);
 
@@ -163,7 +168,7 @@ export default function UserManagementPage() {
 
   // Check auth
   useEffect(() => {
-    const s = Auth.getSession();
+    const s = Auth.get();
     if (!s) {
       navigate('/login');
       return;
@@ -222,6 +227,8 @@ export default function UserManagementPage() {
 
       if (Array.isArray(locsRes)) {
         setLocations(locsRes);
+      } else if (locsRes?.locations && Array.isArray(locsRes.locations)) {
+        setLocations(locsRes.locations);
       }
     } catch (err: any) {
       showToast('Error loading user management data: ' + (err.message || 'Server error'), 'error');
@@ -282,6 +289,8 @@ export default function UserManagementPage() {
     setFormDesignation('');
     setFormRole('HR');
     setFormLocationId('2');
+    setFormLocationIds(['2']);
+    setFormAllLocations(false);
     setFormMaxModules('');
     setShowPassword(false);
     setCreateModalOpen(true);
@@ -310,7 +319,9 @@ export default function UserManagementPage() {
         phone: formPhone.trim() || null,
         department: formDepartment.trim() || null,
         designation: formDesignation.trim() || null,
-        locationId: ['Admin', 'Super Admin'].includes(formRole) ? null : (parseInt(formLocationId, 10) || null),
+        allLocations: formAllLocations,
+        locationId: formAllLocations ? null : (parseInt(formLocationId, 10) || null),
+        locationIds: formAllLocations ? [] : formLocationIds.map(Number),
         maxModules: formMaxModules ? parseInt(formMaxModules, 10) : null
       };
 
@@ -335,6 +346,8 @@ export default function UserManagementPage() {
     setEditDesignation(user.designation || '');
     setEditRole(user.role || 'HR');
     setEditLocationId(user.location_id ? String(user.location_id) : '2');
+    setEditLocationIds(user.assigned_locations?.map(l => String(l.id)) || [String(user.location_id || 2)]);
+    setEditAllLocations(user.assigned_locations?.length === 0 && !user.location_id);
     setEditMaxModules(user.max_modules !== null && user.max_modules !== undefined ? String(user.max_modules) : '');
     setEditActive(!!user.active);
     setEditModalOpen(true);
@@ -354,7 +367,9 @@ export default function UserManagementPage() {
         department: editDepartment.trim() || null,
         designation: editDesignation.trim() || null,
         role: editRole,
-        locationId: ['Admin', 'Super Admin'].includes(editRole) ? null : (parseInt(editLocationId, 10) || null),
+        allLocations: editAllLocations,
+        locationId: editAllLocations ? null : (parseInt(editLocationId, 10) || null),
+        locationIds: editAllLocations ? [] : editLocationIds.map(Number),
         maxModules: editMaxModules ? parseInt(editMaxModules, 10) : null,
         active: editActive
       };
@@ -648,7 +663,6 @@ export default function UserManagementPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
           title="User Management & Access Control"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'User Management' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />
@@ -901,7 +915,11 @@ export default function UserManagementPage() {
                               </span>
                               <span className="text-[11px] font-semibold text-primary/70 flex items-center gap-1">
                                 <Building2 className="w-3 h-3 text-accent" />
-                                {isAdmin || !user.location_id ? 'Global (All Stores)' : (user.location_name || user.location_code || 'Assigned Store')}
+                                {isAdmin || (!user.location_id && (!user.assigned_locations || user.assigned_locations.length === 0))
+                                  ? 'Global (All Stores)'
+                                  : (user.assigned_locations && user.assigned_locations.length > 0
+                                    ? user.assigned_locations.map(l => l.name).join(', ')
+                                    : (user.location_name || user.location_code || 'Assigned Store'))}
                               </span>
                             </div>
                           </td>
@@ -1128,7 +1146,12 @@ export default function UserManagementPage() {
                   </label>
                   <select
                     value={formRole}
-                    onChange={e => setFormRole(e.target.value)}
+                    onChange={e => {
+                      setFormRole(e.target.value);
+                      // Admin roles default to global access — still adjustable below
+                      if (['Admin', 'Super Admin'].includes(e.target.value)) setFormAllLocations(true);
+                      else setFormAllLocations(false);
+                    }}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-bold bg-white"
                   >
                     {ROLES.map(r => (
@@ -1187,23 +1210,44 @@ export default function UserManagementPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Assigned Store Location</label>
-                  {['Admin', 'Super Admin'].includes(formRole) ? (
-                    <div className="px-3 py-2 text-xs rounded-xl bg-accent/10 border border-accent/20 text-primary font-bold flex items-center gap-1.5">
-                      <Shield className="w-3.5 h-3.5 text-accent" />
-                      <span>Global Access (All Stores)</span>
-                    </div>
-                  ) : (
-                    <select
-                      value={formLocationId}
-                      onChange={e => setFormLocationId(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-bold bg-white"
-                    >
-                      {locations.map(loc => (
-                        <option key={loc.id} value={String(loc.id)}>{loc.location_name || loc.location_code}</option>
+                <div className="space-y-1.5">
+                  <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">
+                    Assigned Locations
+                  </label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formAllLocations}
+                        onChange={(e) => {
+                          setFormAllLocations(e.target.checked);
+                          if (e.target.checked) setFormLocationIds([]);
+                        }}
+                        className="w-4 h-4 rounded border-accent-soft text-primary focus:ring-accent"
+                      />
+                      <span className="text-xs font-bold text-primary">All Locations</span>
+                    </label>
+                  </div>
+                  {!formAllLocations && (
+                    <div className="flex flex-wrap gap-3">
+                      {locations.map((loc: any) => (
+                        <label key={loc.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formLocationIds.includes(String(loc.id))}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormLocationIds(prev => [...prev, String(loc.id)]);
+                              } else {
+                                setFormLocationIds(prev => prev.filter(id => id !== String(loc.id)));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-accent-soft text-primary focus:ring-accent"
+                          />
+                          <span className="text-xs font-semibold text-primary">{loc.location_name} ({loc.location_code})</span>
+                        </label>
                       ))}
-                    </select>
+                    </div>
                   )}
                 </div>
 
@@ -1339,23 +1383,44 @@ export default function UserManagementPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Assigned Store Location</label>
-                  {['Admin', 'Super Admin'].includes(editRole) ? (
-                    <div className="px-3 py-2 text-xs rounded-xl bg-accent/10 border border-accent/20 text-primary font-bold flex items-center gap-1.5">
-                      <Shield className="w-3.5 h-3.5 text-accent" />
-                      <span>Global Access (All Stores)</span>
-                    </div>
-                  ) : (
-                    <select
-                      value={editLocationId}
-                      onChange={e => setEditLocationId(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-bold bg-white"
-                    >
-                      {locations.map(loc => (
-                        <option key={loc.id} value={String(loc.id)}>{loc.location_name || loc.location_code}</option>
+                <div className="space-y-1.5">
+                  <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">
+                    Assigned Locations
+                  </label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editAllLocations}
+                        onChange={(e) => {
+                          setEditAllLocations(e.target.checked);
+                          if (e.target.checked) setEditLocationIds([]);
+                        }}
+                        className="w-4 h-4 rounded border-accent-soft text-primary focus:ring-accent"
+                      />
+                      <span className="text-xs font-bold text-primary">All Locations</span>
+                    </label>
+                  </div>
+                  {!editAllLocations && (
+                    <div className="flex flex-wrap gap-3">
+                      {locations.map((loc: any) => (
+                        <label key={loc.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editLocationIds.includes(String(loc.id))}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditLocationIds(prev => [...prev, String(loc.id)]);
+                              } else {
+                                setEditLocationIds(prev => prev.filter(id => id !== String(loc.id)));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-accent-soft text-primary focus:ring-accent"
+                          />
+                          <span className="text-xs font-semibold text-primary">{loc.location_name} ({loc.location_code})</span>
+                        </label>
                       ))}
-                    </select>
+                    </div>
                   )}
                 </div>
 

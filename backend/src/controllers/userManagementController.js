@@ -29,35 +29,77 @@ const MODULE_REGISTRY = [
 // ── List all users with their permission counts ───────────────────
 const listUsers = async (req, res) => {
   try {
-    const [users] = await db.query(`
+    const [rawUsers] = await db.query(`
       SELECT
         u.id, u.username, u.full_name AS fullName, u.email, u.phone,
         u.department, u.designation, u.role, u.active,
         u.location_id, u.location_code, u.max_modules,
         u.last_login_at, u.created_at, u.updated_at,
         l.location_name,
+        GROUP_CONCAT(DISTINCT ul.location_id) AS assigned_location_ids,
+        GROUP_CONCAT(DISTINCT l2.location_name) AS assigned_location_names,
         (SELECT COUNT(*) FROM user_permissions up WHERE up.user_id = u.id AND up.can_view = TRUE) AS modules_assigned
       FROM users u
       LEFT JOIN locations l ON l.id = u.location_id
+      LEFT JOIN user_locations ul ON ul.user_id = u.id
+      LEFT JOIN locations l2 ON l2.id = ul.location_id
+      GROUP BY u.id
       ORDER BY u.created_at ASC
     `);
+
+    const users = rawUsers.map(u => {
+      let assignedLocations = [];
+      if (u.assigned_location_ids) {
+        const ids = u.assigned_location_ids.split(',').map(Number);
+        const names = u.assigned_location_names.split(',');
+        assignedLocations = ids.map((id, i) => ({ id, name: names[i] || null }));
+      } else {
+        // Fallback: no user_locations rows — derive from single location_id
+        if (u.location_id) {
+          assignedLocations = [{ id: u.location_id, name: u.location_name }];
+        }
+      }
+      const { assigned_location_ids, assigned_location_names, ...rest } = u;
+      return { ...rest, assigned_locations: assignedLocations };
+    });
 
     return successRes(res, { users }, 'Users retrieved');
   } catch (err) {
     // Fallback if user_permissions table doesn't exist yet
     try {
-      const [users] = await db.query(`
+      const [rawUsers] = await db.query(`
         SELECT
           u.id, u.username, u.full_name AS fullName, u.email, u.phone,
           u.department, u.designation, u.role, u.active,
           u.location_id, u.location_code,
           u.last_login_at, u.created_at,
           l.location_name,
+          GROUP_CONCAT(DISTINCT ul.location_id) AS assigned_location_ids,
+          GROUP_CONCAT(DISTINCT l2.location_name) AS assigned_location_names,
           0 AS modules_assigned
         FROM users u
         LEFT JOIN locations l ON l.id = u.location_id
+        LEFT JOIN user_locations ul ON ul.user_id = u.id
+        LEFT JOIN locations l2 ON l2.id = ul.location_id
+        GROUP BY u.id
         ORDER BY u.created_at ASC
       `);
+
+      const users = rawUsers.map(u => {
+        let assignedLocations = [];
+        if (u.assigned_location_ids) {
+          const ids = u.assigned_location_ids.split(',').map(Number);
+          const names = u.assigned_location_names.split(',');
+          assignedLocations = ids.map((id, i) => ({ id, name: names[i] || null }));
+        } else {
+          if (u.location_id) {
+            assignedLocations = [{ id: u.location_id, name: u.location_name }];
+          }
+        }
+        const { assigned_location_ids, assigned_location_names, ...rest } = u;
+        return { ...rest, assigned_locations: assignedLocations };
+      });
+
       return successRes(res, { users }, 'Users retrieved (no permissions table yet)');
     } catch (fallbackErr) {
       return errorRes(res, 'Failed to retrieve users', [fallbackErr.message], 500);
@@ -84,6 +126,28 @@ const getUser = async (req, res) => {
     if (!user) {
       return errorRes(res, 'User not found', [], 404);
     }
+
+    // Fetch assigned locations from user_locations
+    let assignedLocations = [];
+    try {
+      const [locs] = await db.query(
+        `SELECT ul.location_id AS id, l.location_name AS name
+         FROM user_locations ul
+         LEFT JOIN locations l ON l.id = ul.location_id
+         WHERE ul.user_id = ?`,
+        [id]
+      );
+      assignedLocations = locs;
+    } catch (e) {
+      // user_locations table may not exist yet — fall back to single location
+      if (user.location_id) {
+        assignedLocations = [{ id: user.location_id, name: user.location_name }];
+      }
+    }
+    if (assignedLocations.length === 0 && user.location_id) {
+      assignedLocations = [{ id: user.location_id, name: user.location_name }];
+    }
+    user.assigned_locations = assignedLocations;
 
     // Get permissions
     let permissions = [];
@@ -118,7 +182,7 @@ const getUser = async (req, res) => {
 // ── Create a new user ─────────────────────────────────────────────
 const createUser = async (req, res) => {
   try {
-    const { username, password, role, fullName, email, phone, department, designation, locationId, maxModules, permissions } = req.body;
+    const { username, password, role, fullName, email, phone, department, designation, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
 
     if (!username || !password || !role) {
       return errorRes(res, 'Username, password, and role are required', [], 400);
@@ -133,10 +197,25 @@ const createUser = async (req, res) => {
       return errorRes(res, 'Username already exists', [], 409);
     }
 
-    // Global Admin roles get NULL location
+    // Location scope: explicit allLocations=true grants global access (NULL
+    // location). Otherwise the user is pinned to a single store location.
+    const wantsAllLocations = allLocations === true;
     const isGlobalRole = role === 'Admin' || role === 'Super Admin';
-    const resolvedLocationId = isGlobalRole ? null : (locationId || 2);
+    if (isGlobalRole && !wantsAllLocations && locationId) {
+      const resolvedLocationId = locationId;
+      return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation, resolvedLocationId, locationIds, allLocations, maxModules, permissions });
+    }
+    const resolvedLocationId = wantsAllLocations ? null : (locationId || 2);
 
+    return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation, resolvedLocationId, locationIds, allLocations, maxModules, permissions });
+  } catch (err) {
+    return errorRes(res, 'Failed to create user', [err.message], 500);
+  }
+};
+
+// Shared insert used by createUser for all location-scope combinations
+async function _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation, resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
+  try {
     // Get location_code
     let locationCode = null;
     if (resolvedLocationId) {
@@ -159,6 +238,33 @@ const createUser = async (req, res) => {
 
     const newUserId = result.insertId;
 
+    // ── Multi-location: insert into user_locations ──────────────────
+    const wantsAllLocations = allLocations === true;
+    if (!wantsAllLocations && Array.isArray(locationIds) && locationIds.length > 0) {
+      for (const locId of locationIds) {
+        try {
+          await db.query(
+            `INSERT INTO user_locations (user_id, location_id) VALUES (?, ?)`,
+            [newUserId, locId]
+          );
+        } catch (e) {
+          console.warn('[UserMgmt] user_locations insert warning:', e.message);
+        }
+      }
+    } else if (!wantsAllLocations && !locationIds && resolvedLocationId) {
+      // Single locationId provided — insert that one into user_locations
+      try {
+        await db.query(
+          `INSERT INTO user_locations (user_id, location_id) VALUES (?, ?)`,
+          [newUserId, resolvedLocationId]
+        );
+      } catch (e) {
+        console.warn('[UserMgmt] user_locations insert warning:', e.message);
+      }
+    }
+    // If wantsAllLocations is true, do NOT insert into user_locations
+    // (NULL location_id on users table signals global access)
+
     // Save permissions if provided
     if (permissions && Array.isArray(permissions) && permissions.length > 0) {
       const grantedBy = req.user ? req.user.username : 'Admin';
@@ -178,19 +284,19 @@ const createUser = async (req, res) => {
       }
     }
 
-    await _audit(req, 'CREATE_USER', { username, role, locationId: resolvedLocationId });
+    await _audit(req, 'CREATE_USER', { username, role, locationId: resolvedLocationId, allLocations: wantsAllLocations, locationIds });
 
     return successRes(res, { id: newUserId, username }, 'User created successfully');
   } catch (err) {
     return errorRes(res, 'Failed to create user', [err.message], 500);
   }
-};
+}
 
 // ── Update an existing user ───────────────────────────────────────
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, email, phone, department, designation, role, locationId, maxModules, active } = req.body;
+    const { fullName, email, phone, department, designation, role, locationId, locationIds, allLocations, maxModules, active } = req.body;
 
     // Check user exists
     const [[user]] = await db.query(`SELECT id, username FROM users WHERE id = ?`, [id]);
@@ -210,9 +316,13 @@ const updateUser = async (req, res) => {
     if (active !== undefined) { updates.push('active = ?'); params.push(active ? 1 : 0); }
     if (maxModules !== undefined) { updates.push('max_modules = ?'); params.push(maxModules); }
 
-    if (locationId !== undefined) {
-      const isGlobalRole = (role || '').includes('Admin');
-      const resolvedLocationId = isGlobalRole ? null : (locationId || 2);
+    // Location scope: honour the explicit allLocations flag when provided
+    // (true → global NULL location; false → pinned to one store)
+    const scopeProvided = allLocations !== undefined || locationId !== undefined;
+    if (scopeProvided) {
+      const wantsAllLocations = allLocations === true;
+      const resolvedLocationId = wantsAllLocations ? null : (locationId || 2);
+
       updates.push('location_id = ?');
       params.push(resolvedLocationId);
 
@@ -233,6 +343,31 @@ const updateUser = async (req, res) => {
       params.push(id);
       await db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
     }
+
+    // ── Multi-location: sync user_locations ─────────────────────────
+    const wantsAllLocations = allLocations === true;
+    if (wantsAllLocations) {
+      // Global access — remove all user_locations rows
+      try {
+        await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [id]);
+      } catch (e) {
+        console.warn('[UserMgmt] user_locations delete warning:', e.message);
+      }
+    } else if (Array.isArray(locationIds) && locationIds.length > 0) {
+      // Explicit array of locations provided — replace
+      try {
+        await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [id]);
+        for (const locId of locationIds) {
+          await db.query(
+            `INSERT INTO user_locations (user_id, location_id) VALUES (?, ?)`,
+            [id, locId]
+          );
+        }
+      } catch (e) {
+        console.warn('[UserMgmt] user_locations sync warning:', e.message);
+      }
+    }
+    // If neither allLocations nor locationIds provided, leave user_locations untouched
 
     await _audit(req, 'UPDATE_USER', { userId: id, username: user.username, changes: req.body });
 
@@ -260,6 +395,9 @@ const deleteUser = async (req, res) => {
 
     // Delete permissions first
     try { await db.query(`DELETE FROM user_permissions WHERE user_id = ?`, [id]); } catch (e) {}
+
+    // Delete user_locations
+    try { await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [id]); } catch (e) {}
 
     await db.query(`DELETE FROM users WHERE id = ?`, [id]);
 

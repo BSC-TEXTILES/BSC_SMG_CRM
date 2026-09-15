@@ -473,7 +473,6 @@ export default function DepartmentHiringPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar 
           title="Department Hiring Status" 
-          breadcrumbs={[{ label: 'Talent Management' }, { label: 'Department Hiring Status' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />

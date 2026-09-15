@@ -266,8 +266,8 @@ export default function SettingsPage() {
 
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
-          title="System Settings &amp; Governance"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Settings' }]}
+          title="System Settings & Governance"
+          breadcrumbs={[{ label: tabs.find(t => t.key === activeTab)?.label || 'Settings' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />

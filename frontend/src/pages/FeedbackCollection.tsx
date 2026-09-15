@@ -189,7 +189,6 @@ export default function FeedbackCollection() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
           title="Customer Feedback Collection & Analytics"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Feedback Collection' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />

@@ -98,7 +98,6 @@ export default function EmployeeExitPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
           title="Exit / FnF"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Exit / FnF' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
           rightElement={

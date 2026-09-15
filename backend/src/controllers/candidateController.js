@@ -180,7 +180,7 @@ class CandidateController {
   async getOpenings(req, res) {
     try {
       const db = require('../config/db');
-      const { clause: locClause, params: locParams } = getLocationFilter(req, 'c');
+      const { clause: locClause, params: locParams } = await getLocationFilter(req, 'c');
 
       const [reqRows] = await db.query(`SELECT designation, required_count FROM manpower_requisitions`);
       const reqMap = {};
@@ -253,7 +253,7 @@ class CandidateController {
   async getEmployees(req, res) {
     try {
       const db = require('../config/db');
-      const { clause: locClause, params: locParams } = getLocationFilter(req, 'c');
+      const { clause: locClause, params: locParams } = await getLocationFilter(req, 'c');
       
       const [rows] = await db.query(
         `SELECT c.*, 

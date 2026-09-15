@@ -916,6 +916,15 @@ export default function WeddingCRM() {
     }
   };
 
+  // Breadcrumb sub-crumb: show customer name only when their profile is open.
+  // Root + page crumbs are derived from the current route by the central breadcrumb system.
+  const breadcrumbTrail = useMemo(() => {
+    if (showProfileModal && selectedCustomer) {
+      return [{ label: selectedCustomer.customer_name || 'Customer Details' }];
+    }
+    return null;
+  }, [showProfileModal, selectedCustomer]);
+
   return (
     <div className="h-screen w-full bg-background text-gray-800 flex overflow-hidden relative selection:bg-accent/30">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -923,10 +932,7 @@ export default function WeddingCRM() {
       <div className={`flex-1 flex flex-col h-screen min-w-0 overflow-hidden transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Topbar
           title="Wedding Customer Follow-up CRM"
-          breadcrumbs={[
-            { label: 'Store Operations', href: '/dashboard' },
-            { label: 'Wedding Follow-up CRM' }
-          ]}
+          breadcrumbs={breadcrumbTrail}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
           rightElement={

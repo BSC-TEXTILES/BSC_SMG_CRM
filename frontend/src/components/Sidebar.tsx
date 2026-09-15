@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { API, Auth, UserSession } from '../services/api';
-import { 
-  BarChart3, 
-  Users, 
-  Target, 
-  FileText, 
-  PartyPopper, 
-  LogOut, 
-  ClipboardList, 
-  Settings, 
+import {
+  BarChart3,
+  Users,
+  Target,
+  FileText,
+  PartyPopper,
+  LogOut,
+  ClipboardList,
+  Settings,
   DoorOpen,
   UserCheck,
   Briefcase,
@@ -18,7 +18,8 @@ import {
   Megaphone,
   CheckSquare,
   Menu,
-  Shield
+  Shield,
+  ShieldAlert
 } from 'lucide-react';
 import { 
   getSidebarCollapsed, 
@@ -51,8 +52,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   };
 
   const roleNavMap: Record<string, string[]> = {
-    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
-    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
+    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
+    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
     'HR':          ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
     'Recruiter':   ['dashboard', 'wedding_crm', 'candidates', 'interview', 'form', 'broadcast'],
     'Interviewer': ['interview', 'candidates'],
@@ -102,7 +103,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'greeter', href: '/greeter', label: 'Greeter Kiosk', icon: UserCheck, section: 'Public Portals', target: '_blank' },
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
     { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
-    { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' }
+    { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' },
+    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' }
   ];
 
   useEffect(() => {

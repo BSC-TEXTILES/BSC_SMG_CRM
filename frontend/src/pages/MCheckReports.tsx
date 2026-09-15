@@ -108,7 +108,7 @@ export default function MCheckReports() {
     <div className="min-h-screen bg-background flex">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-        <Topbar session={session} onMenuClick={() => setSidebarOpen(true)} title="MCheck Reports" breadcrumbs={[{ label: 'Daily Operations' }, { label: 'MCheck Reports' }]} />
+        <Topbar title="MCheck Reports" session={session} onMenuClick={() => setSidebarOpen(true)} />
         {toast && <Toast msg={toast.msg} type={toast.type} />}
 
         <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6">

@@ -241,7 +241,6 @@ export default function InterviewPanelPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
           title="Interview Evaluation Desk"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Interview Panel' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />

@@ -40,7 +40,7 @@ class DevToolsDetectorService {
   private isOpen: boolean = false;
   private confidence: 'High' | 'Moderate' | 'None' = 'None';
   private source: string = 'None';
-  private lastChecked: string = new Date().toLocaleTimeString();
+  private lastChecked: string = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   private lastDetection: DevToolsDetectionState['lastDetection'] = null;
 
   private listeners: Set<Listener> = new Set();
@@ -49,6 +49,7 @@ class DevToolsDetectorService {
   private consecutiveCleanChecks: number = 0;
   private lastReportedState: 'OPEN' | 'CLOSED' | null = null;
   private lastReportTime: number = 0;
+  private checking: boolean = false; // Mutex to prevent concurrent check() calls
 
   // Track library detector state
   private libraryDetected: boolean = false;
@@ -77,7 +78,7 @@ class DevToolsDetectorService {
   private startLiveClock() {
     if (typeof window === 'undefined') return;
     this.clockTimer = window.setInterval(() => {
-      this.lastChecked = new Date().toLocaleTimeString();
+      this.lastChecked = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
       // Notify listeners to keep live clock ticking on dashboard
       this.notify();
     }, 1000);
@@ -168,116 +169,120 @@ class DevToolsDetectorService {
    * Completely ignores background operating system applications (VS Code, CMD, PowerShell, etc.).
    */
   public check() {
-    this.lastChecked = new Date().toLocaleTimeString();
+    // Mutex: prevent concurrent check() calls from creating duplicate events
+    if (this.checking) return;
+    this.checking = true;
 
-    if (!this.armed) {
-      this.notify();
-      return;
-    }
+    try {
+      this.lastChecked = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
-    let detected = false;
-    let detectedSource = 'None';
-    let detectedConfidence: 'High' | 'Moderate' = 'High';
-
-    // ── Signal 1: Standard Viewport Differential (Docked Panels) ──
-    // Compares window.outerWidth/Height against window.innerWidth/Height.
-    // When docked on side: widthDiff > 160, heightDiff < 160.
-    // When docked on bottom: heightDiff > 160, widthDiff < 160.
-    // When zoomed or normal resize: both differ, so !(height && width) rejects false positives!
-    if (typeof window !== 'undefined') {
-      const threshold = 160;
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      const widthThreshold = widthDiff > threshold;
-      const heightThreshold = heightDiff > threshold;
-
-      const isDocked = !(heightThreshold && widthThreshold) && (widthThreshold || heightThreshold);
-
-      if (isDocked) {
-        detected = true;
-        detectedSource = widthThreshold
-          ? 'Docked Inspector (Side Panel)'
-          : 'Docked Inspector (Bottom Panel)';
-        detectedConfidence = 'High';
+      if (!this.armed) {
+        this.notify();
+        return;
       }
-    }
 
-    // ── Signal 2: devtools-detector Multi-Heuristic Engine (Undocked & Debuggers) ──
-    if (!detected && this.libraryDetected) {
-      detected = true;
-      detectedSource = this.libraryCheckerName
-        ? `Browser DevTools (${this.libraryCheckerName})`
-        : 'Browser Developer Inspection Tool';
-      detectedConfidence = 'High';
-    }
+      let detected = false;
+      let detectedSource = 'None';
+      let detectedConfidence: 'High' | 'Moderate' = 'High';
 
-    // ── Signal 3: In-Page Mobile Inspection Tools (Eruda, vConsole) ──
-    if (!detected && typeof window !== 'undefined') {
-      const w = window as any;
-      if (w.eruda || w.__eruda || w.vConsole || w.__vconsole) {
-        detected = true;
-        detectedSource = 'In-Page Mobile Inspector';
-        detectedConfidence = 'High';
-      } else if (typeof document !== 'undefined') {
-        if (document.getElementById('eruda') || document.getElementById('__vconsole')) {
+      // ── Signal 1: Standard Viewport Differential (Docked Panels) ──
+      if (typeof window !== 'undefined') {
+        const threshold = 160;
+        const widthDiff = window.outerWidth - window.innerWidth;
+        const heightDiff = window.outerHeight - window.innerHeight;
+        const widthThreshold = widthDiff > threshold;
+        const heightThreshold = heightDiff > threshold;
+
+        const isDocked = !(heightThreshold && widthThreshold) && (widthThreshold || heightThreshold);
+
+        if (isDocked) {
           detected = true;
-          detectedSource = 'In-Page Mobile Inspector';
+          detectedSource = widthThreshold
+            ? 'Docked Browser Inspector (Side Panel)'
+            : 'Docked Browser Inspector (Bottom Panel)';
           detectedConfidence = 'High';
         }
       }
-    }
 
-    // ── State Transition Logic ──
-    if (detected) {
-      this.consecutiveCleanChecks = 0;
-      const wasClosed = !this.isOpen;
+      // ── Signal 2: devtools-detector Multi-Heuristic Engine (Undocked & Debuggers) ──
+      if (!detected && this.libraryDetected) {
+        detected = true;
+        detectedSource = this.libraryCheckerName
+          ? `Browser DevTools (${this.libraryCheckerName})`
+          : 'Browser Developer Inspection Tool';
+        detectedConfidence = 'High';
+      }
 
-      this.isOpen = true;
-      this.confidence = detectedConfidence;
-      this.source = detectedSource;
-      this.lastDetection = {
-        time: this.lastChecked,
-        source: detectedSource,
-        confidence: detectedConfidence,
-        page: typeof window !== 'undefined' ? window.location.pathname : '/'
-      };
-
-      this.notify();
-
-      // Only report transition to server once (cooldown enforced)
-      if (wasClosed || this.lastReportedState !== 'OPEN') {
-        const now = Date.now();
-        if (now - this.lastReportTime > 3000) {
-          this.lastReportTime = now;
-          this.lastReportedState = 'OPEN';
-          this.reportToServer('DEVTOOLS_DETECTED', {
-            source: detectedSource,
-            confidence: detectedConfidence,
-            page: typeof window !== 'undefined' ? window.location.pathname : '/'
-          });
+      // ── Signal 3: In-Page Mobile Inspection Tools (Eruda, vConsole) ──
+      if (!detected && typeof window !== 'undefined') {
+        const w = window as any;
+        if (w.eruda || w.__eruda || w.vConsole || w.__vconsole) {
+          detected = true;
+          detectedSource = 'In-Page Mobile Inspector (Browser-based)';
+          detectedConfidence = 'High';
+        } else if (typeof document !== 'undefined') {
+          if (document.getElementById('eruda') || document.getElementById('__vconsole')) {
+            detected = true;
+            detectedSource = 'In-Page Mobile Inspector (Browser-based)';
+            detectedConfidence = 'High';
+          }
         }
       }
-    } else {
-      this.consecutiveCleanChecks++;
-      // Require 2 consecutive clean checks (1 second) to avoid transient flicker
-      if (this.consecutiveCleanChecks >= 2) {
-        const wasOpen = this.isOpen;
-        this.isOpen = false;
-        this.confidence = 'None';
-        this.source = 'None';
+
+      // ── State Transition Logic ──
+      if (detected) {
+        this.consecutiveCleanChecks = 0;
+        const wasClosed = !this.isOpen;
+
+        this.isOpen = true;
+        this.confidence = detectedConfidence;
+        this.source = detectedSource;
+        this.lastDetection = {
+          time: this.lastChecked,
+          source: detectedSource,
+          confidence: detectedConfidence,
+          page: typeof window !== 'undefined' ? window.location.pathname : '/'
+        };
 
         this.notify();
 
-        if (wasOpen && this.lastReportedState !== 'CLOSED') {
-          this.lastReportedState = 'CLOSED';
-          this.reportToServer('DEVTOOLS_CLOSED', {
-            source: 'Developer Tools Closed',
-            page: typeof window !== 'undefined' ? window.location.pathname : '/'
-          });
+        // Only report transition to server once (cooldown enforced)
+        if (wasClosed || this.lastReportedState !== 'OPEN') {
+          const now = Date.now();
+          if (now - this.lastReportTime > 3000) {
+            this.lastReportTime = now;
+            this.lastReportedState = 'OPEN';
+            this.reportToServer('DEVTOOLS_DETECTED', {
+              source: detectedSource,
+              confidence: detectedConfidence,
+              page: typeof window !== 'undefined' ? window.location.pathname : '/'
+            });
+          }
         }
       } else {
-        this.notify();
+        this.consecutiveCleanChecks++;
+        // Require 2 consecutive clean checks (1 second) to avoid transient flicker
+        if (this.consecutiveCleanChecks >= 2) {
+          const wasOpen = this.isOpen;
+          this.isOpen = false;
+          this.confidence = 'None';
+          this.source = 'None';
+
+          this.notify();
+
+          if (wasOpen && this.lastReportedState !== 'CLOSED') {
+            this.lastReportedState = 'CLOSED';
+            this.reportToServer('DEVTOOLS_CLOSED', {
+              source: 'Browser Developer Tools Closed',
+              page: typeof window !== 'undefined' ? window.location.pathname : '/'
+            });
+          }
+        } else {
+          this.notify();
+        }
       }
+    } finally {
+      this.checking = false;
     }
   }
 

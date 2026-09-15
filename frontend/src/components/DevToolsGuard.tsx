@@ -95,10 +95,10 @@ export default function DevToolsGuard() {
   // If shield is off, or DevTools are closed, or admin has bypassed protection, do not block screen
   const session = Auth.get();
   const isAdmin = session?.role === 'Admin' || session?.role === 'Super Admin';
-  // Allow Admins to view the Admin Dashboard (/dashboard) and Settings (/settings) without blocking screen
+  // Allow Admins to view the Admin Dashboard (/dashboard), Settings (/settings), and System Administrator (/system-admin) without blocking screen
   // so they can monitor telemetry and configure DevTools detection live
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isAdminMonitoringPage = pathname === '/dashboard' || pathname === '/settings';
+  const isAdminMonitoringPage = pathname === '/dashboard' || pathname === '/settings' || pathname === '/system-admin';
   const shouldBlock = armed && isOpen && !(isAdmin && (bypass || isAdminMonitoringPage));
 
   if (!shouldBlock) return null;

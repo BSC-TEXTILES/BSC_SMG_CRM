@@ -132,7 +132,7 @@ export default function MCheckHistory() {
     <div className="min-h-screen bg-background flex">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-        <Topbar session={session} onMenuClick={() => setSidebarOpen(true)} title="MCheck History" breadcrumbs={[{ label: 'Daily Operations' }, { label: 'MCheck History' }]} />
+        <Topbar title="MCheck History" session={session} onMenuClick={() => setSidebarOpen(true)} />
         {toast && <Toast msg={toast.msg} type={toast.type} />}
 
         <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 space-y-6">

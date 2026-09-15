@@ -423,7 +423,6 @@ export default function EmployeesPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar
           title="Employee Master Directory"
-          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Employees' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />

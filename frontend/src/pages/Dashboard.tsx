@@ -3,19 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ToastContainer from '../components/Toast';
-import { API, Auth, UserSession, apiFetch } from '../services/api';
+import { API, Auth, UserSession } from '../services/api';
 import MetricCard from '../components/ui/MetricCard';
-import StatusBadge from '../components/ui/StatusBadge';
 import PageHeader from '../components/ui/PageHeader';
-import EmptyState from '../components/ui/EmptyState';
-import { 
-  Users, 
-  UserCheck, 
-  CheckCircle, 
-  UserPlus, 
-  Clock, 
-  Calendar, 
-  AlertTriangle, 
+import {
+  Users,
+  UserCheck,
+  CheckCircle,
+  UserPlus,
+  Clock,
+  Calendar,
+  AlertTriangle,
   ArrowRight,
   Search,
   Filter,
@@ -38,8 +36,6 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import EmployeeProfileModal from '../components/ui/EmployeeProfileModal';
-import DevToolsMonitoringPanel from '../components/DevToolsMonitoringPanel';
-import { NotificationService } from '../services/notificationService';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -68,15 +64,6 @@ export default function DashboardPage() {
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [authActivity, setAuthActivity] = useState<{
-    summary: {
-      loginsToday: number; logins7d: number; logoutsToday: number; logouts7d: number;
-      failedToday: number; activeUsers7d: number;
-      lastLogin: { username: string; at: string } | null;
-      lastLogout: { username: string; at: string } | null;
-    };
-    recent: Array<{ id: number; username: string; action: string; ipAddress: string | null; at: string }>;
-  } | null>(null);
   const pageSize = 6;
 
   const loadData = useCallback(async () => {
@@ -134,30 +121,7 @@ export default function DashboardPage() {
     }
     setSession(sess);
     loadData();
-
-    // Poll every 5 seconds for real-time dashboard stats sync
-    const interval = setInterval(() => {
-      loadData();
-    }, 5000);
-    return () => clearInterval(interval);
   }, [loadData, navigate]);
-
-  // Login / logout activity (admins only)
-  useEffect(() => {
-    const role = Auth.get()?.role;
-    if (role !== 'Admin' && role !== 'Super Admin') return;
-    let disposed = false;
-    const load = async () => {
-      try {
-        const res = await apiFetch('/security/login-activity').catch(() => null);
-        if (!disposed && res && res.summary) setAuthActivity(res);
-      } catch { /* panel simply stays hidden */ }
-    };
-    load();
-    const t = setInterval(load, 20000);
-
-    return () => { disposed = true; clearInterval(t); };
-  }, []);
 
   // Gender Statistics for Active Employees
   const femaleEmployees = useMemo(() => {
@@ -223,7 +187,6 @@ export default function DashboardPage() {
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar 
           title={isGreeter ? "Entrance Greeter & Visitor Desk" : "Executive Operations & Workforce Hub"} 
-          breadcrumbs={[{ label: isGreeter ? 'Greeter Operations' : 'Store Operations Overview' }]}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />
@@ -405,99 +368,6 @@ export default function DashboardPage() {
                   onClick={() => navigate('/feedback-qr')}
                 />
               </div>
-
-              {/* ── Developer Tools Detection & Live Monitoring (Admin Dashboard Only) ────────── */}
-              {(session?.role === 'Admin' || session?.role === 'Super Admin') && (
-                <DevToolsMonitoringPanel session={session} />
-              )}
-
-              {/* ── Authentication Activity (Admin) ─────────────────────── */}
-              {authActivity && (
-                <div className="card-glass p-5">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                    <div>
-                      <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-accent" />
-                        <span>Authentication Activity</span>
-                      </h3>
-                      <p className="text-[11px] text-primary/70 font-medium mt-0.5">
-                        Live sign-in / sign-out trail across all locations — every event timestamped.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] font-bold">
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {authActivity.summary.loginsToday} logins today
-                      </span>
-                      <span className="px-2.5 py-1 rounded-full bg-[#EDF4FB] text-primary border border-accent-soft">
-                        {authActivity.summary.logoutsToday} logouts today
-                      </span>
-                      {authActivity.summary.failedToday > 0 && (
-                        <span className="px-2.5 py-1 rounded-full bg-red-50 text-[#C43D4B] border border-red-200">
-                          {authActivity.summary.failedToday} failed
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-ins (7 days)</div>
-                      <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logins7d}</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-outs (7 days)</div>
-                      <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logouts7d}</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Active Users (7 days)</div>
-                      <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.activeUsers7d}</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Last Sign-in</div>
-                      <div className="text-xs font-black text-primary mt-1 truncate">
-                        {authActivity.summary.lastLogin
-                          ? authActivity.summary.lastLogin.username + ' · ' + new Date(authActivity.summary.lastLogin.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
-                          : 'No sign-ins yet'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-accent-soft overflow-hidden">
-                    <table className="w-full text-xs">
-                      <thead className="bg-primary text-white">
-                        <tr>
-                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">Timestamp</th>
-                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">User</th>
-                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px]">Event</th>
-                          <th className="text-left px-3 py-2 font-black uppercase tracking-wider text-[10px] hidden md:table-cell">IP</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {authActivity.recent.length === 0 ? (
-                          <tr><td colSpan={4} className="px-3 py-6 text-center text-primary/70 font-semibold">No authentication events recorded yet.</td></tr>
-                        ) : authActivity.recent.map(ev => (
-                          <tr key={ev.id} className="border-t border-accent-soft bg-white">
-                            <td className="px-3 py-2 font-bold text-primary whitespace-nowrap">
-                              {ev.at ? new Date(ev.at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
-                            </td>
-                            <td className="px-3 py-2 font-bold text-primary">{ev.username || 'Unknown'}</td>
-                            <td className="px-3 py-2">
-                              <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
-                                ev.action === 'LOGIN_SUCCESS' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : ev.action === 'LOGOUT' ? 'bg-[#EDF4FB] text-primary border border-accent-soft'
-                                : 'bg-red-50 text-[#C43D4B] border border-red-200'
-                              }`}>
-                                {ev.action === 'LOGIN_SUCCESS' ? 'Signed In' : ev.action === 'LOGOUT' ? 'Signed Out' : 'Failed Attempt'}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 font-mono text-primary/70 hidden md:table-cell">{ev.ipAddress || '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </>
           )}
 

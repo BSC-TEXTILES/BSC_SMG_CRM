@@ -9,6 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babel/generator": "^8.0.5",
+    "@babel/helpers": "^8.0.5",
+    "@babel/template": "^8.0.0",
+    "@babel/traverse": "^8.0.5",
+    "@babel/types": "^8.0.5",
     "@hookform/resolvers": "^3.9.0",
     "@tanstack/react-table": "^8.20.1",
     "@types/node": "^20.16.1",
