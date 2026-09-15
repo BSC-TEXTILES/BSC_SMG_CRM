@@ -23,7 +23,7 @@ const accountSecurityStore = new Map();
 const ipSecurityStore = new Map();
 
 // Periodic cleanup of stale entries (older than 1 hour)
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, state] of accountSecurityStore.entries()) {
     if (now > state.lockedUntil && (now - state.lastAttemptAt > 60 * 60 * 1000)) {
@@ -36,6 +36,7 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000);
+if (cleanupTimer && cleanupTimer.unref) cleanupTimer.unref();
 
 class LoginSecurity {
   _getAccountKey(username) {

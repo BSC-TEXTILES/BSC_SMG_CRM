@@ -60,6 +60,8 @@ class NotificationEngine {
   };
   private socket: Socket | null = null;
   private initialized = false;
+  // Live subscribers for the Developer Tools shield toggle (DevToolsGuard)
+  private shieldListeners = new Set<(enabled: boolean) => void>();
 
   constructor() {
     this.loadSettings();
@@ -130,6 +132,17 @@ class NotificationEngine {
     this.socket.on('DELETE_BROADCAST', ({ id }: { id: string }) => {
       this.notifications = this.notifications.filter(n => n.id !== id.toString());
       this.notifyListeners();
+    });
+
+    // Developer Tools shield live toggle (Admin → System Settings → Security).
+    // The server broadcasts a single boolean when an Admin flips the switch so
+    // every device re-arms the guard instantly. No user or security data is
+    // carried in this event.
+    this.socket.on('security:shield_changed', (payload: { enabled?: boolean } | undefined) => {
+      const enabled = !!(payload && payload.enabled);
+      this.shieldListeners.forEach((fn) => {
+        try { fn(enabled); } catch { /* a broken listener must not kill the socket */ }
+      });
     });
 
     this.initialized = true;
@@ -351,6 +364,19 @@ class NotificationEngine {
 
   public getNotifications(): SystemNotification[] {
     return [...this.notifications];
+  }
+
+  /**
+   * Subscribe to live Developer Tools shield toggles pushed by the server
+   * (`security:shield_changed`). Used by DevToolsGuard so an Admin toggle in
+   * System Settings takes effect on every device immediately. Returns an
+   * unsubscribe function.
+   */
+  public onShieldChanged(listener: (enabled: boolean) => void): () => void {
+    this.shieldListeners.add(listener);
+    return () => {
+      this.shieldListeners.delete(listener);
+    };
   }
 
   public subscribe(listener: (notifications: SystemNotification[]) => void) {

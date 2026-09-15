@@ -172,6 +172,17 @@ export const API = {
     return apiFetch('/auth/captcha');
   },
 
+  // Developer Tools Detection Security Shield
+  async getShieldStatus() {
+    return apiFetch('/security/shield-status');
+  },
+  async toggleShield(enabled: boolean) {
+    return apiFetch('/security/shield-toggle', {
+      method: 'POST',
+      body: JSON.stringify({ enabled })
+    });
+  },
+
   // Candidates
   async uploadDocuments(formData: FormData, candName?: string, appNo?: string) {
     const session = Auth.get();

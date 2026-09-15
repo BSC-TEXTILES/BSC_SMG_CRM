@@ -59,3 +59,8 @@ test('LoginSecurity: successful authentication resets failed counter', () => {
   const nextRes = loginSecurity.recordFailure(user, ip, 'Wrong password');
   assert.equal(nextRes.attemptsLeft, 4);
 });
+
+test.after(async () => {
+  const pool = require('../../backend/src/config/db');
+  await pool.end().catch(() => {});
+});

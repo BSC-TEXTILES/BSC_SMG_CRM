@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ShieldAlert, XOctagon } from 'lucide-react';
 import { Auth } from '../services/api';
+import { NotificationService } from '../services/notificationService';
 
 /**
  * DevToolsGuard
@@ -14,7 +15,8 @@ import { Auth } from '../services/api';
  *   1. Viewport delta  — outer window vs rendered content size differs by
  *      more than the threshold when a docked panel is open (classic method).
  *   2. Debugger pause  — a `debugger` statement costs >100 ms only while a
- *      devtools debugger is attached (catches undocked windows).
+ *      devtools debugger is attached (catches undocked windows AND attached
+ *      debuggers such as VS Code / remote debugging sessions).
  *   3. Element id getter — devtools serializes logged DOM nodes lazily,
  *      which trips a getter on `id` the moment the panel renders it (works
  *      on mobile browsers with remote inspection too).
@@ -24,13 +26,25 @@ import { Auth } from '../services/api';
  * devices never trigger false positives.
  *
  * Every confirmed detection is reported to the server for the audit trail
- * (POST /api/security/log-event — visible to admins under System Settings).
+ * (POST /api/security/log-event — visible to admins under System Settings)
+ * with timestamp, user, page context and a coarse device class.
  *
  * The shield is ADMIN-CONTROLLED and OFF by default: it only arms when an
- * Admin turns it on under System Settings → Security. The flag is fetched
- * from the server on mount and refreshed periodically, so toggling it takes
- * effect on every signed-in device within a minute. localhost/127.0.0.1 is
- * always bypassed so developers can work with devtools during development.
+ * Admin turns it on under System Settings → Security. The flag lives in the
+ * server database — the single source of truth. It is fetched on mount,
+ * pushed instantly over Socket.IO when an Admin toggles it, and re-checked
+ * every 30 s as a fallback, so a toggle reaches every signed-in device
+ * immediately. There is deliberately NO client-side bypass and no shield
+ * control state in localStorage (only a harmless mirror of the public
+ * boolean for offline boots — the server response always overrides it).
+ * localhost/127.0.0.1 is always bypassed so developers can work normally.
+ *
+ * Honest limits: a web page can only observe what happens inside the
+ * browser. Docked/undocked DevTools, attached debuggers (VS Code JS
+ * debugging, remote inspection sessions) and mobile remote inspection are
+ * detectable; standalone terminals or editors that are NOT attached to the
+ * browser (CMD, an idle VS Code window) are not reliably detectable from a
+ * production website. Server-side security never depends on this module.
  */
 
 const SIZE_THRESHOLD = 220;      // px — headroom above worst-case browser chrome
@@ -44,6 +58,21 @@ const isLocalDev = () =>
     window.location.hostname === '127.0.0.1' ||
     window.location.hostname === '[::1]');
 
+/** Coarse, non-sensitive device hint for the audit trail (mobile support). */
+function deviceClass(): 'mobile' | 'tablet' | 'desktop' {
+  try {
+    const ua = navigator.userAgent || '';
+    const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const w = window.innerWidth || 0;
+    if (coarse && w > 0 && w < 480) return 'mobile';
+    if (coarse && w >= 480 && w <= 1024) return 'tablet';
+    if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return w <= 1024 ? 'mobile' : 'tablet';
+    return 'desktop';
+  } catch {
+    return 'desktop';
+  }
+}
+
 function reportEvent(event: 'DEVTOOLS_DETECTED' | 'DEVTOOLS_CLOSED') {
   try {
     const session = Auth.get();
@@ -55,7 +84,13 @@ function reportEvent(event: 'DEVTOOLS_DETECTED' | 'DEVTOOLS_CLOSED') {
         Authorization: `Bearer ${session.token}`,
         'x-auth-token': session.token || ''
       },
-      body: JSON.stringify({ event, details: { href: window.location.pathname } })
+      body: JSON.stringify({
+        event,
+        details: {
+          page: window.location.pathname, // page/context of the detection
+          device: deviceClass()           // coarse phone / tablet / desktop hint
+        }
+      })
     }).catch(() => {});
   } catch {
     /* logging must never break the app */
@@ -64,9 +99,14 @@ function reportEvent(event: 'DEVTOOLS_DETECTED' | 'DEVTOOLS_CLOSED') {
 
 const SHIELD_FLAG_KEY = 'bsc_shield_enabled';
 
+// Boot-time mirror of the PUBLIC shield boolean (the exact same value any
+// visitor can read from /api/security/shield-status). It is not a secret and
+// not a control: the server response always overrides it a moment later, and
+// it is only used so the shield can arm instantly / survive offline boots.
+// There is deliberately NO client-side bypass — the Admin toggle in System
+// Settings is the single source of truth.
 function readCachedFlag(): boolean {
   try {
-    if (localStorage.getItem('bsc_shield_bypass') === 'true') return false;
     return localStorage.getItem(SHIELD_FLAG_KEY) === 'true';
   } catch {
     return false;
@@ -81,8 +121,8 @@ export default function DevToolsGuard() {
   const detectedRef = useRef(false);
 
   // The shield only runs when an Admin has enabled it server-side. The flag
-  // is cached for instant boot and re-checked every 60s so a toggle reaches
-  // all devices quickly.
+  // is fetched on mount, pushed live over Socket.IO on toggle, and re-checked
+  // every 30s as a fallback so a toggle reaches all devices quickly.
   useEffect(() => {
     if (isLocalDev()) return;
     let disposed = false;
@@ -95,24 +135,28 @@ export default function DevToolsGuard() {
           localStorage.setItem(SHIELD_FLAG_KEY, enabled ? 'true' : 'false');
         } catch { /* private mode */ }
         if (!disposed) {
-          const bypassed = localStorage.getItem('bsc_shield_bypass') === 'true';
-          setArmed(bypassed ? false : enabled);
+          setArmed(enabled);
         }
       } catch {
         /* offline: keep last known flag */
       }
     };
     load();
-    const timer = window.setInterval(load, 60_000);
-    
-    const onToggle = () => load();
-    window.addEventListener('dev_tools_bypass_changed', onToggle);
-
+    // Fallback re-check — the toggle is also pushed live via Socket.IO.
+    const timer = window.setInterval(load, 30_000);
     return () => {
       disposed = true;
       window.clearInterval(timer);
-      window.removeEventListener('dev_tools_bypass_changed', onToggle);
     };
+  }, []);
+
+  // Live push: when an Admin flips the toggle in System Settings (desktop or
+  // phone), the server broadcasts the new state and every device re-arms or
+  // disarms immediately. localhost/127.0.0.1 stays exempt for development.
+  useEffect(() => {
+    return NotificationService.onShieldChanged((enabled) => {
+      if (!isLocalDev()) setArmed(enabled);
+    });
   }, []);
 
   // If the admin disables the shield while a device is locked, release it.

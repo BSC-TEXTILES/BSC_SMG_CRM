@@ -200,9 +200,13 @@ const weddingRoutes = require('./weddingRoutes');
 router.use('/wedding-crm', weddingRoutes);
 
 // ── Security Center (DevTools shield, GPS trail, login activity) ────────────
-// The DevTools shield is OFF by default. An Admin enables it from
-// System Settings → Security; the flag is stored in the `Setting` table and
-// read by every client on load, so the toggle applies to all devices.
+// Developer Tools Detection is OFF by default. An Admin enables it from
+// System Settings → Security (Admin-only; the UI works on desktop & mobile).
+// The flag is stored persistently in the `Setting` table — the single source
+// of truth. Every connected device is notified instantly over Socket.IO and
+// also re-polls periodically as a fallback, so a toggle applies to all
+// devices immediately. There is no client-side bypass: the server flag always
+// wins and non-admin API callers are rejected (401/403).
 const SECURITY_EVENT_TYPES = new Set([
   'DEVTOOLS_DETECTED',
   'DEVTOOLS_CLOSED',
@@ -239,6 +243,19 @@ router.post('/security/shield-toggle', authenticate, authorize('Admin', 'Super A
       `INSERT INTO audit_logs (username, action, module, details, ip_address) VALUES (?, 'SHIELD_TOGGLED', 'Security', ?, ?)`,
       [req.user.username || 'admin', JSON.stringify({ enabled }), req.ip || null]
     );
+    // Push the change to every connected device immediately so the Admin's
+    // toggle takes effect without waiting for the periodic re-check.
+    // Socket.IO is optional infrastructure — a push failure must never fail
+    // the request (clients also re-poll as a fallback). The payload is a
+    // single boolean; no user or security data is broadcast.
+    try {
+      const io = req.app && req.app.get('io');
+      if (io && typeof io.emit === 'function') {
+        io.emit('security:shield_changed', { enabled });
+      }
+    } catch (pushErr) {
+      /* best-effort push only */
+    }
     return res.json({ success: true, enabled });
   } catch (err) {
     console.error('[Security shield-toggle Error]', err.message);
@@ -246,12 +263,27 @@ router.post('/security/shield-toggle', authenticate, authorize('Admin', 'Super A
   }
 });
 
+// Flood control for client-reported security events: at most one audit write
+// per user+event every few seconds. Honest devices report at most once per
+// minute (client-side cooldown), so only abusive callers are throttled.
+// Throttled calls still succeed — security logging must never break the app.
+const SECURITY_EVENT_MIN_INTERVAL_MS = 5_000;
+const lastSecurityEventAt = new Map();
+
 router.post('/security/log-event', authenticate, async (req, res) => {
   try {
     const { event, details } = req.body || {};
     if (!event || !SECURITY_EVENT_TYPES.has(event)) {
       return errorRes(res, 'Unknown security event', [], 400);
     }
+    const eventIdentity = (req.user && (req.user.username || req.user.fullName)) || req.ip || 'anonymous';
+    const eventKey = `${eventIdentity}:${event}`;
+    const now = Date.now();
+    if (now - (lastSecurityEventAt.get(eventKey) || 0) < SECURITY_EVENT_MIN_INTERVAL_MS) {
+      return res.json({ success: true }); // throttled — acknowledged without writing
+    }
+    if (lastSecurityEventAt.size > 5000) lastSecurityEventAt.clear(); // bounded memory
+    lastSecurityEventAt.set(eventKey, now);
     const ua = String(req.headers['user-agent'] || '').substring(0, 250);
     await pool.query(
       `INSERT INTO audit_logs (username, action, module, details, ip_address) VALUES (?, ?, 'Security', ?, ?)`,
