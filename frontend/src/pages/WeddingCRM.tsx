@@ -917,10 +917,10 @@ export default function WeddingCRM() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-gray-800 flex relative selection:bg-accent/30">
+    <div className="h-screen w-full bg-background text-gray-800 flex overflow-hidden relative selection:bg-accent/30">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+      <div className={`flex-1 flex flex-col h-screen min-w-0 overflow-hidden transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Topbar
           title="Wedding Customer Follow-up CRM"
           breadcrumbs={[
@@ -930,17 +930,17 @@ export default function WeddingCRM() {
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
           rightElement={
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Multi-location selector for Global Admin */}
               {session?.isGlobalAdmin ? (
-                <div className="flex items-center bg-primary/10 rounded-xl p-1 border border-accent/40">
-                  <span className="hidden md:inline text-[11px] font-bold text-primary px-1.5 uppercase tracking-wide">Location:</span>
+                <div className="flex items-center bg-primary/10 rounded-xl p-0.5 sm:p-1 border border-accent/40">
+                  <span className="hidden lg:inline text-[11px] font-bold text-primary px-1.5 uppercase tracking-wide">Location:</span>
                   <select
                     value={selectedLocation}
                     onChange={e => setSelectedLocation(e.target.value ? parseInt(e.target.value, 10) : '')}
-                    className="bg-white text-xs font-bold text-primary py-1 px-2 rounded-lg border-0 focus:ring-2 focus:ring-accent shadow-xs cursor-pointer max-w-[140px] sm:max-w-[200px]"
+                    className="bg-white text-xs font-bold text-primary py-1 px-1.5 sm:px-2 rounded-lg border-0 focus:ring-2 focus:ring-accent shadow-xs cursor-pointer max-w-[95px] xs:max-w-[130px] sm:max-w-[180px]"
                   >
-                    <option value="">🌐 All Locations</option>
+                    <option value="">🌐 All</option>
                     {locations.map(loc => (
                       <option key={loc.id} value={loc.id}>
                         📍 {loc.name} ({loc.code})
@@ -949,8 +949,8 @@ export default function WeddingCRM() {
                   </select>
                 </div>
               ) : (
-                <div className="bg-primary text-white px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-accent/30">
-                  <MapPin className="w-3.5 h-3.5 text-accent" />
+                <div className="bg-primary text-white px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-accent/30 flex-shrink-0">
+                  <MapPin className="w-3.5 h-3.5 text-accent flex-shrink-0" />
                   <span className="hidden sm:inline">📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
                   <span className="sm:hidden">{session?.locationCode || 'DAV'}</span>
                 </div>
@@ -958,7 +958,7 @@ export default function WeddingCRM() {
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50"
+                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50 flex-shrink-0"
               >
                 <Plus className="w-4 h-4 text-accent flex-shrink-0" />
                 <span className="hidden sm:inline">Add Wedding Customer</span>
@@ -968,7 +968,8 @@ export default function WeddingCRM() {
           }
         />
 
-        <main className="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6 flex-1">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-6 w-full space-y-6">
+          <div className="max-w-7xl mx-auto space-y-6">
           {/* Toast Alert */}
           {toastMessage && (
             <div className="fixed bottom-6 right-6 z-[200] bg-primary border-2 border-accent text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up">
@@ -2057,6 +2058,7 @@ export default function WeddingCRM() {
               )}
             </div>
           )}
+          </div>
         </main>
       </div>
 

@@ -44,9 +44,18 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
       setUnreadCount(NotificationService.getUnreadCount());
     });
 
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+
     return () => {
       clearInterval(interval);
       unsub();
+      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
   }, []);
 
@@ -60,8 +69,9 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
 
   return (
     <>
-      <header className="h-16 bg-white/95 backdrop-blur-md border-b border-accent-soft px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <header className="h-16 w-full max-w-full bg-white/95 backdrop-blur-md border-b border-accent-soft px-2.5 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs flex-shrink-0">
+        {/* ── Left Area: Hamburger & Title ───────────────────────────────── */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
           <button
             onClick={handleHamburgerClick}
             className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors border border-accent-soft flex-shrink-0 flex items-center justify-center cursor-pointer shadow-xs"
@@ -71,10 +81,10 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
             <Menu className="w-5 h-5 text-primary" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-sm sm:text-base md:text-lg font-black text-primary tracking-tight leading-none truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">
+            <h1 className="text-sm sm:text-base md:text-lg font-black text-primary tracking-tight leading-none truncate max-w-[120px] xs:max-w-[160px] sm:max-w-[200px] md:max-w-[240px] lg:max-w-none">
               {title}
             </h1>
-            <div className="hidden xs:flex items-center gap-1.5 text-[11px] text-primary/70 font-semibold mt-1 truncate">
+            <div className="hidden md:flex items-center gap-1.5 text-[11px] text-primary/70 font-semibold mt-1 truncate">
               <span className="text-primary font-bold flex-shrink-0">BSC Portal</span>
               {session?.locationName && (
                 <>
@@ -105,29 +115,30 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
-          {/* Smart Search Trigger (Mobile/Tablet icon, Desktop search bar) */}
+        {/* ── Center Area: Stable, Fixed Search Directory (Ctrl+K) ──────── */}
+        <div className="flex-1 flex items-center justify-center px-2 sm:px-4 min-w-0 max-w-[160px] xs:max-w-[200px] sm:max-w-xs md:max-w-sm lg:max-w-md mx-auto">
           <button
+            type="button"
             onClick={() => setSearchOpen(true)}
-            className="md:hidden p-2 rounded-xl text-primary hover:bg-primary/5 border border-accent-soft/60 transition-all shadow-2xs"
+            className="w-full flex items-center justify-between gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-accent-soft bg-background/80 hover:bg-background text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-2xs group cursor-pointer"
             title="Search directory (Ctrl+K)"
-            aria-label="Search directory"
+            aria-label="Search directory (Ctrl+K)"
           >
-            <Search className="w-4 h-4 text-accent" />
+            <div className="flex items-center gap-2 min-w-0 truncate">
+              <Search className="w-3.5 h-3.5 text-accent flex-shrink-0 group-hover:scale-110 transition-transform" />
+              <span className="truncate hidden sm:inline">Search directory...</span>
+              <span className="sm:hidden text-[11px] truncate font-medium">Search...</span>
+            </div>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 font-mono text-[9px] bg-white border border-accent-soft px-1.5 py-0.5 rounded text-primary font-bold shadow-2xs flex-shrink-0 select-none">
+              <Command className="w-2.5 h-2.5" />
+              <span>K</span>
+            </kbd>
           </button>
+        </div>
 
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-xs"
-            title="Search directory (Ctrl+K)"
-          >
-            <Search className="w-3.5 h-3.5 text-accent" />
-            <span className="hidden xl:inline">Search directory...</span>
-            <span className="xl:hidden">Search</span>
-            <span className="font-mono text-[9px] bg-white border border-accent-soft px-1.5 py-0.5 rounded text-primary font-bold ml-0.5">Ctrl+K</span>
-          </button>
-
-          <div className="hidden xl:flex items-center gap-2 text-xs text-primary bg-background px-3 py-1.5 rounded-xl border border-accent-soft font-mono shadow-xs">
+        {/* ── Right Area: Tools, Notifications, Profile & Custom Actions ─── */}
+        <div className="flex items-center gap-1 sm:gap-1.5 lg:gap-2 flex-shrink-0 min-w-0">
+          <div className="hidden 2xl:flex items-center gap-2 text-xs text-primary bg-background px-3 py-1.5 rounded-xl border border-accent-soft font-mono shadow-xs">
             <Clock className="w-3.5 h-3.5 text-accent" />
             <span className="font-semibold">{clock}</span>
           </div>
@@ -135,7 +146,7 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
           {/* Activity Panel Trigger */}
           <button
             onClick={() => setActivityOpen(true)}
-            className="p-1.5 sm:p-2 rounded-xl text-primary hover:bg-primary/5 border border-transparent hover:border-accent-soft transition-all"
+            className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-primary hover:bg-primary/5 border border-transparent hover:border-accent-soft transition-all"
             title="Live Activity Intelligence"
           >
             <Activity className="w-4 h-4 text-[#27805B]" />
