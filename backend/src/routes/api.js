@@ -20,8 +20,10 @@ const locationController = require('../controllers/locationController');
 
 // ── Auth Routes ──────────────────────────────────────────────
 router.get('/auth/captcha', authController.captcha);
+router.get('/auth/lock-status', authController.lockStatus);
 router.post('/auth/login', authController.login);
 router.post('/auth/verify', authController.verifyUser);
+router.post('/auth/logout', authenticate, authController.logout);
 router.get('/auth/me', authenticate, authController.getMe);
 
 // ── Location Routes ───────────────────────────────────────────

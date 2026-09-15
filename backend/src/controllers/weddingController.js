@@ -725,15 +725,16 @@ class WeddingController {
   // ── 8. Log Call & Auto-manage Follow-up ──────────────────────────────
   async logCall(req, res) {
     try {
+      await ensureTables();
       const customerId = req.body.customerId || req.body.customer_id;
-      const callDate = req.body.callDate || req.body.call_date;
+      const rawCallDate = req.body.callDate || req.body.call_date;
       const callTime = req.body.callTime || req.body.call_time;
       const callStatus = req.body.callStatus || req.body.call_status || 'Completed';
       const callOutcome = req.body.callOutcome || req.body.call_outcome || req.body.outcome;
       const remarks = req.body.remarks || req.body.call_notes || req.body.customer_feedback;
-      const nextFollowUpDate = req.body.nextFollowUpDate || req.body.next_follow_up_date;
+      const rawNextFollowUpDate = req.body.nextFollowUpDate || req.body.next_follow_up_date;
       const nextFollowUpTime = req.body.nextFollowUpTime || req.body.next_follow_up_time;
-      const expectedShoppingDate = req.body.expectedShoppingDate || req.body.expected_shopping_date;
+      const rawExpectedShoppingDate = req.body.expectedShoppingDate || req.body.expected_shopping_date;
 
       if (!customerId) {
         return errorRes(res, 'Customer ID is required', [], 400);
@@ -742,20 +743,37 @@ class WeddingController {
         return errorRes(res, 'Call outcome is required', [], 400);
       }
 
-      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+      // Sanitize dates to valid 'YYYY-MM-DD' or null to prevent MySQL truncation errors
+      const sanitizeDate = (val) => {
+        if (!val || typeof val !== 'string' || !val.trim()) return null;
+        const clean = val.trim().slice(0, 10);
+        return /^\d{4}-\d{2}-\d{2}$/.test(clean) ? clean : null;
+      };
+
+      const nextFollowUpDate = sanitizeDate(rawNextFollowUpDate);
+      const expectedShoppingDate = sanitizeDate(rawExpectedShoppingDate);
+
+      // Branch users are isolated to their location, Global Admin can manage any
+      const userLoc = req.user ? req.user.locationId : null;
+      let locClause = '';
+      let locParams = [];
+      if (userLoc) {
+        locClause = 'AND w.location_id = ?';
+        locParams = [userLoc];
+      }
+
       const [customers] = await pool.query(`
         SELECT * FROM wedding_customers w WHERE w.id = ? AND w.is_deleted = 0 ${locClause}
-      `, [parseInt(customerId, 10), ...params]);
+      `, [parseInt(customerId, 10), ...locParams]);
 
       if (!customers || customers.length === 0) {
         return errorRes(res, 'Customer not found or access denied', [], 404);
       }
 
       const cust = customers[0];
-      // Business date in the store's timezone (IST) — a UTC-based date string
-      // would log the call under the previous day for evening calls.
+      // Business date in the store's timezone (IST)
       const istToday = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-      const actualCallDate = callDate || istToday;
+      const actualCallDate = sanitizeDate(rawCallDate) || istToday;
       const actualCallTime = callTime || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
       const telecallerName = req.user?.fullName || 'Telecaller';
       const telecallerId = req.user?.id || null;

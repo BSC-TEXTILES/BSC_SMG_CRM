@@ -566,15 +566,16 @@ export default function WeddingCRM() {
   // Open Log Call Modal
   const openCallModal = (cust: WeddingCustomer) => {
     setSelectedCustomer(cust);
+    const toYMD = (d?: string | null) => (d ? String(d).slice(0, 10) : '');
     setLogForm({
       call_date: new Date().toISOString().slice(0, 10),
       call_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       call_status: 'Completed',
       call_outcome: 'Connected',
       remarks: '',
-      next_follow_up_date: cust.follow_up_date || '',
+      next_follow_up_date: toYMD(cust.follow_up_date),
       next_follow_up_time: cust.preferred_call_time || 'Morning (10 AM - 1 PM)',
-      expected_shopping_date: cust.expected_shopping_date || ''
+      expected_shopping_date: toYMD(cust.expected_shopping_date)
     });
     setShowLogCallModal(true);
   };
@@ -585,17 +586,18 @@ export default function WeddingCRM() {
     if (!selectedCustomer) return;
 
     try {
+      const cleanDate = (d?: string | null) => (d && d.trim() ? d.trim().slice(0, 10) : null);
       const payload = {
         customerId: selectedCustomer.id,
         customer_id: selectedCustomer.id,
-        callDate: logForm.call_date,
+        callDate: cleanDate(logForm.call_date),
         callTime: logForm.call_time,
         callStatus: logForm.call_status,
         callOutcome: logForm.call_outcome,
         remarks: logForm.remarks,
-        nextFollowUpDate: logForm.call_outcome !== 'Not Interested' ? logForm.next_follow_up_date : null,
-        nextFollowUpTime: logForm.call_outcome !== 'Not Interested' ? logForm.next_follow_up_time : null,
-        expectedShoppingDate: logForm.call_outcome === 'Shopping Confirmed' ? logForm.expected_shopping_date : null
+        nextFollowUpDate: logForm.call_outcome !== 'Not Interested' ? cleanDate(logForm.next_follow_up_date) : null,
+        nextFollowUpTime: logForm.call_outcome !== 'Not Interested' ? (logForm.next_follow_up_time || null) : null,
+        expectedShoppingDate: logForm.call_outcome === 'Shopping Confirmed' ? cleanDate(logForm.expected_shopping_date) : null
       };
 
       const res = await API.logWeddingCall(payload);
@@ -928,17 +930,17 @@ export default function WeddingCRM() {
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
           rightElement={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {/* Multi-location selector for Global Admin */}
               {session?.isGlobalAdmin ? (
                 <div className="flex items-center bg-primary/10 rounded-xl p-1 border border-accent/40">
-                  <span className="text-[11px] font-bold text-primary px-2 uppercase tracking-wide">Location:</span>
+                  <span className="hidden md:inline text-[11px] font-bold text-primary px-1.5 uppercase tracking-wide">Location:</span>
                   <select
                     value={selectedLocation}
                     onChange={e => setSelectedLocation(e.target.value ? parseInt(e.target.value, 10) : '')}
-                    className="bg-white text-xs font-bold text-primary py-1 px-2.5 rounded-lg border-0 focus:ring-2 focus:ring-accent shadow-xs cursor-pointer"
+                    className="bg-white text-xs font-bold text-primary py-1 px-2 rounded-lg border-0 focus:ring-2 focus:ring-accent shadow-xs cursor-pointer max-w-[140px] sm:max-w-[200px]"
                   >
-                    <option value="">🌐 ALL LOCATIONS (BEL, DAV, SHI)</option>
+                    <option value="">🌐 All Locations</option>
                     {locations.map(loc => (
                       <option key={loc.id} value={loc.id}>
                         📍 {loc.name} ({loc.code})
@@ -947,18 +949,20 @@ export default function WeddingCRM() {
                   </select>
                 </div>
               ) : (
-                <div className="bg-primary text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-accent/30">
+                <div className="bg-primary text-white px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-accent/30">
                   <MapPin className="w-3.5 h-3.5 text-accent" />
-                  <span>📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
+                  <span className="hidden sm:inline">📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
+                  <span className="sm:hidden">{session?.locationCode || 'DAV'}</span>
                 </div>
               )}
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50"
+                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50"
               >
-                <Plus className="w-4 h-4 text-accent" />
-                <span>Add Wedding Customer</span>
+                <Plus className="w-4 h-4 text-accent flex-shrink-0" />
+                <span className="hidden sm:inline">Add Wedding Customer</span>
+                <span className="sm:hidden">Add</span>
               </button>
             </div>
           }

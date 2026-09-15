@@ -105,26 +105,29 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-          {/* Smart Search Trigger (Mobile icon, Desktop bar) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
+          {/* Smart Search Trigger (Mobile/Tablet icon, Desktop search bar) */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="sm:hidden p-2 rounded-xl text-primary hover:bg-primary/5 border border-transparent hover:border-accent-soft transition-all"
-            title="Search directory"
+            className="md:hidden p-2 rounded-xl text-primary hover:bg-primary/5 border border-accent-soft/60 transition-all shadow-2xs"
+            title="Search directory (Ctrl+K)"
+            aria-label="Search directory"
           >
             <Search className="w-4 h-4 text-accent" />
           </button>
 
           <button
             onClick={() => setSearchOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-xs"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-accent-soft bg-background text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-xs"
+            title="Search directory (Ctrl+K)"
           >
             <Search className="w-3.5 h-3.5 text-accent" />
-            <span>Search directory...</span>
-            <span className="font-mono text-[9px] bg-white border border-accent-soft px-1.5 py-0.5 rounded text-primary font-bold ml-1">Ctrl+K</span>
+            <span className="hidden xl:inline">Search directory...</span>
+            <span className="xl:hidden">Search</span>
+            <span className="font-mono text-[9px] bg-white border border-accent-soft px-1.5 py-0.5 rounded text-primary font-bold ml-0.5">Ctrl+K</span>
           </button>
 
-          <div className="hidden lg:flex items-center gap-2 text-xs text-primary bg-background px-3 py-1.5 rounded-xl border border-accent-soft font-mono shadow-xs">
+          <div className="hidden xl:flex items-center gap-2 text-xs text-primary bg-background px-3 py-1.5 rounded-xl border border-accent-soft font-mono shadow-xs">
             <Clock className="w-3.5 h-3.5 text-accent" />
             <span className="font-semibold">{clock}</span>
           </div>

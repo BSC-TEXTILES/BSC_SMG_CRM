@@ -17,6 +17,7 @@ const { validateAddCandidate, validateUpdateCandidate } = require('../validators
 
 // ── Auth Module ──────────────────────────────────────────────
 router.get('/auth/captcha', authController.captcha);
+router.get('/auth/lock-status', authController.lockStatus);
 router.post('/auth/login', validateLogin, authController.login);
 router.post('/auth/verify', authController.verifyUser);
 router.post('/auth/logout', authenticate, authController.logout);

@@ -2,6 +2,8 @@ const authService = require('../services/authService');
 const { successRes, errorRes } = require('../utils/response');
 const { createCaptcha, verifyCaptcha } = require('../utils/captcha');
 
+const loginSecurity = require('../utils/loginSecurity');
+
 // Session lifetime: users who do not sign out are logged out automatically
 // after this many hours (token expiry, cookie lifetime and the client timer
 // all use the same value).
@@ -14,10 +16,27 @@ const SESSION_MS = SESSION_HOURS * 60 * 60 * 1000;
 const SAFE_LOGIN_ERRORS = new Set([
   'Username and password are required',
   'Incorrect username or password',
-  'Your account has been deactivated. Please contact administrator.'
+  'Your account has been deactivated. Please contact administrator.',
+  'Too many failed login attempts. Account temporarily locked for 10 minutes.'
 ]);
 
 class AuthController {
+  /**
+   * Public: Check if an account or IP is currently locked out.
+   * Returns { isLocked: boolean, remainingSeconds: number }
+   */
+  async lockStatus(req, res) {
+    const username = req.query.username || '';
+    const lockInfo = loginSecurity.checkLock(username, req.ip);
+    return res.json({
+      success: true,
+      data: {
+        isLocked: lockInfo.isLocked,
+        remainingSeconds: lockInfo.remainingSeconds
+      }
+    });
+  }
+
   /**
    * Public: issues a fresh numeric captcha (SVG + opaque id). The code itself
    * never leaves the server; the client refreshes it every 30 seconds.
@@ -28,9 +47,34 @@ class AuthController {
   }
 
   async login(req, res) {
+    const { username, password, captchaId, captchaText } = req.body || {};
+    const clientIp = req.ip;
+    const userAgent = req.headers['user-agent'];
+
     try {
-      // ── CAPTCHA first: one-time use, checked before any credential work ──
-      const { username, password, captchaId, captchaText } = req.body;
+      // 1. Check account / IP lockout first
+      const lockCheck = loginSecurity.checkLock(username, clientIp);
+      if (lockCheck.isLocked) {
+        return res.status(423).json({
+          success: false,
+          locked: true,
+          remainingSeconds: lockCheck.remainingSeconds,
+          message: `Too many failed login attempts. Account temporarily locked for 10 minutes. Please wait ${Math.ceil(lockCheck.remainingSeconds / 60)} minute(s).`
+        });
+      }
+
+      // 2. Suspicious / automated bot login activity check
+      const botCheck = loginSecurity.detectSuspiciousActivity(username, clientIp, userAgent);
+      if (botCheck.detected) {
+        return res.status(429).json({
+          success: false,
+          locked: true,
+          remainingSeconds: botCheck.remainingSeconds,
+          message: 'Suspicious request pattern detected. Access temporarily restricted. Please try again later.'
+        });
+      }
+
+      // 3. CAPTCHA verification: one-time use
       const captchaResult = verifyCaptcha(captchaId, captchaText);
       if (captchaResult !== 'ok') {
         const message = captchaResult === 'expired'
@@ -39,11 +83,13 @@ class AuthController {
         return errorRes(res, message, [message], 401);
       }
 
-      const result = await authService.login(username, password, req.ip, req.headers['user-agent']);
+      // 4. Authenticate credentials via AuthService
+      const result = await authService.login(username, password, clientIp, userAgent);
 
-      // ── Server-side session: the token is ALSO planted as an httpOnly
-      // cookie so the browser session is managed entirely by the backend and
-      // the JavaScript can never read or tamper with it. ──
+      // Successful login -> Reset failed attempts counter
+      loginSecurity.recordSuccess(username, clientIp);
+
+      // Set server-side httpOnly session cookie
       res.cookie('token', result.token, {
         httpOnly: true,
         sameSite: 'lax',
@@ -53,7 +99,26 @@ class AuthController {
       });
       return successRes(res, result, 'Login successful');
     } catch (err) {
-      const message = SAFE_LOGIN_ERRORS.has(err.message) ? err.message : 'Login failed. Please try again.';
+      // Record failed credential attempt for rate limiting & temporary lock
+      let lockResult = { locked: false, remainingSeconds: 0, attemptsLeft: 5 };
+      if (err.message === 'Incorrect username or password') {
+        lockResult = loginSecurity.recordFailure(username, clientIp, err.message);
+      }
+
+      if (lockResult.locked) {
+        return res.status(423).json({
+          success: false,
+          locked: true,
+          remainingSeconds: lockResult.remainingSeconds,
+          message: 'Account locked due to 5 consecutive failed attempts. Please try again in 10 minutes.'
+        });
+      }
+
+      let message = SAFE_LOGIN_ERRORS.has(err.message) ? err.message : 'Login failed. Please try again.';
+      if (err.message === 'Incorrect username or password' && lockResult.attemptsLeft > 0 && lockResult.attemptsLeft <= 3) {
+        message += ` (${lockResult.attemptsLeft} attempt${lockResult.attemptsLeft === 1 ? '' : 's'} remaining before 10-minute lock)`;
+      }
+
       if (!SAFE_LOGIN_ERRORS.has(err.message)) {
         console.error('[AuthController.login]', err.message);
       }

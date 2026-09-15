@@ -17,6 +17,10 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(30);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Rate limit & 10-minute temporary lockout state
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockRemainingSeconds, setLockRemainingSeconds] = useState(0);
+
   // Validate password utility
   const validatePassword = (pwd: string) => {
     const hasLength = pwd.length >= 8;
@@ -24,6 +28,56 @@ export default function LoginPage() {
     const hasNumber = /[0-9]/.test(pwd);
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
     return hasLength && hasLetter && hasNumber && hasSpecial;
+  };
+
+  // Check lock status with the backend (persists across page refresh, multi-tab, etc.)
+  const checkServerLock = React.useCallback(async (userToCheck?: string) => {
+    try {
+      const uname = userToCheck !== undefined ? userToCheck : username;
+      const res = await API.getLockStatus(uname.trim());
+      if (res && res.data) {
+        if (res.data.isLocked && res.data.remainingSeconds > 0) {
+          setIsLocked(true);
+          setLockRemainingSeconds(res.data.remainingSeconds);
+        } else {
+          setIsLocked(false);
+          setLockRemainingSeconds(0);
+        }
+      }
+    } catch {
+      // Ignore network errors on check
+    }
+  }, [username]);
+
+  // Initial check on mount
+  useEffect(() => {
+    checkServerLock();
+  }, [checkServerLock]);
+
+  // 1-second countdown interval for the 10-minute lockout timer
+  useEffect(() => {
+    if (!isLocked || lockRemainingSeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setLockRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          setIsLocked(false);
+          clearInterval(timer);
+          // Re-verify with server that lock has expired
+          checkServerLock();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isLocked, lockRemainingSeconds, checkServerLock]);
+
+  const formatLockTimer = (totalSecs: number) => {
+    const m = Math.floor(totalSecs / 60);
+    const s = totalSecs % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   // ── Numeric captcha: fetched from the server, auto-refreshed every 30 s,
@@ -86,6 +140,10 @@ export default function LoginPage() {
       if (res.success && res.data) {
         const user = res.data.user;
 
+        // Reset lockout state on success
+        setIsLocked(false);
+        setLockRemainingSeconds(0);
+
         // Save full session including location fields from server JWT
         Auth.save({
           username: user.username,
@@ -135,12 +193,16 @@ export default function LoginPage() {
 
         navigate('/dashboard', { replace: true });
       } else {
+        if (res.locked || res.remainingSeconds) {
+          setIsLocked(true);
+          setLockRemainingSeconds(res.remainingSeconds || 600);
+        }
         setErrorMsg(res.message || 'Sign-in failed. Please check your details and the captcha.');
-        // Wrong credentials OR wrong captcha: the server consumes the captcha
-        // on every attempt, so always load a fresh one.
         loadCaptcha();
       }
     } catch (err: any) {
+      // If error message indicates lockout, check server lock status
+      checkServerLock();
       setErrorMsg(err.message || 'Sign-in failed. Please try again.');
       loadCaptcha();
     } finally {
@@ -171,7 +233,26 @@ export default function LoginPage() {
             <p className="text-xs text-primary/70 font-medium mt-1">Sign in with your authorized system credentials. Your location will be loaded automatically.</p>
           </div>
 
-          {errorMsg && (
+          {/* 10-Minute Lockout Countdown Alert */}
+          {isLocked && lockRemainingSeconds > 0 && (
+            <div className="p-4 rounded-2xl bg-[#FFF5F5] border-2 border-[#FEB2B2] text-[#9B2C2C] space-y-2 animate-scale-in">
+              <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
+                <Lock className="w-4 h-4 text-[#E53E3E]" />
+                <span>Account Temporarily Locked</span>
+              </div>
+              <p className="text-xs font-semibold leading-relaxed">
+                5 consecutive incorrect password attempts detected. For security, login is locked for 10 minutes.
+              </p>
+              <div className="flex items-center justify-between pt-2 border-t border-[#FEB2B2]/60 text-xs">
+                <span className="font-bold text-[#742A2A]">Remaining Lock Time:</span>
+                <span className="font-mono font-black text-sm bg-[#FED7D7] px-2.5 py-1 rounded-lg text-[#9B2C2C] shadow-xs">
+                  {formatLockTimer(lockRemainingSeconds)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {errorMsg && !isLocked && (
             <div className="p-3.5 rounded-xl bg-[#FDF0F2] border border-[#F6C8CE] text-[#C43D4B] text-xs font-semibold animate-fade-in">
               {errorMsg}
             </div>
@@ -188,9 +269,11 @@ export default function LoginPage() {
                 name="username"
                 autoComplete="username"
                 value={username}
+                disabled={isLocked && lockRemainingSeconds > 0}
                 onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => { if (username.trim()) checkServerLock(username.trim()); }}
                 placeholder="admin@bsctextiles.com"
-                className="w-full text-xs font-semibold pl-10 pr-4 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs"
+                className="w-full text-xs font-semibold pl-10 pr-4 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs disabled:bg-gray-100 disabled:cursor-not-allowed"
                 required
               />
             </div>
@@ -207,9 +290,10 @@ export default function LoginPage() {
                 name="password"
                 autoComplete="current-password"
                 value={password}
+                disabled={isLocked && lockRemainingSeconds > 0}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••"
-                className="w-full text-xs font-semibold pl-10 pr-10 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs"
+                className="w-full text-xs font-semibold pl-10 pr-10 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs disabled:bg-gray-100 disabled:cursor-not-allowed"
                 required
               />
               <button
@@ -236,9 +320,10 @@ export default function LoginPage() {
                   autoComplete="off"
                   maxLength={8}
                   value={captchaText}
+                  disabled={isLocked && lockRemainingSeconds > 0}
                   onChange={(e) => setCaptchaText(e.target.value)}
                   placeholder="Enter 8 characters"
-                  className="w-full text-xs font-semibold pl-10 pr-3 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs tracking-widest"
+                  className="w-full text-xs font-semibold pl-10 pr-3 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs tracking-widest disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
                 />
               </div>
@@ -279,13 +364,18 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-primary text-white font-extrabold text-xs tracking-wide hover:bg-primary-hover active:scale-[0.99] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled={loading || (isLocked && lockRemainingSeconds > 0)}
+            className="w-full py-3.5 px-4 rounded-xl bg-primary text-white font-extrabold text-xs tracking-wide hover:bg-primary-hover active:scale-[0.99] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
                 <span className="spinner" />
                 <span>Authenticating Credentials…</span>
+              </>
+            ) : isLocked && lockRemainingSeconds > 0 ? (
+              <>
+                <Lock className="w-4 h-4" />
+                <span>Locked ({formatLockTimer(lockRemainingSeconds)})</span>
               </>
             ) : (
               <>

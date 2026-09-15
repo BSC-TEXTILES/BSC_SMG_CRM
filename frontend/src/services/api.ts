@@ -161,6 +161,12 @@ export const API = {
     });
   },
 
+  // Check server-side lockout status for account/IP
+  async getLockStatus(username?: string) {
+    const q = username ? `?username=${encodeURIComponent(username)}` : '';
+    return apiFetch(`/auth/lock-status${q}`);
+  },
+
   // Numeric captcha for the sign-in screen (server-generated SVG + opaque id)
   async getCaptcha() {
     return apiFetch('/auth/captcha');
