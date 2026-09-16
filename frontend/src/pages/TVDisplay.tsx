@@ -158,7 +158,7 @@ export default function TVDisplay() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary text-white p-6 sm:p-8 flex flex-col justify-between overflow-hidden select-none">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary text-white p-6 sm:p-8 flex flex-col justify-between overflow-hidden select-text">
       {/* Top Monitor Header */}
       <div className="flex items-center justify-between border-b border-white/15 pb-6">
         <div className="flex items-center gap-4">

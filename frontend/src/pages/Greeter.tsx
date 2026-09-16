@@ -176,7 +176,7 @@ export default function Greeter() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary text-white p-4 sm:p-6 flex flex-col justify-between max-w-xl mx-auto select-none relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B1F35] via-primary to-primary text-white p-4 sm:p-6 flex flex-col justify-between max-w-xl mx-auto select-text relative overflow-hidden">
       {/* Background Ambient Glows */}
       <div className="absolute top-10 -left-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-10 -right-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>

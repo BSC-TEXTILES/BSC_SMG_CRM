@@ -91,7 +91,7 @@ export default function ShortlistModal({ candidate, isOpen, onClose, onShortlist
   const photo = fileUrl(candidate.photoUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-primary/70 backdrop-blur-md transition-all animate-fade-in select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-primary/70 backdrop-blur-md transition-all animate-fade-in select-text">
       <div className="relative w-full max-w-3xl max-h-[92vh] bg-background rounded-3xl shadow-2xl flex flex-col z-10 overflow-hidden border-2 border-accent/50">
         
         {/* Modal Header */}

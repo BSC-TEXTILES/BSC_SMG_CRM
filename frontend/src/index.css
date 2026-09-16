@@ -56,6 +56,28 @@ body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Enable full project text selection & copying everywhere */
+html, #root, * {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Refined Selection Highlighting */
+::selection {
+  background-color: rgba(184, 141, 66, 0.3);
+  color: #611427;
+}
+::-moz-selection {
+  background-color: rgba(184, 141, 66, 0.3);
+  color: #611427;
 }
 
 /* Refined Cool Scrollbar */

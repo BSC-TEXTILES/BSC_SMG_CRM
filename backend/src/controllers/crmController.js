@@ -918,17 +918,28 @@ exports.saveCashSettlement = async (req, res) => {
 // ── Visual Merchandising (VM) ───────────────────────────────
 exports.getVmPoints = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM VmChecklistPoints WHERE isActive = TRUE ORDER BY position ASC');
-    if (rows.length === 0) {
-      const defaults = [
-        { id: 'vm_1', title: 'Mannequins Dressed & Styled', section: 'Main Entrance', position: 1 },
-        { id: 'vm_2', title: 'Lighting & Display Spotlights Active', section: 'Main Entrance', position: 2 },
-        { id: 'vm_3', title: 'Aisle Clear & Hanger Uniformity', section: 'Ground Floor', position: 3 },
-        { id: 'vm_4', title: 'Price Tags & Size Indicators Visible', section: 'Ground Floor', position: 4 }
-      ];
-      return res.json({ success: true, points: defaults });
-    }
-    return res.json({ success: true, points: rows });
+    const vm11Questions = [
+      { id: 'vm_q1', title: 'Is the entire section clean, neat and well-maintained?', section: 'Visual Merchandising', position: 1 },
+      { id: 'vm_q2', title: 'Are products arranged according to category, colour and size?', section: 'Visual Merchandising', position: 2 },
+      { id: 'vm_q3', title: 'Are all racks, shelves, tables and displays properly aligned?', section: 'Visual Merchandising', position: 3 },
+      { id: 'vm_q4', title: 'Are new arrivals and latest collections displayed prominently?', section: 'Visual Merchandising', position: 4 },
+      { id: 'vm_q5', title: 'Are mannequins styled according to the current theme?', section: 'Visual Merchandising', position: 5 },
+      { id: 'vm_q6', title: 'Are price tags, product labels and signages correctly placed and visible?', section: 'Visual Merchandising', position: 6 },
+      { id: 'vm_q7', title: 'Are promotional and offer displays updated and correctly positioned?', section: 'Visual Merchandising', position: 7 },
+      { id: 'vm_q8', title: 'Is the colour blocking and overall visual theme maintained?', section: 'Visual Merchandising', position: 8 },
+      { id: 'vm_q9', title: 'Are the folded, hanging and stacked products properly presented?', section: 'Visual Merchandising', position: 9 },
+      { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?', section: 'Visual Merchandising', position: 10 },
+      { id: 'vm_q11', title: 'Are all display lights, LED screens and decorative elements working properly?', section: 'Visual Merchandising', position: 11 }
+    ];
+
+    try {
+      const [rows] = await db.query('SELECT * FROM VmChecklistPoints WHERE isActive = TRUE ORDER BY position ASC');
+      if (rows && rows.length >= 11) {
+        return res.json({ success: true, points: rows });
+      }
+    } catch (e) {}
+
+    return res.json({ success: true, points: vm11Questions });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
@@ -945,14 +956,26 @@ exports.getVmSubmissions = async (req, res) => {
 
 exports.submitVm = async (req, res) => {
   try {
-    const { shift, floor, scorePercent, submittedBy, entries } = req.body;
+    const { shift, floor, section, scorePercent, submittedBy, entries } = req.body;
     const submissionId = getUUID();
     const entryDate = new Date().toISOString().split('T')[0];
 
-    await db.query(`
-      INSERT INTO VmSubmissions (id, entryDate, shift, floor, scorePercent, submittedBy)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [submissionId, entryDate, shift || 'Opening', floor || '1st Floor', scorePercent || 100, submittedBy || 'VM Auditor']);
+    // Ensure section column exists in VmSubmissions if table is present
+    try {
+      await db.query(`ALTER TABLE VmSubmissions ADD COLUMN section VARCHAR(100) DEFAULT NULL`).catch(() => {});
+    } catch (e) {}
+
+    try {
+      await db.query(`
+        INSERT INTO VmSubmissions (id, entryDate, shift, floor, section, scorePercent, submittedBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [submissionId, entryDate, shift || 'Opening', floor || 'Ground Floor', section || 'General', scorePercent || 100, submittedBy || 'VM Auditor']);
+    } catch (e) {
+      await db.query(`
+        INSERT INTO VmSubmissions (id, entryDate, shift, floor, scorePercent, submittedBy)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [submissionId, entryDate, shift || 'Opening', floor || 'Ground Floor', scorePercent || 100, submittedBy || 'VM Auditor']);
+    }
 
     if (Array.isArray(entries)) {
       for (let e of entries) {
@@ -964,7 +987,7 @@ exports.submitVm = async (req, res) => {
       }
     }
 
-    return res.json({ success: true, message: 'VM checklist submitted successfully' });
+    return res.json({ success: true, message: 'VM checklist submitted successfully', submissionId });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
