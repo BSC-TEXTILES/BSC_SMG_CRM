@@ -41,8 +41,7 @@ process.on('unhandledRejection', (reason) => {
 // ── Load modules ──────────────────────────────────────────────────────────────
 const pool = require('./src/config/db');
 const { autoInitializeDatabase } = require('./src/config/dbInitializer');
-const v1Routes = require('./src/routes/v1');
-const legacyRoutes = require('./src/routes/api');
+const apiRoutes = require('./src/routes/api');
 const { errorRes } = require('./src/utils/response');
 const { authenticate, authorize } = require('./src/middleware/auth');
 
@@ -158,7 +157,7 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many login attempts. Please try again in a few minutes.', errors: [] }
 });
 
-app.use(['/api/auth/login', '/api/v1/auth/login', '/api/auth/verify', '/api/v1/auth/verify'], authLimiter);
+app.use(['/api/auth/login', '/api/auth/verify'], authLimiter);
 
 // ── Health / Diagnostics ──────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
@@ -359,8 +358,7 @@ app.get('/api/fix-db-schema', authenticate, authorize('Admin', 'Super Admin'), a
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/v1', v1Routes);
-app.use('/api', legacyRoutes);
+app.use('/api', apiRoutes);
 
 // ── Frontend SPA ──────────────────────────────────────────────────────────────
 const distDir = path.join(APP_ROOT, 'dist');

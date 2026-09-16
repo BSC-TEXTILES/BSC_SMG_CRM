@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ToastContainer, { showToast } from '../components/Toast';
 import { API, Auth, UserSession, apiFetch } from '../services/api';
-import { Settings, Users, Eye, EyeOff, HelpCircle, Tag, Plus, Trash2, Key, Shield, Check, X, Lock, ShieldAlert, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Settings, Users, Eye, EyeOff, HelpCircle, Tag, Trash2, Shield, ShieldAlert } from 'lucide-react';
 import DevToolsMonitoringPanel from '../components/DevToolsMonitoringPanel';
 
 export default function SettingsPage() {
@@ -12,20 +12,6 @@ export default function SettingsPage() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'pins' | 'security' | 'visibility' | 'questions' | 'roles'>('users');
-
-  // Users
-  const [users, setUsers] = useState<any[]>([]);
-  const [newName, setNewName] = useState('');
-  const [newUname, setNewUname] = useState('');
-  const [newPwd, setNewPwd] = useState('');
-  const [newRole, setNewRole] = useState('HR');
-  const [newLocationId, setNewLocationId] = useState<string>('2'); // default Davanagere
-  const [locations, setLocations] = useState<any[]>([]);
-
-  // Delete User Confirmation
-  const [deleteUserModalOpen, setDeleteUserModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<any | null>(null);
-  const [deletingUser, setDeletingUser] = useState(false);
 
   // Store Operational PINs
   const [greeterPin, setGreeterPin] = useState('');
@@ -53,16 +39,13 @@ export default function SettingsPage() {
 
   const loadAll = useCallback(async () => {
     try {
-      const [uData, pData, qData, dData, crmData, locData] = await Promise.all([
-        API.getUsers(),
+      const [pData, qData, dData, crmData] = await Promise.all([
         API.getPageSettings(),
         API.call('getAllInterviewQuestions'),
         API.getDesignations(),
-        API.getCrmSettings(),
-        API.getLocations().catch(() => ({ locations: [] }))
+        API.getCrmSettings()
       ]);
 
-      if (uData && uData.users) setUsers(uData.users);
       if (pData) setPageSettings(pData);
       if (qData && qData.questions) setQuestions(qData.questions);
       if (dData && dData.designations) setDesignations(dData.designations);
@@ -78,7 +61,6 @@ export default function SettingsPage() {
           cash: !!crmData.settings.hasCashPin
         });
       }
-      if (locData && locData.locations) setLocations(locData.locations);
     } catch (err: any) {
       showToast('Error loading settings', 'error');
     }
@@ -97,98 +79,6 @@ export default function SettingsPage() {
     setSession(sess);
     loadAll();
   }, [navigate, loadAll]);
-
-  // Users Handlers
-  // Validate password utility
-  const validatePassword = (pwd: string) => {
-    const hasLength = pwd.length >= 8;
-    const hasLetter = /[a-zA-Z]/.test(pwd);
-    const hasNumber = /[0-9]/.test(pwd);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
-    return hasLength && hasLetter && hasNumber && hasSpecial;
-  };
-
-  const handleAddUser = async () => {
-    if (!newName.trim() || !newUname.trim() || !newPwd.trim()) {
-      showToast('All fields required', 'error');
-      return;
-    }
-    
-    if (!validatePassword(newPwd.trim())) {
-      showToast('Password must be at least 8 characters long and contain letters, numbers, and special characters', 'error');
-      return;
-    }
-    try {
-      // locationId: null for Global Admin roles, otherwise the selected location
-      const isGlobalRole = newRole === 'Admin' || newRole === 'Super Admin';
-      const locationId = isGlobalRole ? null : (newLocationId ? parseInt(newLocationId) : 2);
-      await API.addUser({ fullName: newName, username: newUname, password: newPwd, role: newRole, locationId });
-      showToast('User added!', 'success');
-      setNewName(''); setNewUname(''); setNewPwd('');
-      loadAll();
-    } catch (e: any) {
-      showToast('Error: ' + e.message, 'error');
-    }
-  };
-
-  const handleToggleUser = async (u: any) => {
-    try {
-      await API.updateUser({ username: u.username, active: !u.active });
-      showToast('User status updated', 'success');
-      loadAll();
-    } catch (e: any) {
-      showToast('Error: ' + e.message, 'error');
-    }
-  };
-
-  const handleChangeUserRole = async (username: string, role: string) => {
-    try {
-      await API.updateUser({ username, role });
-      showToast(`Updated role for user ${username} to ${role}`, 'success');
-      loadAll();
-    } catch (e: any) {
-      showToast('Error updating role: ' + e.message, 'error');
-    }
-  };
-
-  const handleResetUserPassword = async (username: string) => {
-    const newPassword = window.prompt(`Enter new password for user ${username}:`);
-    if (!newPassword || !newPassword.trim()) return;
-
-    if (!validatePassword(newPassword.trim())) {
-      showToast('Password must be at least 8 characters long and contain letters, numbers, and special characters', 'error');
-      return;
-    }
-
-    try {
-      await API.updateUser({ username, password: newPassword.trim() });
-      showToast(`Password for user ${username} updated successfully!`, 'success');
-      loadAll();
-    } catch (e: any) {
-      showToast('Error resetting password: ' + e.message, 'error');
-    }
-  };
-
-  const handleOpenDeleteUser = (u: any) => {
-    setUserToDelete(u);
-    setDeleteUserModalOpen(true);
-  };
-
-  const handleConfirmDeleteUser = async () => {
-    if (!userToDelete) return;
-    setDeletingUser(true);
-    try {
-      await API.deleteUser({ id: userToDelete.id, username: userToDelete.username });
-      showToast(`User account "${userToDelete.username}" deleted successfully!`, 'success');
-      setDeleteUserModalOpen(false);
-      setUserToDelete(null);
-      await loadAll();
-    } catch (err: any) {
-      showToast('Failed to delete user: ' + (err.message || 'Server error'), 'error');
-    } finally {
-      setDeletingUser(false);
-    }
-  };
 
   // Page Settings Handlers
   const handleSaveVisibility = async () => {
@@ -419,156 +309,8 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-[10px] text-primary/70 font-medium">
                   Passwords are never displayed anywhere in the application. They are stored as one-way bcrypt hashes;
-                  use the form below to set or change a user's password.
+                  user accounts are created and managed from the User Management hub above.
                 </p>
-              </div>
-
-              <div className="card-glass p-6 space-y-4">
-                <h3 className="font-extrabold text-primary text-sm uppercase tracking-wider flex items-center gap-2">
-                  <Users className="w-4 h-4 text-accent" />
-                  <span>Add New System User Account</span>
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
-                  <input
-                    type="text"
-                    placeholder="Full Name (e.g. Rahul Sharma)"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="input-modern"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Username / Email"
-                    value={newUname}
-                    onChange={(e) => setNewUname(e.target.value)}
-                    className="input-modern"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Initial Password"
-                    value={newPwd}
-                    onChange={(e) => setNewPwd(e.target.value)}
-                    className="input-modern"
-                  />
-                  <select
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value)}
-                    className="select-modern font-bold"
-                  >
-                    <option value="HR">HR Specialist</option>
-                    <option value="Manager">Store Manager</option>
-                    <option value="Admin">Administrator</option>
-                    <option value="Greeter">Greeter Desk</option>
-                    <option value="Recruiter">Recruiter</option>
-                  </select>
-                  {/* Location Assignment — core of multi-location system */}
-                  <select
-                    value={(newRole === 'Admin' || newRole === 'Super Admin') ? '' : newLocationId}
-                    onChange={(e) => setNewLocationId(e.target.value)}
-                    disabled={newRole === 'Admin' || newRole === 'Super Admin'}
-                    className="select-modern font-bold disabled:opacity-50"
-                    title={(newRole === 'Admin' || newRole === 'Super Admin') ? 'Admins have access to all locations' : 'Select branch location for this user'}
-                  >
-                    {(newRole === 'Admin' || newRole === 'Super Admin') && (
-                      <option value="">🌐 All Locations (Global Admin)</option>
-                    )}
-                    {locations.length > 0 ? locations.map((loc: any) => (
-                      <option key={loc.id} value={loc.id}>📍 {loc.location_name}</option>
-                    )) : (
-                      <>
-                        <option value="1">📍 Belagavi</option>
-                        <option value="2">📍 Davanagere</option>
-                        <option value="3">📍 Shivamogga</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                <div className="flex justify-end">
-                  <button onClick={handleAddUser} className="btn-primary text-xs shadow-md">
-                    Create User Account
-                  </button>
-                </div>
-              </div>
-
-              <div className="card-glass p-5 space-y-4">
-                <h3 className="font-extrabold text-primary text-sm tracking-tight">Registered User Accounts &amp; Role Management</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/60">
-                        <th className="py-3 px-4">Full Name</th>
-                        <th className="py-3 px-4">Username</th>
-                        <th className="py-3 px-4">Location</th>
-                        <th className="py-3 px-4">Assigned Role</th>
-                        <th className="py-3 px-4">Account Status</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-accent-soft/60">
-                      {users.map(u => (
-                        <tr key={u.username} className="hover:bg-black/5 font-medium">
-                          <td className="py-3.5 px-4 font-extrabold text-primary">{u.fullName}</td>
-                          <td className="py-3.5 px-4 text-[#475569] font-mono">{u.username}</td>
-                          <td className="py-3.5 px-4">
-                            {u.location_id === null || u.location_id === undefined ? (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 w-fit">
-                                🌐 All Locations
-                              </span>
-                            ) : (
-                              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary flex items-center gap-1 w-fit">
-                                📍 {u.location_name || u.location_code || 'Davanagere'}
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <select
-                              value={u.role}
-                              onChange={(e) => handleChangeUserRole(u.username, e.target.value)}
-                              className="p-1.5 rounded-xl border border-primary/30 bg-white font-bold text-primary text-xs shadow-xs"
-                            >
-                              <option value="Admin">Admin</option>
-                              <option value="HR">HR</option>
-                              <option value="Manager">Store Manager</option>
-                              <option value="Greeter">Greeter Desk</option>
-                              <option value="Recruiter">Recruiter</option>
-                              <option value="Interviewer">Interviewer</option>
-                            </select>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${u.active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                              {u.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleToggleUser(u)}
-                                className={`px-3 py-1.5 rounded-xl border font-bold text-[11px] ${u.active ? 'border-amber-600 text-amber-700 hover:bg-amber-50' : 'border-emerald-600 text-emerald-700 hover:bg-emerald-50'}`}
-                              >
-                                {u.active ? 'Deactivate' : 'Activate'}
-                              </button>
-                              <button
-                                onClick={() => handleResetUserPassword(u.username)}
-                                className="px-3 py-1.5 rounded-xl border border-primary text-primary font-bold text-[11px] hover:bg-primary hover:text-white transition-all flex items-center gap-1 shadow-xs"
-                              >
-                                <Key className="w-3.5 h-3.5" /> Reset Password
-                              </button>
-                              <button
-                                onClick={() => handleOpenDeleteUser(u)}
-                                className="px-3 py-1.5 rounded-xl border border-rose-600 text-rose-700 font-bold text-[11px] hover:bg-rose-600 hover:text-white transition-all flex items-center gap-1 shadow-xs cursor-pointer"
-                                title="Delete User Account"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" /> Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             </div>
           )}
@@ -809,86 +551,6 @@ export default function SettingsPage() {
           )}
         </main>
       </div>
-
-      {/* Delete User Confirmation Dialog Modal */}
-      {deleteUserModalOpen && userToDelete && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="card-glass bg-white rounded-2xl w-full max-w-md shadow-2xl border border-red-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-5 bg-gradient-to-r from-red-600 to-rose-700 text-white flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black">
-                  <AlertTriangle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-white">Delete User Account</h3>
-                  <p className="text-xs text-white/80">Permanent Account Removal</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={deletingUser}
-                onClick={() => { setDeleteUserModalOpen(false); setUserToDelete(null); }}
-                className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer disabled:opacity-50"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <p className="text-sm font-bold text-primary">
-                Are you sure you want to permanently delete this user account?
-              </p>
-
-              <div className="p-4 bg-red-50/80 rounded-xl border border-red-200 space-y-2">
-                <div className="text-xs text-primary/80 flex items-center justify-between">
-                  <span className="font-semibold text-primary/70">Full Name:</span>
-                  <span className="font-extrabold text-primary">{userToDelete.fullName || userToDelete.role}</span>
-                </div>
-                <div className="text-xs text-primary/80 flex items-center justify-between">
-                  <span className="font-semibold text-primary/70">Username:</span>
-                  <span className="font-mono font-black text-red-700">{userToDelete.username}</span>
-                </div>
-                {userToDelete.role && (
-                  <div className="text-xs text-primary/80 flex items-center justify-between">
-                    <span className="font-semibold text-primary/70">Assigned Role:</span>
-                    <span className="font-bold text-primary">{userToDelete.role}</span>
-                  </div>
-                )}
-                {(userToDelete.location_name || userToDelete.location_code) && (
-                  <div className="text-xs text-primary/80 flex items-center justify-between">
-                    <span className="font-semibold text-primary/70">Location:</span>
-                    <span className="font-bold text-primary">{userToDelete.location_name || userToDelete.location_code}</span>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-xs text-red-600 font-medium leading-relaxed">
-                This action cannot be undone. Once deleted, the user will permanently lose all system access, granular module permissions, and active login sessions.
-              </p>
-            </div>
-
-            <div className="p-4 bg-primary/5 border-t border-accent/20 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                disabled={deletingUser}
-                onClick={() => { setDeleteUserModalOpen(false); setUserToDelete(null); }}
-                className="px-4 py-2 rounded-xl border border-accent/25 text-primary text-xs font-bold hover:bg-gray-100 cursor-pointer disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={deletingUser}
-                onClick={handleConfirmDeleteUser}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                {deletingUser ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                <span>{deletingUser ? 'Deleting...' : 'Delete User'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

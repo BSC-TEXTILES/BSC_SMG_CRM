@@ -375,19 +375,6 @@ export const API = {
     });
   },
 
-  // Onboarding & Exit
-  async getOnboardingList() { return apiFetch('/onboarding/list'); },
-  async createOnboarding(p: any) { return apiFetch('/onboarding/create', { method: 'POST', body: JSON.stringify(p) }); },
-  async getOnboardingItems(recordId: string) { return apiFetch(`/onboarding/items?recordId=${encodeURIComponent(recordId)}`); },
-  async updateOnboardingItem(p: any) { return apiFetch('/onboarding/update-item', { method: 'POST', body: JSON.stringify(p) }); },
-  async completeOnboarding(p: any) { return apiFetch('/onboarding/complete', { method: 'POST', body: JSON.stringify(p) }); },
-
-  async getExitList() { return apiFetch('/exit/list'); },
-  async createExit(p: any) { return apiFetch('/exit/create', { method: 'POST', body: JSON.stringify(p) }); },
-  async getExitItems(recordId: string) { return apiFetch(`/exit/items?recordId=${encodeURIComponent(recordId)}`); },
-  async updateExitItem(p: any) { return apiFetch('/exit/update-item', { method: 'POST', body: JSON.stringify(p) }); },
-  async completeExit(p: any) { return apiFetch('/exit/complete', { method: 'POST', body: JSON.stringify(p) }); },
-
   // Settings
   async getUsers() { return apiFetch('/settings/users'); },
   async addUser(p: any) { return apiFetch('/settings/users/add', { method: 'POST', body: JSON.stringify(p) }); },

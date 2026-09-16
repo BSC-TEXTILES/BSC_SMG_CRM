@@ -99,13 +99,13 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   }, [pathname]);
 
   const roleNavMap: Record<string, string[]> = {
-    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
-    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
-    'HR':          ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
-    'Recruiter':   ['dashboard', 'wedding_crm', 'candidates', 'interview', 'form', 'broadcast'],
-    'Interviewer': ['interview', 'candidates'],
-    'Manager':     ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
-    'Employee':    ['dashboard', 'wedding_crm', 'onboarding'],
+    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
+    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
+    'HR':          ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
+    'Recruiter':   ['dashboard', 'wedding_crm', 'candidates', 'form', 'broadcast'],
+    'Interviewer': ['candidates'],
+    'Manager':     ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
+    'Employee':    ['dashboard', 'wedding_crm'],
     'Guest':       ['form'],
     'Greeter':     ['wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter']
   };

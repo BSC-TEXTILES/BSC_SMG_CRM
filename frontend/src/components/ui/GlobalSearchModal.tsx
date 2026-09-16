@@ -72,7 +72,6 @@ export default function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModal
 
         // Static Quick Pages
         if ('dashboard'.includes(q)) resList.push({ type: 'Page', title: 'Dashboard Analytics', subtitle: 'Executive Overview', href: '/dashboard' });
-        if ('interview'.includes(q)) resList.push({ type: 'Page', title: 'Interview Evaluation Panel', subtitle: 'Round 1 & Round 2 Scoring', href: '/interview-panel' });
         if ('openings'.includes(q) || 'manpower'.includes(q)) resList.push({ type: 'Page', title: 'Manpower Openings', subtitle: 'Role Requisitions', href: '/openings' });
         if ('broadcast'.includes(q) || 'announcement'.includes(q)) resList.push({ type: 'Page', title: 'Broadcast Center', subtitle: 'System Notifications & Broadcasts', href: '/broadcast-center' });
 

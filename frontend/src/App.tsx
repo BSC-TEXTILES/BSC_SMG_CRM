@@ -52,8 +52,6 @@ export default function App() {
         <Route path="/feedback-qr" element={<FeedbackQR />} />
         <Route path="/feedback-list" element={<FeedbackList />} />
         <Route path="/feedback-collection" element={<FeedbackCollection />} />
-        <Route path="/feedback-register" element={<FeedbackCollection />} />
-        <Route path="/feedbacks" element={<FeedbackCollection />} />
         <Route path="/divert" element={<Divert />} />
         <Route path="/pm-view" element={<PMView />} />
         <Route path="/cash-settlement" element={<CashSettlement />} />
