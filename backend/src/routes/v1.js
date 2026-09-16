@@ -103,6 +103,8 @@ router.post('/exit/complete', exitController.completeExit);
 router.get('/settings/users', authenticate, settingsController.getUsers);
 router.post('/settings/users', authenticate, authorize('Admin', 'Super Admin'), settingsController.addUser);
 router.put('/settings/users', authenticate, authorize('Admin', 'Super Admin'), settingsController.updateUser);
+router.delete('/settings/users/:id', authenticate, authorize('Admin', 'Super Admin'), settingsController.deleteUser);
+router.post('/settings/users/delete', authenticate, authorize('Admin', 'Super Admin'), settingsController.deleteUser);
 router.get('/settings/page-visibility', settingsController.getPageSettings);
 router.put('/settings/page-visibility', settingsController.savePageSettings);
 router.get('/settings/designations', settingsController.getDesignations);

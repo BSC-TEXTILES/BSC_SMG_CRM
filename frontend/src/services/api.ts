@@ -392,6 +392,10 @@ export const API = {
   async getUsers() { return apiFetch('/settings/users'); },
   async addUser(p: any) { return apiFetch('/settings/users/add', { method: 'POST', body: JSON.stringify(p) }); },
   async updateUser(p: any) { return apiFetch('/settings/users/update', { method: 'POST', body: JSON.stringify(p) }); },
+  async deleteUser(identifier: number | string | { id?: number | string; username?: string }) {
+    const payload = typeof identifier === 'object' ? identifier : (!isNaN(Number(identifier)) ? { id: identifier } : { username: identifier });
+    return apiFetch('/settings/users/delete', { method: 'POST', body: JSON.stringify(payload) });
+  },
   async getPageSettings() { 
     try {
       return await apiFetch('/settings/page-visibility'); 

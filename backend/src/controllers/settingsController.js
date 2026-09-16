@@ -6,7 +6,7 @@ const { logAction } = require('../utils/logger');
 const getUsers = async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT u.username, u.role, u.active, u.full_name as fullName,
+      SELECT u.id, u.username, u.role, u.active, u.full_name as fullName,
              u.location_id, u.location_code,
              l.location_name
       FROM users u
@@ -14,16 +14,17 @@ const getUsers = async (req, res) => {
       ORDER BY u.created_at ASC
     `);
     const defaultUsers = [
-      { username: 'admin@bsctextiles.com', role: 'Admin', active: true, fullName: 'System Administrator', location_id: null, location_name: null },
-      { username: 'hr@bsctextiles.com', role: 'HR', active: true, fullName: 'HR Specialist', location_id: 2, location_name: 'Davanagere' },
-      { username: 'manager@bsctextiles.com', role: 'Manager', active: true, fullName: 'Store Manager', location_id: 2, location_name: 'Davanagere' },
-      { username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff', location_id: 2, location_name: 'Davanagere' }
+      { id: 1, username: 'admin@bsctextiles.com', role: 'Admin', active: true, fullName: 'System Administrator', location_id: null, location_name: null },
+      { id: 2, username: 'hr@bsctextiles.com', role: 'HR', active: true, fullName: 'HR Specialist', location_id: 2, location_name: 'Davanagere' },
+      { id: 3, username: 'manager@bsctextiles.com', role: 'Manager', active: true, fullName: 'Store Manager', location_id: 2, location_name: 'Davanagere' },
+      { id: 4, username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff', location_id: 2, location_name: 'Davanagere' }
     ];
 
     if (rows.length === 0) {
       return res.json({ users: defaultUsers });
     }
     const users = rows.map((r) => ({
+      id: r.id,
       username: r.username,
       role: r.role,
       active: !!r.active,
@@ -35,7 +36,7 @@ const getUsers = async (req, res) => {
 
     // Ensure greeter@bsctextiles.com is present in list if not in db yet
     if (!users.some(u => u.username.toLowerCase() === 'greeter@bsctextiles.com')) {
-      users.push({ username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff', location_id: 2, location_name: 'Davanagere' });
+      users.push({ id: 4, username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff', location_id: 2, location_name: 'Davanagere' });
     }
 
     return res.json({ users });
@@ -117,6 +118,57 @@ const updateUser = async (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     return errorRes(res, 'Failed to update user', [err.message], 500);
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const identifier = req.params.id || req.body.id || req.body.username;
+    if (!identifier) {
+      return errorRes(res, 'User ID or username is required for deletion', [], 400);
+    }
+
+    // Lookup user by ID or Username
+    const isNumeric = !isNaN(Number(identifier));
+    const [[user]] = isNumeric
+      ? await db.query(`SELECT id, username, full_name, role FROM users WHERE id = ?`, [identifier])
+      : await db.query(`SELECT id, username, full_name, role FROM users WHERE username = ?`, [identifier]);
+
+    if (!user) {
+      return errorRes(res, 'User not found', [], 404);
+    }
+
+    // Disallow deleting built-in administrator accounts
+    const protectedUsers = ['admin@bsctextiles.com', 'admin'];
+    if (protectedUsers.includes(user.username.toLowerCase())) {
+      return errorRes(res, 'Cannot delete the built-in system administrator account', [], 403);
+    }
+
+    // Disallow deleting yourself
+    if (req.user && req.user.username && req.user.username.toLowerCase() === user.username.toLowerCase()) {
+      return errorRes(res, 'You cannot delete your own active administrator account', [], 400);
+    }
+
+    // Clean up dependent tables if present
+    try { await db.query(`DELETE FROM user_permissions WHERE user_id = ?`, [user.id]); } catch (e) {}
+    try { await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [user.id]); } catch (e) {}
+
+    // Delete user
+    await db.query(`DELETE FROM users WHERE id = ?`, [user.id]);
+
+    // Record audit log
+    const ip = req.ip || req.connection?.remoteAddress || null;
+    await logAction(
+      req.user ? req.user.username : 'Admin',
+      'DELETE_USER',
+      'SETTINGS',
+      { userId: user.id, username: user.username, fullName: user.full_name, role: user.role },
+      ip
+    );
+
+    return res.json({ success: true, message: 'User deleted successfully', user: { id: user.id, username: user.username } });
+  } catch (err) {
+    return errorRes(res, 'Failed to delete user: ' + err.message, [err.message], 500);
   }
 };
 
@@ -305,6 +357,7 @@ module.exports = {
   getUsers,
   addUser,
   updateUser,
+  deleteUser,
   getPageSettings,
   savePageSettings,
   getDesignations,

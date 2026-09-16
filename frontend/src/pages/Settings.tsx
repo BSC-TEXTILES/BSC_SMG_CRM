@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ToastContainer, { showToast } from '../components/Toast';
 import { API, Auth, UserSession, apiFetch } from '../services/api';
-import { Settings, Users, Eye, EyeOff, HelpCircle, Tag, Plus, Trash2, Key, Shield, Check, X, Lock, ShieldAlert, RefreshCw } from 'lucide-react';
+import { Settings, Users, Eye, EyeOff, HelpCircle, Tag, Plus, Trash2, Key, Shield, Check, X, Lock, ShieldAlert, RefreshCw, AlertTriangle } from 'lucide-react';
 import DevToolsMonitoringPanel from '../components/DevToolsMonitoringPanel';
 
 export default function SettingsPage() {
@@ -21,6 +21,11 @@ export default function SettingsPage() {
   const [newRole, setNewRole] = useState('HR');
   const [newLocationId, setNewLocationId] = useState<string>('2'); // default Davanagere
   const [locations, setLocations] = useState<any[]>([]);
+
+  // Delete User Confirmation
+  const [deleteUserModalOpen, setDeleteUserModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   // Store Operational PINs
   const [greeterPin, setGreeterPin] = useState('');
@@ -161,6 +166,27 @@ export default function SettingsPage() {
       loadAll();
     } catch (e: any) {
       showToast('Error resetting password: ' + e.message, 'error');
+    }
+  };
+
+  const handleOpenDeleteUser = (u: any) => {
+    setUserToDelete(u);
+    setDeleteUserModalOpen(true);
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeletingUser(true);
+    try {
+      await API.deleteUser({ id: userToDelete.id, username: userToDelete.username });
+      showToast(`User account "${userToDelete.username}" deleted successfully!`, 'success');
+      setDeleteUserModalOpen(false);
+      setUserToDelete(null);
+      await loadAll();
+    } catch (err: any) {
+      showToast('Failed to delete user: ' + (err.message || 'Server error'), 'error');
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -529,6 +555,13 @@ export default function SettingsPage() {
                               >
                                 <Key className="w-3.5 h-3.5" /> Reset Password
                               </button>
+                              <button
+                                onClick={() => handleOpenDeleteUser(u)}
+                                className="px-3 py-1.5 rounded-xl border border-rose-600 text-rose-700 font-bold text-[11px] hover:bg-rose-600 hover:text-white transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                                title="Delete User Account"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -776,6 +809,86 @@ export default function SettingsPage() {
           )}
         </main>
       </div>
+
+      {/* Delete User Confirmation Dialog Modal */}
+      {deleteUserModalOpen && userToDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="card-glass bg-white rounded-2xl w-full max-w-md shadow-2xl border border-red-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5 bg-gradient-to-r from-red-600 to-rose-700 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black">
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">Delete User Account</h3>
+                  <p className="text-xs text-white/80">Permanent Account Removal</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={deletingUser}
+                onClick={() => { setDeleteUserModalOpen(false); setUserToDelete(null); }}
+                className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer disabled:opacity-50"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm font-bold text-primary">
+                Are you sure you want to permanently delete this user account?
+              </p>
+
+              <div className="p-4 bg-red-50/80 rounded-xl border border-red-200 space-y-2">
+                <div className="text-xs text-primary/80 flex items-center justify-between">
+                  <span className="font-semibold text-primary/70">Full Name:</span>
+                  <span className="font-extrabold text-primary">{userToDelete.fullName || userToDelete.role}</span>
+                </div>
+                <div className="text-xs text-primary/80 flex items-center justify-between">
+                  <span className="font-semibold text-primary/70">Username:</span>
+                  <span className="font-mono font-black text-red-700">{userToDelete.username}</span>
+                </div>
+                {userToDelete.role && (
+                  <div className="text-xs text-primary/80 flex items-center justify-between">
+                    <span className="font-semibold text-primary/70">Assigned Role:</span>
+                    <span className="font-bold text-primary">{userToDelete.role}</span>
+                  </div>
+                )}
+                {(userToDelete.location_name || userToDelete.location_code) && (
+                  <div className="text-xs text-primary/80 flex items-center justify-between">
+                    <span className="font-semibold text-primary/70">Location:</span>
+                    <span className="font-bold text-primary">{userToDelete.location_name || userToDelete.location_code}</span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-red-600 font-medium leading-relaxed">
+                This action cannot be undone. Once deleted, the user will permanently lose all system access, granular module permissions, and active login sessions.
+              </p>
+            </div>
+
+            <div className="p-4 bg-primary/5 border-t border-accent/20 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={deletingUser}
+                onClick={() => { setDeleteUserModalOpen(false); setUserToDelete(null); }}
+                className="px-4 py-2 rounded-xl border border-accent/25 text-primary text-xs font-bold hover:bg-gray-100 cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deletingUser}
+                onClick={handleConfirmDeleteUser}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+              >
+                {deletingUser ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                <span>{deletingUser ? 'Deleting...' : 'Delete User'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

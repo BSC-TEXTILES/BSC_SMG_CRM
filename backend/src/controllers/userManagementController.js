@@ -383,7 +383,10 @@ const deleteUser = async (req, res) => {
     const { id } = req.params;
 
     // Cannot delete built-in system admin
-    const [[user]] = await db.query(`SELECT id, username FROM users WHERE id = ?`, [id]);
+    const isNumeric = !isNaN(Number(id));
+    const [[user]] = isNumeric
+      ? await db.query(`SELECT id, username FROM users WHERE id = ?`, [id])
+      : await db.query(`SELECT id, username FROM users WHERE username = ?`, [id]);
     if (!user) {
       return errorRes(res, 'User not found', [], 404);
     }
@@ -394,14 +397,14 @@ const deleteUser = async (req, res) => {
     }
 
     // Delete permissions first
-    try { await db.query(`DELETE FROM user_permissions WHERE user_id = ?`, [id]); } catch (e) {}
+    try { await db.query(`DELETE FROM user_permissions WHERE user_id = ?`, [user.id]); } catch (e) {}
 
     // Delete user_locations
-    try { await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [id]); } catch (e) {}
+    try { await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [user.id]); } catch (e) {}
 
-    await db.query(`DELETE FROM users WHERE id = ?`, [id]);
+    await db.query(`DELETE FROM users WHERE id = ?`, [user.id]);
 
-    await _audit(req, 'DELETE_USER', { userId: id, username: user.username });
+    await _audit(req, 'DELETE_USER', { userId: user.id, username: user.username });
 
     return successRes(res, { id }, 'User deleted successfully');
   } catch (err) {

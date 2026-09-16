@@ -8,10 +8,13 @@ const { errorRes } = require('../utils/response');
 
 const VALID_ROLES = ['HR', 'Admin', 'Super Admin', 'Manager', 'Greeter', 'Recruiter', 'Interviewer', 'Employee', 'Guest'];
 
-// Password policy: at least 6 chars
+// Password policy: at least 8 chars, 1 uppercase, 1 lowercase, 1 digit
 function validatePasswordPolicy(password) {
   if (!password || typeof password !== 'string') return 'Password is required';
-  if (password.length < 6) return 'Password must be at least 6 characters';
+  if (password.length < 8) return 'Password must be at least 8 characters long';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+  if (!/\d/.test(password)) return 'Password must contain at least one digit';
   return null;
 }
 
