@@ -93,6 +93,7 @@ export default function VmChecklist() {
   const [scores, setScores] = useState<Record<string, { score: string; remarks: string }>>({});
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submittedMsg, setSubmittedMsg] = useState<string | null>(null);
+  const [submissions, setSubmissions] = useState<any[]>([]);
 
   // Admin Floor Creation State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -141,6 +142,15 @@ export default function VmChecklist() {
     } catch {
       setPoints(DEFAULT_VM_QUESTIONS);
       initScores(DEFAULT_VM_QUESTIONS);
+    }
+
+    try {
+      const subRes = await API.getVmSubmissions();
+      if (subRes && subRes.submissions) {
+        setSubmissions(subRes.submissions);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -274,6 +284,7 @@ export default function VmChecklist() {
       setSubmittedMsg(
         `Visual Merchandising Checklist submitted successfully for ${selectedFloor} — ${selectedSection}! Score: ${scorePercent.toFixed(0)}%`
       );
+      loadData();
     } catch (err: any) {
       console.error(err);
       alert('Failed to submit VM checklist: ' + (err.message || 'Server error'));
@@ -287,15 +298,56 @@ export default function VmChecklist() {
   const naCount = Object.values(scores).filter((s) => s.score === 'NA').length;
   const currentScorePercent = points.length > 0 ? Math.round((passCount / points.length) * 100) : 100;
 
+  // VM Dashboard Metrics
+  const totalFloors = Object.keys(floorsData).length;
+  const totalSections = Object.values(floorsData).reduce((acc, floor) => acc + (floor.sections?.length || 0), 0);
+  const totalInspections = submissions.length;
+  const completedInspections = submissions.filter(s => Number(s.scorePercent) === 100).length;
+  const pendingInspections = submissions.filter(s => Number(s.scorePercent) < 100).length;
+  const latestInspection = submissions.length > 0 ? (submissions[0].createdAt ? new Date(submissions[0].createdAt).toLocaleDateString() : submissions[0].entryDate) : 'N/A';
+  const attentionSections = Array.from(new Set(submissions.filter(s => Number(s.scorePercent) < 100).map(s => s.section || 'General'))).length;
+
   return (
     <DashboardLayout
       title="Visual Merchandising Checklist"
       subtitle="Store Floor Styling & Display Standards Audit Desk"
     >
       <div className="space-y-6">
+        
+        {/* COMPACT VM DASHBOARD */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-primary/60">Total Floors</span>
+            <span className="text-xl font-black text-primary mt-1">{totalFloors}</span>
+          </div>
+          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-primary/60">Total Sections</span>
+            <span className="text-xl font-black text-primary mt-1">{totalSections}</span>
+          </div>
+          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-primary/60">Total Audits</span>
+            <span className="text-xl font-black text-primary mt-1">{totalInspections}</span>
+          </div>
+          <div className="card-glass p-3 bg-emerald-50 border border-emerald-200 flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-emerald-800/80">Passed (100%)</span>
+            <span className="text-xl font-black text-emerald-700 mt-1">{completedInspections}</span>
+          </div>
+          <div className="card-glass p-3 bg-rose-50 border border-rose-200 flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-rose-800/80">Pending/Failed</span>
+            <span className="text-xl font-black text-rose-700 mt-1">{pendingInspections}</span>
+          </div>
+          <div className="card-glass p-3 bg-amber-50 border border-amber-200 flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-amber-800/80">Attention Sections</span>
+            <span className="text-xl font-black text-amber-700 mt-1">{attentionSections}</span>
+          </div>
+          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
+            <span className="text-[10px] font-black uppercase text-primary/60">Latest Audit</span>
+            <span className="text-xs font-black text-primary mt-2">{latestInspection}</span>
+          </div>
+        </div>
+
         {/* VIEW 1: FLOOR SELECTION (Initial State) */}
-        {!selectedFloor && (
-          <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
             {/* Step 1 Header Banner */}
             <div className="card-glass p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 shadow-xs">
               <div className="flex items-center gap-3.5">
@@ -393,11 +445,10 @@ export default function VmChecklist() {
               ))}
             </div>
           </div>
-        )}
 
         {/* VIEW 2: SECTION SELECTION (Floor Selected, Section Not Selected) */}
-        {selectedFloor && !selectedSection && (
-          <div className="space-y-6 animate-fade-in">
+        {selectedFloor && (
+          <div className="space-y-6 animate-fade-in pt-4 border-t border-accent-soft/50">
             {/* Header & Back Action */}
             <div className="card-glass p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 shadow-xs">
               <div className="flex items-center gap-3">
@@ -470,7 +521,7 @@ export default function VmChecklist() {
 
         {/* VIEW 3: 11 QUESTIONS EVALUATION CHECKLIST (Floor & Section Selected) */}
         {selectedFloor && selectedSection && (
-          <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+          <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in pt-4 border-t border-accent-soft/50">
             {/* Active Audit Location Banner & Controls Bar */}
             <div className="card-glass p-5 space-y-4 border-2 border-accent/40 bg-white">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-accent-soft/60">
@@ -747,6 +798,53 @@ export default function VmChecklist() {
             </div>
           </form>
         )}
+
+        {/* SAVED RECORDS DASHBOARD */}
+        <div className="space-y-4 pt-8 border-t border-accent-soft/80">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-black text-primary tracking-tight">Recent Inspections</h3>
+              <p className="text-xs text-primary/70 font-medium">History of saved Visual Merchandising checklists.</p>
+            </div>
+            <div className="px-3 py-1 bg-accent/10 text-accent font-bold text-[10px] uppercase rounded-full tracking-widest">
+              {submissions.length} Records
+            </div>
+          </div>
+
+          {submissions.length === 0 ? (
+            <div className="card-glass p-8 text-center bg-white">
+              <ClipboardList className="w-10 h-10 text-primary/30 mx-auto mb-3" />
+              <h4 className="text-sm font-black text-primary mb-1">No Inspections Yet</h4>
+              <p className="text-xs text-primary/60">Complete an inspection above and it will appear here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {submissions.slice(0, 12).map((sub: any) => {
+                const subScore = Number(sub.scorePercent || 0);
+                const isPerfect = subScore === 100;
+                const d = new Date(sub.entryDate || sub.createdAt).toLocaleDateString();
+                
+                return (
+                  <div key={sub.id} className="card-glass p-4 bg-white border border-accent/20 relative overflow-hidden group">
+                    <div className={`absolute top-0 left-0 w-1 h-full ${isPerfect ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-[10px] font-black uppercase text-primary/60">{d}</div>
+                      <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${isPerfect ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {subScore}% {isPerfect ? 'Pass' : 'Review'}
+                      </div>
+                    </div>
+                    <div className="font-extrabold text-sm text-primary mb-1">{sub.floor}</div>
+                    <div className="text-xs font-bold text-accent mb-3">{sub.section || 'General Section'}</div>
+                    <div className="pt-3 border-t border-accent-soft/60 flex justify-between items-center text-[10px] font-medium text-primary/70">
+                      <span>{sub.shift || 'Opening'} Shift</span>
+                      <span className="font-bold">{sub.submittedBy}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* CREATE NEW FLOOR / FOLDER MODAL (ADMIN ONLY) */}

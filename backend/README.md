@@ -13,6 +13,83 @@ A production-ready Enterprise HRMS & Recruitment Web Application built with **Ne
 
 ---
 
+## User & Employee Account Synchronization
+
+`users` is the **single source of truth** for every account. Recruitment history lives in
+`candidates` and is joined to the master account by the unique key
+`users.candidate_app_no = candidates.app_no` (also mirrored by the unique `users.employee_id`).
+All shared fields are kept identical by `src/services/userSyncService.js` — the only module allowed
+to write account data from more than one direction.
+
+```mermaid
+flowchart TD
+    subgraph WRITE["Every write path"]
+        W1["userManagementController<br/>create / edit / delete / status"]
+        W2["candidateController.updateEmployee<br/>deleteEmployee"]
+        W3["offerController.markJoined<br/>acceptOffer"]
+        W4["candidateService.updateCandidateFull<br/>bulkAddEmployees · deleteCandidate"]
+        W5["dbInitializer backfill"]
+    end
+
+    subgraph CORE["userSyncService.js — sync core"]
+        S1["provisionUserForCandidate()"]
+        S2["syncUserFromCandidate()"]
+        S3["syncCandidateFromUser()"]
+        S4["deleteUserCompletely()"]
+        S5["seedRoleDefaultPermissions()"]
+        S6["ensureEmployeeId()"]
+    end
+
+    W1 --> CORE
+    W2 --> CORE
+    W3 --> S1
+    W4 --> CORE
+    W5 --> S1
+
+    CORE --> T1[("users")]
+    CORE --> T2[("candidates")]
+    CORE --> T3[("user_permissions")]
+    CORE --> T4[("user_locations")]
+```
+
+| Helper | Direction | Purpose |
+|---|---|---|
+| `syncUserFromCandidate(appNo)` | candidate → user | HR record edit flows into the account |
+| `syncCandidateFromUser(userId)` | user → candidate | account edit flows into the HR record |
+| `provisionUserForCandidate(appNo)` | — | joined candidate gets exactly one account, Employee ID, store, role modules |
+| `seedRoleDefaultPermissions(userId, role)` | — | new accounts match their role's sidebar visibility |
+| `ensureEmployeeId(userId)` | — | guarantees `EMP-000n` / candidate code is always present |
+| `deleteUserCompletely(userId)` | — | permissions + locations + wedding telecaller references released |
+
+### Account status is enforced on the backend
+
+`middleware/auth.js → authenticate()` re-checks the account on every request (5-second TTL cache,
+fail-open only when MySQL is unreachable):
+
+```
+JWT valid + account missing (non built-in)  → 401 "This account no longer exists"
+JWT valid + users.active = FALSE            → 401 "Your account has been deactivated"
+JWT valid + locked_until > NOW()            → 401 "Account is temporarily locked"
+```
+
+`invalidateUserStatusCache(userId)` is called by status toggles, edits and deletes so changes apply
+to live sessions immediately instead of on the next login. Deactivation therefore affects every
+dashboard and every API — not just the visibility of a menu item.
+
+### Endpoints that always stay in step
+
+| Concern | Endpoint |
+|---|---|
+| Registered User Accounts | `GET/POST/PUT/DELETE /api/admin/users`, `…/:id/permissions`, `…/:id/toggle-status`, `…/:id/reset-password` |
+| Employee Directory | `GET/PUT/DELETE /api/employees`, `POST /api/employees/bulk` |
+| Legacy Settings users | `/api/settings/users*` → delegate to the same controller functions |
+| Locations | `GET /api/locations` (+ per-store user counts incl. `user_locations`) |
+
+See the root `README.md` (§3–§5) for the ER model, the full lifecycle flow diagrams and the
+dashboard sync matrix.
+
+---
+
 ## Security Architecture
 
 ### Authentication & Secrets
