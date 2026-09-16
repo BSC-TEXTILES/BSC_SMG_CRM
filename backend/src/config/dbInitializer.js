@@ -551,7 +551,58 @@ async function autoInitializeDatabase(pool) {
       "ALTER TABLE users ADD COLUMN max_modules INT NULL DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP NULL",
       "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
-      "CREATE TABLE IF NOT EXISTS `user_locations` (`id` INT AUTO_INCREMENT PRIMARY KEY, `user_id` INT NOT NULL, `location_id` INT NOT NULL, `assigned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY `user_location_idx` (`user_id`, `location_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+      "CREATE TABLE IF NOT EXISTS `user_locations` (`id` INT AUTO_INCREMENT PRIMARY KEY, `user_id` INT NOT NULL, `location_id` INT NOT NULL, `assigned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY `user_location_idx` (`user_id`, `location_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+      // ── New tables for BSC Portal v2 ──────────────────────────────────
+
+      // Enhanced audit_logs columns
+      "ALTER TABLE audit_logs ADD COLUMN user_id INT NULL",
+      "ALTER TABLE audit_logs ADD COLUMN user_agent TEXT NULL",
+      "ALTER TABLE audit_logs ADD COLUMN location_id INT NULL",
+      "ALTER TABLE audit_logs ADD COLUMN success TINYINT(1) DEFAULT 1",
+      "ALTER TABLE audit_logs ADD COLUMN correlation_id VARCHAR(100) NULL",
+      "ALTER TABLE audit_logs ADD COLUMN target_id VARCHAR(100) NULL",
+      "ALTER TABLE audit_logs ADD COLUMN target_type VARCHAR(100) NULL",
+
+      // Enhanced users columns
+      "ALTER TABLE users ADD COLUMN employee_id VARCHAR(50) NULL",
+      "ALTER TABLE users ADD COLUMN mobile VARCHAR(20) NULL",
+      "ALTER TABLE users ADD COLUMN notes TEXT NULL",
+      "ALTER TABLE users ADD COLUMN account_expiry DATE NULL",
+      "ALTER TABLE users ADD COLUMN failed_login_count INT DEFAULT 0",
+      "ALTER TABLE users ADD COLUMN locked_until TIMESTAMP NULL",
+      "ALTER TABLE users ADD COLUMN password_changed_at TIMESTAMP NULL",
+      "ALTER TABLE users ADD COLUMN force_password_reset TINYINT(1) DEFAULT 0",
+
+      // Kiosk PINs table
+      `CREATE TABLE IF NOT EXISTS \`kiosk_pins\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`pin_type\` VARCHAR(50) NOT NULL,
+        \`pin_hash\` VARCHAR(255) NOT NULL,
+        \`location_id\` INT NULL,
+        \`status\` VARCHAR(20) NOT NULL DEFAULT 'Active',
+        \`last_changed_at\` TIMESTAMP NULL,
+        \`last_changed_by\` VARCHAR(150) NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY \`pin_type_location\` (\`pin_type\`, \`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+      // Security settings table
+      `CREATE TABLE IF NOT EXISTS \`security_settings\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`setting_key\` VARCHAR(100) NOT NULL UNIQUE,
+        \`setting_value\` TEXT NOT NULL,
+        \`updated_by\` VARCHAR(150) NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+      // Enhanced designations table columns
+      "ALTER TABLE designations ADD COLUMN department VARCHAR(150) NULL",
+      "ALTER TABLE designations ADD COLUMN description TEXT NULL",
+      "ALTER TABLE designations ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+      "ALTER TABLE designations ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
     ];
 
     for (const sql of migrations) {

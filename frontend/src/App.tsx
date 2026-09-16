@@ -30,6 +30,7 @@ import MCheckReports from './pages/MCheckReports';
 import MCheckHistory from './pages/MCheckHistory';
 import WeddingCRM from './pages/WeddingCRM';
 import SystemAdmin from './pages/SystemAdmin';
+import DeveloperTools from './pages/DeveloperTools';
 import QuickActionCenter from './components/ui/QuickActionCenter';
 import DevToolsGuard from './components/DevToolsGuard';
 import ConnectivityBanner from './components/ConnectivityBanner';
@@ -80,6 +81,7 @@ export default function App() {
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/system-admin" element={<SystemAdmin />} />
+        <Route path="/developer-tools" element={<DeveloperTools />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <QuickActionCenter />

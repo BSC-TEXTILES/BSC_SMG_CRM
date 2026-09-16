@@ -18,6 +18,7 @@ const crmController = require('../controllers/crmController');
 const mcheckController = require('../controllers/mcheckController');
 const locationController = require('../controllers/locationController');
 const userMgmtController = require('../controllers/userManagementController');
+const userValidator = require('../validators/userValidator');
 
 // ── Auth Routes ──────────────────────────────────────────────
 router.get('/auth/captcha', authController.captcha);
@@ -590,13 +591,13 @@ router.post('/legacy', async (req, res) => {
 router.get('/admin/users', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.listUsers);
 router.get('/admin/users/modules', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.listModules);
 router.get('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.getUser);
-router.post('/admin/users', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.createUser);
-router.put('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.updateUser);
+router.post('/admin/users', authenticate, authorize('Admin', 'Super Admin'), userValidator.validateCreateUser, userMgmtController.createUser);
+router.put('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userValidator.validateUpdateUser, userMgmtController.updateUser);
 router.delete('/admin/users/:id', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.deleteUser);
 router.get('/admin/users/:id/permissions', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.getUserPermissions);
 router.put('/admin/users/:id/permissions', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.updatePermissions);
 router.post('/admin/users/:id/toggle-status', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.toggleStatus);
-router.post('/admin/users/:id/reset-password', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.resetPassword);
+router.post('/admin/users/:id/reset-password', authenticate, authorize('Admin', 'Super Admin'), userValidator.validatePasswordChange, userMgmtController.resetPassword);
 router.get('/my-permissions', authenticate, userMgmtController.getMyPermissions);
 
 // ── System Administrator Endpoints ──────────────────────────────────────
@@ -698,4 +699,38 @@ router.get('/security/dashboard-stats', authenticate, authorize('Admin', 'Super 
   }
 });
 
+// ── Security Controller Routes ──────────────────────────────────────
+const securityController = require('../controllers/securityController');
+router.get('/security/dashboard', authenticate, authorize('Admin', 'Super Admin'), securityController.getSecurityDashboard);
+router.get('/security/settings', authenticate, authorize('Admin', 'Super Admin'), securityController.getSecuritySettings);
+router.put('/security/settings', authenticate, authorize('Admin', 'Super Admin'), securityController.updateSecuritySettings);
+router.get('/security/login-activity', authenticate, authorize('Admin', 'Super Admin'), securityController.getLoginActivity);
+router.get('/security/audit-logs', authenticate, authorize('Admin', 'Super Admin'), securityController.getAuditLogs);
+router.get('/security/active-sessions', authenticate, authorize('Admin', 'Super Admin'), securityController.getActiveSessions);
+router.post('/security/unlock-account', authenticate, authorize('Admin', 'Super Admin'), securityController.unlockAccount);
+
+// ── Developer Tools Routes (Admin Only) ─────────────────────────────
+const devToolsController = require('../controllers/devToolsController');
+router.get('/dev-tools/health', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getApiHealth);
+router.get('/dev-tools/db-health', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getDbHealth);
+router.get('/dev-tools/diagnostics', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getSystemDiagnostics);
+router.get('/dev-tools/environment', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getEnvironmentStatus);
+router.get('/dev-tools/routes', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getRouteExplorer);
+router.get('/dev-tools/dependencies', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getDependencyStatus);
+router.get('/dev-tools/logs', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getApplicationLogs);
+
+// ── Kiosk PIN Routes (Admin Only) ────────────────────────────────────
+const kioskPinController = require('../controllers/kioskPinController');
+router.get('/kiosk-pins', authenticate, authorize('Admin', 'Super Admin'), kioskPinController.listPins);
+router.post('/kiosk-pins', authenticate, authorize('Admin', 'Super Admin'), kioskPinController.upsertPin);
+router.post('/kiosk-pins/verify', kioskPinController.verifyPin);
+router.post('/kiosk-pins/:id/revoke', authenticate, authorize('Admin', 'Super Admin'), kioskPinController.revokePin);
+
+// ── Enhanced Designations Routes ─────────────────────────────────────
+router.get('/designations', settingsController.getDesignations);
+router.get('/designations/public', settingsController.getPublicDesignations);
+router.post('/designations', authenticate, authorize('Admin', 'Super Admin'), settingsController.addDesignation);
+router.delete('/designations', authenticate, authorize('Admin', 'Super Admin'), settingsController.deleteDesignation);
+
 module.exports = router;
+

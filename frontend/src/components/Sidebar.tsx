@@ -19,7 +19,8 @@ import {
   CheckSquare,
   Menu,
   Shield,
-  ShieldAlert
+  ShieldAlert,
+  Terminal
 } from 'lucide-react';
 import { 
   getSidebarCollapsed, 
@@ -44,6 +45,34 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     });
     return unsub;
   }, []);
+
+  // ── Escape key closes mobile sidebar ────────────────────────────
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // ── Body scroll lock when mobile sidebar is open ────────────────
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.style.overflow = '';
+      document.body.classList.remove('sidebar-open');
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('sidebar-open');
+    };
+  }, [isOpen]);
 
   const handleToggle = () => {
     const next = !collapsed;
@@ -104,7 +133,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
     { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
     { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' },
-    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' }
+    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' },
+    { key: 'developer_tools', href: '/developer-tools', label: 'Developer Tools', icon: Terminal, section: 'Administration' }
   ];
 
   useEffect(() => {
@@ -156,13 +186,16 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
         <div 
           className="fixed inset-0 bg-primary/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
       <aside
+        role="navigation"
+        aria-label="Main navigation"
         style={{ width: collapsed ? '72px' : '256px' }}
         className={`
-          fixed top-0 left-0 bottom-0 bg-primary text-white z-50 flex flex-col transition-all duration-300 shadow-2xl border-r border-accent/25
+          fixed top-0 left-0 bottom-0 bg-primary text-white z-50 flex flex-col transition-all duration-300 shadow-2xl border-r border-accent/25 overscroll-contain
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${collapsed ? 'w-[72px]' : 'w-64'}
         `}

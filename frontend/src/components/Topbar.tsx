@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, Search, Activity, Command, ShieldAlert, ShieldOff } from 'lucide-react';
+import { Bell, Clock, Search, Activity, Command, ShieldAlert, ShieldOff, Menu } from 'lucide-react';
 import { UserSession } from '../services/api';
 import { NotificationService } from '../services/notificationService';
 import NotificationDrawer from './ui/NotificationDrawer';
@@ -69,8 +69,18 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
       <header className="w-full max-w-full bg-white/95 backdrop-blur-md border-b border-accent-soft sticky top-0 z-30 shadow-xs flex-shrink-0">
         {/* ── Row 1: Hamburger, Title, Search, Tools ────────────────────── */}
         <div className="h-14 sm:h-16 px-2 sm:px-3 lg:px-5 flex items-center justify-between gap-2">
-        {/* ── Left Area: Title ──────────────────────────────────────────── */}
+        {/* ── Left Area: Hamburger + Title ──────────────────────────────── */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-shrink-0">
+          {/* Mobile Hamburger Menu Button — visible only below lg breakpoint */}
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary text-white hover:bg-primary-hover active:scale-95 transition-all shadow-md border border-primary/80 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 cursor-pointer flex-shrink-0"
+            aria-label="Open navigation menu"
+            title="Open navigation menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           <div className="min-w-0">
             <h1 className="text-xs sm:text-sm md:text-base font-black text-primary tracking-tight leading-none truncate max-w-[100px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-none">
               {title}

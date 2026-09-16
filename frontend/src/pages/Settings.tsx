@@ -226,20 +226,32 @@ export default function SettingsPage() {
   const handleSavePins = async () => {
     // Only PINs with a new value are sent; blank fields mean "unchanged".
     const payload: Record<string, string> = {};
-    if (greeterPin.trim()) payload.greeterPin = greeterPin.trim();
-    if (tvPin.trim()) payload.tvPin = tvPin.trim();
-    if (cashPin.trim()) payload.cashPin = cashPin.trim();
+    if (greeterPin.trim()) payload.greeter = greeterPin.trim();
+    if (tvPin.trim()) payload.tv = tvPin.trim();
+    if (cashPin.trim()) payload.cash = cashPin.trim();
+    
     if (Object.keys(payload).length === 0) {
       showToast('Type a new PIN in at least one field first.', 'error');
       return;
     }
-    if (!Object.values(payload).every(v => /^\d{4,8}$/.test(v))) {
-      showToast('PINs must be 4-8 digits.', 'error');
+    
+    // Allow up to 10 chars as per new validation
+    if (!Object.values(payload).every(v => /^[a-zA-Z0-9]{4,10}$/.test(v))) {
+      showToast('PINs must be 4-10 characters.', 'error');
       return;
     }
+    
     setSavingPins(true);
     try {
-      await API.updateCrmSettings(payload);
+      // Save each PIN via the new secure kiosk-pins API
+      const locationId = session?.locationId || null;
+      for (const [pinType, pin] of Object.entries(payload)) {
+        await apiFetch('/api/kiosk-pins', {
+          method: 'POST',
+          body: JSON.stringify({ pinType, pin, locationId })
+        });
+      }
+      
       showToast('Store Operational PINs updated (stored securely)!', 'success');
       setGreeterPin(''); setTvPin(''); setCashPin('');
       loadAll();

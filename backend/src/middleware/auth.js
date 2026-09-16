@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { errorRes } = require('../utils/response');
 const { getJwtSecret } = require('../utils/secrets');
 const pool = require('../config/db');
+const { authorizeLocationAccess } = require('../services/authorizationService');
 
 /**
  * authenticate — verifies JWT and attaches full user+location context to req.user
@@ -27,6 +28,8 @@ const authenticate = (req, res, next) => {
 
     const decoded = jwt.verify(token, getJwtSecret());
     req.user = decoded;
+    // Attach correlation ID for request tracing
+    req.correlationId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
     next();
   } catch (err) {
     return errorRes(res, 'Invalid or expired authentication token', [err.message], 401);
@@ -150,6 +153,7 @@ module.exports = {
   authenticate,
   authorize,
   authorizeModule,
+  authorizeLocationAccess,
   getLocationFilter,
   injectLocationId
 };
