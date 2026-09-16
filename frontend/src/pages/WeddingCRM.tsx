@@ -714,9 +714,63 @@ export default function WeddingCRM() {
         return;
       }
 
-      const worksheet = XLSX.utils.json_to_sheet(rows);
+      // Build worksheet manually to force text types on dates and phone numbers
+      const headers = Object.keys(rows[0]);
+      const ws: any = {};
+      const range = { s: { c: 0, r: 0 }, e: { c: headers.length - 1, r: rows.length } };
+
+      // Write headers
+      headers.forEach((h, ci) => {
+        const addr = XLSX.utils.encode_cell({ r: 0, c: ci });
+        ws[addr] = { v: h, t: 's' };
+      });
+
+      // Date-like column keywords
+      const dateKeywords = ['date', 'added'];
+      // Phone/mobile column keywords
+      const phoneKeywords = ['mobile', 'phone'];
+
+      // Write data rows
+      rows.forEach((row: any, ri: number) => {
+        headers.forEach((h, ci) => {
+          const addr = XLSX.utils.encode_cell({ r: ri + 1, c: ci });
+          const val = row[h];
+          const headerLower = h.toLowerCase();
+
+          if (val === null || val === undefined || val === '' || val === '-') {
+            ws[addr] = { v: val === null || val === undefined ? '' : String(val), t: 's' };
+          } else if (phoneKeywords.some(k => headerLower.includes(k))) {
+            // Force phone numbers to text to prevent scientific notation
+            const clean = String(val).replace(/[^0-9+]/g, '');
+            ws[addr] = { v: clean, t: 's' };
+          } else if (dateKeywords.some(k => headerLower.includes(k))) {
+            // Force dates to text string to prevent Excel date conversion
+            ws[addr] = { v: String(val), t: 's' };
+          } else {
+            ws[addr] = { v: val, t: 's' };
+          }
+        });
+      });
+
+      ws['!ref'] = XLSX.utils.encode_range(range);
+
+      // Set column widths for readability
+      ws['!cols'] = headers.map((h) => {
+        const headerLower = h.toLowerCase();
+        if (headerLower.includes('remarks') || headerLower.includes('notes')) return { wch: 35 };
+        if (headerLower.includes('customer name') || headerLower.includes('telecaller')) return { wch: 22 };
+        if (headerLower.includes('mobile') || headerLower.includes('phone')) return { wch: 15 };
+        if (headerLower.includes('email')) return { wch: 28 };
+        if (headerLower.includes('date')) return { wch: 14 };
+        if (headerLower.includes('location')) return { wch: 18 };
+        if (headerLower.includes('category')) return { wch: 20 };
+        if (headerLower.includes('status')) return { wch: 16 };
+        if (headerLower.includes('time')) return { wch: 18 };
+        return { wch: 14 };
+      });
+
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Wedding Customers');
+      XLSX.utils.book_append_sheet(workbook, ws, 'Wedding Customers');
 
       const dateStr = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(workbook, `BSC_Wedding_CRM_${dateStr}.xlsx`);
@@ -739,11 +793,19 @@ export default function WeddingCRM() {
         return;
       }
       const headers = Object.keys(rows[0]);
-      const escape = (v: any) => {
-        const str = v === null || v === undefined ? '' : String(v);
+      const dateKeywords = ['date', 'added'];
+      const phoneKeywords = ['mobile', 'phone'];
+      const escape = (v: any, header: string) => {
+        if (v === null || v === undefined) return '';
+        const str = String(v);
+        const headerLower = header.toLowerCase();
+        // Force phone numbers and dates to be quoted text so Excel doesn't convert them
+        if (phoneKeywords.some(k => headerLower.includes(k)) || dateKeywords.some(k => headerLower.includes(k))) {
+          return '"' + str.replace(/"/g, '""') + '"';
+        }
         return /[",\r\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
       };
-      const csv = [headers.join(','), ...rows.map((r: any) => headers.map(h => escape(r[h])).join(','))].join('\r\n');
+      const csv = [headers.join(','), ...rows.map((r: any) => headers.map(h => escape(r[h], h)).join(','))].join('\r\n');
       const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
