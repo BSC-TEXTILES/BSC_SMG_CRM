@@ -98,22 +98,12 @@ export default function VmChecklist() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submittedMsg, setSubmittedMsg] = useState<string | null>(null);
 
-  // Admin "Create New Floor Folder" Modal State
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newFloorName, setNewFloorName] = useState('');
-  const [newFloorDesc, setNewFloorDesc] = useState('');
-  const [newSectionInput, setNewSectionInput] = useState('');
-  const [newSectionsList, setNewSectionsList] = useState<string[]>([]);
-  const [creatingFloor, setCreatingFloor] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-
-  // Load custom floors from backend & questions
+  // Load questions
   useEffect(() => {
-    loadFloorsAndQuestions();
+    loadQuestions();
   }, []);
 
-  const loadFloorsAndQuestions = async () => {
-    // 1. Fetch VM Checkpoints
+  const loadQuestions = async () => {
     try {
       const res = await API.getVmPoints();
       if (res && res.points && res.points.length >= 11) {
@@ -126,35 +116,6 @@ export default function VmChecklist() {
     } catch {
       setPoints(DEFAULT_VM_QUESTIONS);
       initScores(DEFAULT_VM_QUESTIONS);
-    }
-
-    // 2. Fetch Custom Store Floors
-    try {
-      const floorRes = await API.getVmFloors();
-      if (floorRes && Array.isArray(floorRes.floors)) {
-        const merged: Record<string, FloorItem> = { ...DEFAULT_VM_FLOORS };
-        floorRes.floors.forEach((f: any) => {
-          merged[f.name] = {
-            id: f.id,
-            name: f.name,
-            label: f.name,
-            description: f.description || 'Custom Store Department',
-            badge: `${f.sections?.length || 1} Section${(f.sections?.length || 1) > 1 ? 's' : ''}`,
-            sections: f.sections || ['General'],
-            isCustom: true
-          };
-        });
-        setFloorsData(merged);
-      }
-    } catch (e) {
-      // Fallback: check localStorage for custom floors
-      try {
-        const cached = localStorage.getItem('bsc_custom_vm_floors');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          setFloorsData({ ...DEFAULT_VM_FLOORS, ...parsed });
-        }
-      } catch {}
     }
   };
 
@@ -191,122 +152,6 @@ export default function VmChecklist() {
     setSelectedSection(newSection);
     setSubmittedMsg(null);
     initScores(points);
-  };
-
-  // Add section pill to modal
-  const handleAddSectionToModal = () => {
-    const trimmed = newSectionInput.trim();
-    if (!trimmed) return;
-    if (newSectionsList.includes(trimmed)) {
-      setNewSectionInput('');
-      return;
-    }
-    setNewSectionsList([...newSectionsList, trimmed]);
-    setNewSectionInput('');
-  };
-
-  // Remove section pill from modal
-  const handleRemoveSectionFromModal = (secToRemove: string) => {
-    setNewSectionsList(newSectionsList.filter((s) => s !== secToRemove));
-  };
-
-  // Submit New Floor Creation
-  const handleCreateFloorSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreateError(null);
-
-    const name = newFloorName.trim();
-    if (!name) {
-      setCreateError('Please enter a Floor / Folder name.');
-      return;
-    }
-
-    if (floorsData[name]) {
-      setCreateError(`A floor named "${name}" already exists.`);
-      return;
-    }
-
-    const sections = [...newSectionsList];
-    if (newSectionInput.trim() && !sections.includes(newSectionInput.trim())) {
-      sections.push(newSectionInput.trim());
-    }
-
-    if (sections.length === 0) {
-      setCreateError('Please add at least one department section to this floor.');
-      return;
-    }
-
-    setCreatingFloor(true);
-    try {
-      const payload = {
-        name,
-        description: newFloorDesc.trim() || 'Store Department & Merchandise Galleria',
-        sections
-      };
-
-      await API.createVmFloor(payload);
-
-      // Update state
-      const updatedFloors: Record<string, FloorItem> = {
-        ...floorsData,
-        [name]: {
-          name,
-          label: name,
-          description: payload.description,
-          badge: `${sections.length} Section${sections.length > 1 ? 's' : ''}`,
-          sections,
-          isCustom: true
-        }
-      };
-      setFloorsData(updatedFloors);
-
-      try {
-        const customOnly: Record<string, FloorItem> = {};
-        Object.entries(updatedFloors).forEach(([k, v]) => {
-          if (v.isCustom) customOnly[k] = v;
-        });
-        localStorage.setItem('bsc_custom_vm_floors', JSON.stringify(customOnly));
-      } catch {}
-
-      // Reset modal
-      setNewFloorName('');
-      setNewFloorDesc('');
-      setNewSectionInput('');
-      setNewSectionsList([]);
-      setIsCreateModalOpen(false);
-      setSubmittedMsg(`New store floor folder "${name}" created successfully with all sections ready for audit!`);
-    } catch (err: any) {
-      setCreateError('Failed to create floor folder: ' + (err.message || 'Server error'));
-    } finally {
-      setCreatingFloor(false);
-    }
-  };
-
-  // Delete custom floor
-  const handleDeleteCustomFloor = async (floorName: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!window.confirm(`Are you sure you want to remove floor folder "${floorName}"?`)) return;
-
-    try {
-      await API.deleteVmFloor({ name: floorName });
-      const copy = { ...floorsData };
-      delete copy[floorName];
-      setFloorsData(copy);
-
-      try {
-        const customOnly: Record<string, FloorItem> = {};
-        Object.entries(copy).forEach(([k, v]) => {
-          if (v.isCustom) customOnly[k] = v;
-        });
-        localStorage.setItem('bsc_custom_vm_floors', JSON.stringify(customOnly));
-      } catch {}
-
-      if (selectedFloor === floorName) {
-        resetAllSelections();
-      }
-    } catch (err: any) {
-      alert('Failed to remove floor: ' + (err.message || 'Server error'));
-    }
   };
 
   // Submit Audit Checklist
@@ -382,18 +227,6 @@ export default function VmChecklist() {
                   </p>
                 </div>
               </div>
-
-              {/* Admin Action: Create New Floor / Folder Button */}
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="btn-gold text-xs px-4 py-2.5 font-extrabold flex items-center gap-2 cursor-pointer shadow-md shrink-0"
-                >
-                  <FolderPlus className="w-4 h-4" />
-                  <span>+ Create New Floor / Folder</span>
-                </button>
-              )}
             </div>
 
             {/* Notification Banner */}
@@ -426,26 +259,11 @@ export default function VmChecklist() {
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary group-hover:bg-accent/20 group-hover:text-accent-hover transition-colors">
                         {floorInfo.sections.length} Section{floorInfo.sections.length > 1 ? 's' : ''}
                       </span>
-                      {floorInfo.isCustom && isAdmin && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteCustomFloor(floorKey, e)}
-                          title="Remove custom floor folder"
-                          className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
 
                     <div>
                       <h3 className="font-extrabold text-base text-primary group-hover:text-accent-hover transition-colors flex items-center gap-1.5">
                         <span>{floorInfo.label}</span>
-                        {floorInfo.isCustom && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">
-                            Custom
-                          </span>
-                        )}
                       </h3>
                       <p className="text-[11px] text-primary/70 font-medium mt-0.5 line-clamp-2">
                         {floorInfo.description}
@@ -476,29 +294,6 @@ export default function VmChecklist() {
                   </div>
                 </div>
               ))}
-
-              {/* Action Card: Add New Floor Folder */}
-              {isAdmin && (
-                <div
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="card-glass p-5 border-2 border-dashed border-accent/40 hover:border-accent hover:bg-accent/5 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-64 group bg-white/60"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-accent/15 text-accent-hover flex items-center justify-center font-black group-hover:scale-110 transition-transform shadow-xs">
-                    <FolderPlus className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-sm text-primary group-hover:text-accent-hover transition-colors">
-                      + Create New Floor Folder
-                    </h3>
-                    <p className="text-[11px] text-primary/65 font-medium mt-1 max-w-[200px]">
-                      Add a custom floor with assigned department sections & VM criteria
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/15 text-accent">
-                    Admin Option
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         )}

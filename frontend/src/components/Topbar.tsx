@@ -82,24 +82,24 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
             <Menu className="w-5 h-5" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-xs sm:text-sm md:text-base font-black text-primary tracking-tight leading-none truncate max-w-[100px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-none">
+            <h1 className="text-xs sm:text-sm md:text-base font-black text-primary tracking-tight leading-none truncate max-w-[80px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-none">
               {title}
             </h1>
           </div>
         </div>
 
         {/* ── Center Area: Fixed Search Directory (Ctrl+K) ──────── */}
-        <div className="flex-1 flex items-center justify-center px-1 sm:px-3 min-w-0 max-w-[120px] sm:max-w-xs md:max-w-sm lg:max-w-md mx-auto hidden sm:flex">
+        <div className="flex-1 flex items-center justify-center px-1 sm:px-3 min-w-0 mx-auto">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="w-full flex items-center justify-between gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border border-accent-soft bg-background/80 hover:bg-background text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-2xs group cursor-pointer"
+            className="w-full max-w-[130px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-xl border border-accent-soft bg-background/80 hover:bg-background text-[10px] sm:text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-2xs group cursor-pointer"
             title="Search directory (Ctrl+K)"
             aria-label="Search directory (Ctrl+K)"
           >
-            <div className="flex items-center gap-2 min-w-0 truncate">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
               <Search className="w-3.5 h-3.5 text-accent flex-shrink-0 group-hover:scale-110 transition-transform" />
-              <span className="truncate hidden md:inline">Search directory...</span>
+              <span className="truncate">Search directory...</span>
             </div>
             <kbd className="hidden lg:inline-flex items-center gap-0.5 font-mono text-[9px] bg-white border border-accent-soft px-1.5 py-0.5 rounded text-primary font-bold shadow-2xs flex-shrink-0 select-none">
               <Command className="w-2.5 h-2.5" />
