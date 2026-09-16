@@ -559,289 +559,7 @@ export default function VmChecklist() {
           </div>
 
 
-        {/* --- VM ANALYTICS DASHBOARD --- */}
-        <div className="space-y-6">
-          {/* Dashboard Header & Filters */}
-          <div className="card-glass p-5 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-accent" />
-                  Visual Merchandising Analytics
-                </h2>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
-                  Real-time insights and performance metrics derived from actual saved inspections.
-                </p>
-              </div>
-              <div className="w-full md:w-64">
-                <input
-                  type="text"
-                  placeholder="Search floor, section, or inspector..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-modern text-xs w-full bg-white shadow-sm"
-                />
-              </div>
-            </div>
 
-{/* Filter Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 pt-4 border-t border-accent-soft/60">
-              <select value={filterFloor} onChange={e => setFilterFloor(e.target.value)} className="select-modern text-xs bg-white">
-                <option value="All">All Floors</option>
-                {Object.keys(floorsData).map(f => <option key={f} value={f}>{f}</option>)}
-              </select>
-              <select value={filterSection} onChange={e => setFilterSection(e.target.value)} className="select-modern text-xs bg-white">
-                <option value="All">All Sections</option>
-                {(filterFloor === 'All' ? Object.values(floorsData).flatMap(f => f.sections) : floorsData[filterFloor]?.sections || []).map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="select-modern text-xs bg-white">
-                <option value="All">All Statuses</option>
-                <option value="Passed">Passed (100%)</option>
-                <option value="Review">Review (80-99%)</option>
-                <option value="Failed">Failed (&lt;80%)</option>
-              </select>
-              <select value={filterInspector} onChange={e => setFilterInspector(e.target.value)} className="select-modern text-xs bg-white">
-                <option value="All">All Inspectors</option>
-                {uniqueInspectors.map(ins => <option key={ins} value={ins}>{ins}</option>)}
-              </select>
-              <input
-                type="date"
-                value={filterDateFrom}
-                onChange={e => setFilterDateFrom(e.target.value)}
-                className="input-modern text-xs bg-white"
-                placeholder="From Date"
-              />
-              <input
-                type="date"
-                value={filterDateTo}
-                onChange={e => setFilterDateTo(e.target.value)}
-                className="input-modern text-xs bg-white"
-                placeholder="To Date"
-              />
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={() => { setFilterFloor('All'); setFilterSection('All'); setFilterStatus('All'); setFilterInspector('All'); setFilterDateFrom(''); setFilterDateTo(''); setSearchQuery(''); }} className="btn-outline text-[10px] uppercase font-bold py-2 px-3 w-full justify-center">
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-            </div>
-          </div>
-
-          {/* Overall Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-3">
-            <div className="card-glass p-3 bg-white border-accent-soft text-center flex flex-col justify-center">
-              <span className="text-[9px] font-black uppercase text-primary/60">Average VM Score</span>
-              <span className="text-2xl font-black text-primary mt-1">{averageScore}%</span>
-            </div>
-            <div className="card-glass p-3 bg-white border-accent-soft text-center">
-              <span className="text-[9px] font-black uppercase text-primary/60">Total Floors</span>
-              <span className="text-xl font-black text-primary mt-1">{totalFloors}</span>
-            </div>
-            <div className="card-glass p-3 bg-white border-accent-soft text-center">
-              <span className="text-[9px] font-black uppercase text-primary/60">Sections</span>
-              <span className="text-xl font-black text-primary mt-1">{totalSections}</span>
-            </div>
-            <div className="card-glass p-3 bg-white border-accent-soft text-center">
-              <span className="text-[9px] font-black uppercase text-primary/60">Total Audits</span>
-              <span className="text-xl font-black text-primary mt-1">{totalInspections}</span>
-            </div>
-            <div className="card-glass p-3 bg-emerald-50 border-emerald-200 text-center">
-              <span className="text-[9px] font-black uppercase text-emerald-800">Passed Audits</span>
-              <span className="text-xl font-black text-emerald-700 mt-1">{completedInspections}</span>
-            </div>
-            <div className="card-glass p-3 bg-amber-50 border-amber-200 text-center">
-              <span className="text-[9px] font-black uppercase text-amber-800">Pending Audits</span>
-              <span className="text-xl font-black text-amber-700 mt-1">{pendingInspections}</span>
-            </div>
-            <div className="card-glass p-3 bg-rose-50 border-rose-200 text-center">
-              <span className="text-[9px] font-black uppercase text-rose-800">Failed Audits</span>
-              <span className="text-xl font-black text-rose-700 mt-1">{failedInspections}</span>
-            </div>
-            <div className="card-glass p-3 bg-blue-50 border-blue-200 text-center">
-              <span className="text-[9px] font-black uppercase text-blue-800">Attention Sections</span>
-              <span className="text-xl font-black text-blue-700 mt-1">{attentionSectionsCount}</span>
-            </div>
-            <div className="card-glass p-3 bg-white border-accent-soft text-center flex flex-col justify-center">
-              <span className="text-[9px] font-black uppercase text-primary/60">Latest Audit</span>
-              <span className="text-[11px] font-black text-primary mt-1">{latestInspection}</span>
-            </div>
-          </div>
-
-          {/* Charts Row 1: Overall Score & Floor Performance */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Overall VM Score Ring */}
-            <div className="card-glass p-5 bg-white border-accent/20 flex flex-col items-center justify-center text-center col-span-1">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-6">Overall VM Score</h3>
-              <div className="relative w-40 h-40 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="45" fill="none" stroke={averageScore >= 80 ? '#059669' : averageScore >= 50 ? '#d97706' : '#e11d48'} strokeWidth="8" strokeDasharray={`${(averageScore / 100) * 283} 283`} strokeLinecap="round" className="transition-all duration-1000" />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-3xl font-black text-primary">{averageScore}%</span>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 px-2 py-0.5 rounded-md ${averageScore >= 80 ? 'bg-emerald-100 text-emerald-800' : averageScore >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>
-                    {averageScore >= 80 ? 'Pass' : averageScore >= 50 ? 'Review' : 'Failed'}
-                  </span>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center w-full">
-                <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
-                  <div className="text-xs font-black text-primary/60">Total Questions</div>
-                  <div className="text-lg font-black text-primary">{totalQuestionsAssessed}</div>
-                </div>
-                <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-100">
-                  <div className="text-xs font-black text-emerald-800">Passed</div>
-                  <div className="text-lg font-black text-emerald-700">{totalQuestionsPassed}</div>
-                </div>
-                <div className="p-2 bg-rose-50 rounded-lg border border-rose-100">
-                  <div className="text-xs font-black text-rose-800">Attention</div>
-                  <div className="text-lg font-black text-rose-700">{totalQuestionsAttention}</div>
-                </div>
-              </div>
-              <div className="mt-4 text-xs text-primary/60 font-medium">
-                Based on <strong className="text-primary">{totalInspections}</strong> filtered audits.
-              </div>
-            </div>
-
-            {/* Floor-wise Performance Chart */}
-            <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Floor-wise Performance</h3>
-              <div className="h-56 flex items-center justify-center">
-                {floorChartData.length === 0 ? (
-                  <span className="text-xs text-primary/50 font-bold">No data available</span>
-                ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={floorChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }} />
-                    <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={50}>
-                      {floorChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.score >= 80 ? '#059669' : entry.score >= 50 ? '#d97706' : '#e11d48'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Charts Row 2: Status Distribution & VM Trend */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="card-glass p-5 bg-white border-accent/20">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">Audit Status Distribution</h3>
-              <div className="h-52 flex items-center justify-center">
-                {statusData.length === 0 ? (
-                  <span className="text-xs text-primary/50 font-bold">No data available</span>
-                ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
-                      {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">VM Score Trend</h3>
-              <div className="h-52 flex items-center justify-center">
-                {trendChartData.length === 0 ? (
-                  <span className="text-xs text-primary/50 font-bold">No data available</span>
-                ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} minTickGap={20} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
-                    <Line type="monotone" dataKey="score" stroke="#c5a365" strokeWidth={3} dot={{ r: 3, fill: '#c5a365' }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Floor-wise Progress Bars */}
-          <div className="card-glass p-5 bg-white border-accent/20">
-            <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Overall Progress Bars</h3>
-            <div className="space-y-4">
-              {floorProgressData.map((floor, i) => (
-                <div key={i} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-xs font-bold text-primary">
-                    <span className="truncate pr-2">{floor.name}</span>
-                    <span className={floor.score >= 80 ? 'text-emerald-700' : floor.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>{floor.score}%</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div className={`h-full rounded-full ${floor.score >= 80 ? 'bg-emerald-500' : floor.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${floor.score}%` }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Progress Bars: Section & Question Wise */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="card-glass p-5 bg-white border-accent/20">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Section-wise Performance</h3>
-              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
-                {sectionChartData.length === 0 && <p className="text-xs text-primary/50">No sections match criteria.</p>}
-                {sectionChartData.map((sec, i) => (
-                  <div key={i} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-xs font-bold text-primary">
-                      <span className="truncate pr-2">{sec.name}</span>
-                      <span className={sec.score >= 80 ? 'text-emerald-700' : sec.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>
-                        {sec.score}% {sec.score >= 80 ? 'Pass' : sec.score >= 50 ? 'Review' : 'Failed'}
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div className={`h-full rounded-full ${sec.score >= 80 ? 'bg-emerald-500' : sec.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${sec.score}%` }}></div>
-                    </div>
-                    {sec.lastDate && (
-                      <div className="text-[10px] text-primary/50 font-medium">
-                        Last inspected: {sec.lastDate}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="card-glass p-5 bg-white border-accent/20">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Question-wise Performance</h3>
-              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
-                {questionChartData.map((q) => (
-                  <div key={q.id} className="space-y-1.5">
-                    <div className="flex justify-between items-start text-xs font-bold text-primary gap-2">
-                      <span className="truncate flex-1" title={q.title}>
-                        <span className="text-accent mr-1">{q.number}</span>
-                        {q.title}
-                      </span>
-                      <span className={q.passPercent >= 80 ? 'text-emerald-700' : 'text-rose-700'}>
-                        {q.passPercent}% Pass / {100 - q.passPercent}% Attention
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div className={`h-full rounded-full ${q.passPercent >= 80 ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${q.passPercent}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* --- END VM ANALYTICS DASHBOARD --- */}
 
 
         {/* VIEW 2: SECTION SELECTION (Floor Selected, Section Not Selected) */}
@@ -1297,7 +1015,291 @@ export default function VmChecklist() {
               })}
             </div>
           )}
+        
+        {/* --- VM ANALYTICS DASHBOARD --- */}
+        <div className="space-y-6">
+          {/* Dashboard Header & Filters */}
+          <div className="card-glass p-5 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" />
+                  Visual Merchandising Analytics
+                </h2>
+                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  Real-time insights and performance metrics derived from actual saved inspections.
+                </p>
+              </div>
+              <div className="w-full md:w-64">
+                <input
+                  type="text"
+                  placeholder="Search floor, section, or inspector..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-modern text-xs w-full bg-white shadow-sm"
+                />
+              </div>
+            </div>
+
+{/* Filter Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 pt-4 border-t border-accent-soft/60">
+              <select value={filterFloor} onChange={e => setFilterFloor(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Floors</option>
+                {Object.keys(floorsData).map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+              <select value={filterSection} onChange={e => setFilterSection(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Sections</option>
+                {(filterFloor === 'All' ? Object.values(floorsData).flatMap(f => f.sections) : floorsData[filterFloor]?.sections || []).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Statuses</option>
+                <option value="Passed">Passed (100%)</option>
+                <option value="Review">Review (80-99%)</option>
+                <option value="Failed">Failed (&lt;80%)</option>
+              </select>
+              <select value={filterInspector} onChange={e => setFilterInspector(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Inspectors</option>
+                {uniqueInspectors.map(ins => <option key={ins} value={ins}>{ins}</option>)}
+              </select>
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={e => setFilterDateFrom(e.target.value)}
+                className="input-modern text-xs bg-white"
+                placeholder="From Date"
+              />
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={e => setFilterDateTo(e.target.value)}
+                className="input-modern text-xs bg-white"
+                placeholder="To Date"
+              />
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => { setFilterFloor('All'); setFilterSection('All'); setFilterStatus('All'); setFilterInspector('All'); setFilterDateFrom(''); setFilterDateTo(''); setSearchQuery(''); }} className="btn-outline text-[10px] uppercase font-bold py-2 px-3 w-full justify-center">
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          {/* Overall Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-3">
+            <div className="card-glass p-3 bg-white border-accent-soft text-center flex flex-col justify-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Average VM Score</span>
+              <span className="text-2xl font-black text-primary mt-1">{averageScore}%</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Total Floors</span>
+              <span className="text-xl font-black text-primary mt-1">{totalFloors}</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Sections</span>
+              <span className="text-xl font-black text-primary mt-1">{totalSections}</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Total Audits</span>
+              <span className="text-xl font-black text-primary mt-1">{totalInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-emerald-50 border-emerald-200 text-center">
+              <span className="text-[9px] font-black uppercase text-emerald-800">Passed Audits</span>
+              <span className="text-xl font-black text-emerald-700 mt-1">{completedInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-amber-50 border-amber-200 text-center">
+              <span className="text-[9px] font-black uppercase text-amber-800">Pending Audits</span>
+              <span className="text-xl font-black text-amber-700 mt-1">{pendingInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-rose-50 border-rose-200 text-center">
+              <span className="text-[9px] font-black uppercase text-rose-800">Failed Audits</span>
+              <span className="text-xl font-black text-rose-700 mt-1">{failedInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-blue-50 border-blue-200 text-center">
+              <span className="text-[9px] font-black uppercase text-blue-800">Attention Sections</span>
+              <span className="text-xl font-black text-blue-700 mt-1">{attentionSectionsCount}</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center flex flex-col justify-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Latest Audit</span>
+              <span className="text-[11px] font-black text-primary mt-1">{latestInspection}</span>
+            </div>
+          </div>
+
+          {/* Charts Row 1: Overall Score & Floor Performance */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Overall VM Score Ring */}
+            <div className="card-glass p-5 bg-white border-accent/20 flex flex-col items-center justify-center text-center col-span-1">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-6">Overall VM Score</h3>
+              <div className="relative w-40 h-40 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="45" fill="none" stroke={averageScore >= 80 ? '#059669' : averageScore >= 50 ? '#d97706' : '#e11d48'} strokeWidth="8" strokeDasharray={`${(averageScore / 100) * 283} 283`} strokeLinecap="round" className="transition-all duration-1000" />
+                </svg>
+                <div className="absolute flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black text-primary">{averageScore}%</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 px-2 py-0.5 rounded-md ${averageScore >= 80 ? 'bg-emerald-100 text-emerald-800' : averageScore >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>
+                    {averageScore >= 80 ? 'Pass' : averageScore >= 50 ? 'Review' : 'Failed'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center w-full">
+                <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
+                  <div className="text-xs font-black text-primary/60">Total Questions</div>
+                  <div className="text-lg font-black text-primary">{totalQuestionsAssessed}</div>
+                </div>
+                <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                  <div className="text-xs font-black text-emerald-800">Passed</div>
+                  <div className="text-lg font-black text-emerald-700">{totalQuestionsPassed}</div>
+                </div>
+                <div className="p-2 bg-rose-50 rounded-lg border border-rose-100">
+                  <div className="text-xs font-black text-rose-800">Attention</div>
+                  <div className="text-lg font-black text-rose-700">{totalQuestionsAttention}</div>
+                </div>
+              </div>
+              <div className="mt-4 text-xs text-primary/60 font-medium">
+                Based on <strong className="text-primary">{totalInspections}</strong> filtered audits.
+              </div>
+            </div>
+
+            {/* Floor-wise Performance Chart */}
+            <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Floor-wise Performance</h3>
+              <div className="h-56 flex items-center justify-center">
+                {floorChartData.length === 0 ? (
+                  <span className="text-xs text-primary/50 font-bold">No data available</span>
+                ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={floorChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }} />
+                    <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                      {floorChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.score >= 80 ? '#059669' : entry.score >= 50 ? '#d97706' : '#e11d48'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Row 2: Status Distribution & VM Trend */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="card-glass p-5 bg-white border-accent/20">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">Audit Status Distribution</h3>
+              <div className="h-52 flex items-center justify-center">
+                {statusData.length === 0 ? (
+                  <span className="text-xs text-primary/50 font-bold">No data available</span>
+                ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">VM Score Trend</h3>
+              <div className="h-52 flex items-center justify-center">
+                {trendChartData.length === 0 ? (
+                  <span className="text-xs text-primary/50 font-bold">No data available</span>
+                ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} minTickGap={20} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
+                    <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Line type="monotone" dataKey="score" stroke="#c5a365" strokeWidth={3} dot={{ r: 3, fill: '#c5a365' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Floor-wise Progress Bars */}
+          <div className="card-glass p-5 bg-white border-accent/20">
+            <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Overall Progress Bars</h3>
+            <div className="space-y-4">
+              {floorProgressData.map((floor, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between items-center text-xs font-bold text-primary">
+                    <span className="truncate pr-2">{floor.name}</span>
+                    <span className={floor.score >= 80 ? 'text-emerald-700' : floor.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>{floor.score}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div className={`h-full rounded-full ${floor.score >= 80 ? 'bg-emerald-500' : floor.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${floor.score}%` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Progress Bars: Section & Question Wise */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="card-glass p-5 bg-white border-accent/20">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Section-wise Performance</h3>
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {sectionChartData.length === 0 && <p className="text-xs text-primary/50">No sections match criteria.</p>}
+                {sectionChartData.map((sec, i) => (
+                  <div key={i} className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs font-bold text-primary">
+                      <span className="truncate pr-2">{sec.name}</span>
+                      <span className={sec.score >= 80 ? 'text-emerald-700' : sec.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>
+                        {sec.score}% {sec.score >= 80 ? 'Pass' : sec.score >= 50 ? 'Review' : 'Failed'}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className={`h-full rounded-full ${sec.score >= 80 ? 'bg-emerald-500' : sec.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${sec.score}%` }}></div>
+                    </div>
+                    {sec.lastDate && (
+                      <div className="text-[10px] text-primary/50 font-medium">
+                        Last inspected: {sec.lastDate}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="card-glass p-5 bg-white border-accent/20">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Question-wise Performance</h3>
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {questionChartData.map((q) => (
+                  <div key={q.id} className="space-y-1.5">
+                    <div className="flex justify-between items-start text-xs font-bold text-primary gap-2">
+                      <span className="truncate flex-1" title={q.title}>
+                        <span className="text-accent mr-1">{q.number}</span>
+                        {q.title}
+                      </span>
+                      <span className={q.passPercent >= 80 ? 'text-emerald-700' : 'text-rose-700'}>
+                        {q.passPercent}% Pass / {100 - q.passPercent}% Attention
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className={`h-full rounded-full ${q.passPercent >= 80 ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${q.passPercent}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
+        {/* --- END VM ANALYTICS DASHBOARD --- */}
+</div>
       {/* CREATE NEW FLOOR / FOLDER MODAL (ADMIN ONLY) */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
