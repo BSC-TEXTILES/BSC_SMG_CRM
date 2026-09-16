@@ -196,8 +196,7 @@ export default function LoginPage() {
             { timeout: 8000, maximumAge: 300000 }
           );
         }
-
-        if (['Admin', 'Super Admin'].includes(res.user.role)) {
+        if (['Admin', 'Super Admin'].includes(user.role)) {
           navigate('/wedding-crm', { replace: true });
         } else {
           navigate('/dashboard', { replace: true });
