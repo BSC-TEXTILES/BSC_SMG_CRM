@@ -374,7 +374,15 @@ class WeddingController {
   async createCustomer(req, res) {
     try {
       const customerName = (req.body.customer_name || req.body.customerName || '').trim();
-      const mobileNumber = (req.body.mobile_number || req.body.phone || req.body.mobile || '').trim();
+      let mobileNumber = (req.body.mobile_number || req.body.phone || req.body.mobile || '').trim();
+      
+      // Normalize phone to +91 format
+      if (mobileNumber) {
+        const digits = mobileNumber.replace(/\D/g, '');
+        if (digits.length === 10) mobileNumber = `+91${digits}`;
+        else if (digits.length === 12 && digits.startsWith('91')) mobileNumber = `+${digits}`;
+        else if (digits.length === 11 && digits.startsWith('0')) mobileNumber = `+91${digits.slice(1)}`;
+      }
       const email = (req.body.email || '').trim() || null;
       const weddingDate = req.body.wedding_date || req.body.weddingDate || null;
       const expectedShoppingDate = req.body.expected_shopping_date || req.body.expectedShoppingDate;
@@ -600,7 +608,15 @@ class WeddingController {
 
       const prev = existing[0];
       const customerName = req.body.customer_name || req.body.customerName;
-      const mobileNumber = req.body.mobile_number || req.body.phone || req.body.mobile;
+      let mobileNumber = req.body.mobile_number || req.body.phone || req.body.mobile;
+      
+      // Normalize phone to +91 format
+      if (mobileNumber && typeof mobileNumber === 'string') {
+        const digits = mobileNumber.replace(/\D/g, '');
+        if (digits.length === 10) mobileNumber = `+91${digits}`;
+        else if (digits.length === 12 && digits.startsWith('91')) mobileNumber = `+${digits}`;
+        else if (digits.length === 11 && digits.startsWith('0')) mobileNumber = `+91${digits.slice(1)}`;
+      }
       const email = req.body.email;
       const weddingDate = req.body.wedding_date || req.body.weddingDate;
       const expectedShoppingDate = req.body.expected_shopping_date || req.body.expectedShoppingDate;

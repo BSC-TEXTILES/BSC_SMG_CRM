@@ -99,8 +99,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   }, [pathname]);
 
   const roleNavMap: Record<string, string[]> = {
-    'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
-    'Admin':       ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
+    'Super Admin': ['wedding_crm', 'user_management'],
+    'Admin':       ['wedding_crm', 'user_management'],
     'HR':          ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'offer', 'openings', 'employees', 'dept_hiring', 'section_allocation', 'form', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history'],
     'Recruiter':   ['dashboard', 'wedding_crm', 'candidates', 'form', 'broadcast'],
     'Interviewer': ['candidates'],
@@ -126,7 +126,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
 
   const navItems = [
     { key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: BarChart3, section: 'Core Workspace' },
-    { key: 'wedding_crm', href: '/wedding-crm', label: 'Wedding Follow-up CRM', icon: Sparkles, section: 'Store Operations', isNew: true },
+    { key: 'wedding_crm', href: '/wedding-crm', label: 'Wedding CRM', icon: Sparkles, section: 'Store Operations', isNew: true },
     { key: 'footfall', href: '/footfall', label: 'Hourly Footfall', icon: BarChart3, section: 'Store Operations' },
     { key: 'feedback_collection', href: '/feedback-collection', label: 'Feedback Collection', icon: FileText, section: 'Store Operations' },
     { key: 'feedback_list', href: '/feedback-list', label: 'Feedback Call Queue', icon: FileText, section: 'Store Operations' },

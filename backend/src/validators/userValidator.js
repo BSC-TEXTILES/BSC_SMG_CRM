@@ -26,11 +26,32 @@ function isValidEmail(email) {
 }
 
 // Indian mobile number validation (10 digits, optionally prefixed with +91 or 0)
+// Normalizes to +91XXXXXXXXXX format
 function isValidMobile(mobile) {
   if (!mobile) return true; // optional field
   const cleaned = mobile.replace(/[\s\-()]/g, '');
   const re = /^(\+91|0)?[6-9]\d{9}$/;
   return re.test(cleaned);
+}
+
+// Normalize phone to +91XXXXXXXXXX format
+function normalizeMobile(mobile) {
+  if (!mobile) return mobile;
+  const cleaned = mobile.replace(/[\s\-()]/g, '');
+  const digits = cleaned.replace(/\D/g, '');
+  // If starts with 91 and has 12 digits, add + prefix
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+${digits}`;
+  }
+  // If 10 digits, prepend +91
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+  // If starts with 0 and has 11 digits, replace 0 with +91
+  if (digits.length === 11 && digits.startsWith('0')) {
+    return `+91${digits.slice(1)}`;
+  }
+  return cleaned;
 }
 
 // Username validation
@@ -72,6 +93,10 @@ function validateCreateUser(req, res, next) {
   // Optional but validated
   if (email && !isValidEmail(email)) errors.push('Invalid email format');
   if (phone && !isValidMobile(phone)) errors.push('Invalid phone number format');
+
+  // Normalize phone to +91 format
+  if (phone) req.body.phone = normalizeMobile(phone);
+
   if (employeeId && (typeof employeeId === 'string' && employeeId.length > 50)) errors.push('Employee ID must be under 50 characters');
 
   if (errors.length > 0) {
@@ -99,6 +124,9 @@ function validateUpdateUser(req, res, next) {
   if (phone !== undefined && phone && !isValidMobile(phone)) {
     errors.push('Invalid phone number format');
   }
+
+  // Normalize phone to +91 format
+  if (phone !== undefined && phone) req.body.phone = normalizeMobile(phone);
 
   if (role !== undefined && !VALID_ROLES.includes(role)) {
     errors.push(`Invalid role. Must be one of: ${VALID_ROLES.join(', ')}`);
@@ -143,6 +171,7 @@ module.exports = {
   validatePasswordPolicy,
   isValidEmail,
   isValidMobile,
+  normalizeMobile,
   isValidUsername,
   VALID_ROLES
 };

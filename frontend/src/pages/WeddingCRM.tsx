@@ -515,7 +515,7 @@ export default function WeddingCRM() {
     try {
       const payload = {
         customer_name: addForm.customer_name.trim(),
-        mobile_number: addForm.mobile_number.trim(),
+        mobile_number: addForm.mobile_number.trim().length === 10 ? `+91${addForm.mobile_number.trim()}` : addForm.mobile_number.trim(),
         email: addForm.email.trim() || null,
         wedding_date: addForm.wedding_date || null,
         expected_shopping_date: addForm.expected_shopping_date,
@@ -647,7 +647,9 @@ export default function WeddingCRM() {
     e.preventDefault();
     if (!selectedCustomer) return;
     try {
-      const res = await API.updateWeddingCustomer(selectedCustomer.id, selectedCustomer);
+      const digits = selectedCustomer.mobile_number.replace(/\D/g, '');
+      const normalizedMobile = digits.length === 10 ? `+91${digits}` : selectedCustomer.mobile_number;
+      const res = await API.updateWeddingCustomer(selectedCustomer.id, { ...selectedCustomer, mobile_number: normalizedMobile });
       if (res && res.success) {
         showToast('Customer profile updated successfully.');
         setShowEditModal(false);
@@ -931,7 +933,7 @@ export default function WeddingCRM() {
 
       <div className={`flex-1 flex flex-col h-screen min-w-0 overflow-hidden transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         <Topbar
-          title="Wedding Customer Follow-up CRM"
+          title="Wedding CRM"
           breadcrumbs={breadcrumbTrail}
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
@@ -2133,18 +2135,23 @@ export default function WeddingCRM() {
                   <label className="block text-xs font-black text-primary mb-1">
                     Mobile Number <span className="text-red-600">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    required
-                    maxLength={15}
-                    placeholder="10-digit mobile number"
-                    value={addForm.mobile_number}
-                    onChange={e => {
-                      setAddForm({ ...addForm, mobile_number: e.target.value });
-                    }}
-                    onBlur={e => handlePhoneBlur(e.target.value)}
-                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl focus:ring-2 focus:ring-accent"
-                  />
+                  <div className="flex">
+                    <span className="px-2.5 py-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={addForm.mobile_number}
+                      onChange={e => {
+                        setAddForm({ ...addForm, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10) });
+                      }}
+                      onBlur={e => handlePhoneBlur(e.target.value)}
+                      className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-r-xl rounded-l-none focus:ring-2 focus:ring-accent"
+                    />
+                  </div>
                 </div>
 
                 {/* Email */}
@@ -2698,13 +2705,19 @@ export default function WeddingCRM() {
 
                 <div>
                   <label className="block font-bold text-primary mb-1">Mobile Number *</label>
-                  <input
-                    type="tel"
-                    required
-                    value={selectedCustomer.mobile_number}
-                    onChange={e => setSelectedCustomer({ ...selectedCustomer, mobile_number: e.target.value })}
-                    className="w-full p-2 border border-accent-soft rounded-xl font-semibold"
-                  />
+                  <div className="flex">
+                    <span className="p-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      value={selectedCustomer.mobile_number.replace(/\D/g, '').slice(-10)}
+                      onChange={e => setSelectedCustomer({ ...selectedCustomer, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      className="w-full p-2 border border-accent-soft rounded-r-xl rounded-l-none font-semibold"
+                    />
+                  </div>
                 </div>
 
                 <div>

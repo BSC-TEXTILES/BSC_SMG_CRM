@@ -42,9 +42,17 @@ exports.getLocation = async (req, res) => {
 // ── Create location (Global Admin only) ─────────────────────
 exports.createLocation = async (req, res) => {
   try {
-    const { location_name, location_code, address, phone, email, sort_order } = req.body;
+    const { location_name, location_code, address, phone: rawPhone, email, sort_order } = req.body;
     if (!location_name || !location_code) {
       return res.status(400).json({ success: false, error: 'location_name and location_code are required' });
+    }
+    // Normalize phone to +91 format
+    let phone = rawPhone || null;
+    if (phone) {
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length === 10) phone = `+91${digits}`;
+      else if (digits.length === 12 && digits.startsWith('91')) phone = `+${digits}`;
+      else if (digits.length === 11 && digits.startsWith('0')) phone = `+91${digits.slice(1)}`;
     }
     const [result] = await db.query(
       `INSERT INTO locations (location_name, location_code, address, phone, email, sort_order, status)
@@ -61,7 +69,15 @@ exports.createLocation = async (req, res) => {
 exports.updateLocation = async (req, res) => {
   try {
     const { id } = req.params;
-    const { location_name, address, phone, email, status, sort_order } = req.body;
+    const { location_name, address, phone: rawPhone, email, status, sort_order } = req.body;
+    // Normalize phone to +91 format
+    let phone = rawPhone;
+    if (phone && typeof phone === 'string') {
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length === 10) phone = `+91${digits}`;
+      else if (digits.length === 12 && digits.startsWith('91')) phone = `+${digits}`;
+      else if (digits.length === 11 && digits.startsWith('0')) phone = `+91${digits.slice(1)}`;
+    }
     await db.query(
       `UPDATE locations SET
          location_name = COALESCE(?, location_name),

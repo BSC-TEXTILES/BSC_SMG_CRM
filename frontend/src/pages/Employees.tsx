@@ -287,7 +287,7 @@ export default function EmployeesPage() {
       const updatedData = {
         isFullEdit: true,
         name: editForm.name.trim(),
-        phone: editForm.phone.trim(),
+        phone: editForm.phone.trim().length === 10 ? `+91${editForm.phone.trim()}` : editForm.phone.trim(),
         email: editForm.email.trim(),
         gender: editForm.gender,
         dob: editForm.dob,
@@ -748,7 +748,12 @@ export default function EmployeesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block font-bold text-primary mb-1">Phone Number *</label>
-                      <input type="text" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} className="input-modern font-mono" required />
+                      <div className="flex">
+                        <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                          +91
+                        </span>
+                        <input type="tel" maxLength={10} value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className="input-modern font-mono rounded-l-none" required />
+                      </div>
                     </div>
                     <div>
                       <label className="block font-bold text-primary mb-1">Email Address</label>

@@ -60,7 +60,7 @@ export default function DeveloperTools() {
   const loadHealth = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/api/dev-tools/health');
+      const data = await apiFetch('/dev-tools/health');
       if (data?.data) setHealth(data.data);
     } catch (err: any) {
       showToast('Failed to load health data', 'error');
@@ -71,7 +71,7 @@ export default function DeveloperTools() {
   const loadDbHealth = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/api/dev-tools/db-health');
+      const data = await apiFetch('/dev-tools/db-health');
       if (data?.data) setDbHealth(data.data);
     } catch { showToast('Failed to load DB health', 'error'); }
     setLoading(false);
@@ -80,7 +80,7 @@ export default function DeveloperTools() {
   const loadRoutes = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/api/dev-tools/routes');
+      const data = await apiFetch('/dev-tools/routes');
       if (data?.data?.routes) setRoutes(data.data.routes);
     } catch { showToast('Failed to load routes', 'error'); }
     setLoading(false);
@@ -93,7 +93,7 @@ export default function DeveloperTools() {
       if (logSearch) params.set('search', logSearch);
       if (logModule) params.set('module', logModule);
       params.set('limit', '100');
-      const data = await apiFetch(`/api/dev-tools/logs?${params}`);
+      const data = await apiFetch(`/dev-tools/logs?${params}`);
       if (data?.data?.logs) setLogs(data.data.logs);
     } catch { showToast('Failed to load logs', 'error'); }
     setLoading(false);
@@ -102,7 +102,7 @@ export default function DeveloperTools() {
   const loadDiagnostics = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/api/dev-tools/diagnostics');
+      const data = await apiFetch('/dev-tools/diagnostics');
       if (data?.data) setDiagnostics(data.data);
     } catch { showToast('Failed to load diagnostics', 'error'); }
     setLoading(false);
@@ -111,7 +111,7 @@ export default function DeveloperTools() {
   const loadEnvironment = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/api/dev-tools/environment');
+      const data = await apiFetch('/dev-tools/environment');
       if (data?.data) setEnvironment(data.data);
     } catch { showToast('Failed to load environment', 'error'); }
     setLoading(false);
@@ -120,7 +120,7 @@ export default function DeveloperTools() {
   const loadDependencies = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiFetch('/api/dev-tools/dependencies');
+      const data = await apiFetch('/dev-tools/dependencies');
       if (data?.data) setDependencies(data.data);
     } catch { showToast('Failed to load dependencies', 'error'); }
     setLoading(false);
@@ -207,6 +207,20 @@ export default function DeveloperTools() {
             <button onClick={() => { const loadMap: Record<string, () => void> = { health: loadHealth, database: loadDbHealth, routes: loadRoutes, logs: loadLogs, diagnostics: loadDiagnostics, environment: loadEnvironment, dependencies: loadDependencies }; loadMap[activeTab]?.(); }} className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold bg-white text-primary/70 hover:bg-primary/5 border border-gray-200">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
+            </button>
+            <button 
+              onClick={async () => {
+                try {
+                  const res = await apiFetch('/admin/force-db-update');
+                  showToast(res.message || 'Database schema initialized successfully', 'success');
+                } catch (err: any) {
+                  showToast('Database update failed: ' + (err.message || 'Unknown error'), 'error');
+                }
+              }}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300 ml-auto"
+            >
+              <HardDrive className="w-3.5 h-3.5" />
+              Force DB Update
             </button>
           </div>
 

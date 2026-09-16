@@ -14,6 +14,14 @@ const validateAddCandidate = (req, res, next) => {
     errors.push('Valid 10-digit mobile number is required');
   }
 
+  // Normalize phone to +91 format
+  if (phone && typeof phone === 'string') {
+    const digits = phone.replace(/\D/g, '');
+    const normalized = digits.length === 10 ? `+91${digits}` : (digits.length === 12 && digits.startsWith('91') ? `+${digits}` : phone);
+    if (d.phone) req.body.data ? (req.body.data.phone = normalized) : (req.body.phone = normalized);
+    if (d.mobile) req.body.data ? (req.body.data.mobile = normalized) : (req.body.mobile = normalized);
+  }
+
   const desig = d.desig || d.designation;
   if (!desig || typeof desig !== 'string' || !desig.trim()) {
     errors.push('Designation position is required');

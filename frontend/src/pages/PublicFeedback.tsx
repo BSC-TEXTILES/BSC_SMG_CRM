@@ -71,11 +71,12 @@ export default function PublicFeedback() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const normalizedMobile = mobile.length === 10 ? `+91${mobile}` : mobile;
       const res: any = await API.submitFeedback({
         customerName,
         custName: customerName,
-        mobile,
-        custMobile: mobile,
+        mobile: normalizedMobile,
+        custMobile: normalizedMobile,
         answers,
         likedMost,
         canImprove,
@@ -300,14 +301,15 @@ export default function PublicFeedback() {
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 bg-accent/15 p-1.5 rounded-xl text-primary">
                     <Phone className="w-4 h-4 text-primary" />
                   </div>
+                  <span className="absolute left-12 top-1/2 -translate-y-1/2 text-xs font-extrabold text-primary/60">+91</span>
                   <input
                     type="tel"
                     required
                     maxLength={10}
                     placeholder="10-digit mobile number"
                     value={mobile}
-                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                    className="w-full text-xs font-mono font-semibold pl-12 pr-4 h-14 rounded-2xl border border-accent-soft bg-white/95 text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-xs"
+                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    className="w-full text-xs font-mono font-semibold pl-16 pr-4 h-14 rounded-2xl border border-accent-soft bg-white/95 text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-xs"
                   />
                 </div>
                 <p className="text-[10.5px] font-bold text-primary/70 pt-0.5">

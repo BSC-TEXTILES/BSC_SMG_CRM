@@ -65,7 +65,7 @@ export default function Divert() {
         priceRange,
         reasonCode,
         customerName,
-        customerMobile,
+        customerMobile: customerMobile.length === 10 ? `+91${customerMobile}` : customerMobile,
         createdBy: 'Floor Staff'
       });
       setShowRaiseModal(false);
@@ -565,13 +565,19 @@ export default function Divert() {
                     </div>
                     <div>
                       <label className="block font-bold text-primary mb-1">Customer Mobile Phone</label>
-                      <input
-                        type="tel"
-                        placeholder="e.g. 9876543210"
-                        value={customerMobile}
-                        onChange={(e) => setCustomerMobile(e.target.value)}
-                        className="input-modern font-mono"
-                      />
+                      <div className="flex">
+                        <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                          +91
+                        </span>
+                        <input
+                          type="tel"
+                          maxLength={10}
+                          placeholder="10-digit mobile number"
+                          value={customerMobile}
+                          onChange={(e) => setCustomerMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          className="input-modern font-mono rounded-l-none"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

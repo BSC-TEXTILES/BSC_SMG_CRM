@@ -121,7 +121,7 @@ export default function EmployeeProfileModal({ employee, onClose, onUpdated }: E
       const updatedPayload = {
         name: editForm.name,
         fullName: editForm.name,
-        phone: editForm.phone,
+        phone: editForm.phone.replace(/\D/g, '').length === 10 ? `+91${editForm.phone.replace(/\D/g, '')}` : editForm.phone,
         email: editForm.email,
         gender: editForm.gender,
         dob: editForm.dob,
@@ -536,12 +536,18 @@ export default function EmployeeProfileModal({ employee, onClose, onUpdated }: E
 
                 <div>
                   <label className="block text-[11px] font-black text-primary uppercase mb-1">Mobile Phone</label>
-                  <input
-                    type="text"
-                    value={editForm.phone}
-                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
-                  />
+                  <div className="flex">
+                    <span className="px-2 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-[10px] text-[#475569] flex items-center">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={editForm.phone.replace(/\D/g, '').slice(-10)}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      className="w-full px-3 py-2 rounded-r-xl rounded-l-none border border-accent-soft text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-accent/40"
+                    />
+                  </div>
                 </div>
 
                 <div>

@@ -196,7 +196,7 @@ export default function CandidateEntryPage() {
       const payload = {
         name,
         email,
-        phone,
+        phone: phone.length === 10 ? `+91${phone}` : phone,
         address,
         gender,
         bloodGroup,
@@ -342,7 +342,7 @@ export default function CandidateEntryPage() {
                       type="tel"
                       maxLength={10}
                       value={phone}
-                      onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); checkDuplicate(e.target.value); }}
+                      onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 10); setPhone(v); checkDuplicate(v); }}
                       placeholder="10-digit mobile number"
                       className="input-modern rounded-l-none"
                     />

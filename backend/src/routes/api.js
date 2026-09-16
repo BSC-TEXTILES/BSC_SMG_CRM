@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate, authorize } = require('../middleware/auth');
+const { autoInitializeDatabase } = require('../config/dbInitializer');
+const db = require('../config/db');
 const upload = require('../middleware/upload');
 const { errorRes } = require('../utils/response');
 const pool = require('../config/db');
@@ -605,6 +607,16 @@ router.get('/admin/users/:id/permissions', authenticate, authorize('Admin', 'Sup
 router.put('/admin/users/:id/permissions', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.updatePermissions);
 router.post('/admin/users/:id/toggle-status', authenticate, authorize('Admin', 'Super Admin'), userMgmtController.toggleStatus);
 router.post('/admin/users/:id/reset-password', authenticate, authorize('Admin', 'Super Admin'), userValidator.validatePasswordChange, userMgmtController.resetPassword);
+
+// ── Diagnostics / DB Fix ──────────────────────────────────────────────
+router.get('/admin/force-db-update', async (req, res) => {
+  try {
+    await autoInitializeDatabase(db);
+    res.json({ success: true, message: 'Database initialization script ran successfully.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message, stack: err.stack });
+  }
+});
 router.get('/my-permissions', authenticate, userMgmtController.getMyPermissions);
 
 // ── System Administrator Endpoints ──────────────────────────────────────

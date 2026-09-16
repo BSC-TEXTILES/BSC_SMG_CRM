@@ -334,7 +334,7 @@ export default function UserManagementPage() {
         role: formRole,
         fullName: formFullName.trim() || formUsername.trim(),
         email: formEmail.trim() || null,
-        phone: formPhone.trim() || null,
+        phone: formPhone.trim().length === 10 ? `+91${formPhone.trim()}` : formPhone.trim() || null,
         department: formDepartment.trim() || null,
         designation: formDesignation.trim() || null,
         allLocations: formAllLocations,
@@ -381,7 +381,7 @@ export default function UserManagementPage() {
       const payload: any = {
         fullName: editFullName.trim(),
         email: editEmail.trim() || null,
-        phone: editPhone.trim() || null,
+        phone: editPhone.trim().length === 10 ? `+91${editPhone.trim()}` : editPhone.trim() || null,
         department: editDepartment.trim() || null,
         designation: editDesignation.trim() || null,
         role: editRole,
@@ -1283,13 +1283,19 @@ export default function UserManagementPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={formPhone}
-                    onChange={e => setFormPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
+                  <div className="flex">
+                    <span className="px-2.5 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={formPhone}
+                      onChange={e => setFormPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="10-digit mobile number"
+                      className="w-full px-3 py-2 text-xs rounded-xl rounded-l-none border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1500,12 +1506,18 @@ export default function UserManagementPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    value={editPhone}
-                    onChange={e => setEditPhone(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
+                  <div className="flex">
+                    <span className="px-2.5 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={editPhone}
+                      onChange={e => setEditPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="w-full px-3 py-2 text-xs rounded-xl rounded-l-none border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
+                    />
+                  </div>
                 </div>
               </div>
 

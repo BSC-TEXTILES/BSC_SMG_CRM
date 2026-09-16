@@ -116,7 +116,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (Auth.check()) {
-      navigate('/dashboard', { replace: true });
+      const user = Auth.get();
+      if (user && ['Admin', 'Super Admin'].includes(user.role)) {
+        navigate('/wedding-crm', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
   }, [navigate]);
 
@@ -192,7 +197,11 @@ export default function LoginPage() {
           );
         }
 
-        navigate('/dashboard', { replace: true });
+        if (['Admin', 'Super Admin'].includes(res.user.role)) {
+          navigate('/wedding-crm', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       } else {
         if (res.locked || res.remainingSeconds) {
           setIsLocked(true);

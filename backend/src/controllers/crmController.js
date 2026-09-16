@@ -362,7 +362,15 @@ exports.submitFeedback = async (req, res) => {
     const dateFormatted = new Date().toLocaleDateString('en-GB');
 
     const finalCustName = customerName || custName || 'Anonymous';
-    const finalMobile = mobile || custMobile || '';
+    let finalMobile = mobile || custMobile || '';
+    
+    // Normalize phone to +91 format
+    if (finalMobile) {
+      const digits = finalMobile.replace(/\D/g, '');
+      if (digits.length === 10) finalMobile = `+91${digits}`;
+      else if (digits.length === 12 && digits.startsWith('91')) finalMobile = `+${digits}`;
+      else if (digits.length === 11 && digits.startsWith('0')) finalMobile = `+91${digits.slice(1)}`;
+    }
     const finalDob = dob || custDob || null;
     const finalArea = area || sectionId || 'Ground Floor';
     const finalSource = source || 'qr';
@@ -811,9 +819,18 @@ exports.getDiverts = async (req, res) => {
 
 exports.createDivert = async (req, res) => {
   try {
-    const { sectionId, productWanted, quantity, priceRange, reasonCode, customerName, customerMobile, createdBy } = req.body;
+    const { sectionId, productWanted, quantity, priceRange, reasonCode, customerName, customerMobile: rawMobile, createdBy } = req.body;
     const id = getUUID();
     const entryDate = new Date().toISOString().split('T')[0];
+    
+    // Normalize phone to +91 format
+    let customerMobile = rawMobile || '';
+    if (customerMobile) {
+      const digits = customerMobile.replace(/\D/g, '');
+      if (digits.length === 10) customerMobile = `+91${digits}`;
+      else if (digits.length === 12 && digits.startsWith('91')) customerMobile = `+${digits}`;
+      else if (digits.length === 11 && digits.startsWith('0')) customerMobile = `+91${digits.slice(1)}`;
+    }
     
     await db.query(`
       INSERT INTO Diverts (id, entryDate, sectionId, productWanted, quantity, priceRange, reasonCode, customerName, customerMobile, status, createdBy)
