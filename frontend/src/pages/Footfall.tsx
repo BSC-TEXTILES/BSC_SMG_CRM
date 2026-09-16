@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { BarChart3, Clock, Users, Calendar, Save, CheckCircle2, AlertCircle, Sparkles, Check, Hourglass, Activity, FileText, Download, TrendingUp, Zap } from 'lucide-react';
 import { API } from '../services/api';
@@ -13,6 +13,7 @@ export default function Footfall() {
   const [loading, setLoading] = useState<boolean>(true);
   const [savingSlot, setSavingSlot] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const localOverridesRef = useRef<Record<number, { visitors: number; remarks: string }>>({});
 
   const slotHours = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
@@ -35,16 +36,23 @@ export default function Footfall() {
 
   useEffect(() => {
     setLoading(true);
+    localOverridesRef.current = {};
     fetchFootfall(date);
 
     // Socket.IO Push Listener for 0ms latency synchronization
     const socket = io({ path: '/socket.io', autoConnect: true });
     socket.on('footfall:updated', (data: any) => {
       if (data && data.entryDate === date) {
-        setSlots(prev => ({
-          ...prev,
-          [data.slotHour]: { visitors: Number(data.visitors) || 0, remarks: data.remarks || '' }
-        }));
+        setSlots(prev => {
+          // Preserve locally modified values
+          if (localOverridesRef.current[data.slotHour]) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [data.slotHour]: { visitors: Number(data.visitors) || 0, remarks: data.remarks || '' }
+          };
+        });
       }
     });
 
@@ -53,11 +61,21 @@ export default function Footfall() {
       API.getFootfall(date)
         .then((res: any) => {
           if (res && res.entries && Array.isArray(res.entries)) {
-            const map: Record<number, { visitors: number; remarks: string }> = {};
-            res.entries.forEach((e: any) => {
-              map[e.slotHour] = { visitors: Number(e.visitors) || 0, remarks: e.remarks || '' };
+            setSlots(prev => {
+              const map: Record<number, { visitors: number; remarks: string }> = {};
+              res.entries.forEach((e: any) => {
+                map[e.slotHour] = { visitors: Number(e.visitors) || 0, remarks: e.remarks || '' };
+              });
+              // Merge: preserve locally modified values that haven't been saved yet
+              const merged = { ...map };
+              for (const [hourStr, localVal] of Object.entries(localOverridesRef.current)) {
+                const h = Number(hourStr);
+                if (merged[h] && localVal) {
+                  merged[h] = localVal;
+                }
+              }
+              return merged;
             });
-            setSlots(map);
           }
         })
         .catch(() => {});
@@ -81,6 +99,8 @@ export default function Footfall() {
         remarks: slotData.remarks,
         submittedBy: 'Floor Manager'
       });
+      // Clear local override after successful save
+      delete localOverridesRef.current[hour];
       const formatHour = hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? '12:00 PM' : `${hour}:00 AM`;
       setMessage(`Footfall slot for ${formatHour} updated and synchronized live!`);
       setTimeout(() => setMessage(null), 3000);
@@ -372,10 +392,14 @@ export default function Footfall() {
                             type="number"
                             min="0"
                             value={slot.visitors || ''}
-                            onChange={(e) => setSlots({
-                              ...slots,
-                              [hour]: { ...slot, visitors: parseInt(e.target.value, 10) || 0 }
-                            })}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10) || 0;
+                              setSlots({
+                                ...slots,
+                                [hour]: { ...slot, visitors: val }
+                              });
+                              localOverridesRef.current[hour] = { visitors: val, remarks: slot.remarks };
+                            }}
                             placeholder="0"
                             className="w-full text-base font-black font-mono pl-9 pr-3 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
                           />
@@ -391,10 +415,13 @@ export default function Footfall() {
                           <input
                             type="text"
                             value={slot.remarks || ''}
-                            onChange={(e) => setSlots({
-                              ...slots,
-                              [hour]: { ...slot, remarks: e.target.value }
-                            })}
+                            onChange={(e) => {
+                              setSlots({
+                                ...slots,
+                                [hour]: { ...slot, remarks: e.target.value }
+                              });
+                              localOverridesRef.current[hour] = { visitors: slot.visitors, remarks: e.target.value };
+                            }}
                             placeholder="e.g. Rush in Womens Sarees"
                             className="w-full text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
                           />

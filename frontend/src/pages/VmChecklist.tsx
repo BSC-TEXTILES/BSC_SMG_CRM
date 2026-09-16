@@ -49,37 +49,37 @@ export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
     label: 'First Floor',
     description: 'High-Value Silk & Luxury Sarees',
     badge: '1 Section',
-    sections: ['Silk Sarees (Up Laks)']
+    sections: ['Silk Sarees (Upto Lakhs)']
   },
   'Second Floor': {
     name: 'Second Floor',
     label: 'Second Floor',
-    description: 'Ladies, Kids, Men & Female Apparel',
-    badge: '4 Sections',
-    sections: ['Ladies', 'Kids', 'Men', 'Female']
+    description: 'Ladies and Kids Wear',
+    badge: '1 Section',
+    sections: ['Ladies and Kids Wear']
   },
   'Third Floor': {
     name: 'Third Floor',
     label: 'Third Floor',
-    description: 'Men Formalwear & Home Furnishing',
-    badge: '2 Sections',
-    sections: ['Men', 'Home Furnishing']
+    description: 'Men and Home Furnishing',
+    badge: '1 Section',
+    sections: ['Men and Home Furnishing']
   }
 };
 
 // Exact 11 Visual Merchandising Questions
 export const DEFAULT_VM_QUESTIONS = [
-  { id: 'vm_q1', title: 'Is the entire section clean, neat and well-maintained?' },
-  { id: 'vm_q2', title: 'Are products arranged according to category, colour and size?' },
-  { id: 'vm_q3', title: 'Are all racks, shelves, tables and displays properly aligned?' },
-  { id: 'vm_q4', title: 'Are new arrivals and latest collections displayed prominently?' },
+  { id: 'vm_q1', title: 'Is the entire section clean, neat, and well-maintained?' },
+  { id: 'vm_q2', title: 'Are products arranged according to category, colour, and size?' },
+  { id: 'vm_q3', title: 'Are all racks, shelves, tables, and displays properly aligned?' },
+  { id: 'vm_q4', title: 'Are new arrivals and the latest collections displayed prominently?' },
   { id: 'vm_q5', title: 'Are mannequins styled according to the current theme?' },
-  { id: 'vm_q6', title: 'Are price tags, product labels and signages correctly placed and visible?' },
+  { id: 'vm_q6', title: 'Are price tags, product labels, and signage correctly placed and visible?' },
   { id: 'vm_q7', title: 'Are promotional and offer displays updated and correctly positioned?' },
   { id: 'vm_q8', title: 'Is the colour blocking and overall visual theme maintained?' },
-  { id: 'vm_q9', title: 'Are the folded, hanging and stacked products properly presented?' },
+  { id: 'vm_q9', title: 'Are folded, hanging, and stacked products properly presented?' },
   { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?' },
-  { id: 'vm_q11', title: 'Are all display lights, LED screens and decorative elements working properly?' }
+  { id: 'vm_q11', title: 'Are all display lights, LED screens, and decorative elements working properly?' }
 ];
 
 export default function VmChecklist() {

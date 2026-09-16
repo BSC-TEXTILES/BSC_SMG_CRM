@@ -919,17 +919,17 @@ exports.saveCashSettlement = async (req, res) => {
 exports.getVmPoints = async (req, res) => {
   try {
     const vm11Questions = [
-      { id: 'vm_q1', title: 'Is the entire section clean, neat and well-maintained?', section: 'Visual Merchandising', position: 1 },
-      { id: 'vm_q2', title: 'Are products arranged according to category, colour and size?', section: 'Visual Merchandising', position: 2 },
-      { id: 'vm_q3', title: 'Are all racks, shelves, tables and displays properly aligned?', section: 'Visual Merchandising', position: 3 },
-      { id: 'vm_q4', title: 'Are new arrivals and latest collections displayed prominently?', section: 'Visual Merchandising', position: 4 },
+      { id: 'vm_q1', title: 'Is the entire section clean, neat, and well-maintained?', section: 'Visual Merchandising', position: 1 },
+      { id: 'vm_q2', title: 'Are products arranged according to category, colour, and size?', section: 'Visual Merchandising', position: 2 },
+      { id: 'vm_q3', title: 'Are all racks, shelves, tables, and displays properly aligned?', section: 'Visual Merchandising', position: 3 },
+      { id: 'vm_q4', title: 'Are new arrivals and the latest collections displayed prominently?', section: 'Visual Merchandising', position: 4 },
       { id: 'vm_q5', title: 'Are mannequins styled according to the current theme?', section: 'Visual Merchandising', position: 5 },
-      { id: 'vm_q6', title: 'Are price tags, product labels and signages correctly placed and visible?', section: 'Visual Merchandising', position: 6 },
+      { id: 'vm_q6', title: 'Are price tags, product labels, and signage correctly placed and visible?', section: 'Visual Merchandising', position: 6 },
       { id: 'vm_q7', title: 'Are promotional and offer displays updated and correctly positioned?', section: 'Visual Merchandising', position: 7 },
       { id: 'vm_q8', title: 'Is the colour blocking and overall visual theme maintained?', section: 'Visual Merchandising', position: 8 },
-      { id: 'vm_q9', title: 'Are the folded, hanging and stacked products properly presented?', section: 'Visual Merchandising', position: 9 },
+      { id: 'vm_q9', title: 'Are folded, hanging, and stacked products properly presented?', section: 'Visual Merchandising', position: 9 },
       { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?', section: 'Visual Merchandising', position: 10 },
-      { id: 'vm_q11', title: 'Are all display lights, LED screens and decorative elements working properly?', section: 'Visual Merchandising', position: 11 }
+      { id: 'vm_q11', title: 'Are all display lights, LED screens, and decorative elements working properly?', section: 'Visual Merchandising', position: 11 }
     ];
 
     try {
