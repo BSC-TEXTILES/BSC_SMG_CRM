@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const { logAction } = require('../utils/logger');
+const userSyncService = require('../services/userSyncService');
 
 // Log only to console (no file writing to avoid permission issues on Hostinger)
 function logDebug(msg, extra = '') {
@@ -1307,57 +1309,9 @@ async function autoInitializeDatabase(pool) {
 
     // ── Auto-provision Users for Legacy Joined Candidates ─────────────
     try {
-      const [missingCandidates] = await connection.query(`
-        SELECT c.*, so.joining_date 
-        FROM candidates c
-        LEFT JOIN selection_offers so ON c.app_no = so.app_no
-        LEFT JOIN users u ON u.candidate_app_no = c.app_no
-        WHERE (LOWER(TRIM(c.status)) IN ('joined', 'hired') OR LOWER(TRIM(so.status)) = 'joined')
-        AND u.id IS NULL
-      `);
-      
-      if (missingCandidates.length > 0) {
-        logDebug(`[Auto DB Initializer] Found ${missingCandidates.length} joined candidates missing user accounts. Provisioning...`);
-        const defaultPassword = await bcrypt.hash('Bsc@123', 10);
-        
-        for (const cand of missingCandidates) {
-          const username = cand.phone || `emp_${cand.app_no}`;
-          
-          // Ensure username uniqueness
-          let finalUsername = username;
-          let counter = 1;
-          let unique = false;
-          while(!unique) {
-            const [ex] = await connection.query('SELECT id FROM users WHERE username = ?', [finalUsername]);
-            if (ex.length > 0) {
-              finalUsername = `${username}_${counter}`;
-              counter++;
-            } else {
-              unique = true;
-            }
-          }
-          
-          await connection.query(`
-            INSERT INTO users (
-              username, password, full_name, candidate_app_no, email, phone, 
-              department, designation, role, active, location_id, location_code
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT location_code FROM locations WHERE id = ? LIMIT 1))
-          `, [
-            finalUsername,
-            defaultPassword,
-            cand.name || 'Unknown',
-            cand.app_no,
-            cand.email || null,
-            cand.phone || null,
-            'Store Operations', // Default
-            cand.designation || 'Staff',
-            'Employee', // Default role
-            true,
-            cand.location_id || 2,
-            cand.location_id || 2
-          ]);
-        }
-        logDebug(`[Auto DB Initializer] Successfully provisioned ${missingCandidates.length} user accounts.`);
+      const results = await userSyncService.backfillMissingUserAccounts(connection, logDebug);
+      if (results.scanned > 0) {
+        logDebug(`[Auto DB Initializer] Candidate Sync: scanned ${results.scanned} missing accounts, provisioned ${results.provisioned}, failed ${results.failed}.`);
       }
     } catch (e) {
       logDebug(`[Auto DB Initializer] Candidate Sync warning:`, e.message);
