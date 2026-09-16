@@ -1067,7 +1067,16 @@ export default function WeddingCRM() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             {/* 1. Total Wedding Customers */}
             <div
-              onClick={() => { setActiveTab('register'); setStatusFilter(''); setDateViewFilter('all'); }}
+              onClick={() => {
+                setActiveTab('register');
+                setStatusFilter('');
+                setCallStatusFilter('');
+                setTelecallerFilter('');
+                setSearchQuery('');
+                setDateViewFilter('all');
+                setCustomStartDate('');
+                setCustomEndDate('');
+              }}
               className="bg-white border border-accent-soft hover:border-primary rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-primary/70 mb-1">

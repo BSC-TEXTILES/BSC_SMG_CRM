@@ -103,6 +103,20 @@ export const Auth = {
   }
 };
 
+/**
+ * Strip undefined/null/empty values before building URLSearchParams.
+ * URLSearchParams converts `undefined` to the literal string "undefined",
+ * which backends treat as a real filter value (e.g. WHERE status = 'undefined'),
+ * returning zero results.
+ */
+function cleanQueryParams(obj: Record<string, any>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined && v !== null && v !== '') out[k] = String(v);
+  }
+  return out;
+}
+
 export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const session = Auth.get();
   const headers: Record<string, string> = {
@@ -555,7 +569,7 @@ export const API = {
     limit?: number;
     offset?: number;
   }) {
-    const q = params ? new URLSearchParams(params as any).toString() : '';
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
     const res = await apiFetch(`/wedding-crm/customers${q ? `?${q}` : ''}`);
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
@@ -598,17 +612,17 @@ export const API = {
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
   async getWeddingCallingDesk(params?: { queue?: string; location_id?: number | string }) {
-    const q = params ? new URLSearchParams(params as any).toString() : '';
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
     const res = await apiFetch(`/wedding-crm/calling-desk${q ? `?${q}` : ''}`);
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
   async getWeddingCalendar(params?: { month?: string; location_id?: number | string }) {
-    const q = params ? new URLSearchParams(params as any).toString() : '';
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
     const res = await apiFetch(`/wedding-crm/calendar${q ? `?${q}` : ''}`);
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
   async getWeddingAnalytics(params?: { from_date?: string; to_date?: string; location_id?: number | string }) {
-    const q = params ? new URLSearchParams(params as any).toString() : '';
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
     const res = await apiFetch(`/wedding-crm/analytics${q ? `?${q}` : ''}`);
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
@@ -617,7 +631,7 @@ export const API = {
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
   async getWeddingExportData(params?: any) {
-    const q = params ? new URLSearchParams(params as any).toString() : '';
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
     const res = await apiFetch(`/wedding-crm/export${q ? `?${q}` : ''}`);
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },

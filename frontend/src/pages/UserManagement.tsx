@@ -74,6 +74,10 @@ interface UserData {
   created_at: string;
   updated_at?: string;
   assigned_locations?: Array<{ id: number; name: string }>;
+  employee_id?: string | null;
+  employeeId?: string | null;
+  candidate_app_no?: string | null;
+  candidateAppNo?: string | null;
 }
 
 interface AuditLog {
