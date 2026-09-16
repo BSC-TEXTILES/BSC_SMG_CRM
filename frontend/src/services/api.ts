@@ -399,17 +399,38 @@ export const API = {
   async deleteDesignation(name: string) { return apiFetch('/settings/designations/delete', { method: 'POST', body: JSON.stringify({ name }) }); },
 
   // ── User Management (Admin) ─────────────────────────────────
-  async getAdminUsers() { return apiFetch('/admin/users'); },
-  async getAdminUser(id: number | string) { return apiFetch(`/admin/users/${id}`); },
+  async getAdminUsers() {
+    const res = await apiFetch('/admin/users');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getAdminUser(id: number | string) {
+    const res = await apiFetch(`/admin/users/${id}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
   async createAdminUser(data: any) { return apiFetch('/admin/users', { method: 'POST', body: JSON.stringify(data) }); },
   async updateAdminUser(id: number | string, data: any) { return apiFetch(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }); },
   async deleteAdminUser(id: number | string) { return apiFetch(`/admin/users/${id}`, { method: 'DELETE' }); },
-  async getAdminUserPermissions(id: number | string) { return apiFetch(`/admin/users/${id}/permissions`); },
+  async getAdminUserPermissions(id: number | string) {
+    const res = await apiFetch(`/admin/users/${id}/permissions`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
   async updateAdminUserPermissions(id: number | string, permissions: any[]) { return apiFetch(`/admin/users/${id}/permissions`, { method: 'PUT', body: JSON.stringify({ permissions }) }); },
-  async toggleAdminUserStatus(id: number | string) { return apiFetch(`/admin/users/${id}/toggle-status`, { method: 'POST' }); },
-  async resetAdminUserPassword(id: number | string, password: string) { return apiFetch(`/admin/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify({ password }) }); },
-  async getAdminModules() { return apiFetch('/admin/users/modules'); },
-  async getMyPermissions() { return apiFetch('/my-permissions'); },
+  async toggleAdminUserStatus(id: number | string) {
+    const res = await apiFetch(`/admin/users/${id}/toggle-status`, { method: 'POST' });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async resetAdminUserPassword(id: number | string, password: string) {
+    const res = await apiFetch(`/admin/users/${id}/reset-password`, { method: 'POST', body: JSON.stringify({ password }) });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getAdminModules() {
+    const res = await apiFetch('/admin/users/modules');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getMyPermissions() {
+    const res = await apiFetch('/my-permissions');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
 
   // Broadcasts
   async getBroadcasts() { return apiFetch('/broadcasts'); },
