@@ -130,7 +130,9 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${res.status}`);
+      const error: any = new Error(errorData.message || `HTTP ${res.status}`);
+      error.errors = errorData.errors || [];
+      throw error;
     }
     return await res.json();
   } catch (err: any) {

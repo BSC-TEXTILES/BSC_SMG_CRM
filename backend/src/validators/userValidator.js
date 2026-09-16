@@ -11,7 +11,10 @@ const VALID_ROLES = ['HR', 'Admin', 'Super Admin', 'Manager', 'Greeter', 'Recrui
 // Password policy: at least 8 chars, 1 uppercase, 1 lowercase, 1 digit
 function validatePasswordPolicy(password) {
   if (!password || typeof password !== 'string') return 'Password is required';
-  if (password.length < 6) return 'Password must be at least 6 characters long';
+  if (password.length < 8) return 'Password must be at least 8 characters long';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+  if (!/\d/.test(password)) return 'Password must contain at least one digit';
   return null;
 }
 
@@ -27,7 +30,7 @@ function isValidEmail(email) {
 function isValidMobile(mobile) {
   if (!mobile) return true; // optional field
   const cleaned = mobile.replace(/[\s\-()]/g, '');
-  const re = /^(\+91|0)?\d{10}$/;
+  const re = /^(\+91|0)?[6-9]\d{9}$/;
   return re.test(cleaned);
 }
 

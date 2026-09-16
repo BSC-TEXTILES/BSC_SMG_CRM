@@ -321,8 +321,8 @@ export default function UserManagementPage() {
       showToast('Username, Password, and Role are mandatory', 'error');
       return;
     }
-    if (formPassword.trim().length < 6) {
-      showToast('Password must be at least 6 characters long', 'error');
+    if (formPassword.trim().length < 8) {
+      showToast('Password must be at least 8 characters long', 'error');
       return;
     }
 
@@ -348,7 +348,11 @@ export default function UserManagementPage() {
       setCreateModalOpen(false);
       loadData();
     } catch (err: any) {
-      showToast('Failed to create user: ' + (err.message || 'Server error'), 'error');
+      if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        showToast('Validation failed: ' + err.errors.join(', '), 'error');
+      } else {
+        showToast('Failed to create user: ' + (err.message || 'Server error'), 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -397,7 +401,11 @@ export default function UserManagementPage() {
       setEditModalOpen(false);
       loadData();
     } catch (err: any) {
-      showToast('Failed to update user: ' + (err.message || 'Server error'), 'error');
+      if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        showToast('Validation failed: ' + err.errors.join(', '), 'error');
+      } else {
+        showToast('Failed to update user: ' + (err.message || 'Server error'), 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -438,8 +446,8 @@ export default function UserManagementPage() {
   const handleResetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
-    if (newPassword.trim().length < 6) {
-      showToast('Password must be at least 6 characters long', 'error');
+    if (newPassword.trim().length < 8) {
+      showToast('Password must be at least 8 characters long', 'error');
       return;
     }
 
@@ -449,7 +457,11 @@ export default function UserManagementPage() {
       showToast(`Password for "${selectedUser.username}" has been reset securely`, 'success');
       setResetPwdModalOpen(false);
     } catch (err: any) {
-      showToast('Failed to reset password: ' + (err.message || 'Server error'), 'error');
+      if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+        showToast('Validation failed: ' + err.errors.join(', '), 'error');
+      } else {
+        showToast('Failed to reset password: ' + (err.message || 'Server error'), 'error');
+      }
     } finally {
       setSubmitting(false);
     }
