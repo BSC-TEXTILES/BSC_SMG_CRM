@@ -458,6 +458,107 @@ export default function VmChecklist() {
     >
       <div className="space-y-6">
         
+        {/* VIEW 1: FLOOR SELECTION (Initial State) */}
+        <div className="space-y-6 animate-fade-in">
+            {/* Step 1 Header Banner */}
+            <div className="card-glass p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 shadow-xs">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-primary text-accent flex items-center justify-center font-black shrink-0 shadow-md">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Step 1 of 2</span>
+                    <span>Ã¢â‚¬Â¢</span>
+                    <span>Store Floor Directory</span>
+                  </div>
+                  <h2 className="text-xl font-black text-primary tracking-tight">Select Store Floor</h2>
+                  <p className="text-xs text-primary/70 font-medium mt-0.5">
+                    Choose a store floor to begin the Visual Merchandising audit inspection.
+                  </p>
+                </div>
+              </div>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-black shadow-lg shadow-primary/20 hover:bg-primary-hover active:scale-95 transition-all flex items-center gap-2 border border-primary/20 shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create New Floor</span>
+                </button>
+              )}
+            </div>
+
+            {/* Notification Banner */}
+            {submittedMsg && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center justify-between gap-3 shadow-xs animate-fade-in">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>{submittedMsg}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSubmittedMsg(null)}
+                  className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Floor Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(floorsData).map(([floorKey, floorInfo]) => (
+                <div
+                  key={floorKey}
+                  onClick={() => setSelectedFloor(floorKey)}
+                  className="card-glass p-5 text-left hover:border-accent hover:shadow-xl transition-all duration-200 group cursor-pointer flex flex-col justify-between h-64 relative overflow-hidden bg-white border border-accent/25"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary group-hover:bg-accent/20 group-hover:text-accent-hover transition-colors">
+                        {floorInfo.sections.length} Section{floorInfo.sections.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-extrabold text-base text-primary group-hover:text-accent-hover transition-colors flex items-center gap-1.5">
+                        <span>{floorInfo.label}</span>
+                      </h3>
+                      <p className="text-[11px] text-primary/70 font-medium mt-0.5 line-clamp-2">
+                        {floorInfo.description}
+                      </p>
+                    </div>
+
+                    {/* Section Details Pills - Shows all details for this floor */}
+                    <div className="pt-2 border-t border-accent-soft/60 space-y-1.5">
+                      <div className="text-[9.5px] font-black uppercase text-primary/50 tracking-wider">
+                        Included Sections:
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto pr-1">
+                        {floorInfo.sections.map((sec) => (
+                          <span
+                            key={sec}
+                            className="px-2 py-0.5 rounded-md bg-background text-primary text-[10px] font-bold border border-accent-soft shrink-0"
+                          >
+                            {sec}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-accent-soft/60 flex items-center justify-between text-xs font-black text-accent">
+                    <span>View Sections</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+
         {/* --- VM ANALYTICS DASHBOARD --- */}
         <div className="space-y-6">
           {/* Dashboard Header & Filters */}
@@ -607,7 +708,10 @@ export default function VmChecklist() {
             {/* Floor-wise Performance Chart */}
             <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
               <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Floor-wise Performance</h3>
-              <div className="h-56">
+              <div className="h-56 flex items-center justify-center">
+                {floorChartData.length === 0 ? (
+                  <span className="text-xs text-primary/50 font-bold">No data available</span>
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={floorChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -621,6 +725,7 @@ export default function VmChecklist() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </div>
           </div>
@@ -629,7 +734,10 @@ export default function VmChecklist() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="card-glass p-5 bg-white border-accent/20">
               <h3 className="text-sm font-black uppercase text-primary/80 mb-2">Audit Status Distribution</h3>
-              <div className="h-52">
+              <div className="h-52 flex items-center justify-center">
+                {statusData.length === 0 ? (
+                  <span className="text-xs text-primary/50 font-bold">No data available</span>
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
@@ -641,12 +749,16 @@ export default function VmChecklist() {
                     <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
                   </PieChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </div>
 
             <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
               <h3 className="text-sm font-black uppercase text-primary/80 mb-2">VM Score Trend</h3>
-              <div className="h-52">
+              <div className="h-52 flex items-center justify-center">
+                {trendChartData.length === 0 ? (
+                  <span className="text-xs text-primary/50 font-bold">No data available</span>
+                ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -656,6 +768,7 @@ export default function VmChecklist() {
                     <Line type="monotone" dataKey="score" stroke="#c5a365" strokeWidth={3} dot={{ r: 3, fill: '#c5a365' }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </div>
           </div>
@@ -730,106 +843,6 @@ export default function VmChecklist() {
         </div>
         {/* --- END VM ANALYTICS DASHBOARD --- */}
 
-
-        {/* VIEW 1: FLOOR SELECTION (Initial State) */}
-        <div className="space-y-6 animate-fade-in">
-            {/* Step 1 Header Banner */}
-            <div className="card-glass p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 shadow-xs">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-primary text-accent flex items-center justify-center font-black shrink-0 shadow-md">
-                  <Building2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-1.5">
-                    <span>Step 1 of 2</span>
-                    <span>Ã¢â‚¬Â¢</span>
-                    <span>Store Floor Directory</span>
-                  </div>
-                  <h2 className="text-xl font-black text-primary tracking-tight">Select Store Floor</h2>
-                  <p className="text-xs text-primary/70 font-medium mt-0.5">
-                    Choose a store floor to begin the Visual Merchandising audit inspection.
-                  </p>
-                </div>
-              </div>
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-black shadow-lg shadow-primary/20 hover:bg-primary-hover active:scale-95 transition-all flex items-center gap-2 border border-primary/20 shrink-0"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Create New Floor</span>
-                </button>
-              )}
-            </div>
-
-            {/* Notification Banner */}
-            {submittedMsg && (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center justify-between gap-3 shadow-xs animate-fade-in">
-                <div className="flex items-center gap-2.5">
-                  <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <span>{submittedMsg}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSubmittedMsg(null)}
-                  className="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Floor Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Object.entries(floorsData).map(([floorKey, floorInfo]) => (
-                <div
-                  key={floorKey}
-                  onClick={() => setSelectedFloor(floorKey)}
-                  className="card-glass p-5 text-left hover:border-accent hover:shadow-xl transition-all duration-200 group cursor-pointer flex flex-col justify-between h-64 relative overflow-hidden bg-white border border-accent/25"
-                >
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary group-hover:bg-accent/20 group-hover:text-accent-hover transition-colors">
-                        {floorInfo.sections.length} Section{floorInfo.sections.length > 1 ? 's' : ''}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-extrabold text-base text-primary group-hover:text-accent-hover transition-colors flex items-center gap-1.5">
-                        <span>{floorInfo.label}</span>
-                      </h3>
-                      <p className="text-[11px] text-primary/70 font-medium mt-0.5 line-clamp-2">
-                        {floorInfo.description}
-                      </p>
-                    </div>
-
-                    {/* Section Details Pills - Shows all details for this floor */}
-                    <div className="pt-2 border-t border-accent-soft/60 space-y-1.5">
-                      <div className="text-[9.5px] font-black uppercase text-primary/50 tracking-wider">
-                        Included Sections:
-                      </div>
-                      <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto pr-1">
-                        {floorInfo.sections.map((sec) => (
-                          <span
-                            key={sec}
-                            className="px-2 py-0.5 rounded-md bg-background text-primary text-[10px] font-bold border border-accent-soft shrink-0"
-                          >
-                            {sec}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-accent-soft/60 flex items-center justify-between text-xs font-black text-accent">
-                    <span>View Sections</span>
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
         {/* VIEW 2: SECTION SELECTION (Floor Selected, Section Not Selected) */}
         {selectedFloor && (
