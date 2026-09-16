@@ -57,9 +57,9 @@ export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
   'Third Floor': {
     name: 'Third Floor',
     label: 'Third Floor',
-    description: 'Men Wear and Home Furnishing',
+    description: 'Mens Wear and Home Furnishing',
     badge: '1 Section',
-    sections: ['Men Wear and Home Furnishing']
+    sections: ['Mens Wear and Home Furnishing']
   }
 };
 
@@ -690,12 +690,12 @@ export default function VmChecklist() {
                                 })
                               }
                               className={`py-2 px-3.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${selected
-                                  ? sc === 'Pass'
-                                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                                    : sc === 'Fail'
-                                      ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                                      : 'bg-gray-700 text-white border-gray-700 shadow-sm'
-                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                ? sc === 'Pass'
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                  : sc === 'Fail'
+                                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                                    : 'bg-gray-700 text-white border-gray-700 shadow-sm'
+                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                                 }`}
                             >
                               {sc === 'Pass' ? '✓ Pass' : sc === 'Fail' ? '✗ Fail' : '— N/A'}
