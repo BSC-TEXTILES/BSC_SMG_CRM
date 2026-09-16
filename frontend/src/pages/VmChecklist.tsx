@@ -6,7 +6,6 @@ import {
   XCircle,
   MinusCircle,
   Save,
-  Layers,
   ArrowLeft,
   Store,
   Check,
@@ -14,13 +13,7 @@ import {
   ChevronRight,
   RotateCcw,
   Sparkles,
-  Plus,
-  Trash2,
-  FolderPlus,
-  Info,
-  X,
-  Tag,
-  ShieldCheck
+  X
 } from 'lucide-react';
 import { API, Auth } from '../services/api';
 
@@ -31,7 +24,6 @@ export interface FloorItem {
   description: string;
   badge?: string;
   sections: string[];
-  isCustom?: boolean;
   createdAt?: string;
 }
 
@@ -54,16 +46,16 @@ export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
   'Second Floor': {
     name: 'Second Floor',
     label: 'Second Floor',
-    description: 'Ladies and Kids Wear',
+    description: 'Ladies Wear and Kids Wear',
     badge: '1 Section',
-    sections: ['Ladies and Kids Wear']
+    sections: ['Ladies Wear and Kids Wear']
   },
   'Third Floor': {
     name: 'Third Floor',
     label: 'Third Floor',
-    description: 'Men and Home Furnishing',
+    description: 'Men Wear and Home Furnishing',
     badge: '1 Section',
-    sections: ['Men and Home Furnishing']
+    sections: ['Men Wear and Home Furnishing']
   }
 };
 
@@ -84,7 +76,6 @@ export const DEFAULT_VM_QUESTIONS = [
 
 export default function VmChecklist() {
   const session = Auth.get();
-  const isAdmin = !session || session.role === 'Admin' || session.role === 'Super Admin';
 
   // Floor & Section Hierarchy State
   const [floorsData, setFloorsData] = useState<Record<string, FloorItem>>(DEFAULT_VM_FLOORS);
@@ -592,15 +583,14 @@ export default function VmChecklist() {
                                   [p.id]: { ...current, score: sc }
                                 })
                               }
-                              className={`py-2 px-3.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${
-                                selected
+                              className={`py-2 px-3.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${selected
                                   ? sc === 'Pass'
                                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                                     : sc === 'Fail'
-                                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                                    : 'bg-gray-700 text-white border-gray-700 shadow-sm'
+                                      ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                                      : 'bg-gray-700 text-white border-gray-700 shadow-sm'
                                   : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                              }`}
+                                }`}
                             >
                               {sc === 'Pass' ? '✓ Pass' : sc === 'Fail' ? '✗ Fail' : '— N/A'}
                             </button>
