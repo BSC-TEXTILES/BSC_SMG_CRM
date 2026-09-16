@@ -13,6 +13,9 @@ import {
   ChevronRight,
   RotateCcw,
   Sparkles,
+  Plus,
+  FolderPlus,
+  Tag,
   X
 } from 'lucide-react';
 import { API, Auth } from '../services/api';
@@ -24,6 +27,7 @@ export interface FloorItem {
   description: string;
   badge?: string;
   sections: string[];
+  isCustom?: boolean;
   createdAt?: string;
 }
 
@@ -76,6 +80,7 @@ export const DEFAULT_VM_QUESTIONS = [
 
 export default function VmChecklist() {
   const session = Auth.get();
+  const isAdmin = !session || session.role === 'Admin' || session.role === 'Super Admin';
 
   // Floor & Section Hierarchy State
   const [floorsData, setFloorsData] = useState<Record<string, FloorItem>>(DEFAULT_VM_FLOORS);
@@ -89,12 +94,41 @@ export default function VmChecklist() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submittedMsg, setSubmittedMsg] = useState<string | null>(null);
 
-  // Load questions
+  // Admin Floor Creation State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newFloorName, setNewFloorName] = useState('');
+  const [newFloorDesc, setNewFloorDesc] = useState('');
+  const [newSectionInput, setNewSectionInput] = useState('');
+  const [newSectionsList, setNewSectionsList] = useState<string[]>([]);
+  const [creatingFloor, setCreatingFloor] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
   useEffect(() => {
-    loadQuestions();
+    loadData();
   }, []);
 
-  const loadQuestions = async () => {
+  const loadData = async () => {
+    try {
+      const floorRes = await API.getVmFloors();
+      if (floorRes && Array.isArray(floorRes.floors)) {
+        const merged: Record<string, FloorItem> = { ...DEFAULT_VM_FLOORS };
+        floorRes.floors.forEach((f: any) => {
+          merged[f.name] = {
+            id: f.id,
+            name: f.name,
+            label: f.name,
+            description: f.description || '',
+            sections: f.sections || [],
+            isCustom: true,
+            badge: `${f.sections.length} Section${f.sections.length > 1 ? 's' : ''}`
+          };
+        });
+        setFloorsData(merged);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     try {
       const res = await API.getVmPoints();
       if (res && res.points && res.points.length >= 11) {
@@ -107,6 +141,68 @@ export default function VmChecklist() {
     } catch {
       setPoints(DEFAULT_VM_QUESTIONS);
       initScores(DEFAULT_VM_QUESTIONS);
+    }
+  };
+
+  const handleAddSectionToModal = () => {
+    const val = newSectionInput.trim();
+    if (!val) return;
+    if (newSectionsList.includes(val)) {
+      setNewSectionInput('');
+      return;
+    }
+    setNewSectionsList([...newSectionsList, val]);
+    setNewSectionInput('');
+  };
+
+  const handleRemoveSectionFromModal = (sec: string) => {
+    setNewSectionsList(newSectionsList.filter((s) => s !== sec));
+  };
+
+  const handleCreateFloorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError(null);
+
+    if (!newFloorName.trim()) {
+      setCreateError('Floor name is required');
+      return;
+    }
+    if (newSectionsList.length === 0) {
+      setCreateError('Please add at least one section for this floor');
+      return;
+    }
+
+    setCreatingFloor(true);
+    try {
+      const res = await API.createVmFloor({
+        name: newFloorName.trim(),
+        description: newFloorDesc.trim(),
+        sections: newSectionsList
+      });
+
+      if (res && res.success && res.floor) {
+        setFloorsData((prev) => ({
+          ...prev,
+          [res.floor.name]: {
+            ...res.floor,
+            label: res.floor.name,
+            badge: `${res.floor.sections.length} Section${res.floor.sections.length > 1 ? 's' : ''}`,
+            isCustom: true
+          }
+        }));
+        setIsCreateModalOpen(false);
+        setNewFloorName('');
+        setNewFloorDesc('');
+        setNewSectionsList([]);
+        setSubmittedMsg(`Custom Floor '${res.floor.name}' created successfully!`);
+      } else {
+        setCreateError(res?.message || 'Failed to create floor');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setCreateError(err.message || 'Server error creating floor');
+    } finally {
+      setCreatingFloor(false);
     }
   };
 
@@ -218,6 +314,16 @@ export default function VmChecklist() {
                   </p>
                 </div>
               </div>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-black shadow-lg shadow-primary/20 hover:bg-primary-hover active:scale-95 transition-all flex items-center gap-2 border border-primary/20 shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create New Floor</span>
+                </button>
+              )}
             </div>
 
             {/* Notification Banner */}
@@ -643,7 +749,167 @@ export default function VmChecklist() {
         )}
       </div>
 
+      {/* CREATE NEW FLOOR / FOLDER MODAL (ADMIN ONLY) */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="card-glass bg-white rounded-3xl w-full max-w-lg shadow-2xl border-2 border-accent/40 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 bg-gradient-to-r from-primary via-primary to-[#0B1F35] text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center font-black">
+                  <FolderPlus className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">Create New Floor / Department Folder</h3>
+                  <p className="text-xs text-accent">Admin Store Configuration</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
+            {/* Modal Form Body */}
+            <form onSubmit={handleCreateFloorSubmit} className="p-6 space-y-4">
+              {createError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold flex items-center gap-2">
+                  <XCircle className="w-4 h-4 shrink-0" />
+                  <span>{createError}</span>
+                </div>
+              )}
+
+              {/* Floor Name */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black uppercase text-primary/70 tracking-wider">
+                  Floor / Folder Name <span className="text-rose-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Fourth Floor, Basement Galleria, Mezzanine"
+                  value={newFloorName}
+                  onChange={(e) => setNewFloorName(e.target.value)}
+                  className="input-modern text-xs w-full font-bold"
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-black uppercase text-primary/70 tracking-wider">
+                  Description / Department Category
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Ethnic Wear, Bridal Studio, Accessories"
+                  value={newFloorDesc}
+                  onChange={(e) => setNewFloorDesc(e.target.value)}
+                  className="input-modern text-xs w-full"
+                />
+              </div>
+
+              {/* Department Sections */}
+              <div className="space-y-2">
+                <label className="block text-xs font-black uppercase text-primary/70 tracking-wider">
+                  Department Sections <span className="text-rose-600">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. Bridal Lehengas, Designer Kurtas"
+                    value={newSectionInput}
+                    onChange={(e) => setNewSectionInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSectionToModal();
+                      }
+                    }}
+                    className="input-modern text-xs flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSectionToModal}
+                    className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-extrabold hover:bg-primary-hover cursor-pointer"
+                  >
+                    + Add Section
+                  </button>
+                </div>
+
+                {/* Section Pills Display */}
+                <div className="p-3 bg-background rounded-xl border border-accent-soft/80 min-h-16 flex flex-wrap items-center gap-1.5">
+                  {newSectionsList.length === 0 ? (
+                    <span className="text-xs text-primary/50 italic">
+                      No sections added yet. Type a section name above and click "+ Add Section".
+                    </span>
+                  ) : (
+                    newSectionsList.map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white text-primary text-xs font-bold border border-accent/40 shadow-2xs"
+                      >
+                        <Tag className="w-3 h-3 text-accent" />
+                        <span>{s}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSectionFromModal(s)}
+                          className="text-rose-500 hover:text-rose-700"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Quick suggestion tags */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-primary/60">Quick Suggestions:</span>
+                <div className="flex flex-wrap gap-1">
+                  {['Bridal Studio', 'Accessories', 'Footwear', 'Jewellery', 'Custom Tailoring', 'Western Wear'].map(
+                    (sugg) => (
+                      <button
+                        type="button"
+                        key={sugg}
+                        onClick={() => {
+                          if (!newSectionsList.includes(sugg)) {
+                            setNewSectionsList([...newSectionsList, sugg]);
+                          }
+                        }}
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 hover:bg-accent/20 text-accent-hover font-semibold transition-colors cursor-pointer"
+                      >
+                        + {sugg}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-accent-soft flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-accent/30 text-primary text-xs font-bold hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingFloor}
+                  className="btn-gold text-xs px-5 py-2 font-extrabold flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {creatingFloor ? 'Creating Floor…' : 'Create Store Floor'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
