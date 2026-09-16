@@ -37,6 +37,13 @@ export interface FloorItem {
 
 // Built-in Floor and Section Definitions
 export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
+  'Third Floor': {
+    name: 'Third Floor',
+    label: 'Third Floor',
+    description: 'Mens Wear and Home Furnishing',
+    badge: '1 Section',
+    sections: ['Mens Wear and Home Furnishing']
+  },
   'Ground Floor': {
     name: 'Ground Floor',
     label: 'Ground Floor',
@@ -57,13 +64,6 @@ export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
     description: 'Ladies Wear and Kids Wear',
     badge: '1 Section',
     sections: ['Ladies Wear and Kids Wear']
-  },
-  'Third Floor': {
-    name: 'Third Floor',
-    label: 'Third Floor',
-    description: 'Mens Wear and Home Furnishing',
-    badge: '1 Section',
-    sections: ['Mens Wear and Home Furnishing']
   }
 };
 
