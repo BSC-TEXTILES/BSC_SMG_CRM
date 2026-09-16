@@ -970,13 +970,64 @@ export default function UserManagementPage() {
                                 {isAdmin && <Shield className="w-3 h-3" />}
                                 {user.role}
                               </span>
-                              <span className="text-[11px] font-semibold text-primary/70 flex items-center gap-1">
+                              <span className="text-[11px] font-semibold text-primary/70 flex items-center gap-1 relative">
                                 <Building2 className="w-3 h-3 text-accent" />
-                                {isAdmin || (!user.location_id && (!user.assigned_locations || user.assigned_locations.length === 0))
-                                  ? 'Global (All Stores)'
-                                  : (user.assigned_locations && user.assigned_locations.length > 0
-                                    ? user.assigned_locations.map(l => l.name).join(', ')
-                                    : (user.location_name || user.location_code || 'Assigned Store'))}
+                                {editingLocationUserId === user.id ? (
+                                  <div ref={locationDropdownRef} className="relative">
+                                    <div className="absolute left-0 top-full mt-1 z-50 bg-white rounded-xl border border-accent/30 shadow-xl py-1 min-w-[200px] animate-in fade-in zoom-in-95 duration-150">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleChangeLocation(user, null)}
+                                        disabled={savingLocationUserId === user.id}
+                                        className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-accent/10 transition-colors cursor-pointer ${
+                                          (user.location_id === null && (!user.assigned_locations || user.assigned_locations.length === 0))
+                                            ? 'bg-accent/15 text-accent' : 'text-primary'
+                                        }`}
+                                      >
+                                        <span>🌐</span>
+                                        <span>All Locations</span>
+                                        {savingLocationUserId === user.id && <RefreshCw className="w-3 h-3 animate-spin ml-auto" />}
+                                      </button>
+                                      {(locations.length > 0 ? locations : [
+                                        { id: 1, location_name: 'Belagavi', location_code: 'BEL' },
+                                        { id: 2, location_name: 'Davanagere', location_code: 'DAV' },
+                                        { id: 3, location_name: 'Shivamogga', location_code: 'SHI' }
+                                      ]).map((loc: any) => (
+                                        <button
+                                          key={loc.id}
+                                          type="button"
+                                          onClick={() => handleChangeLocation(user, loc.id)}
+                                          disabled={savingLocationUserId === user.id}
+                                          className={`w-full text-left px-3 py-1.5 text-xs font-semibold flex items-center gap-2 hover:bg-accent/10 transition-colors cursor-pointer ${
+                                            String(user.location_id) === String(loc.id)
+                                              ? 'bg-accent/15 text-accent' : 'text-primary'
+                                          }`}
+                                        >
+                                          <span>📍</span>
+                                          <span>{loc.location_name}</span>
+                                          <span className="text-[10px] text-primary/50 ml-auto">{loc.location_code}</span>
+                                          {savingLocationUserId === user.id && <RefreshCw className="w-3 h-3 animate-spin ml-auto" />}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingLocationUserId(user.id)}
+                                    disabled={isAdmin}
+                                    className={`hover:bg-accent/10 px-1.5 py-0.5 rounded-md transition-colors cursor-pointer text-left ${
+                                      isAdmin ? 'cursor-not-allowed opacity-75' : 'hover:underline decoration-dotted underline-offset-2'
+                                    }`}
+                                    title={isAdmin ? 'Admin locations are managed via role' : 'Click to change location'}
+                                  >
+                                    {isAdmin || (!user.location_id && (!user.assigned_locations || user.assigned_locations.length === 0))
+                                      ? 'Global (All Stores)'
+                                      : (user.assigned_locations && user.assigned_locations.length > 0
+                                        ? user.assigned_locations.map(l => l.name).join(', ')
+                                        : (user.location_name || user.location_code || 'Assigned Store'))}
+                                  </button>
+                                )}
                               </span>
                             </div>
                           </td>

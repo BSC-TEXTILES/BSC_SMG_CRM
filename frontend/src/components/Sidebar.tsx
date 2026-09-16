@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { API, Auth, UserSession } from '../services/api';
 import {
@@ -38,6 +38,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   const pathname = useLocation().pathname;
   const role = session?.role || 'HR';
   const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
+  const navScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsub = subscribeSidebarCollapsed((c) => {
@@ -79,6 +80,23 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     setCollapsed(next);
     setSidebarCollapsed(next);
   };
+
+  // Auto-scroll the active nav item to the top of the sidebar
+  useEffect(() => {
+    if (!navScrollRef.current) return;
+    const container = navScrollRef.current;
+    // Small delay to ensure the DOM has updated after navigation
+    const timer = setTimeout(() => {
+      const activeLink = container.querySelector('[data-active="true"]');
+      if (activeLink) {
+        const containerRect = container.getBoundingClientRect();
+        const linkRect = activeLink.getBoundingClientRect();
+        const offset = linkRect.top - containerRect.top + container.scrollTop;
+        container.scrollTo({ top: Math.max(0, offset - 8), behavior: 'smooth' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   const roleNavMap: Record<string, string[]> = {
     'Super Admin': ['dashboard', 'wedding_crm', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'candidates', 'interview', 'offer', 'openings', 'onboarding', 'employees', 'dept_hiring', 'section_allocation', 'exit', 'form', 'settings', 'system_admin', 'broadcast', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'user_management'],
@@ -274,7 +292,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-3">
+        <div ref={navScrollRef} className="flex-1 overflow-y-auto px-2 py-1.5 space-y-3">
           {['Store Operations', 'Core Workspace', 'Daily Operations', 'Talent Management', 'Public Portals', 'Administration'].map(section => {
             const items = navItems.filter(item => item.section === section && (allowed.includes(item.key) || ['Super Admin', 'Admin', 'HR', 'Manager'].includes(role)));
             if (items.length === 0) return null;
@@ -301,6 +319,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
                         target={item.target}
                         onClick={onClose}
                         title={item.label}
+                        data-active={isActive ? 'true' : undefined}
                         className={`
                           flex items-center rounded-xl text-xs font-bold transition-all duration-150 group relative
                           ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5 justify-between'}
