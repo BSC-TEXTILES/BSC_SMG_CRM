@@ -962,6 +962,7 @@ export default function WeddingCRM() {
           </tbody>
         </table>
 
+
         <div class="footer">
           BSC Business Management System · Wedding CRM Module · Printed on ${new Date().toLocaleString('en-IN')}
         </div>
@@ -1043,7 +1044,7 @@ export default function WeddingCRM() {
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50 flex-shrink-0"
+                className="hidden sm:flex bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50 flex-shrink-0"
               >
                 <Plus className="w-4 h-4 text-accent flex-shrink-0" />
                 <span className="hidden sm:inline">Add Wedding Customer</span>
@@ -1079,26 +1080,26 @@ export default function WeddingCRM() {
                 setCustomStartDate('');
                 setCustomEndDate('');
               }}
-              className="bg-white border border-accent-soft hover:border-primary rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-primary rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-primary/70 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Total Customers</span>
                 <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-primary">{stats.totalCustomers}</div>
+              <div className="text-xl sm:text-2xl font-black text-primary">{stats.totalCustomers}</div>
               <div className="text-[10px] text-primary/70 font-medium mt-0.5">All registered</div>
             </div>
 
             {/* 2. Today's Follow-ups (Primary Pulse KPI - Click opens Calling Desk) */}
             <div
               onClick={() => { setActiveTab('calling_desk'); setDeskQueueType('dueToday'); }}
-              className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-400 rounded-2xl p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden group"
+              className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-400 rounded-2xl p-2.5 sm:p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden group"
             >
               <div className="flex items-center justify-between text-amber-700 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Today's Calls</span>
                 <PhoneCall className="w-4 h-4 text-amber-600 animate-bounce" />
               </div>
-              <div className="text-2xl font-black text-amber-900">{stats.todayFollowUps}</div>
+              <div className="text-xl sm:text-2xl font-black text-amber-900">{stats.todayFollowUps}</div>
               <div className="text-[10px] text-amber-800 font-bold mt-0.5 flex items-center gap-1">
                 <span>Primary Desk</span>
                 <ChevronRight className="w-3 h-3" />
@@ -1108,7 +1109,7 @@ export default function WeddingCRM() {
             {/* 3. Overdue Follow-ups */}
             <div
               onClick={() => { setActiveTab('calling_desk'); setDeskQueueType('overdue'); }}
-              className={`rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group border ${
+              className={`rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group border ${
                 stats.overdueFollowUps > 0 ? 'bg-red-50/70 border-red-300' : 'bg-white border-accent-soft'
               }`}
             >
@@ -1116,72 +1117,72 @@ export default function WeddingCRM() {
                 <span className="text-[10px] font-black uppercase tracking-wider">Overdue</span>
                 <AlertCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-red-700">{stats.overdueFollowUps}</div>
+              <div className="text-xl sm:text-2xl font-black text-red-700">{stats.overdueFollowUps}</div>
               <div className="text-[10px] text-red-600 font-semibold mt-0.5">Calls missed</div>
             </div>
 
             {/* 4. Calls Pending */}
             <div
               onClick={() => { setActiveTab('calling_desk'); }}
-              className="bg-white border border-accent-soft hover:border-orange-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-orange-300 rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-orange-600 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Calls Pending</span>
                 <Clock className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-orange-700">{stats.callsPending}</div>
+              <div className="text-xl sm:text-2xl font-black text-orange-700">{stats.callsPending}</div>
               <div className="text-[10px] text-orange-600 font-medium mt-0.5">To be completed</div>
             </div>
 
             {/* 5. Calls Completed */}
             <div
               onClick={() => { setActiveTab('register'); setCallStatusFilter('Completed'); }}
-              className="bg-white border border-accent-soft hover:border-emerald-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-emerald-300 rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-emerald-600 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Calls Completed</span>
                 <CheckCircle2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-emerald-700">{stats.callsCompleted}</div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700">{stats.callsCompleted}</div>
               <div className="text-[10px] text-emerald-600 font-medium mt-0.5">Successfully logged</div>
             </div>
 
             {/* 6. Shopping Confirmed */}
             <div
               onClick={() => { setActiveTab('register'); setStatusFilter('Shopping Date Confirmed'); }}
-              className="bg-white border border-accent-soft hover:border-blue-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-blue-300 rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-blue-600 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Shopping Confirmed</span>
                 <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-blue-800">{stats.shoppingConfirmed}</div>
+              <div className="text-xl sm:text-2xl font-black text-blue-800">{stats.shoppingConfirmed}</div>
               <div className="text-[10px] text-blue-600 font-semibold mt-0.5">High Intent</div>
             </div>
 
             {/* 7. Visited / Converted */}
             <div
               onClick={() => { setActiveTab('register'); setStatusFilter('Converted'); }}
-              className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-300 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-300 rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-teal-700 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Visited / Won</span>
                 <Sparkles className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-teal-900">{stats.visitedConverted}</div>
+              <div className="text-xl sm:text-2xl font-black text-teal-900">{stats.visitedConverted}</div>
               <div className="text-[10px] text-teal-700 font-bold mt-0.5">Conversion rate</div>
             </div>
 
             {/* 8. Not Interested */}
             <div
               onClick={() => { setActiveTab('register'); setStatusFilter('Not Interested'); }}
-              className="bg-white border border-accent-soft hover:border-gray-400 rounded-2xl p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white border border-accent-soft hover:border-gray-400 rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-gray-500 mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Not Interested</span>
                 <XCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="text-2xl font-black text-gray-700">{stats.notInterested}</div>
+              <div className="text-xl sm:text-2xl font-black text-gray-700">{stats.notInterested}</div>
               <div className="text-[10px] text-gray-500 font-medium mt-0.5">Closed / Opt-out</div>
             </div>
           </div>
@@ -1189,8 +1190,8 @@ export default function WeddingCRM() {
           {/* ════════════════════════════════════════════════════════════
               PRIMARY NAVIGATION TABS
              ════════════════════════════════════════════════════════════ */}
-          <div className="bg-white p-2 rounded-2xl border border-accent-soft shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto">
+          <div className="bg-white p-2 rounded-2xl border border-accent-soft shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide w-full sm:w-auto">
               <button
                 onClick={() => setActiveTab('calling_desk')}
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
@@ -1249,7 +1250,7 @@ export default function WeddingCRM() {
             </div>
 
             {/* Global Actions: Excel & PDF Exports */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide w-full sm:w-auto">
               <input
                 ref={importInputRef}
                 type="file"
@@ -1308,7 +1309,7 @@ export default function WeddingCRM() {
                     <Sparkles className="w-3.5 h-3.5 text-accent" />
                     <span>DAILY TELECALLING WORKLOAD</span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-background mt-0.5">
+                  <div className="text-xl sm:text-xl sm:text-2xl font-black text-background mt-0.5">
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                   </div>
                 </div>
@@ -1628,8 +1629,8 @@ export default function WeddingCRM() {
                 </div>
 
                 {/* Follow-up Quick Date Filter Pills */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-accent-soft">
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-accent-soft">
+                  <div className="flex items-center gap-1.5 text-xs overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide w-full sm:w-auto">
                     <span className="text-[11px] font-bold text-primary/70 mr-1">Follow-up:</span>
                     {[
                       { key: 'all', label: 'All Dates' },
@@ -1643,7 +1644,7 @@ export default function WeddingCRM() {
                       <button
                         key={btn.key}
                         onClick={() => setDateViewFilter(btn.key)}
-                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 ${
                           dateViewFilter === btn.key
                             ? 'bg-primary text-white'
                             : 'bg-background text-primary/70 hover:bg-accent-soft'
@@ -1677,7 +1678,7 @@ export default function WeddingCRM() {
               {/* Customer Directory Table */}
               <div className="bg-white rounded-2xl border border-accent-soft shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
+                  <table className="w-full text-left text-xs hidden lg:table">
                     <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3">Customer ID</th>
@@ -1817,6 +1818,86 @@ export default function WeddingCRM() {
                       )}
                     </tbody>
                   </table>
+                </div>
+
+                {/* MOBILE CUSTOMER CARDS (Visible only on small screens) */}
+                <div className="grid grid-cols-1 gap-3 p-3 lg:hidden">
+                  {loadingCustomers ? (
+                    <div className="p-8 text-center text-gray-400 border border-accent/20 rounded-xl">
+                      <RefreshCw className="w-5 h-5 mx-auto animate-spin mb-1 text-accent" />
+                      <span>Loading wedding customers...</span>
+                    </div>
+                  ) : customers.length === 0 ? (
+                    <div className="p-8 text-center text-gray-400 border border-accent/20 rounded-xl">
+                      No wedding customers match the selected filters.
+                    </div>
+                  ) : (
+                    customers.map((c) => {
+                      const isOverdue = c.overdue_days && c.overdue_days > 0;
+                      return (
+                        <div key={c.id} className="bg-white p-3 rounded-xl border border-accent-soft shadow-xs space-y-2 flex flex-col relative">
+                          {/* Header: Name and ID */}
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-bold text-primary text-sm">{c.customer_name}</div>
+                              <div className="text-[11px] font-mono font-bold text-primary/70">{c.customer_code}</div>
+                            </div>
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                              {c.customer_status}
+                            </span>
+                          </div>
+                          
+                          {/* Contact & Location */}
+                          <div className="flex flex-wrap items-center justify-between text-xs text-primary/80 gap-2">
+                            <div className="flex items-center gap-1.5 bg-accent/5 px-2 py-1 rounded-md">
+                              <Phone className="w-3 h-3" />
+                              <span>{c.mobile_number}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-gray-400" />
+                              <span>{c.location_name || 'Davanagere'}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Follow up dates & Telecaller */}
+                          <div className="grid grid-cols-2 gap-2 text-[10px] bg-background/50 p-2 rounded-lg border border-accent-soft/50">
+                            <div>
+                              <div className="text-gray-500 mb-0.5">Next Follow-up</div>
+                              <div className="font-black text-primary">{formatDate(c.follow_up_date)}</div>
+                              {isOverdue && (
+                                <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-[1px] rounded-full mt-0.5 inline-block">
+                                  {c.overdue_days}d overdue
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-gray-500 mb-0.5">Telecaller</div>
+                              <div className="font-medium text-primary line-clamp-1">{c.assigned_telecaller || 'Unassigned'}</div>
+                              <span className="text-[9px] font-bold px-1.5 py-[1px] rounded bg-gray-100 text-gray-700 mt-0.5 inline-block">
+                                {c.call_status}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Actions Footer */}
+                          <div className="flex items-center justify-end gap-2 pt-1 mt-1 border-t border-accent-soft/50">
+                            <button onClick={() => openCallModal(c)} className="p-2 bg-primary hover:bg-primary text-white rounded-lg shadow-sm transition-all" title="Log Call">
+                              <PhoneCall className="w-4 h-4 text-accent" />
+                            </button>
+                            <a href={`https://wa.me/91${(c.mobile_number || '').replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(`Namaste ${c.customer_name || ''} ji! Greetings from BSC Exclusive regarding your wedding shopping. Our team will assist you with the latest bridal & family collections. — BSC Exclusive`)}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-emerald-50 text-emerald-700 rounded-lg shadow-sm border border-emerald-100 transition-all" title="WhatsApp">
+                              <MessageCircle className="w-4 h-4" />
+                            </a>
+                            <button onClick={() => openProfileModal(c)} className="p-2 bg-gray-100 text-gray-700 rounded-lg shadow-sm border border-gray-200 transition-all" title="Profile">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => openEditModal(c)} className="p-2 bg-gray-100 text-gray-700 rounded-lg shadow-sm border border-gray-200 transition-all" title="Edit">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
@@ -2072,7 +2153,7 @@ export default function WeddingCRM() {
                             {idx < 5 && <ArrowRight className="w-3 h-3 text-accent" />}
                           </div>
                           <div className="my-2">
-                            <div className="text-2xl font-black text-primary">{step.val}</div>
+                            <div className="text-xl sm:text-2xl font-black text-primary">{step.val}</div>
                             <div className="text-xs font-black text-primary mt-0.5">{step.label}</div>
                           </div>
                           <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
