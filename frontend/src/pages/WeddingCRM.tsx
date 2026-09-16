@@ -418,12 +418,14 @@ export default function WeddingCRM() {
         location_id: selectedLocation || undefined,
         date_filter: dateViewFilter !== 'all' ? dateViewFilter : undefined,
         status: statusFilter || undefined,
+        call_status: callStatusFilter || undefined,
         telecaller_id: telecallerFilter || undefined,
         search: searchQuery || undefined,
         from_date: customStartDate || undefined,
         to_date: customEndDate || undefined,
         limit: 100
       });
+
       const custList = res?.customers || res?.data?.customers;
       if (custList) {
         setCustomers(custList);
@@ -433,7 +435,7 @@ export default function WeddingCRM() {
     } finally {
       setLoadingCustomers(false);
     }
-  }, [selectedLocation, dateViewFilter, statusFilter, telecallerFilter, searchQuery, customStartDate, customEndDate]);
+  }, [selectedLocation, dateViewFilter, statusFilter, callStatusFilter, telecallerFilter, searchQuery, customStartDate, customEndDate]);
 
   // Load Calendar Data
   const loadCalendar = useCallback(async () => {

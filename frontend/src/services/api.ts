@@ -561,6 +561,7 @@ export const API = {
   async getWeddingCustomers(params?: {
     date_filter?: string;
     status?: string;
+    call_status?: string;
     location_id?: number | string;
     telecaller_id?: number | string;
     search?: string;
