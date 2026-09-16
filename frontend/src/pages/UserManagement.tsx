@@ -1451,8 +1451,24 @@ export default function UserManagementPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">Initial Module Access</label>
-                  <p className="text-[10px] text-primary/50 mt-0.5">Select modules the user can access (can be modified later in Permissions Matrix)</p>
+                  <div className="flex justify-between items-end mb-1">
+                    <div>
+                      <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">Initial Module Access</label>
+                      <p className="text-[10px] text-primary/50 mt-0.5">Select modules the user can access</p>
+                    </div>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold text-primary hover:text-accent transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formSelectedModules.length === modules.length && modules.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) setFormSelectedModules(modules.map(m => m.key));
+                          else setFormSelectedModules([]);
+                        }}
+                        className="w-3 h-3 rounded border-accent-soft text-primary focus:ring-accent"
+                      />
+                      Select All
+                    </label>
+                  </div>
                   <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-accent/20 rounded-xl">
                     {modules.map((m) => (
                       <label key={m.key} className="flex items-center gap-2 cursor-pointer bg-gray-50 px-2 py-1 rounded-md border border-gray-200 hover:bg-gray-100">
