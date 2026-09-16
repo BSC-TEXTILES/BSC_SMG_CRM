@@ -36,6 +36,7 @@ import DevToolsGuard from './components/DevToolsGuard';
 import ConnectivityBanner from './components/ConnectivityBanner';
 import ErrorBoundary from './components/ErrorBoundary';
 import SessionTimeoutGuard from './components/SessionTimeoutGuard';
+import DesktopModeWarning from './components/DesktopModeWarning';
 
 export default function App() {
   return (
@@ -85,6 +86,7 @@ export default function App() {
       <QuickActionCenter />
       <SessionTimeoutGuard />
       <DevToolsGuard />
+      <DesktopModeWarning />
     </Router>
     </ErrorBoundary>
   );
