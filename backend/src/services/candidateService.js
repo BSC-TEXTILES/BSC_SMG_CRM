@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const fs = require('fs');
 const path = require('path');
+const userSyncService = require('./userSyncService');
 const { formatISTDate, getISTDateRange, isDateInRange, getBusinessDate } = require('../utils/dateUtils');
 
 class CandidateService {
@@ -361,7 +362,7 @@ class CandidateService {
     return { success: true };
   }
 
-  async updateCandidateFull(appNo, data, doneBy = 'HR') {
+  async updateCandidateFull(appNo, data, doneBy = 'HR', options = {}) {
     if (!appNo) return { success: false, error: 'App No missing' };
     const fields = [];
     const values = [];
@@ -467,6 +468,17 @@ class CandidateService {
       // Activity log safety catch
     }
 
+    // ── Synchronize the master user account ───────────────────────────
+    // `users` is the single source of truth for the account, and the Employee
+    // Directory / User Management both read it. A profile edit here must be
+    // visible there immediately, so the shared fields are pushed across.
+    // Callers that already wrote the authoritative account values (the
+    // Employee Directory edit path) pass { syncUser: false } and then push
+    // user → candidate instead, which prevents any ping-pong between tables.
+    if (options.syncUser !== false) {
+      await userSyncService.syncUserFromCandidate(appNo);
+    }
+
     return { success: true };
   }
 
@@ -505,6 +517,24 @@ class CandidateService {
 
       // Handle onboarding_records separately because it uses record_id instead of app_no
       await conn.query(`DELETE FROM \`onboarding_records\` WHERE record_id = ?`, [appNo]);
+
+      // The master login account for this employee is derived from the
+      // candidate record, so it must disappear with it — otherwise the
+      // Employee Directory / User Management would keep showing a ghost row.
+      try {
+        const [linkedUsers] = await conn.query(
+          'SELECT id FROM users WHERE candidate_app_no = ?',
+          [appNo]
+        );
+        for (const u of linkedUsers) {
+          await conn.query('DELETE FROM user_permissions WHERE user_id = ?', [u.id]);
+          await conn.query('DELETE FROM user_locations WHERE user_id = ?', [u.id]);
+          await conn.query('UPDATE wedding_customers SET assigned_telecaller_id = NULL WHERE assigned_telecaller_id = ?', [u.id]);
+          await conn.query('DELETE FROM users WHERE id = ?', [u.id]);
+        }
+      } catch (linkErr) {
+        console.warn(`[DeleteCandidate] Linked account cleanup notice for ${appNo}:`, linkErr.message);
+      }
 
       await conn.commit();
     } catch (dbError) {
@@ -953,6 +983,11 @@ class CandidateService {
         
         await this.logActivity(appNo, 'Joined', `Employee bulk imported by ${user}`, user);
         addedCount++;
+
+        // Bulk-imported employees are real staff: give each one the master
+        // account + Employee Directory link so they show up everywhere
+        // instead of only in the candidate table.
+        await userSyncService.provisionUserForCandidate(appNo, { grantedBy: user });
       } catch (err) {
         errors.push(`Row ${i + 1}: ${err.message}`);
       }

@@ -10,8 +10,56 @@ const { authorizeLocationAccess } = require('../services/authorizationService');
  * req.user.locationCode — 'DAV' | 'BEL' | 'SHI' | null
  * req.user.locationName — 'Davanagere' | 'Belagavi' | 'Shivamogga' | null
  * req.user.isGlobalAdmin — true if locationId is null
+ *
+ * The token alone is never trusted as proof of an allowed session: the account
+ * must still exist, still be active and not be locked. That is what makes
+ * "deactivate account" take effect on live sessions (not just the next login)
+ * and keeps the backend authoritative instead of relying on the frontend
+ * hiding links.
  */
-const authenticate = (req, res, next) => {
+// Built-in deployment accounts. Their JWTs are issued without a database row
+// (master recovery access), so they are the only identities allowed to proceed
+// when no row is found for the id inside the token.
+const BUILTIN_ACCOUNT_USERNAMES = [
+  'admin@bsctextiles.com', 'admin',
+  'hr@bsctextiles.com', 'hr',
+  'manager@bsctextiles.com', 'manager',
+  'greeter@bsctextiles.com', 'greeter'
+];
+
+// Short-TTL status cache: keeps the per-request cost of the check negligible
+// while still picking up admin changes within a few seconds.
+const STATUS_CACHE = new Map();
+const STATUS_CACHE_TTL_MS = 5000;
+
+function getCachedUserStatus(userId) {
+  const entry = STATUS_CACHE.get(userId);
+  if (!entry) return null;
+  if (Date.now() - entry.at > STATUS_CACHE_TTL_MS) {
+    STATUS_CACHE.delete(userId);
+    return null;
+  }
+  return entry.value;
+}
+
+function cacheUserStatus(userId, value) {
+  if (STATUS_CACHE.size > 500) STATUS_CACHE.clear();
+  STATUS_CACHE.set(userId, { at: Date.now(), value });
+}
+
+/**
+ * Drops a user's cached status so a status/permission change made by an admin
+ * is honoured immediately by subsequent requests.
+ */
+function invalidateUserStatusCache(userId) {
+  if (userId === undefined || userId === null) {
+    STATUS_CACHE.clear();
+    return;
+  }
+  STATUS_CACHE.delete(userId);
+}
+
+const authenticate = async (req, res, next) => {
   try {
     let token = null;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -30,6 +78,51 @@ const authenticate = (req, res, next) => {
     req.user = decoded;
     // Attach correlation ID for request tracing
     req.correlationId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+
+    // ── Account status enforcement ─────────────────────────────────
+    const userId = decoded.id;
+    const username = String(decoded.username || '').toLowerCase();
+    let status = userId !== undefined && userId !== null ? getCachedUserStatus(userId) : null;
+
+    if (!status) {
+      try {
+        const [rows] = await pool.query(
+          'SELECT active, locked_until FROM users WHERE id = ? LIMIT 1',
+          [userId]
+        );
+        if (rows && rows.length > 0) {
+          status = {
+            exists: true,
+            active: !!rows[0].active,
+            locked: !!(rows[0].locked_until && new Date(rows[0].locked_until) > new Date())
+          };
+        } else {
+          status = { exists: false };
+        }
+        cacheUserStatus(userId, status);
+      } catch (dbErr) {
+        // Database unreachable — fail open so kiosks/health checks keep working
+        // (the same policy the rest of the platform uses for a DB outage).
+        console.warn('[authenticate] account status check unavailable:', dbErr.message);
+        status = null;
+      }
+    }
+
+    if (status) {
+      if (!status.exists) {
+        if (!BUILTIN_ACCOUNT_USERNAMES.includes(username)) {
+          res.clearCookie('token', { path: '/' });
+          return errorRes(res, 'This account no longer exists', [], 401);
+        }
+      } else if (!status.active) {
+        res.clearCookie('token', { path: '/' });
+        return errorRes(res, 'Your account has been deactivated. Contact a system administrator.', [], 401);
+      } else if (status.locked) {
+        res.clearCookie('token', { path: '/' });
+        return errorRes(res, 'Account is temporarily locked. Try again later.', [], 401);
+      }
+    }
+
     next();
   } catch (err) {
     return errorRes(res, 'Invalid or expired authentication token', [err.message], 401);
@@ -155,5 +248,6 @@ module.exports = {
   authorizeModule,
   authorizeLocationAccess,
   getLocationFilter,
-  injectLocationId
+  injectLocationId,
+  invalidateUserStatusCache
 };

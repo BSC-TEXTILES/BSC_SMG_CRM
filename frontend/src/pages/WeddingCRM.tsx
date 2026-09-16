@@ -480,12 +480,14 @@ export default function WeddingCRM() {
 
   // Duplicate Check on Phone Blur
   const handlePhoneBlur = async (phone: string) => {
-    if (!phone || phone.trim().length < 10) {
+    const digits = phone.replace(/\D/g, '');
+    if (!digits || digits.length < 10) {
       setDuplicateWarning(null);
       return;
     }
     try {
-      const res = await API.checkWeddingDuplicate(phone.trim());
+      const normalized = digits.length === 10 ? `+91${digits}` : digits;
+      const res = await API.checkWeddingDuplicate(normalized);
       if (res && res.exists) {
         setDuplicateWarning(res.customer || res.existingCustomer);
       } else {
@@ -501,6 +503,15 @@ export default function WeddingCRM() {
     e.preventDefault();
     if (!addForm.customer_name.trim() || !addForm.mobile_number.trim()) {
       alert('Customer Name and Mobile Number are required.');
+      return;
+    }
+    if (addForm.mobile_number.trim().length !== 10) {
+      alert('Mobile number must be exactly 10 digits.');
+      return;
+    }
+    const firstDigit = addForm.mobile_number.trim()[0];
+    if (!['6', '7', '8', '9'].includes(firstDigit)) {
+      alert('Indian mobile number must start with 6, 7, 8, or 9.');
       return;
     }
     if (!addForm.expected_shopping_date) {
@@ -556,10 +567,12 @@ export default function WeddingCRM() {
         if (activeTab === 'calling_desk') loadCallingDesk();
         else loadCustomers();
       } else {
-        alert(res?.message || res?.error || 'Failed to create customer');
+        const errMsg = res?.message || res?.error || res?.errors?.join(', ') || 'Failed to create customer';
+        alert(errMsg);
       }
     } catch (err: any) {
-      alert(err.message || 'Error creating wedding customer');
+      const errMsg = err?.message || err?.errors?.join(', ') || 'Error creating wedding customer';
+      alert(errMsg);
     }
   };
 

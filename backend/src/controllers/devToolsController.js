@@ -12,15 +12,6 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 
-// ── Keys that must never be exposed ─────────────────────────────────
-const SECRET_KEYS = ['password', 'pwd', 'secret', 'token', 'key', 'credential', 'api_key', 'apikey',
-  'private', 'auth', 'db_password', 'db_pass', 'jwt', 'session_secret', 'encrypt'];
-
-function isSensitiveKey(key) {
-  const lk = key.toLowerCase();
-  return SECRET_KEYS.some(sk => lk.includes(sk));
-}
-
 // ── API Health Check ─────────────────────────────────────────────────
 const getApiHealth = async (req, res) => {
   try {
@@ -158,41 +149,6 @@ const getSystemDiagnostics = async (req, res) => {
   }
 };
 
-// ── Environment Configuration Status ─────────────────────────────────
-const getEnvironmentStatus = async (req, res) => {
-  try {
-    // Check required environment variables — NEVER expose values of sensitive ones
-    const requiredVars = ['PORT', 'DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME', 'DB_PASSWORD', 'SESSION_HOURS'];
-
-    const envStatus = requiredVars.map(key => ({
-      key,
-      configured: !!process.env[key],
-      value: isSensitiveKey(key) ? (process.env[key] ? '[SET]' : '[NOT SET]') : (process.env[key] || '[NOT SET]'),
-      sensitive: isSensitiveKey(key)
-    }));
-
-    // Check for common misconfigurations
-    const warnings = [];
-    if (!process.env.DB_PASSWORD && process.env.NODE_ENV === 'production') {
-      warnings.push('DB_PASSWORD is not set in production — this is a security risk');
-    }
-    if (process.env.NODE_ENV !== 'production') {
-      warnings.push('Application is not running in production mode');
-    }
-
-    await auditService.log({
-      req,
-      action: auditService.AuditEvents.DEVTOOL_ACCESS,
-      module: 'DevTools',
-      details: { tool: 'Environment Status' }
-    });
-
-    return successRes(res, { variables: envStatus, warnings, nodeEnv: process.env.NODE_ENV || 'development' }, 'Environment status retrieved');
-  } catch (err) {
-    return errorRes(res, 'Environment status check failed', [err.message], 500);
-  }
-};
-
 // ── API Route Explorer ───────────────────────────────────────────────
 const getRouteExplorer = async (req, res) => {
   try {
@@ -322,7 +278,6 @@ module.exports = {
   getApiHealth,
   getDbHealth,
   getSystemDiagnostics,
-  getEnvironmentStatus,
   getRouteExplorer,
   getDependencyStatus,
   getApplicationLogs

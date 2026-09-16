@@ -2,6 +2,33 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const { successRes, errorRes } = require('../utils/response');
 const { logAction } = require('../utils/logger');
+const userSyncService = require('../services/userSyncService');
+const { invalidateUserStatusCache } = require('../middleware/auth');
+
+/**
+ * Parses the `id:name` pairs produced by GROUP_CONCAT in listUsers.
+ * A single aggregate is used (instead of two parallel GROUP_CONCATs) because
+ * DISTINCT aggregates are not guaranteed to be ordered identically — pairing
+ * them positionally could show location A's name against location B's id.
+ */
+function _parseLocationPairs(pairs, row = {}) {
+  if (pairs) {
+    return String(pairs)
+      .split(',')
+      .map(pair => {
+        const idx = pair.indexOf(':');
+        const id = Number(idx === -1 ? pair : pair.slice(0, idx));
+        const name = idx === -1 ? null : (pair.slice(idx + 1) || null);
+        return { id, name };
+      })
+      .filter(l => Number.isFinite(l.id) && l.id > 0);
+  }
+  // Fallback: no user_locations rows — derive from the single location_id
+  if (row.location_id) {
+    return [{ id: row.location_id, name: row.location_name || null }];
+  }
+  return [];
+}
 
 // ── Module Registry — matches sidebar navItems ────────────────────
 const MODULE_REGISTRY = [
@@ -32,12 +59,12 @@ const listUsers = async (req, res) => {
     const [rawUsers] = await db.query(`
       SELECT
         u.id, u.username, u.full_name AS fullName, u.email, u.phone,
+        u.employee_id AS employeeId, u.candidate_app_no AS candidateAppNo,
         u.department, u.designation, u.role, u.active,
         u.location_id, u.location_code, u.max_modules,
         u.last_login_at, u.created_at, u.updated_at,
         l.location_name,
-        GROUP_CONCAT(DISTINCT ul.location_id) AS assigned_location_ids,
-        GROUP_CONCAT(DISTINCT l2.location_name) AS assigned_location_names,
+        GROUP_CONCAT(DISTINCT CONCAT(ul.location_id, ':', COALESCE(l2.location_name, ''))) AS assigned_location_pairs,
         (SELECT COUNT(*) FROM user_permissions up WHERE up.user_id = u.id AND up.can_view = TRUE) AS modules_assigned
       FROM users u
       LEFT JOIN locations l ON l.id = u.location_id
@@ -48,19 +75,8 @@ const listUsers = async (req, res) => {
     `);
 
     const users = rawUsers.map(u => {
-      let assignedLocations = [];
-      if (u.assigned_location_ids) {
-        const ids = u.assigned_location_ids.split(',').map(Number);
-        const names = u.assigned_location_names.split(',');
-        assignedLocations = ids.map((id, i) => ({ id, name: names[i] || null }));
-      } else {
-        // Fallback: no user_locations rows — derive from single location_id
-        if (u.location_id) {
-          assignedLocations = [{ id: u.location_id, name: u.location_name }];
-        }
-      }
-      const { assigned_location_ids, assigned_location_names, ...rest } = u;
-      return { ...rest, assigned_locations: assignedLocations };
+      const { assigned_location_pairs, ...rest } = u;
+      return { ...rest, assigned_locations: _parseLocationPairs(assigned_location_pairs, rest) };
     });
 
     return successRes(res, { users }, 'Users retrieved');
@@ -70,12 +86,12 @@ const listUsers = async (req, res) => {
       const [rawUsers] = await db.query(`
         SELECT
           u.id, u.username, u.full_name AS fullName, u.email, u.phone,
+          u.employee_id AS employeeId, u.candidate_app_no AS candidateAppNo,
           u.department, u.designation, u.role, u.active,
           u.location_id, u.location_code,
           u.last_login_at, u.created_at,
           l.location_name,
-          GROUP_CONCAT(DISTINCT ul.location_id) AS assigned_location_ids,
-          GROUP_CONCAT(DISTINCT l2.location_name) AS assigned_location_names,
+          GROUP_CONCAT(DISTINCT CONCAT(ul.location_id, ':', COALESCE(l2.location_name, ''))) AS assigned_location_pairs,
           0 AS modules_assigned
         FROM users u
         LEFT JOIN locations l ON l.id = u.location_id
@@ -86,18 +102,8 @@ const listUsers = async (req, res) => {
       `);
 
       const users = rawUsers.map(u => {
-        let assignedLocations = [];
-        if (u.assigned_location_ids) {
-          const ids = u.assigned_location_ids.split(',').map(Number);
-          const names = u.assigned_location_names.split(',');
-          assignedLocations = ids.map((id, i) => ({ id, name: names[i] || null }));
-        } else {
-          if (u.location_id) {
-            assignedLocations = [{ id: u.location_id, name: u.location_name }];
-          }
-        }
-        const { assigned_location_ids, assigned_location_names, ...rest } = u;
-        return { ...rest, assigned_locations: assignedLocations };
+        const { assigned_location_pairs, ...rest } = u;
+        return { ...rest, assigned_locations: _parseLocationPairs(assigned_location_pairs, rest) };
       });
 
       return successRes(res, { users }, 'Users retrieved (no permissions table yet)');
@@ -114,6 +120,7 @@ const getUser = async (req, res) => {
     const [[user]] = await db.query(`
       SELECT
         u.id, u.username, u.full_name AS fullName, u.email, u.phone,
+        u.employee_id AS employeeId, u.candidate_app_no AS candidateAppNo,
         u.department, u.designation, u.role, u.active,
         u.location_id, u.location_code, u.max_modules,
         u.last_login_at, u.created_at, u.updated_at,
@@ -182,7 +189,8 @@ const getUser = async (req, res) => {
 // ── Create a new user ─────────────────────────────────────────────
 const createUser = async (req, res) => {
   try {
-    const { username, password, role, fullName, email, phone, department, designation, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
+    const { username, password, role, fullName, email, phone, department, designation,
+            employeeId, candidateAppNo, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
 
     if (!username || !password || !role) {
       return errorRes(res, 'Username, password, and role are required', [], 400);
@@ -191,30 +199,54 @@ const createUser = async (req, res) => {
       return errorRes(res, 'Password must be at least 6 characters', [], 400);
     }
 
-    // Check if username already exists
+    // ── Uniqueness checks (no duplicate accounts may ever exist) ─────
     const [existing] = await db.query(`SELECT id FROM users WHERE LOWER(username) = ?`, [username.trim().toLowerCase()]);
     if (existing.length > 0) {
       return errorRes(res, 'Username already exists', [], 409);
     }
 
+    if (email) {
+      const [dupEmail] = await db.query(`SELECT id FROM users WHERE email = ? AND email IS NOT NULL`, [String(email).trim()]);
+      if (dupEmail.length > 0) {
+        return errorRes(res, 'A user with this email address already exists', [], 409);
+      }
+    }
+
+    const cleanEmployeeId = employeeId ? String(employeeId).trim() : null;
+    if (cleanEmployeeId) {
+      const [dupEmp] = await db.query(`SELECT id FROM users WHERE employee_id = ?`, [cleanEmployeeId]);
+      if (dupEmp.length > 0) {
+        return errorRes(res, 'This Employee ID is already assigned to another user', [], 409);
+      }
+    }
+
+    const cleanCandidateAppNo = candidateAppNo ? String(candidateAppNo).trim() : null;
+    if (cleanCandidateAppNo) {
+      const [dupLink] = await db.query(`SELECT id FROM users WHERE candidate_app_no = ?`, [cleanCandidateAppNo]);
+      if (dupLink.length > 0) {
+        return errorRes(res, 'This candidate already has a user account', [], 409);
+      }
+    }
+
     // Location scope: explicit allLocations=true grants global access (NULL
     // location). Otherwise the user is pinned to a single store location.
     const wantsAllLocations = allLocations === true;
-    const isGlobalRole = role === 'Admin' || role === 'Super Admin';
-    if (isGlobalRole && !wantsAllLocations && locationId) {
-      const resolvedLocationId = locationId;
-      return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation, resolvedLocationId, locationIds, allLocations, maxModules, permissions });
-    }
-    const resolvedLocationId = wantsAllLocations ? null : (locationId || 2);
+    const isGlobalRole = role === 'Admin' || 'Super Admin' === role;
+    const resolvedLocationId = wantsAllLocations
+      ? null
+      : (locationId || (isGlobalRole ? null : 2));
 
-    return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation, resolvedLocationId, locationIds, allLocations, maxModules, permissions });
+    return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation,
+                                   employeeId: cleanEmployeeId, candidateAppNo: cleanCandidateAppNo,
+                                   resolvedLocationId, locationIds, allLocations, maxModules, permissions });
   } catch (err) {
     return errorRes(res, 'Failed to create user', [err.message], 500);
   }
 };
 
 // Shared insert used by createUser for all location-scope combinations
-async function _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation, resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
+async function _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation,
+                                       employeeId, candidateAppNo, resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
   try {
     // Get location_code
     let locationCode = null;
@@ -230,13 +262,28 @@ async function _insertUser(req, res, { username, password, role, fullName, email
     const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
     const [result] = await db.query(
-      `INSERT INTO users (username, password, role, full_name, email, phone, department, designation, active, location_id, location_code, max_modules)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)`,
+      `INSERT INTO users (username, password, role, full_name, email, phone, department, designation,
+                          employee_id, candidate_app_no, active, location_id, location_code, max_modules)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)`,
       [username.trim(), hashedPassword, role, fullName || role, email || null, phone || null,
-       department || null, designation || null, resolvedLocationId, locationCode, maxModules || null]
+       department || null, designation || null, employeeId || null, candidateAppNo || null,
+       resolvedLocationId, locationCode, maxModules || null]
     );
 
     const newUserId = result.insertId;
+
+    // ── Employee ID is part of the account contract: every dashboard shows it,
+    // ── so it can never be left empty.
+    const finalEmployeeId = employeeId
+      || (candidateAppNo ? candidateAppNo : null)
+      || await userSyncService.ensureEmployeeId(newUserId);
+
+    // ── Link the account to its recruitment record so both dashboards point
+    // ── at the same person (no disconnected copies of the same employee).
+    if (candidateAppNo) {
+      await userSyncService.syncUserFromCandidate(candidateAppNo);
+      await userSyncService.ensureEmployeeId(newUserId);
+    }
 
     // ── Multi-location: insert into user_locations ──────────────────
     const wantsAllLocations = allLocations === true;
@@ -282,11 +329,19 @@ async function _insertUser(req, res, { username, password, role, fullName, email
           console.warn('[UserMgmt] Permission insert warning:', e.message);
         }
       }
+    } else {
+      // No "Initial Module Access" selected — grant exactly what the role
+      // implies so navigation and the permissions matrix agree from day one.
+      await userSyncService.seedRoleDefaultPermissions(
+        newUserId, role, req.user ? req.user.username : 'Admin'
+      );
     }
 
-    await _audit(req, 'CREATE_USER', { username, role, locationId: resolvedLocationId, allLocations: wantsAllLocations, locationIds });
+    await _audit(req, 'CREATE_USER', { username, role, employeeId: finalEmployeeId,
+                                        candidateAppNo, locationId: resolvedLocationId,
+                                        allLocations: wantsAllLocations, locationIds });
 
-    return successRes(res, { id: newUserId, username }, 'User created successfully');
+    return successRes(res, { id: newUserId, username, employeeId: finalEmployeeId }, 'User created successfully');
   } catch (err) {
     return errorRes(res, 'Failed to create user', [err.message], 500);
   }
@@ -296,10 +351,11 @@ async function _insertUser(req, res, { username, password, role, fullName, email
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, email, phone, department, designation, role, locationId, locationIds, allLocations, maxModules, active } = req.body;
+    const { fullName, email, phone, department, designation, role, employeeId, candidateAppNo,
+            locationId, locationIds, allLocations, maxModules, active } = req.body;
 
     // Check user exists
-    const [[user]] = await db.query(`SELECT id, username FROM users WHERE id = ?`, [id]);
+    const [[user]] = await db.query(`SELECT id, username, role as prevRole FROM users WHERE id = ?`, [id]);
     if (!user) {
       return errorRes(res, 'User not found', [], 404);
     }
@@ -316,12 +372,32 @@ const updateUser = async (req, res) => {
     if (active !== undefined) { updates.push('active = ?'); params.push(active ? 1 : 0); }
     if (maxModules !== undefined) { updates.push('max_modules = ?'); params.push(maxModules); }
 
-    // Location scope: honour the explicit allLocations flag when provided
-    // (true → global NULL location; false → pinned to one store)
-    const scopeProvided = allLocations !== undefined || locationId !== undefined;
+    // Employee ID is unique — reject a value already owned by someone else
+    if (employeeId !== undefined) {
+      const cleanEmployeeId = employeeId ? String(employeeId).trim() : null;
+      if (cleanEmployeeId) {
+        const [dupEmp] = await db.query(`SELECT id FROM users WHERE employee_id = ? AND id != ?`, [cleanEmployeeId, id]);
+        if (dupEmp.length > 0) {
+          return errorRes(res, 'This Employee ID is already assigned to another user', [], 409);
+        }
+        updates.push('employee_id = ?');
+        params.push(cleanEmployeeId);
+      }
+    }
+
+    // Location scope. `locationIds` alone must also update the primary
+    // location column — otherwise the account would keep its old store in
+    // `users.location_id` while user_locations says otherwise, and login,
+    // location dashboards and the user list would disagree.
+    const hasLocationIds = Array.isArray(locationIds) && locationIds.length > 0;
+    const scopeProvided = allLocations !== undefined || locationId !== undefined || hasLocationIds;
     if (scopeProvided) {
       const wantsAllLocations = allLocations === true;
-      const resolvedLocationId = wantsAllLocations ? null : (locationId || 2);
+      // Primary location = the explicitly requested one, else the first
+      // assigned location, else global (NULL).
+      const resolvedLocationId = wantsAllLocations
+        ? null
+        : (locationId !== undefined ? (locationId || null) : (hasLocationIds ? locationIds[0] : null));
 
       updates.push('location_id = ?');
       params.push(resolvedLocationId);
@@ -342,6 +418,28 @@ const updateUser = async (req, res) => {
     if (updates.length > 0) {
       params.push(id);
       await db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+    }
+
+    // Status changes must hit live sessions immediately
+    if (active !== undefined) {
+      invalidateUserStatusCache(id);
+    }
+
+    // ── Role change: re-seed default permissions if user has no custom ones ──
+    if (role !== undefined && role !== user.prevRole) {
+      try {
+        const [existingPerms] = await db.query(
+          'SELECT COUNT(*) AS cnt FROM user_permissions WHERE user_id = ?',
+          [id]
+        );
+        if (!existingPerms[0] || Number(existingPerms[0].cnt) === 0) {
+          await userSyncService.seedRoleDefaultPermissions(
+            id, role, req.user ? req.user.username : 'Admin'
+          );
+        }
+      } catch (e) {
+        console.warn('[UserMgmt] Role-change permission seeding skipped:', e.message);
+      }
     }
 
     // ── Multi-location: sync user_locations ─────────────────────────
@@ -368,6 +466,27 @@ const updateUser = async (req, res) => {
       }
     }
     // If neither allLocations nor locationIds provided, leave user_locations untouched
+
+    // ── Link / re-link the account to a recruitment record ──────────
+    if (candidateAppNo !== undefined && candidateAppNo !== null && String(candidateAppNo).trim() !== '') {
+      const cleanAppNo = String(candidateAppNo).trim();
+      try {
+        const [dupLink] = await db.query(`SELECT id FROM users WHERE candidate_app_no = ? AND id != ?`, [cleanAppNo, id]);
+        if (dupLink.length === 0) {
+          await db.query(`UPDATE users SET candidate_app_no = ? WHERE id = ?`, [cleanAppNo, id]);
+          await userSyncService.syncUserFromCandidate(cleanAppNo);
+          await userSyncService.ensureEmployeeId(id);
+        } else {
+          console.warn('[UserMgmt] candidate link refused — candidate already linked to user #' + dupLink[0].id);
+        }
+      } catch (e) {
+        console.warn('[UserMgmt] candidate link warning:', e.message);
+      }
+    }
+
+    // ── Propagate the change to every dashboard that reads this person ──
+    await userSyncService.ensureEmployeeId(id);
+    await userSyncService.syncCandidateFromUser(id);
 
     await _audit(req, 'UPDATE_USER', { userId: id, username: user.username, changes: req.body });
 
@@ -396,13 +515,12 @@ const deleteUser = async (req, res) => {
       return errorRes(res, 'Cannot delete the built-in system administrator account', [], 403);
     }
 
-    // Delete permissions first
-    try { await db.query(`DELETE FROM user_permissions WHERE user_id = ?`, [user.id]); } catch (e) {}
+    // Delete permissions, location assignments and every cross-module
+    // reference (wedding telecaller assignments, …) so nothing can point at a
+    // user that no longer exists and no dashboard keeps a stale row.
+    await userSyncService.deleteUserCompletely(user.id);
 
-    // Delete user_locations
-    try { await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [user.id]); } catch (e) {}
-
-    await db.query(`DELETE FROM users WHERE id = ?`, [user.id]);
+    invalidateUserStatusCache(user.id);
 
     await _audit(req, 'DELETE_USER', { userId: user.id, username: user.username });
 
@@ -497,6 +615,11 @@ const toggleStatus = async (req, res) => {
 
     const newStatus = user.active ? 0 : 1;
     await db.query(`UPDATE users SET active = ? WHERE id = ?`, [newStatus, id]);
+
+    // A deactivated account must lose access on live sessions immediately, and
+    // a reactivated one must regain it — refresh the status cache used by the
+    // auth middleware.
+    invalidateUserStatusCache(id);
 
     await _audit(req, newStatus ? 'ACTIVATE_USER' : 'DEACTIVATE_USER', { userId: id, username: user.username });
 

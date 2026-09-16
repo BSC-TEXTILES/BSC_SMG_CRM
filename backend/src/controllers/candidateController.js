@@ -1,4 +1,7 @@
 const candidateService = require('../services/candidateService');
+const userSyncService = require('../services/userSyncService');
+const db = require('../config/db');
+const { logAction } = require('../utils/logger');
 const { successRes, errorRes } = require('../utils/response');
 const { getLocationFilter, injectLocationId } = require('../middleware/auth');
 
@@ -256,22 +259,33 @@ class CandidateController {
       const { clause: locClause, params: locParams } = await getLocationFilter(req, 'c');
       
       const [rows] = await db.query(
-        `SELECT c.*, 
-                so.notice_period as offer_notice_pd, 
-                so.est_doj as offer_est_doj, 
-                so.actual_doj as offer_actual_doj,
-                so.status as offer_status,
-                so.remarks as offer_remarks,
-                so.updated_at as offer_updated_at,
-                c.location_id,
-                c.location_code
-         FROM candidates c
+        `SELECT 
+            u.id as user_id, u.username as username, u.employee_id as emp_no,
+            u.full_name as name, u.email, u.phone,
+            COALESCE(c.app_no, u.employee_id, u.username) as app_no,
+            c.app_no as candidate_app_no,
+            c.section, c.reporting_manager, c.offered_doj, c.updated_at as candidate_updated_at,
+            u.updated_at as user_updated_at, u.last_login_at,
+            u.department, u.designation, u.role, u.active, u.created_at, u.location_id, u.location_code,
+            c.dob, c.gender, c.blood_group, c.aadhaar_number, c.father_details, c.mother_details, c.religion_caste, c.religion, c.caste, c.languages_known,
+            c.city_state, c.address, c.qualification, c.experience, c.retail_experience,
+            c.previous_company, c.previous_designation, c.salary as previous_salary, c.current_salary, c.expected_salary,
+            c.photo_url, c.aadhaar_url, c.resume_url, c.remarks, c.source, c.referrer, c.referrer_emp_no,
+            so.notice_period as offer_notice_pd, 
+            so.est_doj as offer_est_doj, 
+            so.actual_doj as offer_actual_doj,
+            so.status as offer_status,
+            so.remarks as offer_remarks,
+            so.updated_at as offer_updated_at,
+            l.location_name as branch
+         FROM users u
+         LEFT JOIN locations l ON l.id = u.location_id
+         LEFT JOIN candidates c ON c.app_no = u.candidate_app_no OR (u.candidate_app_no IS NULL AND c.phone = u.phone AND c.phone IS NOT NULL)
          LEFT JOIN selection_offers so ON c.app_no = so.app_no
-         WHERE (LOWER(TRIM(c.status)) IN ('joined', 'hired')
-            OR LOWER(TRIM(so.status)) = 'joined')
-         ${locClause}
-         GROUP BY c.app_no
-         ORDER BY LOWER(c.name) ASC`,
+         WHERE u.active = 1
+         ${locClause.replace('c.', 'u.')}
+         GROUP BY u.id
+         ORDER BY LOWER(u.full_name) ASC`,
         locParams
       );
 
@@ -304,7 +318,7 @@ class CandidateController {
         
         const rawDate = isNaN(joiningDateObj.getTime()) ? createdDate.getTime() : joiningDateObj.getTime();
 
-        const actualDojStr = formatLocalDate(r.offer_actual_doj || r.offered_doj || r.offer_updated_at || r.updated_at || r.created_at);
+        const actualDojStr = formatLocalDate(r.offer_actual_doj || r.offered_doj || r.offer_updated_at || r.candidate_updated_at || r.user_updated_at || r.created_at);
         const offeredDoj = formatLocalDate(r.offered_doj || r.offer_est_doj || r.offer_actual_doj);
         const estDojStr = formatLocalDate(r.offer_est_doj || r.offered_doj);
         const dobStr = formatLocalDate(r.dob);
@@ -312,9 +326,17 @@ class CandidateController {
         const salaryOffered = r.salary || r.expected_salary || '—';
 
         return {
-          id: r.id,
+          id: r.user_id,
+          userId: r.user_id,
+          username: r.username || '',
           appNo: r.app_no,
+          candidateAppNo: r.candidate_app_no || null,
           employeeCode: r.app_no,
+          employeeId: r.emp_no || '',
+          empNo: r.emp_no || '',
+          role: r.role || '',
+          active: !!r.active,
+          lastLoginAt: r.last_login_at || null,
           name: r.name,
           fullName: r.name,
           initials,
@@ -365,6 +387,7 @@ class CandidateController {
           q3: r.q3 || '',
           q4: r.q4 || '',
           remarks: r.remarks || r.offer_remarks || '',
+          section: r.section || '',
           locationId: r.location_id || 2,
           locationCode: r.location_code || 'DAV',
           createdAt: r.created_at || null,
@@ -376,6 +399,119 @@ class CandidateController {
       return res.json({ success: true, employees, total: employees.length });
     } catch (err) {
       return errorRes(res, 'DB_ERR: ' + err.message, [err.message], 500);
+    }
+  }
+
+  /**
+   * Update an Employee Directory record.
+   * ------------------------------------------------------------------
+   * `users` is the single source of truth, so the master account fields are
+   * written first and the linked recruitment record is then aligned. The
+   * Employee Directory, User Management, location dashboards and department
+   * sections all read the same row, so one save updates every section.
+   *
+   * :id accepts a user id, a username or a candidate application number.
+   */
+  async updateEmployee(req, res) {
+    try {
+      const identifier = req.params.id;
+      const payload = { ...(req.body || {}) };
+      if (payload.data && typeof payload.data === 'object') Object.assign(payload, payload.data);
+      if (payload.updates && typeof payload.updates === 'object') Object.assign(payload, payload.updates);
+
+      const user = await userSyncService.resolveUser(identifier);
+      if (!user) {
+        return errorRes(res, 'Employee not found', [], 404);
+      }
+
+      const doneBy = req.user ? req.user.username : 'HR';
+      const linkedAppNo = user.candidate_app_no || payload.appNo || payload.candidateAppNo || null;
+
+      // 1. HR-owned recruitment fields (DOB, salary, documents, section …)
+      //    `syncUser: false` keeps this function the single writer so the two
+      //    tables cannot bounce values off each other.
+      if (linkedAppNo) {
+        await candidateService.updateCandidateFull(linkedAppNo, payload, doneBy, { syncUser: false });
+      }
+
+      // 2. Master account fields — authoritative for the shared values
+      const fields = [];
+      const params = [];
+
+      const fullName = payload.fullName !== undefined ? payload.fullName : payload.name;
+      if (fullName !== undefined && String(fullName).trim() !== '') {
+        fields.push('full_name = ?');
+        params.push(String(fullName).trim());
+      }
+      if (payload.email !== undefined) { fields.push('email = ?'); params.push(payload.email || null); }
+      if (payload.phone !== undefined) { fields.push('phone = ?'); params.push(payload.phone || null); }
+      if (payload.department !== undefined) { fields.push('department = ?'); params.push(payload.department || null); }
+
+      const designation = payload.designation !== undefined ? payload.designation : payload.desig;
+      if (designation !== undefined) { fields.push('designation = ?'); params.push(designation || null); }
+
+      const employeeId = payload.employeeId !== undefined ? payload.employeeId : payload.empNo;
+      if (employeeId !== undefined && employeeId !== null && String(employeeId).trim() !== '') {
+        fields.push('employee_id = ?');
+        params.push(String(employeeId).trim());
+      }
+      if (payload.active !== undefined) { fields.push('active = ?'); params.push(payload.active ? 1 : 0); }
+
+      if (fields.length > 0) {
+        params.push(user.id);
+        await db.query(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params);
+      }
+
+      // 3. Push the account values outward so every other view converges
+      await userSyncService.ensureEmployeeId(user.id);
+      await userSyncService.syncCandidateFromUser(user.id);
+
+      await logAction(req.user ? req.user.username : 'HR', 'UPDATE_EMPLOYEE', 'EMPLOYEES', {
+        userId: user.id, appNo: linkedAppNo, changes: Object.keys(payload)
+      });
+
+      return res.json({ success: true, userId: user.id, appNo: linkedAppNo });
+    } catch (err) {
+      console.error('[updateEmployee ERROR]', err);
+      return errorRes(res, 'Failed to update employee: ' + err.message, [err.message], 500);
+    }
+  }
+
+  /**
+   * Delete an Employee Directory record.
+   * Removes the recruitment history AND the master login account it was
+   * derived from, then releases every cross-module reference, so no dashboard
+   * can keep showing a stale or duplicate employee.
+   */
+  async deleteEmployee(req, res) {
+    try {
+      const identifier = req.params.id;
+      const user = await userSyncService.resolveUser(identifier);
+
+      if (user && ['admin@bsctextiles.com', 'admin'].includes(String(user.username).toLowerCase())) {
+        return errorRes(res, 'Cannot delete the built-in system administrator account', [], 403);
+      }
+
+      const appNo = (user && user.candidate_app_no) || (req.body && req.body.appNo) || null;
+
+      // Deleting the candidate cascades to offers/interviews/activities and to
+      // the linked master account (see candidateService.deleteCandidate).
+      if (appNo) {
+        await candidateService.deleteCandidate(appNo);
+      }
+      // Idempotent safety net for accounts that have no candidate record.
+      if (user) {
+        await userSyncService.deleteUserCompletely(user.id);
+      }
+
+      await logAction(req.user ? req.user.username : 'HR', 'DELETE_EMPLOYEE', 'EMPLOYEES', {
+        userId: user ? user.id : null, appNo, identifier
+      });
+
+      return res.json({ success: true });
+    } catch (err) {
+      console.error('[deleteEmployee ERROR]', err);
+      return errorRes(res, 'Failed to delete employee', [err.message], 500);
     }
   }
 

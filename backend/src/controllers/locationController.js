@@ -9,7 +9,9 @@ exports.getLocations = async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT l.*,
-        (SELECT COUNT(*) FROM users u WHERE u.location_id = l.id AND u.active = TRUE) AS active_users,
+        (SELECT COUNT(DISTINCT u.id) FROM users u
+          WHERE u.active = TRUE AND (u.location_id = l.id
+            OR EXISTS (SELECT 1 FROM user_locations ul WHERE ul.user_id = u.id AND ul.location_id = l.id))) AS active_users,
         (SELECT COUNT(*) FROM candidates c WHERE c.location_id = l.id) AS total_candidates,
         (SELECT COUNT(*) FROM candidates c WHERE c.location_id = l.id AND c.status IN ('Joined','Mark Joined','Offer Accepted','Confirmed DOJ')) AS joined_count
        FROM locations l
@@ -28,7 +30,9 @@ exports.getLocation = async (req, res) => {
     const { id } = req.params;
     const [rows] = await db.query(
       `SELECT l.*,
-        (SELECT COUNT(*) FROM users u WHERE u.location_id = l.id AND u.active = TRUE) AS active_users,
+        (SELECT COUNT(DISTINCT u.id) FROM users u
+          WHERE u.active = TRUE AND (u.location_id = l.id
+            OR EXISTS (SELECT 1 FROM user_locations ul WHERE ul.user_id = u.id AND ul.location_id = l.id))) AS active_users,
         (SELECT COUNT(*) FROM candidates c WHERE c.location_id = l.id) AS total_candidates
        FROM locations l WHERE l.id = ?`, [id]
     );
@@ -111,7 +115,12 @@ exports.getGlobalStats = async (req, res) => {
       const [[pending]] = await db.query(
         `SELECT COUNT(*) AS cnt FROM candidates WHERE location_id = ? AND status NOT IN ('Joined','Mark Joined','Rejected','Dropped')`, [loc.id]
       );
-      const [[users]] = await db.query(`SELECT COUNT(*) AS cnt FROM users WHERE location_id = ? AND active = TRUE`, [loc.id]);
+      const [[users]] = await db.query(
+        `SELECT COUNT(DISTINCT u.id) AS cnt FROM users u
+          WHERE u.active = TRUE AND (u.location_id = ?
+            OR EXISTS (SELECT 1 FROM user_locations ul WHERE ul.user_id = u.id AND ul.location_id = ?))`,
+        [loc.id, loc.id]
+      );
 
       stats.push({
         locationId: loc.id,

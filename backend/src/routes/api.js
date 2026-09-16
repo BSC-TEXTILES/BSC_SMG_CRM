@@ -84,8 +84,10 @@ router.post('/candidates/upload-documents', upload.fields([{ name: 'resume' }, {
 router.get('/candidates/activity', candidateController.getSystemActivity);
 router.get('/openings', candidateController.getOpenings);
 router.post('/openings/update', authenticate, authorize('Admin', 'Super Admin'), candidateController.updateOpening);
-router.get('/employees', candidateController.getEmployees);
-router.post('/employees/bulk', authenticate, candidateController.bulkAddEmployees);
+router.get('/employees', authenticate, candidateController.getEmployees);
+router.post('/employees/bulk', authenticate, authorize('Admin', 'Super Admin', 'HR'), candidateController.bulkAddEmployees);
+router.put('/employees/:id', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), candidateController.updateEmployee);
+router.delete('/employees/:id', authenticate, authorize('Admin', 'Super Admin', 'HR'), candidateController.deleteEmployee);
 
 // ── Interview Routes ─────────────────────────────────────────
 router.get('/interviews', interviewController.getInterviews);
@@ -727,16 +729,6 @@ router.get('/security/login-activity', authenticate, authorize('Admin', 'Super A
 router.get('/security/audit-logs', authenticate, authorize('Admin', 'Super Admin'), securityController.getAuditLogs);
 router.get('/security/active-sessions', authenticate, authorize('Admin', 'Super Admin'), securityController.getActiveSessions);
 router.post('/security/unlock-account', authenticate, authorize('Admin', 'Super Admin'), securityController.unlockAccount);
-
-// ── Developer Tools Routes (Admin Only) ─────────────────────────────
-const devToolsController = require('../controllers/devToolsController');
-router.get('/dev-tools/health', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getApiHealth);
-router.get('/dev-tools/db-health', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getDbHealth);
-router.get('/dev-tools/diagnostics', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getSystemDiagnostics);
-router.get('/dev-tools/environment', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getEnvironmentStatus);
-router.get('/dev-tools/routes', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getRouteExplorer);
-router.get('/dev-tools/dependencies', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getDependencyStatus);
-router.get('/dev-tools/logs', authenticate, authorize('Admin', 'Super Admin'), devToolsController.getApplicationLogs);
 
 // ── Kiosk PIN Routes (Admin Only) ────────────────────────────────────
 const kioskPinController = require('../controllers/kioskPinController');

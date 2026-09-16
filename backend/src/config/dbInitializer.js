@@ -1305,6 +1305,64 @@ async function autoInitializeDatabase(pool) {
       logDebug(`[Auto DB Initializer] Location migration warning:`, migErr.message);
     }
 
+    // ── Auto-provision Users for Legacy Joined Candidates ─────────────
+    try {
+      const [missingCandidates] = await connection.query(`
+        SELECT c.*, so.joining_date 
+        FROM candidates c
+        LEFT JOIN selection_offers so ON c.app_no = so.app_no
+        LEFT JOIN users u ON u.candidate_app_no = c.app_no
+        WHERE (LOWER(TRIM(c.status)) IN ('joined', 'hired') OR LOWER(TRIM(so.status)) = 'joined')
+        AND u.id IS NULL
+      `);
+      
+      if (missingCandidates.length > 0) {
+        logDebug(`[Auto DB Initializer] Found ${missingCandidates.length} joined candidates missing user accounts. Provisioning...`);
+        const defaultPassword = await bcrypt.hash('Bsc@123', 10);
+        
+        for (const cand of missingCandidates) {
+          const username = cand.phone || `emp_${cand.app_no}`;
+          
+          // Ensure username uniqueness
+          let finalUsername = username;
+          let counter = 1;
+          let unique = false;
+          while(!unique) {
+            const [ex] = await connection.query('SELECT id FROM users WHERE username = ?', [finalUsername]);
+            if (ex.length > 0) {
+              finalUsername = `${username}_${counter}`;
+              counter++;
+            } else {
+              unique = true;
+            }
+          }
+          
+          await connection.query(`
+            INSERT INTO users (
+              username, password, full_name, candidate_app_no, email, phone, 
+              department, designation, role, active, location_id, location_code
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT location_code FROM locations WHERE id = ? LIMIT 1))
+          `, [
+            finalUsername,
+            defaultPassword,
+            cand.name || 'Unknown',
+            cand.app_no,
+            cand.email || null,
+            cand.phone || null,
+            'Store Operations', // Default
+            cand.designation || 'Staff',
+            'Employee', // Default role
+            true,
+            cand.location_id || 2,
+            cand.location_id || 2
+          ]);
+        }
+        logDebug(`[Auto DB Initializer] Successfully provisioned ${missingCandidates.length} user accounts.`);
+      }
+    } catch (e) {
+      logDebug(`[Auto DB Initializer] Candidate Sync warning:`, e.message);
+    }
+
     // ── Performance indexes for the highest-traffic queries ─────────────
     // CREATE INDEX has no IF NOT EXISTS in stock MySQL, so each statement is
     // wrapped — an "duplicate key name" error simply means it already exists.
@@ -1312,6 +1370,10 @@ async function autoInitializeDatabase(pool) {
       `ALTER TABLE audit_logs ADD INDEX idx_audit_activity (module, action, created_at)`,
       `ALTER TABLE audit_logs ADD INDEX idx_audit_username (username)`,
       `ALTER TABLE wedding_call_logs ADD INDEX idx_call_customer_date (customer_id, call_date)`,
+      `ALTER TABLE users ADD COLUMN employee_id VARCHAR(50) NULL AFTER full_name`,
+      `ALTER TABLE users ADD COLUMN candidate_app_no VARCHAR(50) NULL AFTER employee_id`,
+      `ALTER TABLE users ADD UNIQUE INDEX idx_users_emp_id (employee_id)`,
+      `ALTER TABLE users ADD UNIQUE INDEX idx_users_cand_app (candidate_app_no)`,
       `ALTER TABLE users ADD INDEX idx_users_location_active (location_id, active)`,
       `ALTER TABLE candidates ADD INDEX idx_candidates_status (status, created_at)`
     ];

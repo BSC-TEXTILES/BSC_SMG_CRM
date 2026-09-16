@@ -7,7 +7,7 @@ import { Auth, UserSession, apiFetch } from '../services/api';
 import {
   Server, Database, Shield, Activity, Globe, Package, FileText,
   RefreshCw, CheckCircle2, XCircle, Clock, Cpu, HardDrive, AlertTriangle,
-  ChevronRight, Loader2, Search, Filter, Eye, ExternalLink, Zap, Terminal
+  ChevronRight, Loader2, Search, Filter, Eye, ExternalLink, Zap
 } from 'lucide-react';
 
 interface HealthData {
@@ -38,7 +38,6 @@ export default function DeveloperTools() {
   const [routes, setRoutes] = useState<RouteInfo[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [diagnostics, setDiagnostics] = useState<any>(null);
-  const [environment, setEnvironment] = useState<any>(null);
   const [dependencies, setDependencies] = useState<any>(null);
 
   // Filters
@@ -108,15 +107,6 @@ export default function DeveloperTools() {
     setLoading(false);
   }, []);
 
-  const loadEnvironment = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await apiFetch('/dev-tools/environment');
-      if (data?.data) setEnvironment(data.data);
-    } catch { showToast('Failed to load environment', 'error'); }
-    setLoading(false);
-  }, []);
-
   const loadDependencies = useCallback(async () => {
     setLoading(true);
     try {
@@ -133,7 +123,6 @@ export default function DeveloperTools() {
       routes: loadRoutes,
       logs: loadLogs,
       diagnostics: loadDiagnostics,
-      environment: loadEnvironment,
       dependencies: loadDependencies
     };
     loadMap[activeTab]?.();
@@ -145,7 +134,6 @@ export default function DeveloperTools() {
     { key: 'routes', label: 'API Routes', icon: Globe },
     { key: 'logs', label: 'App Logs', icon: FileText },
     { key: 'diagnostics', label: 'System', icon: Cpu },
-    { key: 'environment', label: 'Environment', icon: Terminal },
     { key: 'dependencies', label: 'Dependencies', icon: Package }
   ];
 
@@ -204,7 +192,7 @@ export default function DeveloperTools() {
                 </button>
               );
             })}
-            <button onClick={() => { const loadMap: Record<string, () => void> = { health: loadHealth, database: loadDbHealth, routes: loadRoutes, logs: loadLogs, diagnostics: loadDiagnostics, environment: loadEnvironment, dependencies: loadDependencies }; loadMap[activeTab]?.(); }} className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold bg-white text-primary/70 hover:bg-primary/5 border border-gray-200">
+            <button onClick={() => { const loadMap: Record<string, () => void> = { health: loadHealth, database: loadDbHealth, routes: loadRoutes, logs: loadLogs, diagnostics: loadDiagnostics, dependencies: loadDependencies }; loadMap[activeTab]?.(); }} className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold bg-white text-primary/70 hover:bg-primary/5 border border-gray-200">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
@@ -445,36 +433,6 @@ export default function DeveloperTools() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Environment Tab ──────────────────────────────────────── */}
-          {activeTab === 'environment' && environment && !loading && (
-            <div className="space-y-4">
-              {environment.warnings?.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                  {environment.warnings.map((w: string, i: number) => (
-                    <div key={i} className="flex items-center gap-2 text-xs text-amber-700">
-                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                      {w}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                {(environment.variables || []).map((v: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b border-gray-50 hover:bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <code className="text-xs font-mono font-bold text-gray-700">{v.key}</code>
-                      {v.sensitive && <Shield className="w-3 h-3 text-amber-500" title="Sensitive — value hidden" />}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-mono ${v.configured ? 'text-gray-600' : 'text-red-500'}`}>{v.value}</span>
-                      {v.configured ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <XCircle className="w-3.5 h-3.5 text-red-500" />}
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}

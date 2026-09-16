@@ -2,120 +2,80 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const { successRes, errorRes } = require('../utils/response');
 const { logAction } = require('../utils/logger');
+const userMgmtController = require('./userManagementController');
 
+/**
+ * Legacy Settings-module user endpoints.
+ * ------------------------------------------------------------------
+ * `users` is the single source of truth, so these handlers no longer keep a
+ * private copy of the account list (the previous hard-coded defaults and the
+ * synthetic `greeter` row made Settings show accounts that did not exist in
+ * the database). They now read and write exactly what User Management reads
+ * and writes, so both sections always agree.
+ */
 const getUsers = async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT u.id, u.username, u.role, u.active, u.full_name as fullName,
+             u.email, u.phone, u.department, u.designation,
+             u.employee_id as employeeId,
              u.location_id, u.location_code,
-             l.location_name
+             l.location_name,
+             u.created_at, u.updated_at
       FROM users u
       LEFT JOIN locations l ON l.id = u.location_id
-      ORDER BY u.created_at ASC
+      ORDER BY u.created_at ASC, u.id ASC
     `);
-    const defaultUsers = [
-      { id: 1, username: 'admin@bsctextiles.com', role: 'Admin', active: true, fullName: 'System Administrator', location_id: null, location_name: null },
-      { id: 2, username: 'hr@bsctextiles.com', role: 'HR', active: true, fullName: 'HR Specialist', location_id: 2, location_name: 'Davanagere' },
-      { id: 3, username: 'manager@bsctextiles.com', role: 'Manager', active: true, fullName: 'Store Manager', location_id: 2, location_name: 'Davanagere' },
-      { id: 4, username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff', location_id: 2, location_name: 'Davanagere' }
-    ];
 
-    if (rows.length === 0) {
-      return res.json({ users: defaultUsers });
-    }
     const users = rows.map((r) => ({
       id: r.id,
       username: r.username,
       role: r.role,
       active: !!r.active,
       fullName: r.fullName || r.role,
+      email: r.email || null,
+      phone: r.phone || null,
+      department: r.department || null,
+      designation: r.designation || null,
+      employeeId: r.employeeId || null,
       location_id: r.location_id,
       location_code: r.location_code,
-      location_name: r.location_name
+      location_name: r.location_name,
+      created_at: r.created_at,
+      updated_at: r.updated_at
     }));
-
-    // Ensure greeter@bsctextiles.com is present in list if not in db yet
-    if (!users.some(u => u.username.toLowerCase() === 'greeter@bsctextiles.com')) {
-      users.push({ id: 4, username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff', location_id: 2, location_name: 'Davanagere' });
-    }
 
     return res.json({ users });
   } catch (err) {
-    return res.json({
-      users: [
-        { username: 'admin@bsctextiles.com', role: 'Admin', active: true, fullName: 'System Administrator' },
-        { username: 'hr@bsctextiles.com', role: 'HR', active: true, fullName: 'HR Specialist' },
-        { username: 'manager@bsctextiles.com', role: 'Manager', active: true, fullName: 'Store Manager' },
-        { username: 'greeter@bsctextiles.com', role: 'Greeter', active: true, fullName: 'Greeter Desk Staff' }
-      ]
-    });
+    return errorRes(res, 'Failed to load user accounts', [err.message], 500);
   }
 };
 
 const addUser = async (req, res) => {
-  try {
-    const { username, password, role, fullName, locationId } = req.body;
-    if (!username || !password || !role) {
-      return errorRes(res, 'Username, password, and role are required', [], 400);
-    }
-
-    // Global Admin roles get NULL location (all locations access)
-    const isGlobalRole = role === 'Admin' || role === 'Super Admin';
-    const resolvedLocationId = isGlobalRole ? null : (locationId || 2);
-
-    // Get location_code from DB
-    let locationCode = null;
-    if (resolvedLocationId) {
-      try {
-        const [[loc]] = await db.query(`SELECT location_code FROM locations WHERE id = ?`, [resolvedLocationId]);
-        locationCode = loc ? loc.location_code : 'DAV';
-      } catch (e) {
-        locationCode = resolvedLocationId === 1 ? 'BEL' : resolvedLocationId === 3 ? 'SHI' : 'DAV';
-      }
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await db.query(
-      `INSERT INTO users (username, password, role, full_name, active, location_id, location_code) VALUES (?, ?, ?, ?, TRUE, ?, ?)`,
-      [username.trim(), hashedPassword, role, fullName || role, resolvedLocationId, locationCode]
-    );
-
-    await logAction(req.user ? req.user.username : 'Admin', 'ADD_USER', 'SETTINGS', { username, role, locationId: resolvedLocationId });
-
-    return res.json({ success: true });
-  } catch (err) {
-    return errorRes(res, 'Failed to add user', [err.message], 500);
-  }
+  // Delegate to the canonical create flow (validation, uniqueness checks,
+  // location scope, permissions seeding) so an account created here is
+  // identical to one created in User Management.
+  return userMgmtController.createUser(req, res);
 };
 
 const updateUser = async (req, res) => {
+  const { username, id } = req.body;
   try {
-    const { username, active, password, role } = req.body;
-    if (!username) return errorRes(res, 'Username is required', [], 400);
-
-    const updFields = [];
-    const params = [];
-
-    if (active !== undefined) {
-      updFields.push('active = ?');
-      params.push(active ? 1 : 0);
+    if (username) {
+      const [[row]] = await db.query(
+        `SELECT id FROM users WHERE username = ? OR LOWER(username) = ?`,
+        [username, String(username).toLowerCase()]
+      );
+      if (!row) {
+        return errorRes(res, 'User not found', [], 404);
+      }
+      req.params = { id: row.id };
+    } else if (id) {
+      req.params = { id };
+    } else {
+      return errorRes(res, 'Username or user id is required', [], 400);
     }
-    if (role) {
-      updFields.push('role = ?');
-      params.push(role);
-    }
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      updFields.push('password = ?');
-      params.push(hashedPassword);
-    }
-
-    params.push(username);
-    await db.query(`UPDATE users SET ${updFields.join(', ')} WHERE username = ?`, params);
-
-    await logAction(req.user ? req.user.username : 'Admin', 'UPDATE_USER', 'SETTINGS', { username, active, role });
-
-    return res.json({ success: true });
+    return userMgmtController.updateUser(req, res);
   } catch (err) {
     return errorRes(res, 'Failed to update user', [err.message], 500);
   }
@@ -128,45 +88,13 @@ const deleteUser = async (req, res) => {
       return errorRes(res, 'User ID or username is required for deletion', [], 400);
     }
 
-    // Lookup user by ID or Username
-    const isNumeric = !isNaN(Number(identifier));
-    const [[user]] = isNumeric
-      ? await db.query(`SELECT id, username, full_name, role FROM users WHERE id = ?`, [identifier])
-      : await db.query(`SELECT id, username, full_name, role FROM users WHERE username = ?`, [identifier]);
-
-    if (!user) {
-      return errorRes(res, 'User not found', [], 404);
-    }
-
-    // Disallow deleting built-in administrator accounts
-    const protectedUsers = ['admin@bsctextiles.com', 'admin'];
-    if (protectedUsers.includes(user.username.toLowerCase())) {
-      return errorRes(res, 'Cannot delete the built-in system administrator account', [], 403);
-    }
-
-    // Disallow deleting yourself
-    if (req.user && req.user.username && req.user.username.toLowerCase() === user.username.toLowerCase()) {
+    // Disallow deleting yourself (kept from the legacy flow)
+    if (req.user && req.body.username && String(req.user.username).toLowerCase() === String(req.body.username).toLowerCase()) {
       return errorRes(res, 'You cannot delete your own active administrator account', [], 400);
     }
 
-    // Clean up dependent tables if present
-    try { await db.query(`DELETE FROM user_permissions WHERE user_id = ?`, [user.id]); } catch (e) {}
-    try { await db.query(`DELETE FROM user_locations WHERE user_id = ?`, [user.id]); } catch (e) {}
-
-    // Delete user
-    await db.query(`DELETE FROM users WHERE id = ?`, [user.id]);
-
-    // Record audit log
-    const ip = req.ip || req.connection?.remoteAddress || null;
-    await logAction(
-      req.user ? req.user.username : 'Admin',
-      'DELETE_USER',
-      'SETTINGS',
-      { userId: user.id, username: user.username, fullName: user.full_name, role: user.role },
-      ip
-    );
-
-    return res.json({ success: true, message: 'User deleted successfully', user: { id: user.id, username: user.username } });
+    req.params = { id: identifier };
+    return userMgmtController.deleteUser(req, res);
   } catch (err) {
     return errorRes(res, 'Failed to delete user: ' + err.message, [err.message], 500);
   }

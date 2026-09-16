@@ -19,8 +19,7 @@ import {
   CheckSquare,
   Menu,
   Shield,
-  ShieldAlert,
-  Terminal
+  ShieldAlert
 } from 'lucide-react';
 import { 
   getSidebarCollapsed, 
@@ -151,8 +150,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
     { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
     { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' },
-    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' },
-    { key: 'developer_tools', href: '/developer-tools', label: 'Developer Tools', icon: Terminal, section: 'Administration' }
+    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' }
   ];
 
   useEffect(() => {

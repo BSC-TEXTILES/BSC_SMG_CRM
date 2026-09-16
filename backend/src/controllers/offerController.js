@@ -1,6 +1,22 @@
 const db = require('../config/db');
 const { successRes, errorRes } = require('../utils/response');
 const { logAction } = require('../utils/logger');
+const userSyncService = require('../services/userSyncService');
+
+/**
+ * When a candidate is marked Joined an Employee Directory entry AND a login
+ * account must exist. `users` is the single source of truth, so the account is
+ * created through the shared synchronization service - the exact same code path
+ * used by User Management and the legacy backfill, which guarantees the two
+ * dashboards can never disagree.
+ */
+const autoProvisionUser = async (appNo, options = {}) => {
+  const result = await userSyncService.provisionUserForCandidate(appNo, options);
+  if (result.created) {
+    console.log(`[Offer] Employee account provisioned for ${appNo} (user #${result.userId}, ${result.username})`);
+  }
+  return result;
+};
 
 const getOffers = async (req, res) => {
   try {
@@ -183,6 +199,7 @@ const acceptOffer = async (req, res) => {
     await db.query(`UPDATE candidates SET status = 'Joined', offered_doj = ?, updated_at = ? WHERE app_no = ?`, [dojVal, now, appNo]);
 
     await logAction(req.user ? req.user.username : 'HR', 'ACCEPT_OFFER_JOINED', 'OFFER', { appNo, remarks, joiningDate: dojVal });
+    await autoProvisionUser(appNo, { grantedBy: req.user ? req.user.username : 'HR' });
 
     return res.json({ success: true });
   } catch (err) {
@@ -218,6 +235,7 @@ const markJoined = async (req, res) => {
     await db.query(`UPDATE candidates SET status = 'Joined', updated_at = ? WHERE app_no = ?`, [now, appNo]);
 
     await logAction(req.user ? req.user.username : 'HR', 'MARK_JOINED', 'OFFER', { appNo, joiningDate });
+    await autoProvisionUser(appNo, { grantedBy: req.user ? req.user.username : 'HR' });
 
     return res.json({ success: true });
   } catch (err) {
