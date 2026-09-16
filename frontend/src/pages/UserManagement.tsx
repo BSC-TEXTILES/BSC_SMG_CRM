@@ -1296,24 +1296,54 @@ export default function UserManagementPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Department</label>
-                  <input
-                    type="text"
+                  <select
                     value={formDepartment}
                     onChange={e => setFormDepartment(e.target.value)}
-                    placeholder="e.g. Sales, HR, Cashier"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium bg-white"
+                  >
+                    <option value="">Select Department...</option>
+                    <option value="Sales">Sales</option>
+                    <option value="HR">HR</option>
+                    <option value="Cashier">Cashier</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Management">Management</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="IT">IT</option>
+                    <option value="Customer Support">Customer Support</option>
+                    <option value="Visual Merchandising">Visual Merchandising</option>
+                    <option value="Logistics/Stock">Logistics/Stock</option>
+                    <option value="Telecalling">Telecalling</option>
+                    <option value="Security">Security</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Designation</label>
-                  <input
-                    type="text"
+                  <select
                     value={formDesignation}
                     onChange={e => setFormDesignation(e.target.value)}
-                    placeholder="e.g. Store Manager, Sales Exec"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium bg-white"
+                  >
+                    <option value="">Select Designation...</option>
+                    <option value="Store Manager">Store Manager</option>
+                    <option value="Assistant Store Manager">Assistant Store Manager</option>
+                    <option value="Sales Executive">Sales Executive</option>
+                    <option value="HR Executive">HR Executive</option>
+                    <option value="HR Manager">HR Manager</option>
+                    <option value="Cashier">Cashier</option>
+                    <option value="Head Cashier">Head Cashier</option>
+                    <option value="Floor Manager">Floor Manager</option>
+                    <option value="Greeter">Greeter</option>
+                    <option value="System Admin">System Admin</option>
+                    <option value="Admin Assistant">Admin Assistant</option>
+                    <option value="Telecaller">Telecaller</option>
+                    <option value="Team Leader">Team Leader</option>
+                    <option value="Security Guard">Security Guard</option>
+                    <option value="Visual Merchandiser">Visual Merchandiser</option>
+                    <option value="Inventory Manager">Inventory Manager</option>
+                    <option value="Accountant">Accountant</option>
+                  </select>
                 </div>
               </div>
 
