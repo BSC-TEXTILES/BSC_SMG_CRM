@@ -683,7 +683,7 @@ async function autoInitializeDatabase(pool) {
     }
 
     // Seed default designations if empty or missing
-    const defaultRoles = [
+    const defaultDesignations = [
       'Store Head', 'Operations Manager', 'Department Manager', 'Floor Manager',
       'Section Supervisor', 'Senior Sales Staff', 'Junior Sales Staff', 'Helpers / Trainees',
       'Cashiers', 'Customer Care / Help Desk', 'Reception', 'Gift Wrapping',
@@ -692,7 +692,7 @@ async function autoInitializeDatabase(pool) {
       'IT / CCTV / POS Support', 'Maintenance (Electrician, Plumbing, Lift AMC liaison)',
       'Housekeeping', 'Security', 'Cafeteria Staff', 'Parking Attendants', 'Drivers'
     ];
-    for (const r of defaultRoles) {
+    for (const r of defaultDesignations) {
       try {
         await connection.query(`INSERT IGNORE INTO designations (name) VALUES (?)`, [r]);
       } catch(e) {}
@@ -740,6 +740,20 @@ async function autoInitializeDatabase(pool) {
       logDebug(`[Auto DB Initializer] page_visibility seeded with defaults`);
     } catch(e) {
       logDebug(`[Auto DB Initializer] page_visibility seed warning:`, e.message);
+    }
+
+    // Seed default roles
+    try {
+      const allSystemRoles = [
+        'Super Admin', 'Admin', 'HR Manager', 'Recruiter', 'Interviewer',
+        'Employee', 'Greeter', 'Guest', 'CRM Manager', 'CRM Executive', 'VM Extension Telecaller'
+      ];
+      for (const r of allSystemRoles) {
+        await connection.query(\`INSERT IGNORE INTO roles (name, active) VALUES (?, 1)\`, [r]);
+      }
+      logDebug(\`[Auto DB Initializer] system roles seeded\`);
+    } catch(e) {
+      logDebug(\`[Auto DB Initializer] system roles seed warning:\`, e.message);
     }
 
     // ------------------

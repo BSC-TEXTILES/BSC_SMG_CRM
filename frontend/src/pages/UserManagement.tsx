@@ -88,17 +88,7 @@ interface AuditLog {
   created_at: string;
 }
 
-const ROLES = [
-  'Super Admin',
-  'Admin',
-  'HR',
-  'Manager',
-  'Recruiter',
-  'Interviewer',
-  'Employee',
-  'Greeter',
-  'Guest'
-];
+
 
 export default function UserManagementPage() {
   const navigate = useNavigate();
@@ -114,7 +104,9 @@ export default function UserManagementPage() {
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [deptFilter, setDeptFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState('ALL');
 
   // Modals state
@@ -137,7 +129,6 @@ export default function UserManagementPage() {
   const [formDepartment, setFormDepartment] = useState('');
   const [formDesignation, setFormDesignation] = useState('');
   const [formEmployeeId, setFormEmployeeId] = useState('');
-  const [formCandidateAppNo, setFormCandidateAppNo] = useState('');
   const [formRole, setFormRole] = useState('HR');
   const [formLocationId, setFormLocationId] = useState<string>('2');
   const [formLocationIds, setFormLocationIds] = useState<string[]>(['2']);
@@ -153,7 +144,6 @@ export default function UserManagementPage() {
   const [editDepartment, setEditDepartment] = useState('');
   const [editDesignation, setEditDesignation] = useState('');
   const [editEmployeeId, setEditEmployeeId] = useState('');
-  const [editCandidateAppNo, setEditCandidateAppNo] = useState('');
   const [editRole, setEditRole] = useState('HR');
   const [editLocationId, setEditLocationId] = useState<string>('2');
   const [editLocationIds, setEditLocationIds] = useState<string[]>(['2']);
@@ -212,10 +202,11 @@ export default function UserManagementPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, modulesRes, locsRes] = await Promise.all([
+      const [usersRes, modulesRes, locsRes, rolesRes] = await Promise.all([
         API.getAdminUsers(),
         API.getAdminModules().catch(() => ({ modules: [] })),
-        API.getLocations().catch(() => [])
+        API.getLocations().catch(() => []),
+        API.getRoles().catch(() => ({ roles: [] }))
       ]);
 
       if (usersRes?.users) {
@@ -255,6 +246,12 @@ export default function UserManagementPage() {
         setLocations(locsRes);
       } else if (locsRes?.locations && Array.isArray(locsRes.locations)) {
         setLocations(locsRes.locations);
+      }
+
+      if (rolesRes?.roles && Array.isArray(rolesRes.roles)) {
+        setAvailableRoles(rolesRes.roles);
+      } else if (Array.isArray(rolesRes)) {
+        setAvailableRoles(rolesRes);
       }
     } catch (err: any) {
       showToast('Error loading user management data: ' + (err.message || 'Server error'), 'error');
@@ -314,7 +311,6 @@ export default function UserManagementPage() {
     setFormDepartment('');
     setFormDesignation('');
     setFormEmployeeId('');
-    setFormCandidateAppNo('');
     setFormRole('HR');
     setFormLocationId('2');
     setFormLocationIds(['2']);
@@ -348,7 +344,6 @@ export default function UserManagementPage() {
         department: formDepartment.trim() || null,
         designation: formDesignation.trim() || null,
         employeeId: formEmployeeId.trim() || null,
-        candidateAppNo: formCandidateAppNo.trim() || null,
         allLocations: formAllLocations,
         locationId: formAllLocations ? null : (parseInt(formLocationId, 10) || null),
         locationIds: formAllLocations ? [] : formLocationIds.map(Number),
@@ -379,7 +374,6 @@ export default function UserManagementPage() {
     setEditDepartment(user.department || '');
     setEditDesignation(user.designation || '');
     setEditEmployeeId(user.employee_id || user.employeeId || '');
-    setEditCandidateAppNo(user.candidate_app_no || user.candidateAppNo || '');
     setEditRole(user.role || 'HR');
     setEditLocationId(user.location_id ? String(user.location_id) : '2');
     setEditLocationIds(user.assigned_locations?.map(l => String(l.id)) || [String(user.location_id || 2)]);
@@ -403,7 +397,6 @@ export default function UserManagementPage() {
         department: editDepartment.trim() || null,
         designation: editDesignation.trim() || null,
         employeeId: editEmployeeId.trim() || null,
-        candidateAppNo: editCandidateAppNo.trim() || null,
         role: editRole,
         allLocations: editAllLocations,
         locationId: editAllLocations ? null : (parseInt(editLocationId, 10) || null),
@@ -868,7 +861,7 @@ export default function UserManagementPage() {
                   className="text-xs bg-transparent text-primary font-bold focus:outline-none cursor-pointer"
                 >
                   <option value="ALL">All Roles</option>
-                  {ROLES.map(r => (
+                  {availableRoles.map(r => (
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
@@ -1290,7 +1283,7 @@ export default function UserManagementPage() {
                     }}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-bold bg-white"
                   >
-                    {ROLES.map(r => (
+                    {availableRoles.map(r => (
                       <option key={r} value={r}>{r}</option>
                     ))}
                   </select>
@@ -1335,16 +1328,6 @@ export default function UserManagementPage() {
                     value={formEmployeeId}
                     onChange={e => setFormEmployeeId(e.target.value)}
                     placeholder="e.g. EMP-001"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Linked Application No</label>
-                  <input
-                    type="text"
-                    value={formCandidateAppNo}
-                    onChange={e => setFormCandidateAppNo(e.target.value)}
-                    placeholder="e.g. APP-001 (Optional)"
                     className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
                   />
                 </div>
@@ -1553,7 +1536,7 @@ export default function UserManagementPage() {
                     onChange={e => setEditRole(e.target.value)}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-bold bg-white"
                   >
-                    {ROLES.map(r => (
+                    {availableRoles.map(r => (
                       <option key={r} value={r}>{r}</option>
                     ))}
                   </select>
@@ -1595,15 +1578,6 @@ export default function UserManagementPage() {
                     type="text"
                     value={editEmployeeId}
                     onChange={e => setEditEmployeeId(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Linked Application No</label>
-                  <input
-                    type="text"
-                    value={editCandidateAppNo}
-                    onChange={e => setEditCandidateAppNo(e.target.value)}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
                   />
                 </div>

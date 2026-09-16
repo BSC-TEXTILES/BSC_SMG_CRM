@@ -281,6 +281,17 @@ const deleteInterviewQuestion = async (req, res) => {
   }
 };
 
+const getRoles = async (req, res) => {
+  try {
+    const [rows] = await db.query(`SELECT name FROM roles WHERE active = TRUE ORDER BY name ASC`);
+    const roles = rows.map(r => r.name);
+    return res.json({ roles });
+  } catch (err) {
+    console.error('[Settings - getRoles] error:', err.message);
+    return res.json({ roles: [] });
+  }
+};
+
 module.exports = {
   getUsers,
   addUser,
@@ -294,5 +305,6 @@ module.exports = {
   deleteDesignation,
   getAllInterviewQuestions,
   addInterviewQuestion,
-  deleteInterviewQuestion
+  deleteInterviewQuestion,
+  getRoles
 };

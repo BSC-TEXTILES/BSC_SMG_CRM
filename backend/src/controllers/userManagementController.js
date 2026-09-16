@@ -59,7 +59,7 @@ const listUsers = async (req, res) => {
     const [rawUsers] = await db.query(`
       SELECT
         u.id, u.username, u.full_name AS fullName, u.email, u.phone,
-        u.employee_id AS employeeId, u.candidate_app_no AS candidateAppNo,
+        u.employee_id AS employeeId,
         u.department, u.designation, u.role, u.active,
         u.location_id, u.location_code, u.max_modules,
         u.last_login_at, u.created_at, u.updated_at,
@@ -86,7 +86,7 @@ const listUsers = async (req, res) => {
       const [rawUsers] = await db.query(`
         SELECT
           u.id, u.username, u.full_name AS fullName, u.email, u.phone,
-          u.employee_id AS employeeId, u.candidate_app_no AS candidateAppNo,
+          u.employee_id AS employeeId,
           u.department, u.designation, u.role, u.active,
           u.location_id, u.location_code,
           u.last_login_at, u.created_at,
@@ -120,7 +120,7 @@ const getUser = async (req, res) => {
     const [[user]] = await db.query(`
       SELECT
         u.id, u.username, u.full_name AS fullName, u.email, u.phone,
-        u.employee_id AS employeeId, u.candidate_app_no AS candidateAppNo,
+        u.employee_id AS employeeId,
         u.department, u.designation, u.role, u.active,
         u.location_id, u.location_code, u.max_modules,
         u.last_login_at, u.created_at, u.updated_at,
@@ -190,7 +190,7 @@ const getUser = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { username, password, role, fullName, email, phone, department, designation,
-            employeeId, candidateAppNo, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
+            employeeId, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
 
     if (!username || !password || !role) {
       return errorRes(res, 'Username, password, and role are required', [], 400);
@@ -220,13 +220,6 @@ const createUser = async (req, res) => {
       }
     }
 
-    const cleanCandidateAppNo = candidateAppNo ? String(candidateAppNo).trim() : null;
-    if (cleanCandidateAppNo) {
-      const [dupLink] = await db.query(`SELECT id FROM users WHERE candidate_app_no = ?`, [cleanCandidateAppNo]);
-      if (dupLink.length > 0) {
-        return errorRes(res, 'This candidate already has a user account', [], 409);
-      }
-    }
 
     // Location scope: explicit allLocations=true grants global access (NULL
     // location). Otherwise the user is pinned to a single store location.
@@ -237,7 +230,7 @@ const createUser = async (req, res) => {
       : (locationId || (isGlobalRole ? null : 2));
 
     return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation,
-                                   employeeId: cleanEmployeeId, candidateAppNo: cleanCandidateAppNo,
+                                   employeeId: cleanEmployeeId,
                                    resolvedLocationId, locationIds, allLocations, maxModules, permissions });
   } catch (err) {
     return errorRes(res, 'Failed to create user', [err.message], 500);
@@ -246,7 +239,7 @@ const createUser = async (req, res) => {
 
 // Shared insert used by createUser for all location-scope combinations
 async function _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation,
-                                       employeeId, candidateAppNo, resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
+                                       employeeId, resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
   try {
     // Get location_code
     let locationCode = null;
@@ -263,10 +256,10 @@ async function _insertUser(req, res, { username, password, role, fullName, email
 
     const [result] = await db.query(
       `INSERT INTO users (username, password, role, full_name, email, phone, department, designation,
-                          employee_id, candidate_app_no, active, location_id, location_code, max_modules)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)`,
+                          employee_id, active, location_id, location_code, max_modules)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)`,
       [username.trim(), hashedPassword, role, fullName || role, email || null, phone || null,
-       department || null, designation || null, employeeId || null, candidateAppNo || null,
+       department || null, designation || null, employeeId || null,
        resolvedLocationId, locationCode, maxModules || null]
     );
 
@@ -275,15 +268,7 @@ async function _insertUser(req, res, { username, password, role, fullName, email
     // ── Employee ID is part of the account contract: every dashboard shows it,
     // ── so it can never be left empty.
     const finalEmployeeId = employeeId
-      || (candidateAppNo ? candidateAppNo : null)
       || await userSyncService.ensureEmployeeId(newUserId);
-
-    // ── Link the account to its recruitment record so both dashboards point
-    // ── at the same person (no disconnected copies of the same employee).
-    if (candidateAppNo) {
-      await userSyncService.syncUserFromCandidate(candidateAppNo);
-      await userSyncService.ensureEmployeeId(newUserId);
-    }
 
     // ── Multi-location: insert into user_locations ──────────────────
     const wantsAllLocations = allLocations === true;
@@ -338,7 +323,7 @@ async function _insertUser(req, res, { username, password, role, fullName, email
     }
 
     await _audit(req, 'CREATE_USER', { username, role, employeeId: finalEmployeeId,
-                                        candidateAppNo, locationId: resolvedLocationId,
+                                        locationId: resolvedLocationId,
                                         allLocations: wantsAllLocations, locationIds });
 
     return successRes(res, { id: newUserId, username, employeeId: finalEmployeeId }, 'User created successfully');
@@ -351,7 +336,7 @@ async function _insertUser(req, res, { username, password, role, fullName, email
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, email, phone, department, designation, role, employeeId, candidateAppNo,
+    const { fullName, email, phone, department, designation, role, employeeId,
             locationId, locationIds, allLocations, maxModules, active } = req.body;
 
     // Check user exists
@@ -466,23 +451,6 @@ const updateUser = async (req, res) => {
       }
     }
     // If neither allLocations nor locationIds provided, leave user_locations untouched
-
-    // ── Link / re-link the account to a recruitment record ──────────
-    if (candidateAppNo !== undefined && candidateAppNo !== null && String(candidateAppNo).trim() !== '') {
-      const cleanAppNo = String(candidateAppNo).trim();
-      try {
-        const [dupLink] = await db.query(`SELECT id FROM users WHERE candidate_app_no = ? AND id != ?`, [cleanAppNo, id]);
-        if (dupLink.length === 0) {
-          await db.query(`UPDATE users SET candidate_app_no = ? WHERE id = ?`, [cleanAppNo, id]);
-          await userSyncService.syncUserFromCandidate(cleanAppNo);
-          await userSyncService.ensureEmployeeId(id);
-        } else {
-          console.warn('[UserMgmt] candidate link refused — candidate already linked to user #' + dupLink[0].id);
-        }
-      } catch (e) {
-        console.warn('[UserMgmt] candidate link warning:', e.message);
-      }
-    }
 
     // ── Propagate the change to every dashboard that reads this person ──
     await userSyncService.ensureEmployeeId(id);

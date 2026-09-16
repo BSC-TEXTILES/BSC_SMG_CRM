@@ -964,8 +964,29 @@ exports.getVmPoints = async (req, res) => {
 
 exports.getVmSubmissions = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM VmSubmissions ORDER BY createdAt DESC LIMIT 30');
-    return res.json({ success: true, submissions: rows });
+    const [rows] = await db.query('SELECT * FROM VmSubmissions ORDER BY createdAt DESC LIMIT 200');
+    
+    if (rows.length === 0) {
+      return res.json({ success: true, submissions: [] });
+    }
+
+    const submissionIds = rows.map(r => r.id);
+    const [entries] = await db.query('SELECT * FROM VmSubmissionEntries WHERE submissionId IN (?)', [submissionIds]);
+
+    const entriesMap = {};
+    entries.forEach(e => {
+      if (!entriesMap[e.submissionId]) {
+        entriesMap[e.submissionId] = [];
+      }
+      entriesMap[e.submissionId].push(e);
+    });
+
+    const formattedRows = rows.map(r => ({
+      ...r,
+      entries: entriesMap[r.id] || []
+    }));
+
+    return res.json({ success: true, submissions: formattedRows });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }

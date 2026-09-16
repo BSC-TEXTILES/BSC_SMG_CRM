@@ -4,9 +4,8 @@
  * Frontend validation is supplementary — never trust it.
  */
 
+const db = require('../config/db');
 const { errorRes } = require('../utils/response');
-
-const VALID_ROLES = ['HR', 'Admin', 'Super Admin', 'Manager', 'Greeter', 'Recruiter', 'Interviewer', 'Employee', 'Guest'];
 
 // Password policy: at least 8 chars, 1 uppercase, 1 lowercase, 1 digit
 function validatePasswordPolicy(password) {
@@ -66,7 +65,7 @@ function isValidUsername(username) {
 /**
  * Validate create-user request body
  */
-function validateCreateUser(req, res, next) {
+async function validateCreateUser(req, res, next) {
   const { username, password, confirmPassword, role, fullName, email, phone, employeeId } = req.body;
   const errors = [];
 
@@ -85,7 +84,16 @@ function validateCreateUser(req, res, next) {
   }
 
   if (!role) errors.push('Role is required');
-  else if (!VALID_ROLES.includes(role)) errors.push(`Invalid role. Must be one of: ${VALID_ROLES.join(', ')}`);
+  else {
+    try {
+      const [rows] = await db.query('SELECT name FROM roles WHERE active = TRUE AND name = ?', [role]);
+      if (rows.length === 0) {
+        errors.push(`Invalid role or role is not active.`);
+      }
+    } catch (err) {
+      errors.push('Database error validating role');
+    }
+  }
 
   if (!fullName || !fullName.trim()) errors.push('Full name is required');
   else if (fullName.trim().length < 2 || fullName.trim().length > 150) errors.push('Full name must be 2-150 characters');
@@ -109,7 +117,7 @@ function validateCreateUser(req, res, next) {
 /**
  * Validate update-user request body
  */
-function validateUpdateUser(req, res, next) {
+async function validateUpdateUser(req, res, next) {
   const { fullName, email, phone, role } = req.body;
   const errors = [];
 
@@ -128,8 +136,15 @@ function validateUpdateUser(req, res, next) {
   // Normalize phone to +91 format
   if (phone !== undefined && phone) req.body.phone = normalizeMobile(phone);
 
-  if (role !== undefined && !VALID_ROLES.includes(role)) {
-    errors.push(`Invalid role. Must be one of: ${VALID_ROLES.join(', ')}`);
+  if (role !== undefined) {
+    try {
+      const [rows] = await db.query('SELECT name FROM roles WHERE active = TRUE AND name = ?', [role]);
+      if (rows.length === 0) {
+        errors.push(`Invalid role or role is not active.`);
+      }
+    } catch (err) {
+      errors.push('Database error validating role');
+    }
   }
 
   if (errors.length > 0) {
@@ -172,6 +187,6 @@ module.exports = {
   isValidEmail,
   isValidMobile,
   normalizeMobile,
-  isValidUsername,
-  VALID_ROLES
+  isValidUsername
 };
+

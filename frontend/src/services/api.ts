@@ -129,6 +129,14 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     headers['x-auth-token'] = session.token; // Fallback for Hostinger Apache stripping Authorization header
   }
 
+  // CSRF Protection
+  if (typeof document !== 'undefined') {
+    const match = document.cookie.match(/(?:^|; )_csrf=([^;]*)/);
+    if (match) {
+      headers['x-csrf-token'] = match[1];
+    }
+  }
+
   // Belt-and-suspenders: also send location in header (JWT is primary enforcement)
   if (session && session.locationId) {
     headers['X-Location-Id'] = String(session.locationId);
@@ -407,6 +415,7 @@ export const API = {
     }
   },
   async savePageSettings(settings: any) { return apiFetch('/settings/page-visibility', { method: 'POST', body: JSON.stringify({ settings }) }); },
+  async getRoles() { return apiFetch('/settings/roles'); },
   async getDesignations() { return apiFetch('/settings/designations'); },
   async getPublicDesignations() { return API.call('getPublicDesignations'); },
   async addDesignation(name: string) { return apiFetch('/settings/designations/add', { method: 'POST', body: JSON.stringify({ name }) }); },

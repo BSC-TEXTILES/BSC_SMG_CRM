@@ -87,30 +87,31 @@ const storage = multer.diskStorage({
     const originalName = file.originalname || 'unknown.file';
     const ext = path.extname(originalName) || '.jpg';
     const baseFileName = `${prefix}_${docType}`;
-    let finalFileName = `${baseFileName}${ext}`;
-
-    // Prevent duplicates by checking if file exists in the destination
-    const destDir = appNo ? path.join(uploadDir, 'applicants', appNo) : uploadDir; // Approximation for existence check
-    try {
-      if (fs.existsSync(path.join(destDir, finalFileName))) {
-        const suffix = Date.now().toString().slice(-6);
-        finalFileName = `${baseFileName}_${suffix}${ext}`;
-      }
-    } catch (e) {
-      finalFileName = `${baseFileName}_${Date.now()}${ext}`;
-    }
+    // Prevent path traversal and arbitrary file overwrite by randomizing filename
+    const uuid = require('crypto').randomBytes(16).toString('hex');
+    const safeBaseName = baseFileName.replace(/[^a-zA-Z0-9_-]/g, '');
+    finalFileName = `${safeBaseName}_${uuid}${ext}`;
 
     cb(null, finalFileName);
   }
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedExts = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', ''];
+  const allowedExts = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+  const allowedMimeTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png'
+  ];
+  
   const ext = file.originalname ? path.extname(file.originalname).toLowerCase() : '.jpg';
-  if (allowedExts.includes(ext) || ext === '') {
+  
+  if (allowedExts.includes(ext) && allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid file format: ${ext}. Allowed formats: PDF, DOC, DOCX, JPG, JPEG, PNG.`));
+    cb(new Error(`Invalid file format: ${ext} or mimetype: ${file.mimetype}. Allowed formats: PDF, DOC, DOCX, JPG, JPEG, PNG.`));
   }
 };
 

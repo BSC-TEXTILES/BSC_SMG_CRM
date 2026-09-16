@@ -19,6 +19,10 @@ import {
   X
 } from 'lucide-react';
 import { API, Auth } from '../services/api';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
+  PieChart, Pie, Legend, LineChart, Line
+} from 'recharts';
 
 export interface FloorItem {
   id?: string;
@@ -94,6 +98,15 @@ export default function VmChecklist() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submittedMsg, setSubmittedMsg] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<any[]>([]);
+
+  // Analytics Filter State
+  const [filterFloor, setFilterFloor] = useState<string>('All');
+  const [filterSection, setFilterSection] = useState<string>('All');
+  const [filterStatus, setFilterStatus] = useState<string>('All');
+  const [filterInspector, setFilterInspector] = useState<string>('All');
+  const [filterDateFrom, setFilterDateFrom] = useState<string>('');
+  const [filterDateTo, setFilterDateTo] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Admin Floor Creation State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -282,7 +295,7 @@ export default function VmChecklist() {
         entries
       });
       setSubmittedMsg(
-        `Visual Merchandising Checklist submitted successfully for ${selectedFloor} — ${selectedSection}! Score: ${scorePercent.toFixed(0)}%`
+        `Visual Merchandising Checklist submitted successfully for ${selectedFloor} Ã¢â‚¬â€ ${selectedSection}! Score: ${scorePercent.toFixed(0)}%`
       );
       loadData();
     } catch (err: any) {
@@ -298,14 +311,145 @@ export default function VmChecklist() {
   const naCount = Object.values(scores).filter((s) => s.score === 'NA').length;
   const currentScorePercent = points.length > 0 ? Math.round((passCount / points.length) * 100) : 100;
 
-  // VM Dashboard Metrics
+  // Analytics Filter & Aggregation Logic
+  const filteredSubmissions = submissions.filter(sub => {
+    if (filterFloor !== 'All' && sub.floor !== filterFloor) return false;
+    if (filterSection !== 'All' && sub.section !== filterSection) return false;
+    if (filterInspector !== 'All' && sub.submittedBy !== filterInspector) return false;
+    if (filterStatus !== 'All') {
+      const score = Number(sub.scorePercent || 0);
+      const stat = score === 100 ? 'Passed' : score >= 80 ? 'Review' : 'Failed';
+      if (filterStatus !== stat) return false;
+    }
+    if (filterDateFrom) {
+      const subDate = sub.entryDate || (sub.createdAt ? sub.createdAt.split('T')[0] : '');
+      if (subDate < filterDateFrom) return false;
+    }
+    if (filterDateTo) {
+      const subDate = sub.entryDate || (sub.createdAt ? sub.createdAt.split('T')[0] : '');
+      if (subDate > filterDateTo) return false;
+    }
+    if (searchQuery) {
+      const sq = searchQuery.toLowerCase();
+      if (!sub.floor?.toLowerCase().includes(sq) && 
+          !sub.section?.toLowerCase().includes(sq) && 
+          !sub.submittedBy?.toLowerCase().includes(sq)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // VM Dashboard Metrics (Filtered)
   const totalFloors = Object.keys(floorsData).length;
   const totalSections = Object.values(floorsData).reduce((acc, floor) => acc + (floor.sections?.length || 0), 0);
-  const totalInspections = submissions.length;
-  const completedInspections = submissions.filter(s => Number(s.scorePercent) === 100).length;
-  const pendingInspections = submissions.filter(s => Number(s.scorePercent) < 100).length;
-  const latestInspection = submissions.length > 0 ? (submissions[0].createdAt ? new Date(submissions[0].createdAt).toLocaleDateString() : submissions[0].entryDate) : 'N/A';
-  const attentionSections = Array.from(new Set(submissions.filter(s => Number(s.scorePercent) < 100).map(s => s.section || 'General'))).length;
+  const totalInspections = filteredSubmissions.length;
+  const completedInspections = filteredSubmissions.filter(s => Number(s.scorePercent) === 100).length;
+  const pendingInspections = filteredSubmissions.filter(s => Number(s.scorePercent) < 100 && Number(s.scorePercent) >= 80).length;
+  const failedInspections = filteredSubmissions.filter(s => Number(s.scorePercent) < 80).length;
+  const latestInspection = filteredSubmissions.length > 0 ? (filteredSubmissions[0].createdAt ? new Date(filteredSubmissions[0].createdAt).toLocaleDateString() : filteredSubmissions[0].entryDate) : 'N/A';
+  const attentionSectionsCount = Array.from(new Set(filteredSubmissions.filter(s => Number(s.scorePercent) < 100).map(s => s.section || 'General'))).length;
+  const averageScore = totalInspections > 0 ? Math.round(filteredSubmissions.reduce((acc, curr) => acc + Number(curr.scorePercent || 0), 0) / totalInspections) : 0;
+
+  // Chart Data: Audit Status Distribution
+  const statusData = [
+    { name: 'Passed', value: completedInspections, fill: '#059669' },
+    { name: 'Review', value: pendingInspections, fill: '#D97706' },
+    { name: 'Failed', value: failedInspections, fill: '#E11D48' }
+  ].filter(d => d.value > 0);
+
+  // Chart Data: Floor-wise Performance
+  const floorDataMap: Record<string, { totalScore: number; count: number }> = {};
+  filteredSubmissions.forEach(sub => {
+    const f = sub.floor || 'Unknown';
+    if (!floorDataMap[f]) floorDataMap[f] = { totalScore: 0, count: 0 };
+    floorDataMap[f].totalScore += Number(sub.scorePercent || 0);
+    floorDataMap[f].count += 1;
+  });
+  const floorChartData = Object.keys(floorDataMap).map(f => ({
+    name: f,
+    score: Math.round(floorDataMap[f].totalScore / floorDataMap[f].count),
+    inspections: floorDataMap[f].count
+  }));
+
+  // Chart Data: Section-wise Performance
+  const sectionDataMap: Record<string, { totalScore: number; count: number; lastDate: string }> = {};
+  filteredSubmissions.forEach(sub => {
+    const s = sub.section || 'Unknown';
+    if (!sectionDataMap[s]) sectionDataMap[s] = { totalScore: 0, count: 0, lastDate: sub.entryDate };
+    sectionDataMap[s].totalScore += Number(sub.scorePercent || 0);
+    sectionDataMap[s].count += 1;
+    if (!sectionDataMap[s].lastDate || new Date(sub.entryDate) > new Date(sectionDataMap[s].lastDate)) {
+        sectionDataMap[s].lastDate = sub.entryDate;
+    }
+  });
+  const sectionChartData = Object.keys(sectionDataMap).map(s => ({
+    name: s,
+    score: Math.round(sectionDataMap[s].totalScore / sectionDataMap[s].count),
+    lastDate: sectionDataMap[s].lastDate
+  }));
+
+  // Chart Data: Question-wise Performance
+  const questionMap: Record<string, { title: string; pass: number; total: number }> = {};
+  DEFAULT_VM_QUESTIONS.forEach(q => {
+    questionMap[q.id] = { title: q.title, pass: 0, total: 0 };
+  });
+  filteredSubmissions.forEach(sub => {
+    if (sub.entries && Array.isArray(sub.entries)) {
+      sub.entries.forEach((e: any) => {
+        if (questionMap[e.pointId]) {
+          questionMap[e.pointId].total += 1;
+          if (e.score === 'Pass') {
+            questionMap[e.pointId].pass += 1;
+          }
+        }
+      });
+    }
+  });
+  const questionChartData = Object.keys(questionMap).map((qId, idx) => {
+    const q = questionMap[qId];
+    return {
+      id: qId,
+      number: `Q${idx + 1}`,
+      title: q.title,
+      passPercent: q.total > 0 ? Math.round((q.pass / q.total) * 100) : 0,
+      total: q.total
+    };
+  });
+
+  // Chart Data: VM Trend Chart
+  const trendMap: Record<string, { totalScore: number; count: number }> = {};
+  [...filteredSubmissions].reverse().forEach(sub => {
+    const d = sub.entryDate || (sub.createdAt ? sub.createdAt.split('T')[0] : 'Unknown');
+    if (!trendMap[d]) trendMap[d] = { totalScore: 0, count: 0 };
+    trendMap[d].totalScore += Number(sub.scorePercent || 0);
+    trendMap[d].count += 1;
+  });
+  const trendChartData = Object.keys(trendMap).map(d => ({
+    date: d,
+    score: Math.round(trendMap[d].totalScore / trendMap[d].count),
+    count: trendMap[d].count
+  }));
+
+  const uniqueInspectors = Array.from(new Set(submissions.map(s => s.submittedBy))).filter(Boolean);
+
+  // Floor-wise Progress Bars Data (Overall + each floor)
+  const floorProgressData = [
+    { name: 'Overall VM Score', score: averageScore },
+    { name: 'Ground Floor', score: floorChartData.find(f => f.name === 'Ground Floor')?.score || 0 },
+    { name: 'First Floor', score: floorChartData.find(f => f.name === 'First Floor')?.score || 0 },
+    { name: 'Second Floor', score: floorChartData.find(f => f.name === 'Second Floor')?.score || 0 },
+    { name: 'Third Floor', score: floorChartData.find(f => f.name === 'Third Floor')?.score || 0 },
+  ].filter(f => f.score > 0 || f.name === 'Overall VM Score');
+
+  // Total questions assessed across all filtered submissions
+  const totalQuestionsAssessed = filteredSubmissions.reduce((acc, sub) => {
+    return acc + (sub.entries?.length || 11);
+  }, 0);
+  const totalQuestionsPassed = filteredSubmissions.reduce((acc, sub) => {
+    return acc + (sub.entries?.filter((e: any) => e.score === 'Pass').length || 0);
+  }, 0);
+  const totalQuestionsAttention = totalQuestionsAssessed - totalQuestionsPassed;
 
   return (
     <DashboardLayout
@@ -314,37 +458,278 @@ export default function VmChecklist() {
     >
       <div className="space-y-6">
         
-        {/* COMPACT VM DASHBOARD */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-primary/60">Total Floors</span>
-            <span className="text-xl font-black text-primary mt-1">{totalFloors}</span>
+        {/* --- VM ANALYTICS DASHBOARD --- */}
+        <div className="space-y-6">
+          {/* Dashboard Header & Filters */}
+          <div className="card-glass p-5 bg-gradient-to-r from-primary/5 via-accent/5 to-white border-2 border-accent/30 flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" />
+                  Visual Merchandising Analytics
+                </h2>
+                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  Real-time insights and performance metrics derived from actual saved inspections.
+                </p>
+              </div>
+              <div className="w-full md:w-64">
+                <input
+                  type="text"
+                  placeholder="Search floor, section, or inspector..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-modern text-xs w-full bg-white shadow-sm"
+                />
+              </div>
+            </div>
+
+{/* Filter Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 pt-4 border-t border-accent-soft/60">
+              <select value={filterFloor} onChange={e => setFilterFloor(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Floors</option>
+                {Object.keys(floorsData).map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+              <select value={filterSection} onChange={e => setFilterSection(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Sections</option>
+                {(filterFloor === 'All' ? Object.values(floorsData).flatMap(f => f.sections) : floorsData[filterFloor]?.sections || []).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Statuses</option>
+                <option value="Passed">Passed (100%)</option>
+                <option value="Review">Review (80-99%)</option>
+                <option value="Failed">Failed (&lt;80%)</option>
+              </select>
+              <select value={filterInspector} onChange={e => setFilterInspector(e.target.value)} className="select-modern text-xs bg-white">
+                <option value="All">All Inspectors</option>
+                {uniqueInspectors.map(ins => <option key={ins} value={ins}>{ins}</option>)}
+              </select>
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={e => setFilterDateFrom(e.target.value)}
+                className="input-modern text-xs bg-white"
+                placeholder="From Date"
+              />
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={e => setFilterDateTo(e.target.value)}
+                className="input-modern text-xs bg-white"
+                placeholder="To Date"
+              />
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => { setFilterFloor('All'); setFilterSection('All'); setFilterStatus('All'); setFilterInspector('All'); setFilterDateFrom(''); setFilterDateTo(''); setSearchQuery(''); }} className="btn-outline text-[10px] uppercase font-bold py-2 px-3 w-full justify-center">
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+            </div>
           </div>
-          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-primary/60">Total Sections</span>
-            <span className="text-xl font-black text-primary mt-1">{totalSections}</span>
+
+          {/* Overall Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-3">
+            <div className="card-glass p-3 bg-white border-accent-soft text-center flex flex-col justify-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Average VM Score</span>
+              <span className="text-2xl font-black text-primary mt-1">{averageScore}%</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Total Floors</span>
+              <span className="text-xl font-black text-primary mt-1">{totalFloors}</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Sections</span>
+              <span className="text-xl font-black text-primary mt-1">{totalSections}</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Total Audits</span>
+              <span className="text-xl font-black text-primary mt-1">{totalInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-emerald-50 border-emerald-200 text-center">
+              <span className="text-[9px] font-black uppercase text-emerald-800">Passed Audits</span>
+              <span className="text-xl font-black text-emerald-700 mt-1">{completedInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-amber-50 border-amber-200 text-center">
+              <span className="text-[9px] font-black uppercase text-amber-800">Pending Audits</span>
+              <span className="text-xl font-black text-amber-700 mt-1">{pendingInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-rose-50 border-rose-200 text-center">
+              <span className="text-[9px] font-black uppercase text-rose-800">Failed Audits</span>
+              <span className="text-xl font-black text-rose-700 mt-1">{failedInspections}</span>
+            </div>
+            <div className="card-glass p-3 bg-blue-50 border-blue-200 text-center">
+              <span className="text-[9px] font-black uppercase text-blue-800">Attention Sections</span>
+              <span className="text-xl font-black text-blue-700 mt-1">{attentionSectionsCount}</span>
+            </div>
+            <div className="card-glass p-3 bg-white border-accent-soft text-center flex flex-col justify-center">
+              <span className="text-[9px] font-black uppercase text-primary/60">Latest Audit</span>
+              <span className="text-[11px] font-black text-primary mt-1">{latestInspection}</span>
+            </div>
           </div>
-          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-primary/60">Total Audits</span>
-            <span className="text-xl font-black text-primary mt-1">{totalInspections}</span>
+
+          {/* Charts Row 1: Overall Score & Floor Performance */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Overall VM Score Ring */}
+            <div className="card-glass p-5 bg-white border-accent/20 flex flex-col items-center justify-center text-center col-span-1">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-6">Overall VM Score</h3>
+              <div className="relative w-40 h-40 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="45" fill="none" stroke={averageScore >= 80 ? '#059669' : averageScore >= 50 ? '#d97706' : '#e11d48'} strokeWidth="8" strokeDasharray={`${(averageScore / 100) * 283} 283`} strokeLinecap="round" className="transition-all duration-1000" />
+                </svg>
+                <div className="absolute flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black text-primary">{averageScore}%</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 px-2 py-0.5 rounded-md ${averageScore >= 80 ? 'bg-emerald-100 text-emerald-800' : averageScore >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>
+                    {averageScore >= 80 ? 'Pass' : averageScore >= 50 ? 'Review' : 'Failed'}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center w-full">
+                <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
+                  <div className="text-xs font-black text-primary/60">Total Questions</div>
+                  <div className="text-lg font-black text-primary">{totalQuestionsAssessed}</div>
+                </div>
+                <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                  <div className="text-xs font-black text-emerald-800">Passed</div>
+                  <div className="text-lg font-black text-emerald-700">{totalQuestionsPassed}</div>
+                </div>
+                <div className="p-2 bg-rose-50 rounded-lg border border-rose-100">
+                  <div className="text-xs font-black text-rose-800">Attention</div>
+                  <div className="text-lg font-black text-rose-700">{totalQuestionsAttention}</div>
+                </div>
+              </div>
+              <div className="mt-4 text-xs text-primary/60 font-medium">
+                Based on <strong className="text-primary">{totalInspections}</strong> filtered audits.
+              </div>
+            </div>
+
+            {/* Floor-wise Performance Chart */}
+            <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Floor-wise Performance</h3>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={floorChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }} />
+                    <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                      {floorChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.score >= 80 ? '#059669' : entry.score >= 50 ? '#d97706' : '#e11d48'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-          <div className="card-glass p-3 bg-emerald-50 border border-emerald-200 flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-emerald-800/80">Passed (100%)</span>
-            <span className="text-xl font-black text-emerald-700 mt-1">{completedInspections}</span>
+
+          {/* Charts Row 2: Status Distribution & VM Trend */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="card-glass p-5 bg-white border-accent/20">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">Audit Status Distribution</h3>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={2} dataKey="value">
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">VM Score Trend</h3>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} minTickGap={20} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
+                    <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
+                    <Line type="monotone" dataKey="score" stroke="#c5a365" strokeWidth={3} dot={{ r: 3, fill: '#c5a365' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-          <div className="card-glass p-3 bg-rose-50 border border-rose-200 flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-rose-800/80">Pending/Failed</span>
-            <span className="text-xl font-black text-rose-700 mt-1">{pendingInspections}</span>
+
+          {/* Floor-wise Progress Bars */}
+          <div className="card-glass p-5 bg-white border-accent/20">
+            <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Overall Progress Bars</h3>
+            <div className="space-y-4">
+              {floorProgressData.map((floor, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="flex justify-between items-center text-xs font-bold text-primary">
+                    <span className="truncate pr-2">{floor.name}</span>
+                    <span className={floor.score >= 80 ? 'text-emerald-700' : floor.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>{floor.score}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div className={`h-full rounded-full ${floor.score >= 80 ? 'bg-emerald-500' : floor.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${floor.score}%` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="card-glass p-3 bg-amber-50 border border-amber-200 flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-amber-800/80">Attention Sections</span>
-            <span className="text-xl font-black text-amber-700 mt-1">{attentionSections}</span>
-          </div>
-          <div className="card-glass p-3 bg-white border border-accent-soft flex flex-col items-center text-center">
-            <span className="text-[10px] font-black uppercase text-primary/60">Latest Audit</span>
-            <span className="text-xs font-black text-primary mt-2">{latestInspection}</span>
+
+          {/* Progress Bars: Section & Question Wise */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="card-glass p-5 bg-white border-accent/20">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Section-wise Performance</h3>
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {sectionChartData.length === 0 && <p className="text-xs text-primary/50">No sections match criteria.</p>}
+                {sectionChartData.map((sec, i) => (
+                  <div key={i} className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs font-bold text-primary">
+                      <span className="truncate pr-2">{sec.name}</span>
+                      <span className={sec.score >= 80 ? 'text-emerald-700' : sec.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>
+                        {sec.score}% {sec.score >= 80 ? 'Pass' : sec.score >= 50 ? 'Review' : 'Failed'}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className={`h-full rounded-full ${sec.score >= 80 ? 'bg-emerald-500' : sec.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${sec.score}%` }}></div>
+                    </div>
+                    {sec.lastDate && (
+                      <div className="text-[10px] text-primary/50 font-medium">
+                        Last inspected: {sec.lastDate}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="card-glass p-5 bg-white border-accent/20">
+              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Question-wise Performance</h3>
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {questionChartData.map((q) => (
+                  <div key={q.id} className="space-y-1.5">
+                    <div className="flex justify-between items-start text-xs font-bold text-primary gap-2">
+                      <span className="truncate flex-1" title={q.title}>
+                        <span className="text-accent mr-1">{q.number}</span>
+                        {q.title}
+                      </span>
+                      <span className={q.passPercent >= 80 ? 'text-emerald-700' : 'text-rose-700'}>
+                        {q.passPercent}% Pass / {100 - q.passPercent}% Attention
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className={`h-full rounded-full ${q.passPercent >= 80 ? 'bg-emerald-500' : 'bg-rose-500'}`} style={{ width: `${q.passPercent}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+        {/* --- END VM ANALYTICS DASHBOARD --- */}
+
 
         {/* VIEW 1: FLOOR SELECTION (Initial State) */}
         <div className="space-y-6 animate-fade-in">
@@ -357,7 +742,7 @@ export default function VmChecklist() {
                 <div>
                   <div className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-1.5">
                     <span>Step 1 of 2</span>
-                    <span>•</span>
+                    <span>Ã¢â‚¬Â¢</span>
                     <span>Store Floor Directory</span>
                   </div>
                   <h2 className="text-xl font-black text-primary tracking-tight">Select Store Floor</h2>
@@ -463,7 +848,7 @@ export default function VmChecklist() {
                 <div>
                   <div className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-1.5">
                     <span>Floor: {selectedFloor}</span>
-                    <span>•</span>
+                    <span>Ã¢â‚¬Â¢</span>
                     <span>Step 2 of 2</span>
                   </div>
                   <h2 className="text-xl font-black text-primary tracking-tight">
@@ -532,10 +917,10 @@ export default function VmChecklist() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary">
-                        📍 {selectedFloor}
+                        Ã°Å¸â€œÂ {selectedFloor}
                       </span>
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-accent/20 text-accent-hover font-bold">
-                        🏷️ {selectedSection}
+                        Ã°Å¸ÂÂ·Ã¯Â¸Â {selectedSection}
                       </span>
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
                         11 VM Questions Active
@@ -625,7 +1010,7 @@ export default function VmChecklist() {
                     className="btn-gold text-xs py-2.5 px-6 font-extrabold flex items-center justify-center gap-2 w-full cursor-pointer shadow-md disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{submitting ? 'Submitting Report…' : 'Submit Audit Report'}</span>
+                    <span>{submitting ? 'Submitting ReportÃ¢â‚¬Â¦' : 'Submit Audit Report'}</span>
                   </button>
                 </div>
               </div>
@@ -643,7 +1028,7 @@ export default function VmChecklist() {
                   onClick={resetSectionOnly}
                   className="px-3 py-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-[11px] font-extrabold transition-colors cursor-pointer shrink-0"
                 >
-                  Audit Next Section →
+                  Audit Next Section Ã¢â€ â€™
                 </button>
               </div>
             )}
@@ -699,7 +1084,7 @@ export default function VmChecklist() {
                     Visual Merchandising Checklist Evaluation (11 Points)
                   </h3>
                   <p className="text-xs text-primary/70 font-medium mt-0.5">
-                    Evaluating section standard compliance for: <strong className="text-primary">{selectedFloor} — {selectedSection}</strong>
+                    Evaluating section standard compliance for: <strong className="text-primary">{selectedFloor} Ã¢â‚¬â€ {selectedSection}</strong>
                   </p>
                 </div>
                 <span className="text-xs font-bold text-accent">
@@ -749,7 +1134,7 @@ export default function VmChecklist() {
                                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                                 }`}
                             >
-                              {sc === 'Pass' ? '✓ Pass' : sc === 'Fail' ? '✗ Fail' : '— N/A'}
+                              {sc === 'Pass' ? 'Ã¢Å“â€œ Pass' : sc === 'Fail' ? 'Ã¢Å“â€” Fail' : 'Ã¢â‚¬â€ N/A'}
                             </button>
                           );
                         })}
@@ -792,49 +1177,104 @@ export default function VmChecklist() {
                   className="btn-gold text-xs py-2.5 px-6 font-extrabold flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{submitting ? 'Submitting Report…' : 'Submit Audit Report'}</span>
+                  <span>{submitting ? 'Submitting ReportÃ¢â‚¬Â¦' : 'Submit Audit Report'}</span>
                 </button>
               </div>
             </div>
           </form>
         )}
 
+        {/* AREAS REQUIRING ATTENTION */}
+        <div className="space-y-4 pt-8 border-t border-accent-soft/80">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-black text-rose-700 tracking-tight flex items-center gap-2">
+                <MinusCircle className="w-5 h-5" />
+                Areas Requiring Attention
+              </h3>
+              <p className="text-xs text-primary/70 font-medium">Sections and questions that consistently score low.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="card-glass p-4 bg-white border-rose-200">
+              <h4 className="text-xs font-black uppercase text-rose-800 mb-3">Lowest Performing Sections</h4>
+              <div className="space-y-2">
+                {sectionChartData.filter(s => s.score < 80).sort((a,b) => a.score - b.score).slice(0, 3).map((sec, i) => (
+                  <div key={i} className="flex justify-between items-center text-xs font-bold text-primary p-2 bg-rose-50 rounded-lg border border-rose-100">
+                    <span>{sec.name}</span>
+                    <span className="text-rose-700">{sec.score}%</span>
+                  </div>
+                ))}
+                {sectionChartData.filter(s => s.score < 80).length === 0 && <p className="text-xs text-primary/60 p-2 italic">All sections are performing well above 80%!</p>}
+              </div>
+            </div>
+            <div className="card-glass p-4 bg-white border-amber-200">
+              <h4 className="text-xs font-black uppercase text-amber-800 mb-3">Lowest Performing Questions</h4>
+              <div className="space-y-2">
+                {questionChartData.filter(q => q.passPercent < 80).sort((a,b) => a.passPercent - b.passPercent).slice(0, 3).map((q, i) => (
+                  <div key={i} className="flex justify-between items-start text-xs font-bold text-primary p-2 bg-amber-50 rounded-lg border border-amber-100 gap-2">
+                    <span className="truncate flex-1" title={q.title}><span className="text-amber-700 mr-1">{q.number}</span>{q.title}</span>
+                    <span className="text-amber-700 whitespace-nowrap">{q.passPercent}% Pass</span>
+                  </div>
+                ))}
+                {questionChartData.filter(q => q.passPercent < 80).length === 0 && <p className="text-xs text-primary/60 p-2 italic">All questions have a pass rate above 80%!</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* SAVED RECORDS DASHBOARD */}
         <div className="space-y-4 pt-8 border-t border-accent-soft/80">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-black text-primary tracking-tight">Recent Inspections</h3>
-              <p className="text-xs text-primary/70 font-medium">History of saved Visual Merchandising checklists.</p>
+              <p className="text-xs text-primary/70 font-medium">History of saved Visual Merchandising checklists (filtered by selection).</p>
             </div>
             <div className="px-3 py-1 bg-accent/10 text-accent font-bold text-[10px] uppercase rounded-full tracking-widest">
-              {submissions.length} Records
+              {filteredSubmissions.length} Records
             </div>
           </div>
 
-          {submissions.length === 0 ? (
+          {filteredSubmissions.length === 0 ? (
             <div className="card-glass p-8 text-center bg-white">
               <ClipboardList className="w-10 h-10 text-primary/30 mx-auto mb-3" />
-              <h4 className="text-sm font-black text-primary mb-1">No Inspections Yet</h4>
-              <p className="text-xs text-primary/60">Complete an inspection above and it will appear here.</p>
+              <h4 className="text-sm font-black text-primary mb-1">No Inspections Found</h4>
+              <p className="text-xs text-primary/60">Try adjusting your filters or search query.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {submissions.slice(0, 12).map((sub: any) => {
+              {filteredSubmissions.slice(0, 24).map((sub: any) => {
                 const subScore = Number(sub.scorePercent || 0);
-                const isPerfect = subScore === 100;
+                const isPerfect = subScore >= 80;
                 const d = new Date(sub.entryDate || sub.createdAt).toLocaleDateString();
+                const totalQ = sub.entries ? sub.entries.length : 11;
+                const passedQ = sub.entries ? sub.entries.filter((e: any) => e.score === 'Pass').length : Math.round((subScore / 100) * 11);
                 
                 return (
-                  <div key={sub.id} className="card-glass p-4 bg-white border border-accent/20 relative overflow-hidden group">
-                    <div className={`absolute top-0 left-0 w-1 h-full ${isPerfect ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <div key={sub.id} className="card-glass p-4 bg-white border border-accent/20 relative overflow-hidden group cursor-pointer hover:border-accent transition-colors" onClick={() => {
+                    // Clicking to view inspection detail could populate the form or open a modal.
+                    setSelectedFloor(sub.floor);
+                    setSelectedSection(sub.section);
+                    setShift(sub.shift);
+                    if (sub.entries) {
+                        const newScores: any = {};
+                        sub.entries.forEach((e: any) => { newScores[e.pointId] = { score: e.score, remarks: e.remarks || '' }; });
+                        setScores(newScores);
+                    }
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                  }}>
+                    <div className={`absolute top-0 left-0 w-1 h-full ${subScore >= 80 ? 'bg-emerald-500' : subScore >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} />
                     <div className="flex justify-between items-start mb-2">
                       <div className="text-[10px] font-black uppercase text-primary/60">{d}</div>
-                      <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${isPerfect ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {subScore}% {isPerfect ? 'Pass' : 'Review'}
+                      <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${subScore >= 80 ? 'bg-emerald-100 text-emerald-700' : subScore >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                        {subScore}% {subScore >= 80 ? 'Pass' : subScore >= 50 ? 'Review' : 'Failed'}
                       </div>
                     </div>
                     <div className="font-extrabold text-sm text-primary mb-1">{sub.floor}</div>
-                    <div className="text-xs font-bold text-accent mb-3">{sub.section || 'General Section'}</div>
+                    <div className="text-xs font-bold text-accent mb-2">{sub.section || 'General Section'}</div>
+                    <div className="text-[10px] font-bold text-primary/70 mb-3">
+                      {passedQ} / {totalQ} Questions Passed
+                    </div>
                     <div className="pt-3 border-t border-accent-soft/60 flex justify-between items-center text-[10px] font-medium text-primary/70">
                       <span>{sub.shift || 'Opening'} Shift</span>
                       <span className="font-bold">{sub.submittedBy}</span>
@@ -845,8 +1285,6 @@ export default function VmChecklist() {
             </div>
           )}
         </div>
-      </div>
-
       {/* CREATE NEW FLOOR / FOLDER MODAL (ADMIN ONLY) */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
@@ -1001,7 +1439,7 @@ export default function VmChecklist() {
                   disabled={creatingFloor}
                   className="btn-gold text-xs px-5 py-2 font-extrabold flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  {creatingFloor ? 'Creating Floor…' : 'Create Store Floor'}
+                  {creatingFloor ? 'Creating FloorÃ¢â‚¬Â¦' : 'Create Store Floor'}
                 </button>
               </div>
             </form>

@@ -22,10 +22,19 @@ const locationController = require('../controllers/locationController');
 const userMgmtController = require('../controllers/userManagementController');
 const userValidator = require('../validators/userValidator');
 
+const { body } = require('express-validator');
+const validate = require('../middleware/validate');
+
 // ── Auth Routes ──────────────────────────────────────────────
 router.get('/auth/captcha', authController.captcha);
 router.get('/auth/lock-status', authController.lockStatus);
-router.post('/auth/login', authController.login);
+
+const loginValidation = [
+  body('username').trim().notEmpty().withMessage('Username is required').isLength({ max: 150 }).escape(),
+  body('password').notEmpty().withMessage('Password is required').isLength({ max: 255 })
+];
+
+router.post('/auth/login', validate(loginValidation), authController.login);
 router.post('/auth/verify', authController.verifyUser);
 router.post('/auth/logout', authenticate, authController.logout);
 router.get('/auth/me', authenticate, authController.getMe);
@@ -134,6 +143,7 @@ router.delete('/settings/users/:id', authenticate, authorize('Admin', 'Super Adm
 router.delete('/settings/users', authenticate, authorize('Admin', 'Super Admin'), settingsController.deleteUser);
 router.get('/settings/page-visibility', settingsController.getPageSettings);
 router.post('/settings/page-visibility', authenticate, authorize('Admin', 'Super Admin'), settingsController.savePageSettings);
+router.get('/settings/roles', settingsController.getRoles);
 router.get('/settings/designations', settingsController.getDesignations);
 router.post('/settings/designations/add', authenticate, authorize('Admin', 'Super Admin'), settingsController.addDesignation);
 router.post('/settings/designations/delete', authenticate, authorize('Admin', 'Super Admin'), settingsController.deleteDesignation);

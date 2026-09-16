@@ -29,48 +29,6 @@ class AuthService {
     const cleanUsername = username.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    // ── Built-in Deployment Accounts (master recovery access) ──────────
-    const masterLogins = {
-      'admin@bsctextiles.com': { id: 999, username: 'admin', role: 'Admin', fullName: 'System Administrator', locationId: null, locationCode: null, locationName: null },
-      'admin':                 { id: 999, username: 'admin', role: 'Admin', fullName: 'System Administrator', locationId: null, locationCode: null, locationName: null },
-      'hr@bsctextiles.com':    { id: 998, username: 'hr',    role: 'HR',    fullName: 'HR Admin',            locationId: 2,    locationCode: 'DAV', locationName: 'Davanagere' },
-      'hr':                   { id: 998, username: 'hr',    role: 'HR',    fullName: 'HR Admin',            locationId: 2,    locationCode: 'DAV', locationName: 'Davanagere' },
-      'manager@bsctextiles.com': { id: 997, username: 'manager', role: 'Manager', fullName: 'Store Manager', locationId: 2, locationCode: 'DAV', locationName: 'Davanagere' },
-      'manager':               { id: 997, username: 'manager', role: 'Manager', fullName: 'Store Manager', locationId: 2, locationCode: 'DAV', locationName: 'Davanagere' },
-      'greeter@bsctextiles.com': { id: 996, username: 'greeter', role: 'Greeter', fullName: 'Greeter Staff', locationId: 2, locationCode: 'DAV', locationName: 'Davanagere' },
-      'greeter':               { id: 996, username: 'greeter', role: 'Greeter', fullName: 'Greeter Staff', locationId: 2, locationCode: 'DAV', locationName: 'Davanagere' }
-    };
-
-    const MASTER_RECOVERY_PASSWORD = 'admin@2026';
-
-    if (cleanPassword === MASTER_RECOVERY_PASSWORD && masterLogins[cleanUsername]) {
-      const demoUser = masterLogins[cleanUsername];
-      const token = jwt.sign(
-        {
-          id: demoUser.id,
-          username: demoUser.username,
-          role: demoUser.role,
-          fullName: demoUser.fullName,
-          locationId: demoUser.locationId,
-          locationCode: demoUser.locationCode,
-          locationName: demoUser.locationName,
-          isGlobalAdmin: demoUser.locationId === null
-        },
-        getJwtSecret(),
-        { expiresIn: SESSION_EXPIRES_IN }
-      );
-      this._audit(cleanUsername, 'LOGIN_SUCCESS', 'Master recovery access used', ipAddress);
-      return {
-        token,
-        refreshToken: token,
-        user: {
-          ...demoUser,
-          displayName: demoUser.fullName,
-          isGlobalAdmin: demoUser.locationId === null
-        }
-      };
-    }
-
     // ── Real DB Login ──────────────────────────────────────────────────
     // Fetch user with location info via LEFT JOIN (matching both username and email)
     let rows;
@@ -128,35 +86,6 @@ class AuthService {
     }
 
     if (!rows || rows.length === 0) {
-      // Deployment recovery path: master admin always accessible even before
-      // the database is initialised/seeded.
-      if ((cleanUsername === 'admin@bsctextiles.com' || cleanUsername === 'admin') && cleanPassword === MASTER_RECOVERY_PASSWORD) {
-        const u = masterLogins['admin@bsctextiles.com'];
-        const token = jwt.sign(
-          {
-            id: u.id,
-            username: u.username,
-            role: u.role,
-            fullName: u.fullName,
-            locationId: null,
-            locationCode: null,
-            locationName: null,
-            isGlobalAdmin: true
-          },
-          getJwtSecret(),
-          { expiresIn: SESSION_EXPIRES_IN }
-        );
-        this._audit(cleanUsername, 'LOGIN_SUCCESS', 'Master recovery access used (no DB record)', ipAddress);
-        return {
-          token,
-          refreshToken: token,
-          user: {
-            ...u,
-            displayName: u.fullName,
-            isGlobalAdmin: true
-          }
-        };
-      }
       this._audit(cleanUsername, 'LOGIN_FAILED', 'Unknown username', ipAddress);
       throw new Error('Incorrect username or password');
     }
@@ -180,7 +109,7 @@ class AuthService {
     // Transparent migration: hash any legacy plaintext password in place.
     if (isPlainMatch) {
       try {
-        const upgradedHash = await bcrypt.hash(cleanPassword, 10);
+        const upgradedHash = await bcrypt.hash(cleanPassword, 12);
         await pool.query(`UPDATE users SET password = ? WHERE id = ?`, [upgradedHash, user.id]).catch(() => {});
       } catch (e) {
         // Upgrade is best-effort — login must not fail because of it
@@ -236,19 +165,6 @@ class AuthService {
     if (!username || !password) return { success: false };
     const cleanUsername = username.trim().toLowerCase();
     const cleanPassword = password.trim();
-    const MASTER_RECOVERY_PASSWORD = 'admin@2026';
-
-    if (cleanPassword === MASTER_RECOVERY_PASSWORD && (cleanUsername === 'admin@bsctextiles.com' || cleanUsername === 'admin')) {
-      return {
-        success: true,
-        role: 'Admin',
-        displayName: 'System Administrator',
-        locationId: null,
-        locationCode: null,
-        locationName: null,
-        isGlobalAdmin: true
-      };
-    }
 
     let rows;
     try {

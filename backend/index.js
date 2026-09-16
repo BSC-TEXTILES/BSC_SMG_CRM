@@ -44,6 +44,7 @@ const { autoInitializeDatabase } = require('./src/config/dbInitializer');
 const apiRoutes = require('./src/routes/api');
 const { errorRes } = require('./src/utils/response');
 const { authenticate, authorize } = require('./src/middleware/auth');
+const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
 
 // ── Express App ───────────────────────────────────────────────────────────────
 const app = express();
@@ -57,13 +58,35 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 console.log(`[Boot] PORT=${PORT} | DB=${process.env.DB_NAME} | ENV=${process.env.NODE_ENV}`);
 
 app.set('trust proxy', 1);
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
 // Gzip every response (SPA bundle + JSON APIs) — typical 60-70% transfer reduction
 app.use(compression({ filter: (req, res) => (req.headers['x-no-compression'] ? false : compression.filter(req, res)) }));
 app.use(cors({ origin: '*', credentials: true }));
 app.use(cookieParser()); // populates req.cookies for the httpOnly session cookie
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(setCsrfCookie);
 
 // ── Static Uploads ────────────────────────────────────────────────────────────
 const primaryUploadsDir = process.env.UPLOAD_DIR || path.join(APP_ROOT, 'uploads');
@@ -157,7 +180,17 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many login attempts. Please try again in a few minutes.', errors: [] }
 });
 
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500, // Limit each IP to 500 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false,
+  message: { success: false, message: 'Too many requests from this IP, please try again later.', errors: [] }
+});
+
 app.use(['/api/auth/login', '/api/auth/verify'], authLimiter);
+app.use('/api', globalLimiter);
 
 // ── Health / Diagnostics ──────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
@@ -358,7 +391,7 @@ app.get('/api/fix-db-schema', authenticate, authorize('Admin', 'Super Admin'), a
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api', apiRoutes);
+app.use('/api', csrfProtection, apiRoutes);
 
 // ── Frontend SPA ──────────────────────────────────────────────────────────────
 const distDir = path.join(APP_ROOT, 'dist');
@@ -433,10 +466,16 @@ if (fs.existsSync(distDir)) {
 app.use('/api/*', (req, res) => errorRes(res, `Not found: ${req.originalUrl}`, [], 404));
 app.use((err, req, res, next) => {
   console.error('[Error]', err.message);
+  
   if (err.code === 'LIMIT_FILE_SIZE') {
     return errorRes(res, 'File exceeds the maximum allowed size of 800 KB.', [], 400);
   }
-  errorRes(res, err.message || 'Internal Server Error', [], err.status || 500);
+  if (err.code === 'CSRF_ERROR') {
+    return errorRes(res, 'Invalid CSRF token.', [], 403);
+  }
+  
+  const msg = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
+  errorRes(res, msg, [], err.status || 500);
 });
 
 // ── DB Init ───────────────────────────────────────────────────────────────────
