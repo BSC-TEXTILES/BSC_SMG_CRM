@@ -136,7 +136,7 @@ export default function UserManagementPage() {
   const [formLocationId, setFormLocationId] = useState<string>('2');
   const [formLocationIds, setFormLocationIds] = useState<string[]>(['2']);
   const [formAllLocations, setFormAllLocations] = useState<boolean>(false);
-  const [formMaxModules, setFormMaxModules] = useState<string>('');
+  const [formSelectedModules, setFormSelectedModules] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -291,7 +291,7 @@ export default function UserManagementPage() {
     setFormLocationId('2');
     setFormLocationIds(['2']);
     setFormAllLocations(false);
-    setFormMaxModules('');
+    setFormSelectedModules([]);
     setShowPassword(false);
     setCreateModalOpen(true);
   };
@@ -322,7 +322,7 @@ export default function UserManagementPage() {
         allLocations: formAllLocations,
         locationId: formAllLocations ? null : (parseInt(formLocationId, 10) || null),
         locationIds: formAllLocations ? [] : formLocationIds.map(Number),
-        maxModules: formMaxModules ? parseInt(formMaxModules, 10) : null
+        permissions: formSelectedModules.map(m => ({ module: m, can_view: true }))
       };
 
       await API.createAdminUser(payload);
@@ -1255,18 +1255,25 @@ export default function UserManagementPage() {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Max Modules Limit</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={formMaxModules}
-                    onChange={e => setFormMaxModules(e.target.value)}
-                    placeholder="Leave empty for unlimited"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
-                  />
-                  <p className="text-[10px] text-primary/50 mt-0.5">Controls maximum pages assigned to this user</p>
+                <div className="space-y-1.5">
+                  <label className="block text-[10.5px] font-black uppercase tracking-wider text-primary">Initial Module Access</label>
+                  <p className="text-[10px] text-primary/50 mt-0.5">Select modules the user can access (can be modified later in Permissions Matrix)</p>
+                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-accent/20 rounded-xl">
+                    {modules.map((m) => (
+                      <label key={m.key} className="flex items-center gap-2 cursor-pointer bg-gray-50 px-2 py-1 rounded-md border border-gray-200 hover:bg-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={formSelectedModules.includes(m.key)}
+                          onChange={(e) => {
+                            if (e.target.checked) setFormSelectedModules(prev => [...prev, m.key]);
+                            else setFormSelectedModules(prev => prev.filter(key => key !== m.key));
+                          }}
+                          className="w-3.5 h-3.5 rounded border-accent-soft text-primary focus:ring-accent"
+                        />
+                        <span className="text-[10px] font-semibold text-primary">{m.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
 

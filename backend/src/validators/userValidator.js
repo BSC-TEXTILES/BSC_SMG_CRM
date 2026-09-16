@@ -8,13 +8,10 @@ const { errorRes } = require('../utils/response');
 
 const VALID_ROLES = ['HR', 'Admin', 'Super Admin', 'Manager', 'Greeter', 'Recruiter', 'Interviewer', 'Employee', 'Guest'];
 
-// Password policy: at least 8 chars, one uppercase, one lowercase, one digit
+// Password policy: at least 6 chars
 function validatePasswordPolicy(password) {
   if (!password || typeof password !== 'string') return 'Password is required';
-  if (password.length < 8) return 'Password must be at least 8 characters';
-  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
-  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
-  if (!/[0-9]/.test(password)) return 'Password must contain at least one digit';
+  if (password.length < 6) return 'Password must be at least 6 characters';
   return null;
 }
 
@@ -46,7 +43,7 @@ function isValidUsername(username) {
  * Validate create-user request body
  */
 function validateCreateUser(req, res, next) {
-  const { username, password, confirmPassword, role, fullName, email, mobile, employeeId } = req.body;
+  const { username, password, confirmPassword, role, fullName, email, phone, employeeId } = req.body;
   const errors = [];
 
   // Required fields
@@ -71,7 +68,7 @@ function validateCreateUser(req, res, next) {
 
   // Optional but validated
   if (email && !isValidEmail(email)) errors.push('Invalid email format');
-  if (mobile && !isValidMobile(mobile)) errors.push('Invalid mobile number format');
+  if (phone && !isValidMobile(phone)) errors.push('Invalid phone number format');
   if (employeeId && (typeof employeeId === 'string' && employeeId.length > 50)) errors.push('Employee ID must be under 50 characters');
 
   if (errors.length > 0) {
@@ -85,7 +82,7 @@ function validateCreateUser(req, res, next) {
  * Validate update-user request body
  */
 function validateUpdateUser(req, res, next) {
-  const { fullName, email, mobile, role } = req.body;
+  const { fullName, email, phone, role } = req.body;
   const errors = [];
 
   if (fullName !== undefined && (fullName.trim().length < 2 || fullName.trim().length > 150)) {
@@ -96,8 +93,8 @@ function validateUpdateUser(req, res, next) {
     errors.push('Invalid email format');
   }
 
-  if (mobile !== undefined && mobile && !isValidMobile(mobile)) {
-    errors.push('Invalid mobile number format');
+  if (phone !== undefined && phone && !isValidMobile(phone)) {
+    errors.push('Invalid phone number format');
   }
 
   if (role !== undefined && !VALID_ROLES.includes(role)) {
