@@ -993,6 +993,91 @@ exports.submitVm = async (req, res) => {
   }
 };
 
+exports.getVmFloors = async (req, res) => {
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS VmFloors (
+        id VARCHAR(64) PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        description TEXT NULL,
+        sections TEXT NOT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `).catch(() => {});
+
+    const [rows] = await db.query('SELECT * FROM VmFloors ORDER BY createdAt ASC');
+    const floors = (rows || []).map((r) => {
+      let parsedSections = [];
+      try {
+        parsedSections = typeof r.sections === 'string' ? JSON.parse(r.sections) : (r.sections || []);
+      } catch (e) {
+        parsedSections = String(r.sections || '').split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return {
+        id: r.id,
+        name: r.name,
+        description: r.description || '',
+        sections: parsedSections
+      };
+    });
+    return res.json({ success: true, floors });
+  } catch (err) {
+    return res.json({ success: true, floors: [] });
+  }
+};
+
+exports.createVmFloor = async (req, res) => {
+  try {
+    const { name, description, sections } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Floor name is required' });
+    }
+    const secList = Array.isArray(sections) ? sections.map((s) => String(s).trim()).filter(Boolean) : [];
+    if (secList.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one section is required for this floor' });
+    }
+
+    const id = getUUID();
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS VmFloors (
+        id VARCHAR(64) PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        description TEXT NULL,
+        sections TEXT NOT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `).catch(() => {});
+
+    await db.query(`
+      INSERT INTO VmFloors (id, name, description, sections)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE description = VALUES(description), sections = VALUES(sections)
+    `, [id, name.trim(), description ? description.trim() : '', JSON.stringify(secList)]);
+
+    return res.json({
+      success: true,
+      message: 'Store floor created successfully',
+      floor: { id, name: name.trim(), description: description ? description.trim() : '', sections: secList }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+exports.deleteVmFloor = async (req, res) => {
+  try {
+    const { id, name } = req.body || {};
+    const identifier = id || (req.params && req.params.id) || name;
+    if (!identifier) {
+      return res.status(400).json({ success: false, message: 'Floor ID or name is required' });
+    }
+    await db.query('DELETE FROM VmFloors WHERE id = ? OR name = ?', [identifier, identifier]);
+    return res.json({ success: true, message: 'Store floor removed successfully' });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 exports.getFeedbacks = async (req, res) => {
   try {
     await db.query(`

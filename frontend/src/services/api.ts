@@ -471,6 +471,9 @@ export const API = {
   async getVmPoints() { return apiFetch('/vm/points'); },
   async getVmSubmissions() { return apiFetch('/vm/submissions'); },
   async submitVm(payload: any) { return apiFetch('/vm/submit', { method: 'POST', body: JSON.stringify(payload) }); },
+  async getVmFloors() { return apiFetch('/vm/floors'); },
+  async createVmFloor(payload: any) { return apiFetch('/vm/floors', { method: 'POST', body: JSON.stringify(payload) }); },
+  async deleteVmFloor(payload: any) { return apiFetch('/vm/floors/delete', { method: 'POST', body: JSON.stringify(typeof payload === 'object' ? payload : { id: payload }) }); },
 
   // MCheck — Daily Management Checklist
   async getMCheckModules() { return apiFetch('/mcheck/modules'); },

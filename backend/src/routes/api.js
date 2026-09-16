@@ -164,6 +164,10 @@ router.post('/cash/save', crmController.saveCashSettlement);
 router.get('/vm/points', crmController.getVmPoints);
 router.get('/vm/submissions', crmController.getVmSubmissions);
 router.post('/vm/submit', crmController.submitVm);
+router.get('/vm/floors', crmController.getVmFloors);
+router.post('/vm/floors', crmController.createVmFloor);
+router.post('/vm/floors/delete', crmController.deleteVmFloor);
+router.delete('/vm/floors/:id', crmController.deleteVmFloor);
 
 // ── Broadcast Routes ─────────────────────────────────────────
 router.get('/broadcasts', broadcastController.getBroadcasts);

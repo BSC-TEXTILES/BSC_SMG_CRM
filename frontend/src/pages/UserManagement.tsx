@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
@@ -166,6 +166,11 @@ export default function UserManagementPage() {
   const [userActivity, setUserActivity] = useState<AuditLog[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(false);
 
+  // State - Inline Location Edit
+  const [editingLocationUserId, setEditingLocationUserId] = useState<number | null>(null);
+  const [savingLocationUserId, setSavingLocationUserId] = useState<number | null>(null);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+
   // Check auth
   useEffect(() => {
     const s = Auth.get();
@@ -181,6 +186,19 @@ export default function UserManagementPage() {
     }
     loadData();
   }, [navigate]);
+
+  // Click-outside handler for inline location dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(e.target as Node)) {
+        setEditingLocationUserId(null);
+      }
+    };
+    if (editingLocationUserId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [editingLocationUserId]);
 
   // Load all initial data
   const loadData = useCallback(async () => {
@@ -641,6 +659,45 @@ export default function UserManagementPage() {
       showToast('Failed to load user activity: ' + (err.message || 'Error'), 'error');
     } finally {
       setLoadingActivity(false);
+    }
+  };
+
+  // Inline Location Change
+  const handleChangeLocation = async (user: UserData, newLocationId: number | null) => {
+    if (user.location_id === newLocationId) {
+      setEditingLocationUserId(null);
+      return;
+    }
+    setSavingLocationUserId(user.id);
+    try {
+      const payload: any = {
+        allLocations: newLocationId === null,
+        locationId: newLocationId === null ? null : newLocationId,
+        locationIds: newLocationId === null ? [] : [newLocationId]
+      };
+      await API.updateAdminUser(user.id, payload);
+      const locLabel = newLocationId === null
+        ? 'All Locations'
+        : locations.find(l => l.id === newLocationId)?.location_name || 'Unknown';
+      showToast(`Location for "${user.username}" changed to ${locLabel}`, 'success');
+      setUsers(prev => prev.map(u => {
+        if (u.id !== user.id) return u;
+        const locObj = newLocationId === null
+          ? null
+          : locations.find(l => l.id === newLocationId);
+        return {
+          ...u,
+          location_id: newLocationId,
+          location_code: locObj ? locObj.location_code : null,
+          location_name: locObj ? locObj.location_name : null,
+          assigned_locations: newLocationId === null ? [] : (locObj ? [{ id: locObj.id, name: locObj.location_name }] : [])
+        };
+      }));
+      setEditingLocationUserId(null);
+    } catch (err: any) {
+      showToast('Failed to update location: ' + (err.message || 'Server error'), 'error');
+    } finally {
+      setSavingLocationUserId(null);
     }
   };
 
