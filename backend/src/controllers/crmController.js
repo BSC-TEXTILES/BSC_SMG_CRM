@@ -5,7 +5,8 @@ const bcrypt = require('bcryptjs');
 function getUUID() {
   try {
     const crypto = require('crypto');
-    return crypto.randomUUID();
+    // crypto.randomUUID() requires Node 15.6.0+, fallback for Node 14 compatibility
+    return crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
   } catch (e) {
     return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }

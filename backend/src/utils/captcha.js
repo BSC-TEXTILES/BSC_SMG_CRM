@@ -45,7 +45,8 @@ function randomCode() {
  */
 function createCaptcha() {
   if (store.size > MAX_STORE) prune();
-  const id = crypto.randomUUID();
+  // crypto.randomUUID() requires Node 15.6.0+, fallback for Node 14 compatibility
+  const id = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
   const code = randomCode();
   store.set(id, { code, expiresAt: Date.now() + TTL_MS });
   return { id, code, svg: renderSvg(code), expiresInSeconds: Math.round(TTL_MS / 1000) };

@@ -31,7 +31,9 @@ dotenv.config({ path: path.join(SERVER_DIR, '.env') });
 
 // ── Global Crash Handlers ─────────────────────────────────────────────────────
 process.on('uncaughtException', (err) => {
-  console.error('[CRITICAL uncaughtException]', err.code, err.message, err.stack);
+  const msg = `[CRITICAL uncaughtException] ${new Date().toISOString()} ${err.code} ${err.message}\n${err.stack}\n`;
+  console.error(msg);
+  try { fs.appendFileSync(path.join(APP_ROOT, 'crash.log'), msg); } catch(e) {}
   process.exit(1); // Always exit on uncaught exception so Passenger can restart cleanly
 });
 process.on('unhandledRejection', (reason) => {
