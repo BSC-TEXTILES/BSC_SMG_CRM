@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API, Auth } from '../services/api';
 import ToastContainer, { showToast } from '../components/Toast';
-import { ShieldCheck, Lock, User, ArrowRight, MapPin, RefreshCw, Hash, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck, Lock, User, ArrowRight, MapPin, RefreshCw, Hash, Eye, EyeOff, Sparkles, Search } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -118,7 +118,7 @@ export default function LoginPage() {
     if (Auth.check()) {
       const user = Auth.get();
       if (user && ['Admin', 'Super Admin'].includes(user.role)) {
-        navigate('/wedding-crm', { replace: true });
+        navigate('/dashboard', { replace: true });
       } else {
         navigate('/dashboard', { replace: true });
       }
@@ -197,7 +197,7 @@ export default function LoginPage() {
           );
         }
         if (['Admin', 'Super Admin'].includes(user.role)) {
-          navigate('/wedding-crm', { replace: true });
+        navigate('/wedding-registration', { replace: true });
         } else {
           navigate('/dashboard', { replace: true });
         }
@@ -394,14 +394,22 @@ export default function LoginPage() {
             )}
           </button>
 
-          <div className="pt-2 border-t border-accent-soft">
+          <div className="pt-2 border-t border-accent-soft space-y-2">
             <button
               type="button"
-              onClick={() => navigate('/candidate-entry')}
+              onClick={() => navigate('/wedding-registration')}
               className="w-full py-3 px-4 rounded-xl border-2 border-primary text-primary bg-white font-extrabold text-xs tracking-wide hover:bg-background active:scale-[0.99] transition-all shadow-xs flex items-center justify-center gap-2"
             >
-              <span>Apply as a Candidate</span>
-              <User className="w-4 h-4" />
+              <span>Register for Wedding Shopping</span>
+              <Sparkles className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/track')}
+              className="w-full py-2.5 px-4 rounded-xl border border-[#d4af37] text-[#1a365d] bg-[#fefce8] font-bold text-xs tracking-wide hover:bg-[#fef9c3] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Track Wedding Request</span>
             </button>
           </div>
         </form>

@@ -442,11 +442,11 @@ export default function CandidatesPage() {
           onMenuClick={() => setSidebarOpen(true)}
           rightElement={
             <button
-              onClick={() => window.open('/candidate-entry', '_blank')}
+              onClick={() => window.open('/wedding-registration', '_blank')}
               className="btn-primary text-xs flex items-center gap-1.5 shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>Register Candidate</span>
+              <span>Wedding Registration</span>
             </button>
           }
         />

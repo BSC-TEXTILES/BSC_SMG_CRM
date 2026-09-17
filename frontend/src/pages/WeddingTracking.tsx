@@ -1,0 +1,250 @@
+import React, { useState } from 'react';
+import { API } from '../services/api';
+import ToastContainer, { showToast } from '../components/Toast';
+import {
+  Search, MapPin, Calendar, Clock, CheckCircle2,
+  AlertCircle, ArrowRight, Heart, Sparkles, Phone
+} from 'lucide-react';
+
+const STATUS_COLORS: Record<string, string> = {
+  'Registration Received': 'bg-blue-100 text-blue-800 border-blue-200',
+  'Contact Pending': 'bg-amber-100 text-amber-800 border-amber-200',
+  'Contacted': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  'Follow-up Scheduled': 'bg-purple-100 text-purple-800 border-purple-200',
+  'Shopping Date Confirmed': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'Visit Scheduled': 'bg-teal-100 text-teal-800 border-teal-200',
+  'Visit Completed': 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  'Purchase Processing': 'bg-orange-100 text-orange-800 border-orange-200',
+  'Purchase Completed': 'bg-green-100 text-green-800 border-green-200',
+  'Completed': 'bg-green-100 text-green-800 border-green-200',
+  'Cancelled': 'bg-red-100 text-red-800 border-red-200'
+};
+
+export default function WeddingTracking() {
+  const [regId, setRegId] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  const handleTrack = async () => {
+    if (!regId.trim()) {
+      showToast('Please enter your Wedding Request ID', 'error');
+      return;
+    }
+    if (!mobile.trim() || !/^[6-9]\d{9}$/.test(mobile.replace(/\D/g, ''))) {
+      showToast('Please enter a valid 10-digit mobile number', 'error');
+      return;
+    }
+
+    setLoading(true);
+    setResult(null);
+    setNotFound(false);
+
+    try {
+      const res = await API.trackWeddingRegistration(regId.trim(), mobile.trim());
+      if (res && res.success !== false && res.registration_id) {
+        setResult(res);
+      } else {
+        setNotFound(true);
+      }
+    } catch (err: any) {
+      if (err?.message?.includes('404') || err?.message?.includes('No registration')) {
+        setNotFound(true);
+      } else {
+        showToast('Unable to track your request. Please try again.', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (d: string) => {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f4f8] via-[#e8f0fe] to-[#f0f4f8]">
+      <ToastContainer />
+
+      {/* Header */}
+      <header className="bg-[#1a365d] p-4 sm:p-5 text-white shadow-lg border-b border-[#d4af37]/30">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md" />
+            <div>
+              <h1 className="font-extrabold text-base sm:text-lg leading-tight">BSC Wedding Tracking</h1>
+              <div className="text-[10px] text-[#d4af37] font-bold uppercase tracking-widest mt-0.5">
+                Track your wedding shopping request
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
+        {/* Tracking Form */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 border border-[#e2e8f0]">
+          <div className="border-b border-[#e2e8f0] pb-4">
+            <h2 className="text-lg font-extrabold text-[#1a365d] flex items-center gap-2">
+              <Search className="w-5 h-5 text-[#d4af37]" />
+              Track Wedding Request
+            </h2>
+            <p className="text-sm text-[#64748b] mt-1">Enter your Wedding Request ID and registered mobile number to check your status.</p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-[#1a365d] mb-1.5">Wedding Request ID <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                value={regId}
+                onChange={e => setRegId(e.target.value.toUpperCase())}
+                placeholder="e.g. BSC-WED-DAV-2026-000001"
+                className="w-full px-4 py-3 rounded-xl border-2 border-[#e2e8f0] focus:border-[#1a365d] focus:ring-2 focus:ring-[#1a365d]/10 outline-none transition-all text-sm font-mono font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#1a365d] mb-1.5">Registered Mobile Number <span className="text-red-500">*</span></label>
+              <div className="flex">
+                <span className="px-3 py-3 bg-[#f1f5f9] border-2 border-r-0 border-[#e2e8f0] rounded-l-xl font-extrabold text-xs text-[#64748b] flex items-center">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={mobile}
+                  onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="10-digit mobile number"
+                  className="w-full px-4 py-3 rounded-r-xl border-2 border-[#e2e8f0] focus:border-[#1a365d] focus:ring-2 focus:ring-[#1a365d]/10 outline-none transition-all text-sm"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleTrack}
+              disabled={loading}
+              className="w-full py-3 bg-[#1a365d] hover:bg-[#2c5282] text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <span>Tracking...</span>
+              ) : (
+                <>
+                  <Search className="w-4 h-4" />
+                  <span>Track Request</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Not Found */}
+        {notFound && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-red-200 text-center space-y-3">
+            <div className="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-7 h-7" />
+            </div>
+            <h3 className="font-bold text-[#1a365d]">Registration Not Found</h3>
+            <p className="text-sm text-[#64748b]">No registration found matching the provided details. Please verify your Wedding Request ID and registered mobile number.</p>
+          </div>
+        )}
+
+        {/* Result */}
+        {result && (
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#e2e8f0]">
+            {/* Status Banner */}
+            <div className="bg-gradient-to-r from-[#1a365d] to-[#2c5282] p-6 text-white text-center">
+              <Sparkles className="w-8 h-8 text-[#d4af37] mx-auto mb-2" />
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[#d4af37] mb-1">Wedding Request</h3>
+              <p className="text-xl font-mono font-black tracking-wider">{result.registration_id}</p>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Current Status */}
+              <div className="text-center">
+                <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold border ${STATUS_COLORS[result.current_status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                  {result.current_status}
+                </span>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
+                  <CheckCircle2 className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Customer Name</p>
+                    <p className="text-sm font-bold text-[#1a365d]">{result.customer_name}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
+                  <MapPin className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">BSC Store</p>
+                    <p className="text-sm font-bold text-[#1a365d]">{result.store_name} ({result.store_code})</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
+                  <Calendar className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Registration Date</p>
+                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.registration_date)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
+                  <Heart className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Wedding Date</p>
+                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.wedding_date)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
+                  <Clock className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Expected Shopping Date</p>
+                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.expected_shopping_date)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Timeline */}
+              {result.status_timeline && result.status_timeline.length > 0 && (
+                <div className="pt-4 border-t border-[#e2e8f0]">
+                  <h4 className="text-xs font-bold text-[#1a365d] uppercase tracking-wider mb-3">Progress</h4>
+                  <div className="space-y-2">
+                    {result.status_timeline.map((status: string, idx: number) => {
+                      const isCurrent = idx === result.status_timeline.length - 1;
+                      return (
+                        <div key={status} className={`flex items-center gap-3 p-2 rounded-lg ${isCurrent ? 'bg-[#1a365d]/5 border border-[#1a365d]/10' : ''}`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCurrent ? 'bg-[#1a365d] text-white' : 'bg-[#e2e8f0] text-[#94a3b8]'}`}>
+                            {isCurrent ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span className="text-[10px] font-bold">{idx + 1}</span>}
+                          </div>
+                          <span className={`text-xs font-bold ${isCurrent ? 'text-[#1a365d]' : 'text-[#94a3b8]'}`}>{status}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Help Text */}
+              <div className="pt-4 border-t border-[#e2e8f0] text-center">
+                <p className="text-xs text-[#94a3b8]">For any queries, contact your BSC store directly.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Info */}
+        <div className="text-center text-xs text-[#94a3b8] pb-6">
+          <p>BSC Textiles — Wedding Shopping Registration & Tracking</p>
+        </div>
+      </div>
+    </div>
+  );
+}

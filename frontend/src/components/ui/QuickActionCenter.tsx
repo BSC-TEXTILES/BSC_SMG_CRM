@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, UserPlus, Calendar, Send, UserCheck, Briefcase, FileText, X } from 'lucide-react';
+import { Plus, Calendar, Sparkles } from 'lucide-react';
 import { Auth } from '../../services/api';
 
 export default function QuickActionCenter() {
@@ -14,7 +14,7 @@ export default function QuickActionCenter() {
   // Hide quick actions floating menu entirely for Greeter role or on Greeter, Footfall, Feedback & Kiosk pages
   if (
     role === 'Greeter' ||
-    location.pathname === '/candidate-entry' ||
+    location.pathname === '/wedding-registration' ||
     location.pathname === '/greeter' ||
     location.pathname === '/footfall' ||
     location.pathname === '/feedback-public' ||
@@ -25,12 +25,8 @@ export default function QuickActionCenter() {
   }
 
   const actions = [
-    { label: 'Register Candidate', icon: UserPlus, href: '/candidate-entry', target: '_blank', color: 'bg-primary' },
-    { label: 'Section Allocation', icon: Calendar, href: '/section-allocation', color: 'bg-indigo-600' },
-    { label: 'Broadcast Notification', icon: Send, href: '/broadcast-center', color: 'bg-accent' },
-    { label: 'Employee Directory', icon: UserCheck, href: '/employees', color: 'bg-accent' },
-    { label: 'Manpower Openings', icon: Briefcase, href: '/openings', color: 'bg-amber-600' },
-    { label: 'Offer Desk', icon: FileText, href: '/offer-process', color: 'bg-emerald-700' }
+    { label: 'Wedding Registration', icon: Sparkles, href: '/wedding-registration', target: '_blank', color: 'bg-primary' },
+    { label: 'Section Allocation', icon: Calendar, href: '/section-allocation', color: 'bg-indigo-600' }
   ];
 
   return (

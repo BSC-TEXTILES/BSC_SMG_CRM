@@ -68,7 +68,7 @@ export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
   }
 };
 
-// Exact 11 Visual Merchandising Questions
+// Exact 10 Visual Merchandising Questions
 export const DEFAULT_VM_QUESTIONS = [
   { id: 'vm_q1', title: 'Is the entire section clean, neat, and well-maintained?' },
   { id: 'vm_q2', title: 'Are products arranged according to category, colour, and size?' },
@@ -79,8 +79,7 @@ export const DEFAULT_VM_QUESTIONS = [
   { id: 'vm_q7', title: 'Are promotional and offer displays updated and correctly positioned?' },
   { id: 'vm_q8', title: 'Is the colour blocking and overall visual theme maintained?' },
   { id: 'vm_q9', title: 'Are folded, hanging, and stacked products properly presented?' },
-  { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?' },
-  { id: 'vm_q11', title: 'Are all display lights, LED screens, and decorative elements working properly?' }
+  { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?' }
 ];
 
 export default function VmChecklist() {

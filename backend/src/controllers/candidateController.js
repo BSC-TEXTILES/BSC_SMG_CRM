@@ -258,6 +258,10 @@ class CandidateController {
       const db = require('../config/db');
       const { clause: locClause, params: locParams } = await getLocationFilter(req, 'c');
       
+      // ROW_NUMBER() derived table: one best candidate per user, ordered by
+      // explicit candidate_app_no match first, then latest updated_at.
+      // This eliminates the GROUP BY + non-aggregated columns violation.
+
       const [rows] = await db.query(
         `SELECT 
             u.id as user_id, u.username as username, u.employee_id as emp_no,
@@ -280,11 +284,27 @@ class CandidateController {
             l.location_name as branch
          FROM users u
          LEFT JOIN locations l ON l.id = u.location_id
-         LEFT JOIN candidates c ON c.app_no = u.candidate_app_no OR (u.candidate_app_no IS NULL AND c.phone = u.phone AND c.phone IS NOT NULL)
+         LEFT JOIN (
+           SELECT app_no, section, reporting_manager, offered_doj, updated_at,
+                  dob, gender, blood_group, aadhaar_number, father_details, mother_details,
+                  religion_caste, religion, caste, languages_known,
+                  city_state, address, qualification, experience, retail_experience,
+                  previous_company, previous_designation, salary, current_salary, expected_salary,
+                  photo_url, aadhaar_url, resume_url, remarks, source, referrer, referrer_emp_no,
+                  location_id, phone,
+                  ROW_NUMBER() OVER (
+                    PARTITION BY COALESCE(app_no, phone)
+                    ORDER BY
+                      CASE WHEN app_no IS NOT NULL THEN 0 ELSE 1 END,
+                      COALESCE(updated_at, created_at) DESC,
+                      id DESC
+                  ) AS rn
+           FROM candidates
+           WHERE is_deleted = 0 OR is_deleted IS NULL
+         ) c ON c.app_no = u.candidate_app_no OR (u.candidate_app_no IS NULL AND c.phone = u.phone AND c.phone IS NOT NULL AND c.rn = 1)
          LEFT JOIN selection_offers so ON c.app_no = so.app_no
          WHERE u.active = 1
          ${locClause.replace('c.', 'u.')}
-         GROUP BY u.id
          ORDER BY LOWER(u.full_name) ASC`,
         locParams
       );
@@ -398,7 +418,8 @@ class CandidateController {
 
       return res.json({ success: true, employees, total: employees.length });
     } catch (err) {
-      return errorRes(res, 'DB_ERR: ' + err.message, [err.message], 500);
+      console.error('[candidateController.getEmployees Error]', err);
+      return errorRes(res, 'Unable to load employees right now. Please try again.', [], 500);
     }
   }
 

@@ -646,6 +646,268 @@ export const API = {
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
 
+  // ── Wedding CRM: Enhanced Dashboard ──────────────────────────
+  async getWeddingEnhancedDashboard(locationId?: number | string) {
+    const q = locationId ? `?location_id=${locationId}` : '';
+    const res = await apiFetch(`/wedding-crm/dashboard/enhanced${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getWeddingDashboardCharts(locationId?: number | string) {
+    const q = locationId ? `?location_id=${locationId}` : '';
+    const res = await apiFetch(`/wedding-crm/dashboard/charts${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Employee Performance ────────────────────────
+  async getWeddingEmployeePerformance(locationId?: number | string) {
+    const q = locationId ? `?location_id=${locationId}` : '';
+    const res = await apiFetch(`/wedding-crm/employee-performance${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Pipeline ────────────────────────────────────
+  async getWeddingPipeline(locationId?: number | string) {
+    const q = locationId ? `?location_id=${locationId}` : '';
+    const res = await apiFetch(`/wedding-crm/pipeline${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Upcoming Weddings ───────────────────────────
+  async getWeddingUpcoming(days?: number, locationId?: number | string) {
+    const params: Record<string, string> = {};
+    if (days) params.days = String(days);
+    if (locationId) params.location_id = String(locationId);
+    const q = new URLSearchParams(cleanQueryParams(params)).toString();
+    const res = await apiFetch(`/wedding-crm/upcoming-weddings${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Advanced Search ─────────────────────────────
+  async searchWeddingCustomers(query: string, locationId?: number | string) {
+    const params: Record<string, string> = { q: query };
+    if (locationId) params.location_id = String(locationId);
+    const q = new URLSearchParams(cleanQueryParams(params)).toString();
+    const res = await apiFetch(`/wedding-crm/search?${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Reports ─────────────────────────────────────
+  async getWeddingReports(reportType?: string, locationId?: number | string) {
+    const params: Record<string, string> = {};
+    if (reportType) params.report_type = reportType;
+    if (locationId) params.location_id = String(locationId);
+    const q = new URLSearchParams(cleanQueryParams(params)).toString();
+    const res = await apiFetch(`/wedding-crm/reports${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Customer Sources ────────────────────────────
+  async getWeddingCustomerSources() {
+    const res = await apiFetch('/wedding-crm/sources');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Full Profile ────────────────────────────────
+  async getWeddingFullProfile(id: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${id}/full-profile`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Visits ──────────────────────────────────────
+  async getWeddingVisits(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/visits`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async createWeddingVisit(customerId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/visits`, {
+      method: 'POST', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async updateWeddingVisit(visitId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/visits/${visitId}`, {
+      method: 'PUT', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Appointments ────────────────────────────────
+  async getWeddingAppointments(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/appointments`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async createWeddingAppointment(customerId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/appointments`, {
+      method: 'POST', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async updateWeddingAppointment(appointmentId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/appointments/${appointmentId}`, {
+      method: 'PUT', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Purchases ───────────────────────────────────
+  async getWeddingPurchases(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/purchases`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async createWeddingPurchase(customerId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/purchases`, {
+      method: 'POST', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async updateWeddingPurchase(purchaseId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/purchases/${purchaseId}`, {
+      method: 'PUT', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Notes ───────────────────────────────────────
+  async getWeddingNotes(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/notes`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async createWeddingNote(customerId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/notes`, {
+      method: 'POST', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Communication History ───────────────────────
+  async getWeddingCommunications(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/communications`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async createWeddingCommunication(customerId: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/communications`, {
+      method: 'POST', body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Status History ──────────────────────────────
+  async getWeddingStatusHistory(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/status-history`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async changeWeddingCustomerStatus(customerId: number | string, newStatus: string, reason?: string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/status`, {
+      method: 'PUT', body: JSON.stringify({ new_status: newStatus, change_reason: reason })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Documents ───────────────────────────────────
+  async getWeddingDocuments(customerId: number | string) {
+    const res = await apiFetch(`/wedding-crm/customers/${customerId}/documents`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Merge ───────────────────────────────────────
+  async mergeWeddingCustomers(primaryId: number | string, duplicateId: number | string) {
+    const res = await apiFetch('/wedding-crm/customers/merge', {
+      method: 'POST', body: JSON.stringify({ primary_id: primaryId, duplicate_id: duplicateId })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Bulk Operations ─────────────────────────────
+  async weddingBulkUpdateStatus(customerIds: number[], newStatus: string) {
+    const res = await apiFetch('/wedding-crm/bulk/status', {
+      method: 'POST', body: JSON.stringify({ customer_ids: customerIds, new_status: newStatus })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async weddingBulkAssign(customerIds: number[], telecaller: string, telecallerId?: number) {
+    const res = await apiFetch('/wedding-crm/bulk/assign', {
+      method: 'POST', body: JSON.stringify({ customer_ids: customerIds, assigned_telecaller: telecaller, assigned_telecaller_id: telecallerId })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding CRM: Extended Calendar ───────────────────────────
+  async getWeddingExtendedCalendar(year: number, month: number, locationId?: number | string) {
+    const params: Record<string, string> = { year: String(year), month: String(month) };
+    if (locationId) params.location_id = String(locationId);
+    const q = new URLSearchParams(cleanQueryParams(params)).toString();
+    const res = await apiFetch(`/wedding-crm/calendar/extended?${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding Registration (Public Portal) ──────────────────────
+  async createWeddingRegistration(payload: any) {
+    const res = await apiFetch('/wedding-registration/public/wedding-registration', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async checkWeddingRegistrationDuplicate(phone: string) {
+    const res = await apiFetch('/wedding-registration/public/wedding-registration/check-duplicate', {
+      method: 'POST',
+      body: JSON.stringify({ phone })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getNextWeddingRegId(locationId: number | string) {
+    const res = await apiFetch(`/wedding-registration/public/wedding-registration/next-id?location_id=${locationId}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async trackWeddingRegistration(registration_id: string, mobile: string) {
+    const res = await apiFetch('/wedding-registration/public/wedding-registration/track', {
+      method: 'POST',
+      body: JSON.stringify({ registration_id, mobile })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Wedding Registration (Admin) ─────────────────────────────
+  async getWeddingRegistrationStats(locationId?: number | string) {
+    const res = await apiFetch(`/wedding-registration/wedding-registrations/stats${locationId ? `?location_id=${locationId}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getWeddingRegistrations(params?: {
+    status?: string;
+    locationId?: number | string;
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/wedding-registration/wedding-registrations${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getWeddingRegistrationById(id: number | string) {
+    const res = await apiFetch(`/wedding-registration/wedding-registrations/${id}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async updateWeddingRegistration(id: number | string, payload: any) {
+    const res = await apiFetch(`/wedding-registration/wedding-registrations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async deleteWeddingRegistration(id: number | string) {
+    const res = await apiFetch(`/wedding-registration/wedding-registrations/${id}`, {
+      method: 'DELETE'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async exportWeddingRegistrations(params?: any) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/wedding-registration/wedding-registrations/export${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
   // File URL Helper
   fileUrl(url: string | null | undefined): string | null {
     if (!url) return null;

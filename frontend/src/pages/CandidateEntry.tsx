@@ -262,7 +262,7 @@ export default function CandidateEntryPage() {
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md border border-white/20" />
             <div>
-              <h1 className="font-extrabold text-base sm:text-lg leading-tight tracking-tight">BSC Applicant Registration</h1>
+              <h1 className="font-extrabold text-base sm:text-lg leading-tight tracking-tight">BSC Candidate Registration</h1>
               <div className="text-[10px] text-accent font-bold uppercase tracking-widest mt-0.5">
                 BSC EXCLUSIVE DAVANAGERE
               </div>
@@ -733,10 +733,16 @@ export default function CandidateEntryPage() {
 
             <div className="pt-4 border-t border-accent-soft flex justify-center gap-3">
               <button
-                onClick={() => window.location.href = '/candidate-entry'}
+                onClick={() => window.location.href = '/wedding-registration'}
                 className="btn-primary text-xs"
               >
-                Submit Another Candidate Form
+                Register a Wedding
+              </button>
+              <button
+                onClick={() => window.location.href = '/candidate-entry'}
+                className="btn-secondary text-xs"
+              >
+                Add Another Candidate
               </button>
             </div>
           </div>

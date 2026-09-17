@@ -172,7 +172,7 @@ export default function WeddingCRM() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
-  const [activeTab, setActiveTab] = useState<'calling_desk' | 'register' | 'calendar' | 'analytics'>('calling_desk');
+  const [activeTab, setActiveTab] = useState<'calling_desk' | 'register' | 'calendar' | 'analytics' | 'pipeline'>('calling_desk');
 
   // Multi-location state
   const [selectedLocation, setSelectedLocation] = useState<number | ''>('');
@@ -244,6 +244,21 @@ export default function WeddingCRM() {
     telecallers: any[];
   } | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
+  // Enhanced Dashboard State
+  const [enhancedStats, setEnhancedStats] = useState<any>(null);
+  const [locationCards, setLocationCards] = useState<any[]>([]);
+  const [pipelineData, setPipelineData] = useState<any>(null);
+  const [upcomingWeddings, setUpcomingWeddings] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any>(null);
+  const [reportsData, setReportsData] = useState<any>(null);
+  const [employeePerformance, setEmployeePerformance] = useState<any[]>([]);
+  const [loadingEnhanced, setLoadingEnhanced] = useState(false);
+
+  // Profile Tab State (for full customer profile)
+  const [profileTab, setProfileTab] = useState<'overview' | 'wedding' | 'visits' | 'appointments' | 'followups' | 'purchases' | 'notes' | 'communication' | 'status' | 'documents' | 'audit'>('overview');
+  const [fullProfile, setFullProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   // Modals & Active Customer
   const [showAddModal, setShowAddModal] = useState(false);
@@ -471,6 +486,54 @@ export default function WeddingCRM() {
     }
   }, [selectedLocation]);
 
+  // Load Enhanced Dashboard
+  const loadEnhancedDashboard = useCallback(async () => {
+    setLoadingEnhanced(true);
+    try {
+      const [enhanced, charts, pipeline, upcoming, perf] = await Promise.all([
+        API.getWeddingEnhancedDashboard(selectedLocation || undefined).catch(() => null),
+        API.getWeddingDashboardCharts(selectedLocation || undefined).catch(() => null),
+        API.getWeddingPipeline(selectedLocation || undefined).catch(() => null),
+        API.getWeddingUpcoming(30, selectedLocation || undefined).catch(() => null),
+        API.getWeddingEmployeePerformance(selectedLocation || undefined).catch(() => null)
+      ]);
+
+      if (enhanced?.stats) setEnhancedStats(enhanced.stats);
+      if (enhanced?.locationCards) setLocationCards(enhanced.locationCards);
+      if (charts) setChartData(charts);
+      if (pipeline?.pipeline) setPipelineData(pipeline);
+      if (upcoming?.weddings) setUpcomingWeddings(upcoming.weddings);
+      if (perf?.performance) setEmployeePerformance(perf.performance);
+    } catch (err) {
+      console.error('Failed to load enhanced dashboard:', err);
+    } finally {
+      setLoadingEnhanced(false);
+    }
+  }, [selectedLocation]);
+
+  // Load Reports
+  const loadReports = useCallback(async (reportType?: string) => {
+    try {
+      const res = await API.getWeddingReports(reportType || 'overview', selectedLocation || undefined);
+      if (res) setReportsData(res);
+    } catch (err) {
+      console.error('Failed to load reports:', err);
+    }
+  }, [selectedLocation]);
+
+  // Load Full Customer Profile
+  const loadFullProfile = useCallback(async (customerId: number | string) => {
+    setLoadingProfile(true);
+    try {
+      const res = await API.getWeddingFullProfile(customerId);
+      if (res) setFullProfile(res);
+    } catch (err) {
+      console.error('Failed to load full profile:', err);
+    } finally {
+      setLoadingProfile(false);
+    }
+  }, []);
+
   // Refresh tab data when activeTab or location changes
   useEffect(() => {
     loadStats();
@@ -478,7 +541,8 @@ export default function WeddingCRM() {
     else if (activeTab === 'register') loadCustomers();
     else if (activeTab === 'calendar') loadCalendar();
     else if (activeTab === 'analytics') loadAnalytics();
-  }, [activeTab, selectedLocation, loadStats, loadCallingDesk, loadCustomers, loadCalendar, loadAnalytics]);
+    else if (activeTab === 'pipeline') { loadEnhancedDashboard(); loadReports('overview'); }
+  }, [activeTab, selectedLocation, loadStats, loadCallingDesk, loadCustomers, loadCalendar, loadAnalytics, loadEnhancedDashboard, loadReports]);
 
   // Duplicate Check on Phone Blur
   const handlePhoneBlur = async (phone: string) => {
@@ -639,12 +703,22 @@ export default function WeddingCRM() {
   const openProfileModal = async (cust: WeddingCustomer) => {
     setSelectedCustomer(cust);
     setShowProfileModal(true);
+    setProfileTab('overview');
+    setFullProfile(null);
     try {
-      const res = await API.getWeddingCustomerById(cust.id);
+      const res = await API.getWeddingFullProfile(cust.id);
       if (res && res.customer) {
         setSelectedCustomer(res.customer);
         setCustomerCallLogs(res.callLogs || res.timeline || []);
         setCustomerAuditLogs(res.auditLogs || []);
+        setFullProfile(res);
+      } else {
+        const res2 = await API.getWeddingCustomerById(cust.id);
+        if (res2 && res2.customer) {
+          setSelectedCustomer(res2.customer);
+          setCustomerCallLogs(res2.callLogs || res2.timeline || []);
+          setCustomerAuditLogs(res2.auditLogs || []);
+        }
       }
     } catch (e) {
       console.error('Error fetching customer profile:', e);
@@ -1246,6 +1320,18 @@ export default function WeddingCRM() {
               >
                 <BarChart3 className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-accent' : ''}`} />
                 <span>Funnel & Performance</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('pipeline')}
+                className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
+                  activeTab === 'pipeline'
+                    ? 'bg-primary text-white shadow-md'
+                    : 'text-primary/70 hover:bg-background hover:text-primary'
+                }`}
+              >
+                <TrendingUp className={`w-4 h-4 ${activeTab === 'pipeline' ? 'text-accent' : ''}`} />
+                <span>Pipeline & Reports</span>
               </button>
             </div>
 
@@ -2233,6 +2319,162 @@ export default function WeddingCRM() {
               )}
             </div>
           )}
+
+          {/* ════════════════════════════════════════════════════════════
+              PIPELINE & REPORTS TAB
+             ════════════════════════════════════════════════════════════ */}
+          {activeTab === 'pipeline' && (
+            <div className="space-y-5">
+              {loadingEnhanced ? (
+                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary/70">
+                  <RefreshCw className="w-6 h-6 mx-auto animate-spin text-accent mb-2" />
+                  <p className="text-sm font-bold">Loading pipeline & reports...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Status Pipeline */}
+                  <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
+                    <h3 className="text-base font-black text-primary mb-4">Wedding CRM Pipeline</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {(pipelineData?.pipeline || []).slice(0, 10).map((stage: any) => (
+                        <div key={stage.status} className="bg-background p-3 rounded-2xl border border-accent-soft text-center">
+                          <div className="text-lg font-black text-primary">{stage.count}</div>
+                          <div className="text-[10px] font-bold text-primary/70 uppercase">{stage.status}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Location Breakdown Cards */}
+                  {locationCards.length > 0 && (
+                    <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
+                      <h3 className="text-base font-black text-primary mb-4">Location Performance</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {locationCards.map((loc: any) => (
+                          <div key={loc.location_id} className="bg-gradient-to-br from-primary/5 to-accent/10 p-4 rounded-2xl border border-primary/20">
+                            <div className="flex items-center gap-2 mb-3">
+                              <MapPin className="w-4 h-4 text-primary" />
+                              <span className="text-xs font-black text-primary">{loc.location_name} ({loc.location_code})</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-[10px]">
+                              <div><span className="text-gray-500">Total:</span> <span className="font-black">{loc.total_customers}</span></div>
+                              <div><span className="text-gray-500">New:</span> <span className="font-black text-emerald-700">{loc.new_customers}</span></div>
+                              <div><span className="text-gray-500">Pending:</span> <span className="font-black text-amber-700">{loc.pending_followups}</span></div>
+                              <div><span className="text-gray-500">Weddings:</span> <span className="font-black text-pink-700">{loc.upcoming_weddings}</span></div>
+                              <div><span className="text-gray-500">Visits:</span> <span className="font-black text-blue-700">{loc.visits}</span></div>
+                              <div><span className="text-gray-500">Purchases:</span> <span className="font-black text-emerald-700">{loc.purchases}</span></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upcoming Weddings */}
+                  {upcomingWeddings.length > 0 && (
+                    <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
+                      <h3 className="text-base font-black text-primary mb-4">Upcoming Weddings (Next 30 Days)</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
+                            <tr>
+                              <th className="p-3">Customer</th>
+                              <th className="p-3">Wedding Date</th>
+                              <th className="p-3 text-center">Days Left</th>
+                              <th className="p-3">Location</th>
+                              <th className="p-3">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-accent-soft">
+                            {upcomingWeddings.map((w: any) => (
+                              <tr key={w.id} className="hover:bg-background cursor-pointer" onClick={() => openProfileModal(w)}>
+                                <td className="p-3 font-bold">{w.customer_name}</td>
+                                <td className="p-3">{formatDate(w.wedding_date)}</td>
+                                <td className="p-3 text-center">
+                                  <span className={`font-black ${w.days_remaining <= 7 ? 'text-red-600' : w.days_remaining <= 14 ? 'text-amber-600' : 'text-primary'}`}>
+                                    {w.days_remaining}d
+                                  </span>
+                                </td>
+                                <td className="p-3">{w.location_name}</td>
+                                <td className="p-3">
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">{w.customer_status}</span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Employee Performance */}
+                  {employeePerformance.length > 0 && (
+                    <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
+                      <h3 className="text-base font-black text-primary mb-4">Employee Performance</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
+                            <tr>
+                              <th className="p-3">Employee</th>
+                              <th className="p-3 text-center">Assigned</th>
+                              <th className="p-3 text-center">Converted</th>
+                              <th className="p-3 text-center">Pending</th>
+                              <th className="p-3 text-center">Overdue</th>
+                              <th className="p-3 text-center">Visits</th>
+                              <th className="p-3 text-center">Shopping</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-accent-soft">
+                            {employeePerformance.map((emp: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-background">
+                                <td className="p-3 font-bold">{emp.employee}</td>
+                                <td className="p-3 text-center">{emp.assigned_customers}</td>
+                                <td className="p-3 text-center text-emerald-700 font-bold">{emp.converted}</td>
+                                <td className="p-3 text-center text-amber-700 font-bold">{emp.pending_followups}</td>
+                                <td className="p-3 text-center text-red-600 font-bold">{emp.overdue_followups}</td>
+                                <td className="p-3 text-center">{emp.visits}</td>
+                                <td className="p-3 text-center">{emp.shopping_confirmed}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lead Source Distribution */}
+                  {chartData?.leadSources?.length > 0 && (
+                    <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
+                      <h3 className="text-base font-black text-primary mb-4">Lead Source Distribution</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {chartData.leadSources.map((src: any) => (
+                          <div key={src.source} className="bg-background p-3 rounded-2xl border border-accent-soft">
+                            <div className="text-lg font-black text-primary">{src.count}</div>
+                            <div className="text-[10px] font-bold text-primary/70">{src.source}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Distribution */}
+                  {chartData?.statusDistribution?.length > 0 && (
+                    <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
+                      <h3 className="text-base font-black text-primary mb-4">Status Distribution</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {chartData.statusDistribution.map((st: any) => (
+                          <div key={st.status} className="bg-background p-3 rounded-2xl border border-accent-soft">
+                            <div className="text-lg font-black text-primary">{st.count}</div>
+                            <div className="text-[10px] font-bold text-primary/70">{st.status}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
           </div>
         </main>
       </div>
@@ -2674,8 +2916,26 @@ export default function WeddingCRM() {
               </div>
             </div>
 
+            {/* Profile Tab Navigation */}
+            <div className="border-b border-accent-soft bg-background">
+              <div className="flex overflow-x-auto gap-1 p-2 scrollbar-hide">
+                {(['overview','wedding','visits','appointments','followups','purchases','notes','communication','status','documents','audit'] as const).map(tab => {
+                  const icons: Record<string, any> = { overview: User, wedding: Heart, visits: MapPin, appointments: Calendar, followups: PhoneCall, purchases: ShoppingBag, notes: MessageSquare, communication: MessageCircle, status: TrendingUp, documents: FileSpreadsheet, audit: History };
+                  const Icon = icons[tab] || User;
+                  const labels: Record<string, string> = { overview: 'Overview', wedding: 'Wedding', visits: 'Visits', appointments: 'Appointments', followups: 'Follow-ups', purchases: 'Purchases', notes: 'Notes', communication: 'Communication', status: 'Status', documents: 'Documents', audit: 'Audit' };
+                  return (
+                    <button key={tab} onClick={() => { setProfileTab(tab); if (tab !== 'overview' && !fullProfile) loadFullProfile(selectedCustomer.id); }}
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 whitespace-nowrap transition-all ${profileTab === tab ? 'bg-primary text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-accent-soft border border-accent-soft'}`}>
+                      <Icon className="w-3 h-3" />
+                      <span>{labels[tab]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Profile Content Body */}
-            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
+            <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto text-xs">
               {/* Top Overview Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-background p-3 rounded-2xl border border-accent-soft">
@@ -2699,7 +2959,30 @@ export default function WeddingCRM() {
                 </div>
               </div>
 
-              {/* Detailed Breakdown */}
+              {/* Days Until Wedding */}
+              {selectedCustomer.wedding_date && (
+                <div className="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-2xl p-3 flex items-center gap-3">
+                  <Heart className="w-5 h-5 text-pink-500" />
+                  <div>
+                    <div className="text-[10px] font-bold text-pink-600 uppercase">Wedding Date</div>
+                    <div className="text-sm font-black text-pink-900">{formatDate(selectedCustomer.wedding_date)}</div>
+                  </div>
+                  {(() => {
+                    const diff = Math.ceil((new Date(selectedCustomer.wedding_date).getTime() - Date.now()) / (1000*60*60*24));
+                    return diff > 0 ? (
+                      <div className="ml-auto text-right">
+                        <div className="text-lg font-black text-pink-700">{diff}</div>
+                        <div className="text-[10px] font-bold text-pink-500">days remaining</div>
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              )}
+
+              {/* Tab-specific content */}
+              {profileTab === 'overview' && (
+              <>
+              /* Detailed Breakdown */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Contact & Wedding Details */}
                 <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-2">
@@ -2816,6 +3099,275 @@ export default function WeddingCRM() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+              </>
+              )}
+
+              {/* VISITS TAB */}
+              {profileTab === 'visits' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-accent" /> Store Visits
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading visits...</div> :
+                    fullProfile?.visits?.length > 0 ? (
+                    <div className="space-y-2">
+                      {fullProfile.visits.map((v: any) => (
+                        <div key={v.id} className="bg-white p-3 rounded-2xl border border-accent-soft shadow-2xs">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-black text-xs text-primary">{formatDate(v.visit_date)} at {v.visit_time}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${v.visit_status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{v.visit_status}</span>
+                          </div>
+                          {v.purpose && <div className="text-[10px] text-gray-600">Purpose: {v.purpose}</div>}
+                          {v.visited_by && <div className="text-[10px] text-gray-500">Visited by: {v.visited_by}</div>}
+                          {v.visit_result && <div className="text-[10px] text-blue-700 font-bold">Result: {v.visit_result}</div>}
+                          {v.visit_notes && <div className="text-[10px] text-gray-700 mt-1 bg-background p-2 rounded-xl">{v.visit_notes}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No visits recorded</div>}
+                </div>
+              )}
+
+              {/* APPOINTMENTS TAB */}
+              {profileTab === 'appointments' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-accent" /> Shopping Appointments
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading...</div> :
+                    fullProfile?.appointments?.length > 0 ? (
+                    <div className="space-y-2">
+                      {fullProfile.appointments.map((a: any) => (
+                        <div key={a.id} className="bg-white p-3 rounded-2xl border border-accent-soft shadow-2xs">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-black text-xs text-primary">{formatDate(a.appointment_date)} at {a.appointment_time}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${a.appointment_status === 'Completed' ? 'bg-emerald-100 text-emerald-800' : a.appointment_status === 'Cancelled' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{a.appointment_status}</span>
+                          </div>
+                          {a.assigned_employee && <div className="text-[10px] text-gray-500">Assigned: {a.assigned_employee}</div>}
+                          {a.purpose && <div className="text-[10px] text-gray-600">Purpose: {a.purpose}</div>}
+                          {a.appointment_notes && <div className="text-[10px] text-gray-700 mt-1 bg-background p-2 rounded-xl">{a.appointment_notes}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No appointments scheduled</div>}
+                </div>
+              )}
+
+              {/* PURCHASES TAB */}
+              {profileTab === 'purchases' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <ShoppingBag className="w-4 h-4 text-accent" /> Purchase History
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading...</div> :
+                    fullProfile?.purchases?.length > 0 ? (
+                    <div className="space-y-2">
+                      {fullProfile.purchases.map((p: any) => (
+                        <div key={p.id} className="bg-white p-3 rounded-2xl border border-accent-soft shadow-2xs">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-black text-xs text-primary">Bill: {p.bill_number || 'N/A'} | {formatDate(p.purchase_date)}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.purchase_status === 'Purchase Completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{p.purchase_status}</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 mt-1">
+                            <div className="text-[10px]"><span className="text-gray-500">Total:</span> <span className="font-bold">₹{Number(p.total_amount || 0).toLocaleString()}</span></div>
+                            <div className="text-[10px]"><span className="text-gray-500">Discount:</span> <span className="font-bold text-red-600">-₹{Number(p.discount_amount || 0).toLocaleString()}</span></div>
+                            <div className="text-[10px]"><span className="text-gray-500">Net:</span> <span className="font-black text-emerald-700">₹{Number(p.net_amount || 0).toLocaleString()}</span></div>
+                          </div>
+                          {p.payment_status && <div className="text-[10px] text-gray-500 mt-1">Payment: {p.payment_status}</div>}
+                          {p.sales_employee && <div className="text-[10px] text-gray-500">Sales by: {p.sales_employee}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No purchases recorded</div>}
+                </div>
+              )}
+
+              {/* NOTES TAB */}
+              {profileTab === 'notes' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <MessageSquare className="w-4 h-4 text-accent" /> Customer Notes
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading...</div> :
+                    fullProfile?.notes?.length > 0 ? (
+                    <div className="space-y-2">
+                      {fullProfile.notes.map((n: any) => (
+                        <div key={n.id} className="bg-white p-3 rounded-2xl border border-accent-soft">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-primary">{n.note_type || 'General'}</span>
+                            <span className="text-[10px] text-gray-500">{formatDate(n.created_at)} by {n.created_by}</span>
+                          </div>
+                          <p className="text-xs text-gray-700">{n.note_content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No notes added</div>}
+                </div>
+              )}
+
+              {/* COMMUNICATION TAB */}
+              {profileTab === 'communication' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <MessageCircle className="w-4 h-4 text-accent" /> Communication History
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading...</div> :
+                    fullProfile?.communications?.length > 0 ? (
+                    <div className="relative pl-6 space-y-3 border-l-2 border-accent/40">
+                      {fullProfile.communications.map((c: any) => (
+                        <div key={c.id} className="relative bg-white p-3 rounded-2xl border border-accent-soft shadow-2xs">
+                          <div className="absolute -left-[31px] top-3.5 w-3 h-3 rounded-full bg-accent border-2 border-white" />
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-xs text-primary">{formatDate(c.communication_date)} {c.communication_time}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">{c.communication_method}</span>
+                          </div>
+                          {c.outcome && <div className="text-[10px] text-emerald-700 font-bold mt-1">Outcome: {c.outcome}</div>}
+                          {c.communication_details && <div className="text-[10px] text-gray-700 mt-1 bg-background p-2 rounded-xl">{c.communication_details}</div>}
+                          {c.employee_name && <div className="text-[10px] text-gray-500 mt-1">By: {c.employee_name}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No communication records</div>}
+                </div>
+              )}
+
+              {/* STATUS HISTORY TAB */}
+              {profileTab === 'status' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-accent" /> Status History
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading...</div> :
+                    fullProfile?.statusHistory?.length > 0 ? (
+                    <div className="relative pl-6 space-y-2 border-l-2 border-accent/40">
+                      {fullProfile.statusHistory.map((s: any) => (
+                        <div key={s.id} className="relative bg-white p-3 rounded-2xl border border-accent-soft">
+                          <div className="absolute -left-[31px] top-3.5 w-3 h-3 rounded-full bg-primary border-2 border-white" />
+                          <div className="flex items-center gap-2 text-[10px]">
+                            {s.old_status && <span className="font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{s.old_status}</span>}
+                            <ArrowRight className="w-3 h-3 text-primary" />
+                            <span className="font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">{s.new_status}</span>
+                          </div>
+                          <div className="text-[10px] text-gray-500 mt-1">{formatDate(s.created_at)} by {s.changed_by}</div>
+                          {s.change_reason && <div className="text-[10px] text-gray-600 mt-0.5 italic">Reason: {s.change_reason}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No status changes recorded</div>}
+                </div>
+              )}
+
+              {/* DOCUMENTS TAB */}
+              {profileTab === 'documents' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <FileSpreadsheet className="w-4 h-4 text-accent" /> Documents
+                  </h4>
+                  {loadingProfile ? <div className="text-center py-6 text-gray-500 text-xs">Loading...</div> :
+                    fullProfile?.documents?.length > 0 ? (
+                    <div className="space-y-2">
+                      {fullProfile.documents.map((d: any) => (
+                        <div key={d.id} className="bg-white p-3 rounded-2xl border border-accent-soft flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="w-4 h-4 text-primary" />
+                            <div>
+                              <div className="text-xs font-bold text-gray-800">{d.file_name}</div>
+                              <div className="text-[10px] text-gray-500">{d.document_type} · {(d.file_size / 1024).toFixed(1)}KB</div>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-gray-400">{formatDate(d.created_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No documents attached</div>}
+                </div>
+              )}
+
+              {/* AUDIT TAB */}
+              {profileTab === 'audit' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <History className="w-4 h-4 text-accent" /> Audit Trail
+                  </h4>
+                  {customerAuditLogs.length > 0 ? (
+                    <div className="space-y-1">
+                      {customerAuditLogs.map(a => (
+                        <div key={a.id} className="text-[10px] text-gray-600 flex items-center justify-between py-1 border-b border-accent-soft last:border-0">
+                          <span><strong className="text-primary">{a.action}:</strong> {a.details}</span>
+                          <span className="text-gray-400 whitespace-nowrap ml-2">{formatDate(a.created_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No audit records</div>}
+                </div>
+              )}
+
+              {/* WEDDING & FAMILY DETAILS TAB */}
+              {profileTab === 'wedding' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-2">
+                      <h4 className="font-black text-primary text-xs uppercase tracking-wide border-b border-accent-soft pb-1.5">Wedding Details</h4>
+                      <div className="space-y-1 text-[11px]">
+                        <div className="flex justify-between"><span className="text-gray-500">Wedding Date:</span><span className="font-bold">{formatDate(selectedCustomer.wedding_date) || 'Not set'}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Family Size:</span><span className="font-bold">{selectedCustomer.estimated_family_size || '-'}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Shopping Category:</span><span className="font-bold">{selectedCustomer.preferred_shopping_category || '-'}</span></div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-4 rounded-2xl border border-accent-soft space-y-2">
+                      <h4 className="font-black text-primary text-xs uppercase tracking-wide border-b border-accent-soft pb-1.5">Family Details</h4>
+                      <div className="space-y-1 text-[11px]">
+                        <div className="flex justify-between"><span className="text-gray-500">Estimated Visitors:</span><span className="font-bold">{selectedCustomer.estimated_family_size || '-'}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Preferred Time:</span><span className="font-bold">{selectedCustomer.preferred_call_time || '-'}</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  {fullProfile?.customer?.bride_name && (
+                    <div className="bg-pink-50 p-4 rounded-2xl border border-pink-200">
+                      <h4 className="font-black text-pink-700 text-xs uppercase mb-2">Bride Details</h4>
+                      <div className="grid grid-cols-2 gap-2 text-[11px]">
+                        <div><span className="text-gray-500">Name:</span> <span className="font-bold">{fullProfile.customer.bride_name}</span></div>
+                        {fullProfile.customer.bride_age && <div><span className="text-gray-500">Age:</span> <span className="font-bold">{fullProfile.customer.bride_age}</span></div>}
+                        {fullProfile.customer.bride_contact && <div><span className="text-gray-500">Contact:</span> <span className="font-bold">{fullProfile.customer.bride_contact}</span></div>}
+                      </div>
+                    </div>
+                  )}
+                  {fullProfile?.customer?.groom_name && (
+                    <div className="bg-blue-50 p-4 rounded-2xl border border-blue-200">
+                      <h4 className="font-black text-blue-700 text-xs uppercase mb-2">Groom Details</h4>
+                      <div className="grid grid-cols-2 gap-2 text-[11px]">
+                        <div><span className="text-gray-500">Name:</span> <span className="font-bold">{fullProfile.customer.groom_name}</span></div>
+                        {fullProfile.customer.groom_age && <div><span className="text-gray-500">Age:</span> <span className="font-bold">{fullProfile.customer.groom_age}</span></div>}
+                        {fullProfile.customer.groom_contact && <div><span className="text-gray-500">Contact:</span> <span className="font-bold">{fullProfile.customer.groom_contact}</span></div>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* FOLLOW-UPS TAB */}
+              {profileTab === 'followups' && (
+                <div className="space-y-3">
+                  <h4 className="font-black text-primary text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <PhoneCall className="w-4 h-4 text-accent" /> Follow-up History
+                  </h4>
+                  {customerCallLogs.length > 0 ? (
+                    <div className="relative pl-6 space-y-3 border-l-2 border-accent/40">
+                      {customerCallLogs.map((log) => (
+                        <div key={log.id} className="relative bg-white p-3 rounded-2xl border border-accent-soft shadow-2xs">
+                          <div className="absolute -left-[31px] top-3.5 w-3 h-3 rounded-full bg-accent border-2 border-white" />
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-xs text-primary">{formatDate(log.call_date)} {log.call_time}</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">{log.call_outcome}</span>
+                          </div>
+                          {log.remarks && <p className="text-[10px] text-gray-700 mt-1 bg-background p-2 rounded-xl border border-accent-soft">"{log.remarks}"</p>}
+                          {log.next_follow_up_date && <div className="text-[10px] text-amber-800 font-bold mt-1">Next: {formatDate(log.next_follow_up_date)}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : <div className="text-center py-6 text-gray-400 text-xs">No follow-ups logged</div>}
                 </div>
               )}
             </div>

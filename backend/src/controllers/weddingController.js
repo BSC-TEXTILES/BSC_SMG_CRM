@@ -5,7 +5,7 @@ const { encryptField, decryptRows, decryptRow } = require('../utils/crypto');
 const { parseCsv, rowsToObjects } = require('../utils/csv');
 
 // Free-text PII fields stored encrypted at rest (AES-256-GCM, see utils/crypto.js)
-const ENCRYPTED_FIELDS = ['customer_notes'];
+const ENCRYPTED_FIELDS = ['customer_notes', 'visit_notes', 'appointment_notes', 'purchase_notes', 'note_content', 'communication_details'];
 const CALL_LOG_ENCRYPTED_FIELDS = ['remarks'];
 
 /**
@@ -110,6 +110,223 @@ async function ensureTables() {
         INDEX \`idx_audit_loc\` (\`location_id\`),
         INDEX \`idx_audit_action\` (\`action\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Wedding Visits
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_visits\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`visit_date\` DATE NOT NULL,
+        \`visit_time\` VARCHAR(20) NOT NULL,
+        \`visitors_count\` INT DEFAULT 1,
+        \`visited_by\` VARCHAR(150) NULL,
+        \`purpose\` VARCHAR(255) NULL,
+        \`products_viewed\` TEXT NULL,
+        \`categories_viewed\` TEXT NULL,
+        \`customer_requirement\` TEXT NULL,
+        \`visit_result\` VARCHAR(100) NULL,
+        \`next_action\` VARCHAR(255) NULL,
+        \`visit_notes\` TEXT NULL,
+        \`visit_status\` VARCHAR(50) NOT NULL DEFAULT 'Visit Planned',
+        \`created_by\` VARCHAR(150) NULL,
+        \`created_by_user_id\` INT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX \`idx_visit_cust\` (\`customer_id\`),
+        INDEX \`idx_visit_date\` (\`visit_date\`),
+        INDEX \`idx_visit_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Shopping Appointments
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_appointments\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`appointment_date\` DATE NOT NULL,
+        \`appointment_time\` VARCHAR(20) NOT NULL,
+        \`store_location\` VARCHAR(150) NULL,
+        \`assigned_employee\` VARCHAR(150) NULL,
+        \`assigned_employee_id\` INT NULL,
+        \`visitors_count\` INT DEFAULT 1,
+        \`purpose\` VARCHAR(255) NULL,
+        \`special_arrangement\` TEXT NULL,
+        \`appointment_notes\` TEXT NULL,
+        \`appointment_status\` VARCHAR(50) NOT NULL DEFAULT 'Scheduled',
+        \`created_by\` VARCHAR(150) NULL,
+        \`created_by_user_id\` INT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX \`idx_appt_cust\` (\`customer_id\`),
+        INDEX \`idx_appt_date\` (\`appointment_date\`),
+        INDEX \`idx_appt_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Purchases
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_purchases\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`bill_number\` VARCHAR(100) NULL,
+        \`purchase_date\` DATE NULL,
+        \`store_location\` VARCHAR(150) NULL,
+        \`total_amount\` DECIMAL(12,2) DEFAULT 0,
+        \`discount_amount\` DECIMAL(12,2) DEFAULT 0,
+        \`net_amount\` DECIMAL(12,2) DEFAULT 0,
+        \`payment_status\` VARCHAR(50) DEFAULT 'Pending',
+        \`sales_employee\` VARCHAR(150) NULL,
+        \`product_categories\` TEXT NULL,
+        \`purchase_notes\` TEXT NULL,
+        \`purchase_status\` VARCHAR(50) NOT NULL DEFAULT 'Not Started',
+        \`created_by\` VARCHAR(150) NULL,
+        \`created_by_user_id\` INT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX \`idx_purchase_cust\` (\`customer_id\`),
+        INDEX \`idx_purchase_date\` (\`purchase_date\`),
+        INDEX \`idx_purchase_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Documents/Attachments
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_documents\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`document_type\` VARCHAR(100) NOT NULL,
+        \`file_name\` VARCHAR(255) NOT NULL,
+        \`file_path\` TEXT NOT NULL,
+        \`file_size\` INT DEFAULT 0,
+        \`file_extension\` VARCHAR(20) NOT NULL,
+        \`uploaded_by\` VARCHAR(150) NULL,
+        \`uploaded_by_user_id\` INT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX \`idx_doc_cust\` (\`customer_id\`),
+        INDEX \`idx_doc_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Notes (with history)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_notes\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`note_content\` TEXT NOT NULL,
+        \`note_type\` VARCHAR(50) DEFAULT 'General',
+        \`created_by\` VARCHAR(150) NOT NULL,
+        \`created_by_user_id\` INT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX \`idx_note_cust\` (\`customer_id\`),
+        INDEX \`idx_note_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Status History
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_status_history\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`old_status\` VARCHAR(50) NULL,
+        \`new_status\` VARCHAR(50) NOT NULL,
+        \`changed_by\` VARCHAR(150) NOT NULL,
+        \`changed_by_user_id\` INT NULL,
+        \`change_reason\` TEXT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX \`idx_status_cust\` (\`customer_id\`),
+        INDEX \`idx_status_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Communication History (extended beyond call logs)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_communication\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`customer_id\` INT NOT NULL,
+        \`location_id\` INT NOT NULL DEFAULT 2,
+        \`communication_type\` VARCHAR(50) NOT NULL,
+        \`communication_method\` VARCHAR(50) NOT NULL,
+        \`communication_date\` DATE NOT NULL,
+        \`communication_time\` VARCHAR(20) NOT NULL,
+        \`employee_name\` VARCHAR(150) NOT NULL,
+        \`employee_id\` INT NULL,
+        \`outcome\` VARCHAR(100) NULL,
+        \`communication_details\` TEXT NULL,
+        \`next_follow_up_date\` DATE NULL,
+        \`next_follow_up_time\` VARCHAR(50) NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX \`idx_comm_cust\` (\`customer_id\`),
+        INDEX \`idx_comm_date\` (\`communication_date\`),
+        INDEX \`idx_comm_loc\` (\`location_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Customer Source tracking
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`wedding_customer_sources\` (
+        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`source_name\` VARCHAR(100) NOT NULL UNIQUE,
+        \`description\` TEXT NULL,
+        \`is_active\` BOOLEAN DEFAULT TRUE,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // Add source_id to wedding_customers if not exists
+    await pool.query(`
+      ALTER TABLE wedding_customers ADD COLUMN IF NOT EXISTS source_id INT NULL,
+      ADD COLUMN IF NOT EXISTS alternate_mobile VARCHAR(20) NULL,
+      ADD COLUMN IF NOT EXISTS bride_name VARCHAR(150) NULL,
+      ADD COLUMN IF NOT EXISTS bride_age INT NULL,
+      ADD COLUMN IF NOT EXISTS bride_contact VARCHAR(20) NULL,
+      ADD COLUMN IF NOT EXISTS bride_shopping_required BOOLEAN DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS groom_name VARCHAR(150) NULL,
+      ADD COLUMN IF NOT EXISTS groom_age INT NULL,
+      ADD COLUMN IF NOT EXISTS groom_contact VARCHAR(20) NULL,
+      ADD COLUMN IF NOT EXISTS groom_shopping_required BOOLEAN DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS wedding_date_flexibility VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS wedding_venue VARCHAR(255) NULL,
+      ADD COLUMN IF NOT EXISTS wedding_city VARCHAR(100) NULL,
+      ADD COLUMN IF NOT EXISTS wedding_type VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS wedding_functions JSON NULL,
+      ADD COLUMN IF NOT EXISTS guest_count INT NULL,
+      ADD COLUMN IF NOT EXISTS family_size INT NULL,
+      ADD COLUMN IF NOT EXISTS shopping_requirements JSON NULL,
+      ADD COLUMN IF NOT EXISTS budget_range VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS preferred_shopping_date DATE NULL,
+      ADD COLUMN IF NOT EXISTS preferred_shopping_time VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS expected_visitors INT NULL,
+      ADD COLUMN IF NOT EXISTS existing_customer VARCHAR(20) NULL,
+      ADD COLUMN IF NOT EXISTS existing_customer_id VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS previous_store VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS preferred_contact_method VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS preferred_followup_time VARCHAR(50) NULL,
+      ADD COLUMN IF NOT EXISTS additional_notes TEXT NULL,
+      ADD COLUMN IF NOT EXISTS consent BOOLEAN DEFAULT FALSE
+    `);
+
+    // Seed default customer sources
+    await pool.query(`
+      INSERT IGNORE INTO wedding_customer_sources (source_name, description) VALUES
+      ('Wedding Registration', 'Customer registered through wedding registration portal'),
+      ('Website', 'Customer from website inquiry'),
+      ('Feedback QR', 'Customer from feedback QR code'),
+      ('Store Walk-in', 'Customer walked into store'),
+      ('WhatsApp', 'Customer contacted via WhatsApp'),
+      ('Phone', 'Customer called store'),
+      ('Reference', 'Customer referred by existing customer'),
+      ('Campaign', 'Customer from marketing campaign'),
+      ('Existing Customer', 'Returning customer'),
+      ('Staff Entry', 'Manually added by staff'),
+      ('Other', 'Other source')
     `);
 
     const [cnt] = await pool.query(`SELECT COUNT(*) AS total FROM wedding_customers WHERE is_deleted = 0`);
@@ -1393,6 +1610,1046 @@ class WeddingController {
     } catch (err) {
       console.error('[WeddingController.exportData Error]', err);
       return errorRes(res, 'Failed to export data', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // VISITS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getVisits(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'v');
+
+      const [visits] = await pool.query(`
+        SELECT v.*, l.location_name, l.location_code
+        FROM wedding_visits v
+        LEFT JOIN locations l ON l.id = v.location_id
+        WHERE v.customer_id = ? AND 1=1 ${locClause}
+        ORDER BY v.visit_date DESC, v.id DESC
+      `, [customerId, ...locParams]);
+
+      decryptRows(visits, ['visit_notes']);
+      return successRes(res, { visits: visits || [] }, 'Visits fetched');
+    } catch (err) {
+      console.error('[WeddingController.getVisits Error]', err);
+      return errorRes(res, 'Failed to fetch visits', [err.message], 500);
+    }
+  }
+
+  async createVisit(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [existing] = await pool.query(
+        `SELECT id, location_id FROM wedding_customers WHERE id = ? AND is_deleted = 0 ${locClause}`,
+        [customerId, ...locParams]
+      );
+      if (!existing || existing.length === 0) return errorRes(res, 'Customer not found', [], 404);
+
+      const { visit_date, visit_time, visitors_count, visited_by, purpose, products_viewed, categories_viewed, customer_requirement, visit_result, next_action, visit_notes, visit_status } = req.body;
+      if (!visit_date || !visit_time) return errorRes(res, 'Visit date and time are required', [], 400);
+
+      const locationId = existing[0].location_id;
+      const [result] = await pool.query(`
+        INSERT INTO wedding_visits (customer_id, location_id, visit_date, visit_time, visitors_count, visited_by, purpose, products_viewed, categories_viewed, customer_requirement, visit_result, next_action, visit_notes, visit_status, created_by, created_by_user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        customerId, locationId, visit_date, visit_time,
+        parseInt(visitors_count || 1, 10), visited_by || req.user?.fullName || null,
+        purpose || null, products_viewed || null, categories_viewed || null,
+        customer_requirement || null, visit_result || null, next_action || null,
+        encryptField(visit_notes || null), visit_status || 'Visit Planned',
+        req.user?.fullName || 'Staff', req.user?.id || null
+      ]);
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (?, ?, ?, 'Visit Created', ?)`,
+        [customerId, locationId, req.user?.fullName || 'Staff', `Visit on ${visit_date} at ${visit_time}`]
+      );
+
+      return successRes(res, { id: result.insertId }, 'Visit created', 201);
+    } catch (err) {
+      console.error('[WeddingController.createVisit Error]', err);
+      return errorRes(res, 'Failed to create visit', [err.message], 500);
+    }
+  }
+
+  async updateVisit(req, res) {
+    try {
+      const visitId = parseInt(req.params.visitId, 10);
+      const [existing] = await pool.query(`SELECT * FROM wedding_visits WHERE id = ?`, [visitId]);
+      if (!existing || existing.length === 0) return errorRes(res, 'Visit not found', [], 404);
+
+      const v = existing[0];
+      const { visit_date, visit_time, visitors_count, visited_by, purpose, products_viewed, categories_viewed, customer_requirement, visit_result, next_action, visit_notes, visit_status } = req.body;
+
+      await pool.query(`
+        UPDATE wedding_visits SET visit_date=?, visit_time=?, visitors_count=?, visited_by=?, purpose=?, products_viewed=?, categories_viewed=?, customer_requirement=?, visit_result=?, next_action=?, visit_notes=?, visit_status=? WHERE id=?
+      `, [
+        visit_date || v.visit_date, visit_time || v.visit_time,
+        visitors_count ? parseInt(visitors_count, 10) : v.visitors_count,
+        visited_by || v.visited_by, purpose ?? v.purpose,
+        products_viewed ?? v.products_viewed, categories_viewed ?? v.categories_viewed,
+        customer_requirement ?? v.customer_requirement, visit_result ?? v.visit_result,
+        next_action ?? v.next_action,
+        visit_notes !== undefined ? encryptField(visit_notes) : v.visit_notes,
+        visit_status || v.visit_status, visitId
+      ]);
+
+      return successRes(res, { id: visitId }, 'Visit updated');
+    } catch (err) {
+      console.error('[WeddingController.updateVisit Error]', err);
+      return errorRes(res, 'Failed to update visit', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // APPOINTMENTS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getAppointments(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'a');
+
+      const [appointments] = await pool.query(`
+        SELECT a.*, l.location_name
+        FROM wedding_appointments a
+        LEFT JOIN locations l ON l.id = a.location_id
+        WHERE a.customer_id = ? AND 1=1 ${locClause}
+        ORDER BY a.appointment_date DESC, a.id DESC
+      `, [customerId, ...locParams]);
+
+      decryptRows(appointments, ['appointment_notes', 'special_arrangement']);
+      return successRes(res, { appointments: appointments || [] }, 'Appointments fetched');
+    } catch (err) {
+      console.error('[WeddingController.getAppointments Error]', err);
+      return errorRes(res, 'Failed to fetch appointments', [err.message], 500);
+    }
+  }
+
+  async createAppointment(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [existing] = await pool.query(
+        `SELECT id, location_id FROM wedding_customers WHERE id = ? AND is_deleted = 0 ${locClause}`,
+        [customerId, ...locParams]
+      );
+      if (!existing || existing.length === 0) return errorRes(res, 'Customer not found', [], 404);
+
+      const { appointment_date, appointment_time, store_location, assigned_employee, assigned_employee_id, visitors_count, purpose, special_arrangement, appointment_notes, appointment_status } = req.body;
+      if (!appointment_date || !appointment_time) return errorRes(res, 'Appointment date and time are required', [], 400);
+
+      const locationId = existing[0].location_id;
+      const [result] = await pool.query(`
+        INSERT INTO wedding_appointments (customer_id, location_id, appointment_date, appointment_time, store_location, assigned_employee, assigned_employee_id, visitors_count, purpose, special_arrangement, appointment_notes, appointment_status, created_by, created_by_user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        customerId, locationId, appointment_date, appointment_time,
+        store_location || null, assigned_employee || null, assigned_employee_id ? parseInt(assigned_employee_id, 10) : null,
+        parseInt(visitors_count || 1, 10), purpose || null,
+        encryptField(special_arrangement || null), encryptField(appointment_notes || null),
+        appointment_status || 'Scheduled', req.user?.fullName || 'Staff', req.user?.id || null
+      ]);
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (?, ?, ?, 'Appointment Created', ?)`,
+        [customerId, locationId, req.user?.fullName || 'Staff', `Appointment on ${appointment_date} at ${appointment_time}`]
+      );
+
+      return successRes(res, { id: result.insertId }, 'Appointment created', 201);
+    } catch (err) {
+      console.error('[WeddingController.createAppointment Error]', err);
+      return errorRes(res, 'Failed to create appointment', [err.message], 500);
+    }
+  }
+
+  async updateAppointment(req, res) {
+    try {
+      const apptId = parseInt(req.params.appointmentId, 10);
+      const [existing] = await pool.query(`SELECT * FROM wedding_appointments WHERE id = ?`, [apptId]);
+      if (!existing || existing.length === 0) return errorRes(res, 'Appointment not found', [], 404);
+
+      const a = existing[0];
+      const { appointment_date, appointment_time, store_location, assigned_employee, assigned_employee_id, visitors_count, purpose, special_arrangement, appointment_notes, appointment_status } = req.body;
+
+      await pool.query(`
+        UPDATE wedding_appointments SET appointment_date=?, appointment_time=?, store_location=?, assigned_employee=?, assigned_employee_id=?, visitors_count=?, purpose=?, special_arrangement=?, appointment_notes=?, appointment_status=? WHERE id=?
+      `, [
+        appointment_date || a.appointment_date, appointment_time || a.appointment_time,
+        store_location ?? a.store_location, assigned_employee ?? a.assigned_employee,
+        assigned_employee_id ? parseInt(assigned_employee_id, 10) : a.assigned_employee_id,
+        visitors_count ? parseInt(visitors_count, 10) : a.visitors_count,
+        purpose ?? a.purpose,
+        special_arrangement !== undefined ? encryptField(special_arrangement) : a.special_arrangement,
+        appointment_notes !== undefined ? encryptField(appointment_notes) : a.appointment_notes,
+        appointment_status || a.appointment_status, apptId
+      ]);
+
+      return successRes(res, { id: apptId }, 'Appointment updated');
+    } catch (err) {
+      console.error('[WeddingController.updateAppointment Error]', err);
+      return errorRes(res, 'Failed to update appointment', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PURCHASES
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getPurchases(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'p');
+
+      const [purchases] = await pool.query(`
+        SELECT p.*, l.location_name
+        FROM wedding_purchases p
+        LEFT JOIN locations l ON l.id = p.location_id
+        WHERE p.customer_id = ? AND 1=1 ${locClause}
+        ORDER BY p.purchase_date DESC, p.id DESC
+      `, [customerId, ...locParams]);
+
+      decryptRows(purchases, ['purchase_notes']);
+      return successRes(res, { purchases: purchases || [] }, 'Purchases fetched');
+    } catch (err) {
+      console.error('[WeddingController.getPurchases Error]', err);
+      return errorRes(res, 'Failed to fetch purchases', [err.message], 500);
+    }
+  }
+
+  async createPurchase(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [existing] = await pool.query(
+        `SELECT id, location_id FROM wedding_customers WHERE id = ? AND is_deleted = 0 ${locClause}`,
+        [customerId, ...locParams]
+      );
+      if (!existing || existing.length === 0) return errorRes(res, 'Customer not found', [], 404);
+
+      const { bill_number, purchase_date, store_location, total_amount, discount_amount, net_amount, payment_status, sales_employee, product_categories, purchase_notes, purchase_status } = req.body;
+      if (!purchase_date) return errorRes(res, 'Purchase date is required', [], 400);
+
+      const locationId = existing[0].location_id;
+      const [result] = await pool.query(`
+        INSERT INTO wedding_purchases (customer_id, location_id, bill_number, purchase_date, store_location, total_amount, discount_amount, net_amount, payment_status, sales_employee, product_categories, purchase_notes, purchase_status, created_by, created_by_user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        customerId, locationId, bill_number || null, purchase_date,
+        store_location || null, parseFloat(total_amount || 0), parseFloat(discount_amount || 0),
+        parseFloat(net_amount || total_amount || 0), payment_status || 'Pending',
+        sales_employee || null, product_categories || null,
+        encryptField(purchase_notes || null), purchase_status || 'Purchase Completed',
+        req.user?.fullName || 'Staff', req.user?.id || null
+      ]);
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (?, ?, ?, 'Purchase Recorded', ?)`,
+        [customerId, locationId, req.user?.fullName || 'Staff', `Bill ${bill_number || 'N/A'}, Amount: ₹${net_amount || total_amount || 0}`]
+      );
+
+      return successRes(res, { id: result.insertId }, 'Purchase recorded', 201);
+    } catch (err) {
+      console.error('[WeddingController.createPurchase Error]', err);
+      return errorRes(res, 'Failed to record purchase', [err.message], 500);
+    }
+  }
+
+  async updatePurchase(req, res) {
+    try {
+      const purchaseId = parseInt(req.params.purchaseId, 10);
+      const [existing] = await pool.query(`SELECT * FROM wedding_purchases WHERE id = ?`, [purchaseId]);
+      if (!existing || existing.length === 0) return errorRes(res, 'Purchase not found', [], 404);
+
+      const p = existing[0];
+      const { bill_number, purchase_date, store_location, total_amount, discount_amount, net_amount, payment_status, sales_employee, product_categories, purchase_notes, purchase_status } = req.body;
+
+      await pool.query(`
+        UPDATE wedding_purchases SET bill_number=?, purchase_date=?, store_location=?, total_amount=?, discount_amount=?, net_amount=?, payment_status=?, sales_employee=?, product_categories=?, purchase_notes=?, purchase_status=? WHERE id=?
+      `, [
+        bill_number ?? p.bill_number, purchase_date || p.purchase_date,
+        store_location ?? p.store_location,
+        total_amount !== undefined ? parseFloat(total_amount) : p.total_amount,
+        discount_amount !== undefined ? parseFloat(discount_amount) : p.discount_amount,
+        net_amount !== undefined ? parseFloat(net_amount) : p.net_amount,
+        payment_status || p.payment_status, sales_employee ?? p.sales_employee,
+        product_categories ?? p.product_categories,
+        purchase_notes !== undefined ? encryptField(purchase_notes) : p.purchase_notes,
+        purchase_status || p.purchase_status, purchaseId
+      ]);
+
+      return successRes(res, { id: purchaseId }, 'Purchase updated');
+    } catch (err) {
+      console.error('[WeddingController.updatePurchase Error]', err);
+      return errorRes(res, 'Failed to update purchase', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // NOTES
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getNotes(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+
+      const [notes] = await pool.query(`
+        SELECT n.*, l.location_name
+        FROM wedding_notes n
+        LEFT JOIN locations l ON l.id = n.location_id
+        WHERE n.customer_id = ?
+        ORDER BY n.created_at DESC
+      `, [customerId]);
+
+      decryptRows(notes, ['note_content']);
+      return successRes(res, { notes: notes || [] }, 'Notes fetched');
+    } catch (err) {
+      console.error('[WeddingController.getNotes Error]', err);
+      return errorRes(res, 'Failed to fetch notes', [err.message], 500);
+    }
+  }
+
+  async createNote(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [existing] = await pool.query(
+        `SELECT id, location_id FROM wedding_customers WHERE id = ? AND is_deleted = 0 ${locClause}`,
+        [customerId, ...locParams]
+      );
+      if (!existing || existing.length === 0) return errorRes(res, 'Customer not found', [], 404);
+
+      const { note_content, note_type } = req.body;
+      if (!note_content || !note_content.trim()) return errorRes(res, 'Note content is required', [], 400);
+
+      const locationId = existing[0].location_id;
+      const [result] = await pool.query(`
+        INSERT INTO wedding_notes (customer_id, location_id, note_content, note_type, created_by, created_by_user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [customerId, locationId, encryptField(note_content.trim()), note_type || 'General', req.user?.fullName || 'Staff', req.user?.id || null]);
+
+      return successRes(res, { id: result.insertId }, 'Note added', 201);
+    } catch (err) {
+      console.error('[WeddingController.createNote Error]', err);
+      return errorRes(res, 'Failed to add note', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // COMMUNICATION HISTORY
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getCommunicationHistory(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+
+      const [history] = await pool.query(`
+        SELECT c.*, l.location_name
+        FROM wedding_communication c
+        LEFT JOIN locations l ON l.id = c.location_id
+        WHERE c.customer_id = ?
+        ORDER BY c.communication_date DESC, c.id DESC
+      `, [customerId]);
+
+      decryptRows(history, ['communication_details']);
+      return successRes(res, { communications: history || [] }, 'Communication history fetched');
+    } catch (err) {
+      console.error('[WeddingController.getCommunicationHistory Error]', err);
+      return errorRes(res, 'Failed to fetch communication history', [err.message], 500);
+    }
+  }
+
+  async createCommunication(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [existing] = await pool.query(
+        `SELECT id, location_id FROM wedding_customers WHERE id = ? AND is_deleted = 0 ${locClause}`,
+        [customerId, ...locParams]
+      );
+      if (!existing || existing.length === 0) return errorRes(res, 'Customer not found', [], 404);
+
+      const { communication_type, communication_method, communication_date, communication_time, outcome, communication_details, next_follow_up_date, next_follow_up_time } = req.body;
+      if (!communication_method || !communication_date) return errorRes(res, 'Method and date are required', [], 400);
+
+      const locationId = existing[0].location_id;
+      const [result] = await pool.query(`
+        INSERT INTO wedding_communication (customer_id, location_id, communication_type, communication_method, communication_date, communication_time, employee_name, employee_id, outcome, communication_details, next_follow_up_date, next_follow_up_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        customerId, locationId, communication_type || 'General', communication_method,
+        communication_date, communication_time || '',
+        req.user?.fullName || 'Staff', req.user?.id || null,
+        outcome || null, encryptField(communication_details || null),
+        next_follow_up_date || null, next_follow_up_time || null
+      ]);
+
+      return successRes(res, { id: result.insertId }, 'Communication logged', 201);
+    } catch (err) {
+      console.error('[WeddingController.createCommunication Error]', err);
+      return errorRes(res, 'Failed to log communication', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STATUS HISTORY
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getStatusHistory(req, res) {
+    try {
+      const customerId = parseInt(req.params.id, 10);
+
+      const [history] = await pool.query(`
+        SELECT * FROM wedding_status_history
+        WHERE customer_id = ?
+        ORDER BY created_at DESC
+      `, [customerId]);
+
+      return successRes(res, { statusHistory: history || [] }, 'Status history fetched');
+    } catch (err) {
+      console.error('[WeddingController.getStatusHistory Error]', err);
+      return errorRes(res, 'Failed to fetch status history', [err.message], 500);
+    }
+  }
+
+  async changeStatus(req, res) {
+    try {
+      await ensureTables();
+      const customerId = parseInt(req.params.id, 10);
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [existing] = await pool.query(
+        `SELECT * FROM wedding_customers WHERE id = ? AND is_deleted = 0 ${locClause}`,
+        [customerId, ...locParams]
+      );
+      if (!existing || existing.length === 0) return errorRes(res, 'Customer not found', [], 404);
+
+      const { new_status, change_reason } = req.body;
+      if (!new_status) return errorRes(res, 'New status is required', [], 400);
+
+      const cust = existing[0];
+      const oldStatus = cust.customer_status;
+
+      await pool.query(`UPDATE wedding_customers SET customer_status = ? WHERE id = ?`, [new_status, customerId]);
+
+      await pool.query(`
+        INSERT INTO wedding_status_history (customer_id, location_id, old_status, new_status, changed_by, changed_by_user_id, change_reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [customerId, cust.location_id, oldStatus, new_status, req.user?.fullName || 'Staff', req.user?.id || null, change_reason || null]);
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (?, ?, ?, 'Status Changed', ?)`,
+        [customerId, cust.location_id, req.user?.fullName || 'Staff', `Status: ${oldStatus} → ${new_status}${change_reason ? '. Reason: ' + change_reason : ''}`]
+      );
+
+      return successRes(res, { id: customerId, old_status: oldStatus, new_status: new_status }, 'Status updated');
+    } catch (err) {
+      console.error('[WeddingController.changeStatus Error]', err);
+      return errorRes(res, 'Failed to change status', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // DOCUMENTS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getDocuments(req, res) {
+    try {
+      const customerId = parseInt(req.params.id, 10);
+      const [docs] = await pool.query(
+        `SELECT * FROM wedding_documents WHERE customer_id = ? ORDER BY created_at DESC`, [customerId]
+      );
+      return successRes(res, { documents: docs || [] }, 'Documents fetched');
+    } catch (err) {
+      console.error('[WeddingController.getDocuments Error]', err);
+      return errorRes(res, 'Failed to fetch documents', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CUSTOMER SOURCES
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getCustomerSources(req, res) {
+    try {
+      const [sources] = await pool.query(
+        `SELECT * FROM wedding_customer_sources WHERE is_active = TRUE ORDER BY source_name ASC`
+      );
+      return successRes(res, { sources: sources || [] }, 'Sources fetched');
+    } catch (err) {
+      console.error('[WeddingController.getCustomerSources Error]', err);
+      return errorRes(res, 'Failed to fetch sources', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ENHANCED DASHBOARD STATS (Location Cards + Charts)
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getEnhancedDashboardStats(req, res) {
+    try {
+      await ensureTables();
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+      const istToday = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+      const [mainStats] = await pool.query(`
+        SELECT
+          COUNT(*) AS totalCustomers,
+          SUM(CASE WHEN DATE(w.created_at) = CURDATE() THEN 1 ELSE 0 END) AS todayRegistrations,
+          SUM(CASE WHEN w.follow_up_date = CURDATE() AND w.customer_status NOT IN ('Converted','Visited Store','Not Interested','Cancelled','Closed') THEN 1 ELSE 0 END) AS todayFollowUps,
+          SUM(CASE WHEN w.follow_up_date < CURDATE() AND w.customer_status NOT IN ('Converted','Visited Store','Not Interested','Cancelled','Closed') THEN 1 ELSE 0 END) AS overdueFollowUps,
+          SUM(CASE WHEN w.wedding_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS upcomingWeddings30,
+          SUM(CASE WHEN w.wedding_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS upcomingWeddings7,
+          (SELECT COUNT(*) FROM wedding_visits v WHERE v.customer_id IN (SELECT id FROM wedding_customers WHERE is_deleted=0) ${locClause.replace('w.', 'v.')} AND v.visit_date = CURDATE()) AS todayVisits,
+          (SELECT COUNT(*) FROM wedding_appointments a WHERE a.customer_id IN (SELECT id FROM wedding_customers WHERE is_deleted=0) ${locClause.replace('w.', 'a.')} AND a.appointment_date = CURDATE()) AS todayAppointments,
+          SUM(CASE WHEN w.customer_status = 'Shopping Date Confirmed' THEN 1 ELSE 0 END) AS shoppingConfirmed,
+          SUM(CASE WHEN w.customer_status IN ('Visited Store') THEN 1 ELSE 0 END) AS storeVisitsDone,
+          SUM(CASE WHEN w.customer_status = 'Converted' THEN 1 ELSE 0 END) AS purchaseCompleted,
+          SUM(CASE WHEN w.customer_status = 'Not Interested' THEN 1 ELSE 0 END) AS notInterested,
+          SUM(CASE WHEN w.customer_status IN ('Cancelled','Closed') THEN 1 ELSE 0 END) AS cancelledClosed
+        FROM wedding_customers w
+        WHERE w.is_deleted = 0 ${locClause}
+      `, params);
+
+      const main = mainStats[0] || {};
+
+      const raw = main;
+      const stats = {
+        totalCustomers: Number(raw.totalCustomers) || 0,
+        todayRegistrations: Number(raw.todayRegistrations) || 0,
+        todayFollowUps: Number(raw.todayFollowUps) || 0,
+        overdueFollowUps: Number(raw.overdueFollowUps) || 0,
+        upcomingWeddings7: Number(raw.upcomingWeddings7) || 0,
+        upcomingWeddings30: Number(raw.upcomingWeddings30) || 0,
+        todayVisits: Number(raw.todayVisits) || 0,
+        todayAppointments: Number(raw.todayAppointments) || 0,
+        shoppingConfirmed: Number(raw.shoppingConfirmed) || 0,
+        storeVisitsDone: Number(raw.storeVisitsDone) || 0,
+        purchaseCompleted: Number(raw.purchaseCompleted) || 0,
+        notInterested: Number(raw.notInterested) || 0,
+        cancelledClosed: Number(raw.cancelledClosed) || 0
+      };
+
+      let locationCards = [];
+      if (!req.user || !req.user.locationId) {
+        const [locRows] = await pool.query(`
+          SELECT
+            l.id AS location_id, l.location_code, l.location_name,
+            COUNT(w.id) AS total_customers,
+            SUM(CASE WHEN DATE(w.created_at) = CURDATE() THEN 1 ELSE 0 END) AS new_customers,
+            SUM(CASE WHEN w.follow_up_date < CURDATE() AND w.customer_status NOT IN ('Converted','Visited Store','Not Interested','Cancelled','Closed') THEN 1 ELSE 0 END) AS pending_followups,
+            SUM(CASE WHEN w.wedding_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS upcoming_weddings,
+            SUM(CASE WHEN w.customer_status IN ('Visited Store','Converted') THEN 1 ELSE 0 END) AS visits,
+            SUM(CASE WHEN w.customer_status = 'Converted' THEN 1 ELSE 0 END) AS purchases
+          FROM locations l
+          LEFT JOIN wedding_customers w ON w.location_id = l.id AND w.is_deleted = 0
+          GROUP BY l.id, l.location_code, l.location_name
+          ORDER BY l.sort_order ASC
+        `);
+        locationCards = locRows || [];
+      }
+
+      return successRes(res, { stats, locationCards }, 'Enhanced dashboard stats fetched');
+    } catch (err) {
+      console.error('[WeddingController.getEnhancedDashboardStats Error]', err);
+      return errorRes(res, 'Failed to fetch enhanced dashboard', [err.message], 500);
+    }
+  }
+
+  async getDashboardCharts(req, res) {
+    try {
+      await ensureTables();
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      const [monthlyRegs] = await pool.query(`
+        SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS count
+        FROM wedding_customers WHERE is_deleted = 0 ${locClause}
+        GROUP BY month ORDER BY month DESC LIMIT 12
+      `, params);
+
+      const [locBreakdown] = await pool.query(`
+        SELECT l.location_name, l.location_code, COUNT(w.id) AS count
+        FROM wedding_customers w
+        LEFT JOIN locations l ON l.id = w.location_id
+        WHERE w.is_deleted = 0 ${locClause}
+        GROUP BY l.id, l.location_name, l.location_code
+      `, params);
+
+      const [leadSources] = await pool.query(`
+        SELECT COALESCE(src.source_name, 'Unknown') AS source, COUNT(w.id) AS count
+        FROM wedding_customers w
+        LEFT JOIN wedding_customer_sources src ON src.id = w.source_id
+        WHERE w.is_deleted = 0 ${locClause}
+        GROUP BY src.source_name ORDER BY count DESC
+      `, params);
+
+      const [statusDist] = await pool.query(`
+        SELECT w.customer_status AS status, COUNT(*) AS count
+        FROM wedding_customers w WHERE w.is_deleted = 0 ${locClause}
+        GROUP BY w.customer_status ORDER BY count DESC
+      `, params);
+
+      const [weddingCat] = await pool.query(`
+        SELECT COALESCE(w.preferred_shopping_category, 'General') AS category, COUNT(*) AS count
+        FROM wedding_customers w WHERE w.is_deleted = 0 ${locClause}
+        GROUP BY category ORDER BY count DESC LIMIT 10
+      `, params);
+
+      return successRes(res, {
+        monthlyRegistrations: monthlyRegs || [],
+        locationBreakdown: locBreakdown || [],
+        leadSources: leadSources || [],
+        statusDistribution: statusDist || [],
+        weddingCategoryDistribution: weddingCat || []
+      }, 'Dashboard charts fetched');
+    } catch (err) {
+      console.error('[WeddingController.getDashboardCharts Error]', err);
+      return errorRes(res, 'Failed to fetch chart data', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // EMPLOYEE PERFORMANCE
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getEmployeePerformance(req, res) {
+    try {
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      const [performance] = await pool.query(`
+        SELECT
+          COALESCE(w.assigned_telecaller, 'Unassigned') AS employee,
+          COUNT(w.id) AS assigned_customers,
+          SUM(CASE WHEN w.customer_status = 'Converted' THEN 1 ELSE 0 END) AS converted,
+          SUM(CASE WHEN w.follow_up_date <= CURDATE() AND w.customer_status NOT IN ('Converted','Visited Store','Not Interested','Cancelled','Closed') THEN 1 ELSE 0 END) AS pending_followups,
+          SUM(CASE WHEN w.follow_up_date < CURDATE() AND w.customer_status NOT IN ('Converted','Visited Store','Not Interested','Cancelled','Closed') THEN 1 ELSE 0 END) AS overdue_followups,
+          SUM(CASE WHEN w.customer_status IN ('Visited Store','Converted') THEN 1 ELSE 0 END) AS visits,
+          SUM(CASE WHEN w.customer_status = 'Shopping Date Confirmed' THEN 1 ELSE 0 END) AS shopping_confirmed,
+          SUM(CASE WHEN w.total_calls_count > 0 THEN 1 ELSE 0 END) AS total_called
+        FROM wedding_customers w
+        WHERE w.is_deleted = 0 ${locClause}
+        GROUP BY w.assigned_telecaller
+        ORDER BY assigned_customers DESC
+      `, params);
+
+      return successRes(res, { performance: performance || [] }, 'Employee performance fetched');
+    } catch (err) {
+      console.error('[WeddingController.getEmployeePerformance Error]', err);
+      return errorRes(res, 'Failed to fetch performance', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // BULK OPERATIONS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async bulkUpdateStatus(req, res) {
+    try {
+      const { customer_ids, new_status } = req.body;
+      if (!customer_ids || !Array.isArray(customer_ids) || customer_ids.length === 0) {
+        return errorRes(res, 'customer_ids array is required', [], 400);
+      }
+      if (!new_status) return errorRes(res, 'new_status is required', [], 400);
+
+      const placeholders = customer_ids.map(() => '?').join(',');
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      await pool.query(
+        `UPDATE wedding_customers SET customer_status = ? WHERE id IN (${placeholders}) AND is_deleted = 0 ${locClause}`,
+        [new_status, ...customer_ids, ...locParams]
+      );
+
+      for (const cid of customer_ids) {
+        await pool.query(
+          `INSERT INTO wedding_status_history (customer_id, location_id, new_status, changed_by, changed_by_user_id) VALUES (?, 0, ?, ?, ?)`,
+          [cid, new_status, req.user?.fullName || 'Staff', req.user?.id || null]
+        );
+      }
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (NULL, 0, ?, 'Bulk Status Update', ?)`,
+        [req.user?.fullName || 'Staff', `Updated ${customer_ids.length} customers to "${new_status}"`]
+      );
+
+      return successRes(res, { updated: customer_ids.length }, `Bulk updated ${customer_ids.length} customers`);
+    } catch (err) {
+      console.error('[WeddingController.bulkUpdateStatus Error]', err);
+      return errorRes(res, 'Failed to bulk update', [err.message], 500);
+    }
+  }
+
+  async bulkAssign(req, res) {
+    try {
+      const { customer_ids, assigned_telecaller, assigned_telecaller_id } = req.body;
+      if (!customer_ids || !Array.isArray(customer_ids) || customer_ids.length === 0) {
+        return errorRes(res, 'customer_ids array is required', [], 400);
+      }
+      if (!assigned_telecaller) return errorRes(res, 'assigned_telecaller is required', [], 400);
+
+      const placeholders = customer_ids.map(() => '?').join(',');
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      await pool.query(
+        `UPDATE wedding_customers SET assigned_telecaller = ?, assigned_telecaller_id = ? WHERE id IN (${placeholders}) AND is_deleted = 0 ${locClause}`,
+        [assigned_telecaller, assigned_telecaller_id ? parseInt(assigned_telecaller_id, 10) : null, ...customer_ids, ...locParams]
+      );
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (NULL, 0, ?, 'Bulk Assign', ?)`,
+        [req.user?.fullName || 'Staff', `Assigned ${customer_ids.length} customers to ${assigned_telecaller}`]
+      );
+
+      return successRes(res, { assigned: customer_ids.length }, `Assigned ${customer_ids.length} customers to ${assigned_telecaller}`);
+    } catch (err) {
+      console.error('[WeddingController.bulkAssign Error]', err);
+      return errorRes(res, 'Failed to bulk assign', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // REPORTS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getReports(req, res) {
+    try {
+      const { report_type } = req.query;
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      let data = {};
+
+      if (!report_type || report_type === 'overview') {
+        const [overview] = await pool.query(`
+          SELECT
+            COUNT(*) AS total_customers,
+            SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) AS today_new,
+            SUM(CASE WHEN customer_status = 'Converted' THEN 1 ELSE 0 END) AS converted,
+            SUM(CASE WHEN customer_status = 'Not Interested' THEN 1 ELSE 0 END) AS not_interested,
+            SUM(CASE WHEN customer_status IN ('Cancelled','Closed') THEN 1 ELSE 0 END) AS closed,
+            AVG(total_calls_count) AS avg_calls_per_customer
+          FROM wedding_customers WHERE is_deleted = 0 ${locClause}
+        `, params);
+        data.overview = overview[0] || {};
+      }
+
+      if (!report_type || report_type === 'location') {
+        const [byLocation] = await pool.query(`
+          SELECT l.location_name, l.location_code,
+            COUNT(w.id) AS total, SUM(CASE WHEN w.customer_status='Converted' THEN 1 ELSE 0 END) AS converted
+          FROM wedding_customers w LEFT JOIN locations l ON l.id=w.location_id
+          WHERE w.is_deleted=0 ${locClause} GROUP BY l.id, l.location_name, l.location_code
+        `, params);
+        data.byLocation = byLocation || [];
+      }
+
+      if (!report_type || report_type === 'followup') {
+        const [overdue] = await pool.query(`
+          SELECT w.id, w.customer_name, w.mobile_number, w.follow_up_date, w.customer_status,
+            DATEDIFF(CURDATE(), w.follow_up_date) AS days_overdue, w.assigned_telecaller,
+            l.location_name
+          FROM wedding_customers w LEFT JOIN locations l ON l.id=w.location_id
+          WHERE w.is_deleted=0 AND w.follow_up_date < CURDATE()
+            AND w.customer_status NOT IN ('Converted','Visited Store','Not Interested','Cancelled','Closed')
+            ${locClause}
+          ORDER BY w.follow_up_date ASC LIMIT 200
+        `, params);
+        data.overdueFollowUps = overdue || [];
+      }
+
+      return successRes(res, data, 'Reports generated');
+    } catch (err) {
+      console.error('[WeddingController.getReports Error]', err);
+      return errorRes(res, 'Failed to generate reports', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // MERGE DUPLICATE CUSTOMERS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async mergeCustomers(req, res) {
+    try {
+      const { primary_id, duplicate_id } = req.body;
+      if (!primary_id || !duplicate_id) return errorRes(res, 'primary_id and duplicate_id required', [], 400);
+      if (primary_id === duplicate_id) return errorRes(res, 'Cannot merge a customer with itself', [], 400);
+
+      const [primary] = await pool.query(`SELECT * FROM wedding_customers WHERE id = ? AND is_deleted = 0`, [primary_id]);
+      const [dup] = await pool.query(`SELECT * FROM wedding_customers WHERE id = ? AND is_deleted = 0`, [duplicate_id]);
+      if (!primary?.length) return errorRes(res, 'Primary customer not found', [], 404);
+      if (!dup?.length) return errorRes(res, 'Duplicate customer not found', [], 404);
+
+      const tables = [
+        'wedding_call_logs', 'wedding_visits', 'wedding_appointments',
+        'wedding_purchases', 'wedding_notes', 'wedding_communication',
+        'wedding_status_history', 'wedding_documents', 'wedding_audit_logs'
+      ];
+
+      for (const table of tables) {
+        await pool.query(`UPDATE ${table} SET customer_id = ? WHERE customer_id = ?`, [primary_id, duplicate_id]);
+      }
+
+      await pool.query(`UPDATE wedding_customers SET is_deleted = 1, deleted_at = NOW() WHERE id = ?`, [duplicate_id]);
+
+      await pool.query(
+        `INSERT INTO wedding_audit_logs (customer_id, location_id, user_name, action, details) VALUES (?, ?, ?, 'Customer Merged', ?)`,
+        [primary_id, primary[0].location_id, req.user?.fullName || 'Staff', `Merged duplicate ${dup[0].customer_code} (${dup[0].customer_name}) into ${primary[0].customer_code}`]
+      );
+
+      return successRes(res, { primary_id, merged_from: duplicate_id }, 'Customers merged successfully');
+    } catch (err) {
+      console.error('[WeddingController.mergeCustomers Error]', err);
+      return errorRes(res, 'Failed to merge customers', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // FULL CUSTOMER PROFILE (all related data)
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getFullCustomerProfile(req, res) {
+    try {
+      await ensureTables();
+      const id = parseInt(req.params.id, 10);
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      const [custRows] = await pool.query(`
+        SELECT w.*, l.location_code, l.location_name,
+          CASE WHEN w.wedding_date IS NOT NULL THEN DATEDIFF(w.wedding_date, CURDATE()) ELSE NULL END AS days_until_wedding
+        FROM wedding_customers w LEFT JOIN locations l ON l.id = w.location_id
+        WHERE w.id = ? AND w.is_deleted = 0 ${locClause}
+      `, [id, ...params]);
+      if (!custRows?.length) return errorRes(res, 'Customer not found', [], 404);
+
+      const customer = custRows[0];
+      decryptRow(customer, ENCRYPTED_FIELDS);
+
+      const [callLogs] = await pool.query(`SELECT * FROM wedding_call_logs WHERE customer_id = ? ORDER BY call_date DESC, id DESC`, [id]);
+      decryptRows(callLogs, CALL_LOG_ENCRYPTED_FIELDS);
+
+      const [visits] = await pool.query(`SELECT * FROM wedding_visits WHERE customer_id = ? ORDER BY visit_date DESC`, [id]);
+      decryptRows(visits, ['visit_notes']);
+
+      const [appointments] = await pool.query(`SELECT * FROM wedding_appointments WHERE customer_id = ? ORDER BY appointment_date DESC`, [id]);
+      decryptRows(appointments, ['appointment_notes', 'special_arrangement']);
+
+      const [purchases] = await pool.query(`SELECT * FROM wedding_purchases WHERE customer_id = ? ORDER BY purchase_date DESC`, [id]);
+      decryptRows(purchases, ['purchase_notes']);
+
+      const [notes] = await pool.query(`SELECT * FROM wedding_notes WHERE customer_id = ? ORDER BY created_at DESC`, [id]);
+      decryptRows(notes, ['note_content']);
+
+      const [statusHistory] = await pool.query(`SELECT * FROM wedding_status_history WHERE customer_id = ? ORDER BY created_at DESC`, [id]);
+
+      const [communications] = await pool.query(`SELECT * FROM wedding_communication WHERE customer_id = ? ORDER BY communication_date DESC`, [id]);
+      decryptRows(communications, ['communication_details']);
+
+      const [documents] = await pool.query(`SELECT * FROM wedding_documents WHERE customer_id = ? ORDER BY created_at DESC`, [id]);
+
+      const [auditLogs] = await pool.query(`SELECT * FROM wedding_audit_logs WHERE customer_id = ? ORDER BY created_at DESC LIMIT 50`, [id]);
+
+      return successRes(res, {
+        customer,
+        callLogs: callLogs || [],
+        timeline: callLogs || [],
+        visits: visits || [],
+        appointments: appointments || [],
+        purchases: purchases || [],
+        notes: notes || [],
+        statusHistory: statusHistory || [],
+        communications: communications || [],
+        documents: documents || [],
+        auditLogs: auditLogs || []
+      }, 'Full profile fetched');
+    } catch (err) {
+      console.error('[WeddingController.getFullCustomerProfile Error]', err);
+      return errorRes(res, 'Failed to fetch full profile', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ADVANCED SEARCH
+  // ═══════════════════════════════════════════════════════════════════
+
+  async searchCustomers(req, res) {
+    try {
+      const { q } = req.query;
+      if (!q || !q.trim()) return errorRes(res, 'Search query required', [], 400);
+
+      const searchTerm = `%${q.trim().toLowerCase()}%`;
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+
+      const [results] = await pool.query(`
+        SELECT w.id, w.customer_code, w.customer_name, w.mobile_number, w.email,
+          w.wedding_date, w.customer_status, w.location_id, w.assigned_telecaller,
+          l.location_name, l.location_code
+        FROM wedding_customers w
+        LEFT JOIN locations l ON l.id = w.location_id
+        WHERE w.is_deleted = 0 ${locClause}
+          AND (
+            LOWER(w.customer_name) LIKE ? OR
+            LOWER(w.mobile_number) LIKE ? OR
+            LOWER(w.customer_code) LIKE ? OR
+            LOWER(COALESCE(w.email,'')) LIKE ? OR
+            LOWER(COALESCE(w.bride_name,'')) LIKE ? OR
+            LOWER(COALESCE(w.groom_name,'')) LIKE ? OR
+            LOWER(COALESCE(w.wedding_venue,'')) LIKE ? OR
+            LOWER(COALESCE(w.wedding_city,'')) LIKE ? OR
+            LOWER(COALESCE(w.assigned_telecaller,'')) LIKE ? OR
+            LOWER(COALESCE(w.customer_notes,'')) LIKE ?
+          )
+        ORDER BY w.follow_up_date ASC, w.id DESC
+        LIMIT 100
+      `, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, ...locParams]);
+
+      return successRes(res, { results: results || [], total: results?.length || 0 }, 'Search completed');
+    } catch (err) {
+      console.error('[WeddingController.searchCustomers Error]', err);
+      return errorRes(res, 'Search failed', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // UPCOMING WEDDINGS
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getUpcomingWeddings(req, res) {
+    try {
+      const { days = 30 } = req.query;
+      const numDays = Math.min(365, Math.max(1, parseInt(days, 10) || 30));
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      const [weddings] = await pool.query(`
+        SELECT w.id, w.customer_code, w.customer_name, w.mobile_number,
+          w.wedding_date, w.bride_name, w.groom_name, w.wedding_venue,
+          DATEDIFF(w.wedding_date, CURDATE()) AS days_remaining,
+          w.customer_status, w.assigned_telecaller, w.location_id,
+          l.location_name
+        FROM wedding_customers w
+        LEFT JOIN locations l ON l.id = w.location_id
+        WHERE w.is_deleted = 0 AND w.wedding_date IS NOT NULL
+          AND w.wedding_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ${numDays} DAY)
+          ${locClause}
+        ORDER BY w.wedding_date ASC
+      `, params);
+
+      return successRes(res, { weddings: weddings || [], total: weddings?.length || 0 }, 'Upcoming weddings fetched');
+    } catch (err) {
+      console.error('[WeddingController.getUpcomingWeddings Error]', err);
+      return errorRes(res, 'Failed to fetch upcoming weddings', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PIPELINE / STATUS OVERVIEW
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getStatusPipeline(req, res) {
+    try {
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      const statuses = [
+        'New', 'Contact Pending', 'Contacted', 'Interested', 'Follow-up',
+        'Shopping Planned', 'Visit Scheduled', 'Visited Store',
+        'Purchase in Progress', 'Converted', 'Not Interested', 'Cancelled', 'Closed'
+      ];
+
+      const [counts] = await pool.query(`
+        SELECT w.customer_status AS status, COUNT(*) AS count
+        FROM wedding_customers w
+        WHERE w.is_deleted = 0 ${locClause}
+        GROUP BY w.customer_status
+      `, params);
+
+      const statusMap = {};
+      for (const row of (counts || [])) {
+        statusMap[row.status] = Number(row.count);
+      }
+
+      const pipeline = statuses.map(s => ({
+        status: s,
+        count: statusMap[s] || 0
+      }));
+
+      return successRes(res, { pipeline, statuses }, 'Pipeline fetched');
+    } catch (err) {
+      console.error('[WeddingController.getStatusPipeline Error]', err);
+      return errorRes(res, 'Failed to fetch pipeline', [err.message], 500);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // EXTENDED CALENDAR (visits + appointments + weddings + followups)
+  // ═══════════════════════════════════════════════════════════════════
+
+  async getExtendedCalendar(req, res) {
+    try {
+      const { year, month } = req.query;
+      const targetYear = parseInt(year, 10) || new Date().getFullYear();
+      const targetMonth = parseInt(month, 10) || (new Date().getMonth() + 1);
+      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+
+      const start = `${targetYear}-${String(targetMonth).padStart(2,'0')}-01`;
+      const endMonth = targetMonth === 12 ? 1 : targetMonth + 1;
+      const endYear = targetMonth === 12 ? targetYear + 1 : targetYear;
+      const end = `${endYear}-${String(endMonth).padStart(2,'0')}-01`;
+
+      const [followups] = await pool.query(`
+        SELECT w.id, w.customer_name, w.follow_up_date AS date, 'followup' AS event_type, w.customer_status, w.assigned_telecaller
+        FROM wedding_customers w
+        WHERE w.is_deleted=0 AND w.follow_up_date >= ? AND w.follow_up_date < ? ${locClause}
+        ORDER BY w.follow_up_date
+      `, [start, end, ...params]);
+
+      const [weddings] = await pool.query(`
+        SELECT w.id, w.customer_name, w.wedding_date AS date, 'wedding' AS event_type, w.bride_name, w.groom_name
+        FROM wedding_customers w
+        WHERE w.is_deleted=0 AND w.wedding_date IS NOT NULL AND w.wedding_date >= ? AND w.wedding_date < ? ${locClause}
+        ORDER BY w.wedding_date
+      `, [start, end, ...params]);
+
+      const [appts] = await pool.query(`
+        SELECT a.id, a.customer_id, a.appointment_date AS date, a.appointment_time AS time, 'appointment' AS event_type, a.purpose, a.appointment_status
+        FROM wedding_appointments a
+        WHERE a.appointment_date >= ? AND a.appointment_date < ? ${locClause.replace('w.','a.')}
+        ORDER BY a.appointment_date
+      `, [start, end, ...params]);
+
+      const [visits] = await pool.query(`
+        SELECT v.id, v.customer_id, v.visit_date AS date, v.visit_time AS time, 'visit' AS event_type, v.purpose, v.visit_status
+        FROM wedding_visits v
+        WHERE v.visit_date >= ? AND v.visit_date < ? ${locClause.replace('w.','v.')}
+        ORDER BY v.visit_date
+      `, [start, end, ...params]);
+
+      const events = [
+        ...(followups || []).map(e => ({ ...e, start: e.date, title: `Follow-up: ${e.customer_name}` })),
+        ...(weddings || []).map(e => ({ ...e, start: e.date, title: `Wedding: ${e.customer_name}` })),
+        ...(appts || []).map(e => ({ ...e, start: `${e.date}T${e.time || '00:00'}`, title: `Appointment: ${e.customer_name || e.customer_id}` })),
+        ...(visits || []).map(e => ({ ...e, start: `${e.date}T${e.time || '00:00'}`, title: `Visit: ${e.customer_name || e.customer_id}` }))
+      ];
+
+      return successRes(res, { events, year: targetYear, month: targetMonth }, 'Extended calendar fetched');
+    } catch (err) {
+      console.error('[WeddingController.getExtendedCalendar Error]', err);
+      return errorRes(res, 'Failed to fetch calendar', [err.message], 500);
     }
   }
 }

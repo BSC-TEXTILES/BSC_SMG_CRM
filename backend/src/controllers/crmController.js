@@ -945,13 +945,12 @@ exports.getVmPoints = async (req, res) => {
       { id: 'vm_q7', title: 'Are promotional and offer displays updated and correctly positioned?', section: 'Visual Merchandising', position: 7 },
       { id: 'vm_q8', title: 'Is the colour blocking and overall visual theme maintained?', section: 'Visual Merchandising', position: 8 },
       { id: 'vm_q9', title: 'Are folded, hanging, and stacked products properly presented?', section: 'Visual Merchandising', position: 9 },
-      { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?', section: 'Visual Merchandising', position: 10 },
-      { id: 'vm_q11', title: 'Are all display lights, LED screens, and decorative elements working properly?', section: 'Visual Merchandising', position: 11 }
+      { id: 'vm_q10', title: 'Does the section meet the daily VM standard and look attractive to customers?', section: 'Visual Merchandising', position: 10 }
     ];
 
     try {
       const [rows] = await db.query('SELECT * FROM VmChecklistPoints WHERE isActive = TRUE ORDER BY position ASC');
-      if (rows && rows.length >= 11) {
+      if (rows && rows.length >= 10) {
         return res.json({ success: true, points: rows });
       }
     } catch (e) {}

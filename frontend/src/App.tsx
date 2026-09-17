@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import CandidateEntry from './pages/CandidateEntry';
+import WeddingRegistration from './pages/WeddingRegistration';
 import Candidates from './pages/Candidates';
 import OfferProcess from './pages/OfferProcess';
 import Employees from './pages/Employees';
@@ -29,6 +29,7 @@ import DailyMCheck from './pages/DailyMCheck';
 import MCheckReports from './pages/MCheckReports';
 import MCheckHistory from './pages/MCheckHistory';
 import WeddingCRM from './pages/WeddingCRM';
+import WeddingTracking from './pages/WeddingTracking';
 import SystemAdmin from './pages/SystemAdmin';
 import QuickActionCenter from './components/ui/QuickActionCenter';
 import DevToolsGuard from './components/DevToolsGuard';
@@ -64,7 +65,8 @@ export default function App() {
         <Route path="/mcheck-reports" element={<MCheckReports />} />
         <Route path="/mcheck-history" element={<MCheckHistory />} />
         <Route path="/candidates" element={<Candidates />} />
-        <Route path="/candidate-entry" element={<CandidateEntry />} />
+        <Route path="/wedding-registration" element={<WeddingRegistration />} />
+        <Route path="/track" element={<WeddingTracking />} />
         <Route path="/interview-panel" element={<Navigate to="/candidates" replace />} />
         <Route path="/interview-form" element={<Navigate to="/candidates" replace />} />
         <Route path="/offer-process" element={<OfferProcess />} />

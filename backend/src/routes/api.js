@@ -222,6 +222,10 @@ router.get('/mcheck/export/excel', mcheckController.exportExcel);
 const weddingRoutes = require('./weddingRoutes');
 router.use('/wedding-crm', weddingRoutes);
 
+// ── Wedding Registration ──────────────────────────────────────
+const weddingRegistrationRoutes = require('./weddingRegistrationRoutes');
+router.use('/wedding-registration', weddingRegistrationRoutes);
+
 // ── Security Center (DevTools shield, GPS trail, login activity) ────────────
 // Developer Tools Detection is OFF by default. An Admin enables it from
 // System Settings → Security (Admin-only; the UI works on desktop & mobile).

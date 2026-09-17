@@ -528,8 +528,8 @@ export default function DashboardPage() {
                         className="input-modern pl-9 pr-4 text-xs py-2 w-full sm:w-64"
                       />
                     </div>
-                    <button onClick={() => navigate('/candidate-entry')} className="btn-primary text-xs py-2 whitespace-nowrap shadow-sm">
-                      + Add Staff
+                    <button onClick={() => navigate('/wedding-registration')} className="btn-primary text-xs py-2 whitespace-nowrap shadow-sm">
+                      + Add Wedding Registration
                     </button>
                   </div>
                 </div>

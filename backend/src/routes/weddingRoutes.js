@@ -50,11 +50,68 @@ router.post('/check-duplicate', weddingController.checkDuplicate);
 // ── Log Call Outcome ──────────────────────────────────────────
 router.post('/log-call', weddingController.logCall);
 
+// ── Enhanced Dashboard ─────────────────────────────────────────
+router.get('/dashboard/enhanced', weddingController.getEnhancedDashboardStats);
+router.get('/dashboard/charts', weddingController.getDashboardCharts);
+router.get('/employee-performance', weddingController.getEmployeePerformance);
+router.get('/pipeline', weddingController.getStatusPipeline);
+router.get('/upcoming-weddings', weddingController.getUpcomingWeddings);
+
+// ── Advanced Search ────────────────────────────────────────────
+router.get('/search', weddingController.searchCustomers);
+
+// ── Reports ────────────────────────────────────────────────────
+router.get('/reports', weddingController.getReports);
+
+// ── Customer Sources ───────────────────────────────────────────
+router.get('/sources', weddingController.getCustomerSources);
+
+// ── Extended Calendar ──────────────────────────────────────────
+router.get('/calendar/extended', weddingController.getExtendedCalendar);
+
 // ── Customer CRUD ─────────────────────────────────────────────
 router.get('/customers', weddingController.getCustomers);
 router.post('/customers', weddingController.createCustomer);
 router.get('/customers/:id', weddingController.getCustomerById);
+router.get('/customers/:id/full-profile', weddingController.getFullCustomerProfile);
 router.put('/customers/:id', weddingController.updateCustomer);
 router.delete('/customers/:id', authorize('Admin', 'Super Admin'), weddingController.deleteCustomer);
+
+// ── Status Management ──────────────────────────────────────────
+router.get('/customers/:id/status-history', weddingController.getStatusHistory);
+router.put('/customers/:id/status', weddingController.changeStatus);
+
+// ── Visits ─────────────────────────────────────────────────────
+router.get('/customers/:id/visits', weddingController.getVisits);
+router.post('/customers/:id/visits', weddingController.createVisit);
+router.put('/visits/:visitId', weddingController.updateVisit);
+
+// ── Appointments ───────────────────────────────────────────────
+router.get('/customers/:id/appointments', weddingController.getAppointments);
+router.post('/customers/:id/appointments', weddingController.createAppointment);
+router.put('/appointments/:appointmentId', weddingController.updateAppointment);
+
+// ── Purchases ──────────────────────────────────────────────────
+router.get('/customers/:id/purchases', weddingController.getPurchases);
+router.post('/customers/:id/purchases', weddingController.createPurchase);
+router.put('/purchases/:purchaseId', weddingController.updatePurchase);
+
+// ── Notes ──────────────────────────────────────────────────────
+router.get('/customers/:id/notes', weddingController.getNotes);
+router.post('/customers/:id/notes', weddingController.createNote);
+
+// ── Communication History ──────────────────────────────────────
+router.get('/customers/:id/communications', weddingController.getCommunicationHistory);
+router.post('/customers/:id/communications', weddingController.createCommunication);
+
+// ── Documents ──────────────────────────────────────────────────
+router.get('/customers/:id/documents', weddingController.getDocuments);
+
+// ── Merge Duplicates ───────────────────────────────────────────
+router.post('/customers/merge', weddingController.mergeCustomers);
+
+// ── Bulk Operations ────────────────────────────────────────────
+router.post('/bulk/status', weddingController.bulkUpdateStatus);
+router.post('/bulk/assign', weddingController.bulkAssign);
 
 module.exports = router;
