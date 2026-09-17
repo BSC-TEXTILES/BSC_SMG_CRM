@@ -16,6 +16,7 @@ import {
   Plus,
   FolderPlus,
   Tag,
+  MapPin,
   X
 } from 'lucide-react';
 import { API, Auth } from '../services/api';
@@ -647,11 +648,11 @@ export default function VmChecklist() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary">
-                        Ã°Å¸â€œÂ {selectedFloor}
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary flex items-center gap-1">
+                        <MapPin className="w-3 h-3 inline" /> {selectedFloor}
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-accent/20 text-accent-hover font-bold">
-                        Ã°Å¸ÂÂ·Ã¯Â¸Â {selectedSection}
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-accent/20 text-accent-hover font-bold flex items-center gap-1">
+                        <Tag className="w-3 h-3 inline" /> {selectedSection}
                       </span>
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
                         11 VM Questions Active
@@ -741,7 +742,7 @@ export default function VmChecklist() {
                     className="btn-gold text-xs py-2.5 px-6 font-extrabold flex items-center justify-center gap-2 w-full cursor-pointer shadow-md disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{submitting ? 'Submitting ReportÃ¢â‚¬Â¦' : 'Submit Audit Report'}</span>
+                    <span>{submitting ? 'Submitting Report…' : 'Submit Audit Report'}</span>
                   </button>
                 </div>
               </div>
@@ -759,7 +760,7 @@ export default function VmChecklist() {
                   onClick={resetSectionOnly}
                   className="px-3 py-1 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-[11px] font-extrabold transition-colors cursor-pointer shrink-0"
                 >
-                  Audit Next Section Ã¢â€ â€™
+                  Audit Next Section &rarr;
                 </button>
               </div>
             )}
@@ -908,7 +909,7 @@ export default function VmChecklist() {
                   className="btn-gold text-xs py-2.5 px-6 font-extrabold flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{submitting ? 'Submitting ReportÃ¢â‚¬Â¦' : 'Submit Audit Report'}</span>
+                  <span>{submitting ? 'Submitting Report…' : 'Submit Audit Report'}</span>
                 </button>
               </div>
             </div>
@@ -1454,7 +1455,7 @@ export default function VmChecklist() {
                   disabled={creatingFloor}
                   className="btn-gold text-xs px-5 py-2 font-extrabold flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  {creatingFloor ? 'Creating FloorÃ¢â‚¬Â¦' : 'Create Store Floor'}
+                  {creatingFloor ? 'Creating Floor…' : 'Create Store Floor'}
                 </button>
               </div>
             </form>
