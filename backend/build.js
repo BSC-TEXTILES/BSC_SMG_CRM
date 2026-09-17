@@ -10,9 +10,12 @@ const rootDist = path.join(__dirname, '..', 'dist');
 console.log('[Build] Starting client build in:', frontendDir);
 if (fs.existsSync(frontendDir)) {
     try {
-        execSync('npm install --legacy-peer-deps && npm run build', { cwd: frontendDir, stdio: 'inherit' });
+        const frontendNodeModules = path.join(frontendDir, 'node_modules');
+        const cmd = fs.existsSync(frontendNodeModules) ? 'npm run build' : 'npm install --legacy-peer-deps && npm run build';
+        execSync(cmd, { cwd: frontendDir, stdio: 'inherit' });
     } catch (err) {
-        console.warn('[Build] Warning: Frontend build failed, checking if pre-built dist exists...', err.message);
+        console.error('[Build] Error during frontend build:', err.message);
+        process.exit(1);
     }
 }
 

@@ -59,6 +59,7 @@ export default function App() {
         <Route path="/tv" element={<TVDisplay />} />
         <Route path="/greeter" element={<Greeter />} />
         <Route path="/attendance" element={<Attendance />} />
+        <Route path="/roster" element={<Navigate to="/attendance" replace />} />
         <Route path="/daily-mcheck" element={<DailyMCheck />} />
         <Route path="/mcheck-reports" element={<MCheckReports />} />
         <Route path="/mcheck-history" element={<MCheckHistory />} />
