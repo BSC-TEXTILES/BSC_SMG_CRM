@@ -49,25 +49,19 @@ const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
 // ── Express App ───────────────────────────────────────────────────────────────
 const app = express();
 
-// Resilient PORT parsing: supports integers, Unix domain sockets (Passenger), or defaults to 3000
-let rawPort = process.env.PORT;
-if (process.env.NODE_ENV === 'production' && (rawPort === '5000' || rawPort === 5000) && !process.env.FORCE_PORT) {
-  console.log('[Boot] Detected local development PORT=5000 in production environment. Normalizing to production port 3000.');
-  rawPort = '3000';
-}
+// Resilient PORT parsing: strictly respects deployment platform's PORT (integers or Passenger domain sockets)
+const rawPort = process.env.PORT;
 let PORT = 3000;
 let isSocketPort = false;
 
-if (typeof rawPort === 'string' && rawPort.trim().length > 0) {
-  const trimmed = rawPort.trim();
+if (rawPort !== undefined && rawPort !== null && String(rawPort).trim().length > 0) {
+  const trimmed = String(rawPort).trim();
   if (/^\d+$/.test(trimmed)) {
     PORT = parseInt(trimmed, 10);
   } else {
     PORT = trimmed;
     isSocketPort = true;
   }
-} else if (typeof rawPort === 'number') {
-  PORT = rawPort;
 }
 
 console.log(`[Boot] PORT=${PORT} (${isSocketPort ? 'socket' : 'network'}) | DB=${process.env.DB_NAME} | ENV=${process.env.NODE_ENV}`);
@@ -532,9 +526,10 @@ if (isSocketPort) {
     console.log(`====================================================`);
   });
 } else {
-  server.listen(PORT, '0.0.0.0', () => {
+  // Listen on platform port with dual-stack IPv4/IPv6 support for reverse proxies
+  server.listen(PORT, () => {
     console.log(`====================================================`);
-    console.log(`  BSC HRMS running on http://0.0.0.0:${PORT}`);
+    console.log(`  BSC HRMS running on port ${PORT}`);
     console.log(`  Health: http://localhost:${PORT}/health`);
     console.log(`====================================================`);
   });
