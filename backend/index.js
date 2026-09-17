@@ -52,7 +52,11 @@ const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
 const app = express();
 
 // Resilient PORT parsing: strictly respects deployment platform's PORT (integers or Passenger domain sockets)
-const rawPort = process.env.PORT;
+let rawPort = process.env.PORT;
+if (process.env.NODE_ENV === 'production' && (rawPort === '5000' || rawPort === 5000) && !process.env.FORCE_PORT) {
+  console.log('[Boot] Detected local development PORT=5000 in production environment. Normalizing to production port 3000.');
+  rawPort = '3000';
+}
 let PORT = 3000;
 let isSocketPort = false;
 
@@ -529,7 +533,7 @@ if (isSocketPort) {
   });
 } else {
   // Listen on platform port with dual-stack IPv4/IPv6 support for reverse proxies
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
     console.log(`  BSC HRMS running on port ${PORT}`);
     console.log(`  Health: http://localhost:${PORT}/health`);
@@ -538,7 +542,9 @@ if (isSocketPort) {
 }
 
 server.on('error', (err) => {
-  console.error('[Server listen error]', err.code, err.message);
+  const msg = `[Server listen error] ${new Date().toISOString()} ${err.code} ${err.message}\n`;
+  console.error(msg);
+  try { fs.appendFileSync(path.join(APP_ROOT, 'crash.log'), msg); } catch(e) {}
   process.exit(1);
 });
 

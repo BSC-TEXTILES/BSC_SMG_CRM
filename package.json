@@ -32,6 +32,7 @@
     "lucide-react": "^0.436.0",
     "multer": "^2.3.0",
     "mysql2": "^3.10.1",
+    "nodemailer": "^10.0.10",
     "pdfkit": "^0.15.0",
     "postcss": "^8.4.41",
     "react": "^18.3.1",

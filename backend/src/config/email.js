@@ -1,9 +1,18 @@
-const nodemailer = require('nodemailer');
+let nodemailer = null;
+try {
+  nodemailer = require('nodemailer');
+} catch (e) {
+  console.warn('[Email] nodemailer is not installed or failed to load:', e.message);
+}
 
 let transporter = null;
 
 function getTransporter() {
   if (transporter) return transporter;
+  if (!nodemailer) {
+    console.warn('[Email] nodemailer is not available');
+    return null;
+  }
 
   const host = process.env.SMTP_HOST;
   const port = parseInt(process.env.SMTP_PORT || '587', 10);

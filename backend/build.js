@@ -14,8 +14,12 @@ if (fs.existsSync(frontendDir)) {
         const cmd = fs.existsSync(frontendNodeModules) ? 'npm run build' : 'npm install --legacy-peer-deps && npm run build';
         execSync(cmd, { cwd: frontendDir, stdio: 'inherit' });
     } catch (err) {
-        console.error('[Build] Error during frontend build:', err.message);
-        process.exit(1);
+        console.warn('[Build] Warning: Frontend build failed in server environment:', err.message);
+        if (fs.existsSync(src) || fs.existsSync(backendDist) || fs.existsSync(rootDist)) {
+            console.log('[Build] Pre-built dist folder exists. Proceeding with existing production build.');
+        } else {
+            process.exit(1);
+        }
     }
 }
 
