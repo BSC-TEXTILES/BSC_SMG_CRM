@@ -49,13 +49,28 @@ const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
 // ── Express App ───────────────────────────────────────────────────────────────
 const app = express();
 
-// Passenger's preload-timestamp.js sets PORT dynamically.
-// Use that PORT. For local dev, fallback to 3000.
-const PORT = parseInt(process.env.PORT || '3000', 10);
+// Resilient PORT parsing: supports integers, Unix domain sockets (Passenger), or defaults to 3000
+let rawPort = process.env.PORT;
+if (process.env.NODE_ENV === 'production' && (rawPort === '5000' || rawPort === 5000) && !process.env.FORCE_PORT) {
+  console.log('[Boot] Detected local development PORT=5000 in production environment. Normalizing to production port 3000.');
+  rawPort = '3000';
+}
+let PORT = 3000;
+let isSocketPort = false;
 
-// High-concurrency tuning is applied in src/config/db.js (pool size, keep-alive).
+if (typeof rawPort === 'string' && rawPort.trim().length > 0) {
+  const trimmed = rawPort.trim();
+  if (/^\d+$/.test(trimmed)) {
+    PORT = parseInt(trimmed, 10);
+  } else {
+    PORT = trimmed;
+    isSocketPort = true;
+  }
+} else if (typeof rawPort === 'number') {
+  PORT = rawPort;
+}
 
-console.log(`[Boot] PORT=${PORT} | DB=${process.env.DB_NAME} | ENV=${process.env.NODE_ENV}`);
+console.log(`[Boot] PORT=${PORT} (${isSocketPort ? 'socket' : 'network'}) | DB=${process.env.DB_NAME} | ENV=${process.env.NODE_ENV}`);
 
 app.set('trust proxy', 1);
 const isProduction = process.env.NODE_ENV === 'production';
@@ -396,7 +411,10 @@ app.get('/api/fix-db-schema', authenticate, authorize('Admin', 'Super Admin'), a
 app.use('/api', csrfProtection, apiRoutes);
 
 // ── Frontend SPA ──────────────────────────────────────────────────────────────
-const distDir = path.join(APP_ROOT, 'dist');
+let distDir = path.join(APP_ROOT, 'dist');
+if (!fs.existsSync(distDir) && fs.existsSync(path.join(APP_ROOT, '..', 'dist'))) {
+  distDir = path.join(APP_ROOT, '..', 'dist');
+}
 // Favicon & Icon static route handler (prevents 503 / 404 errors on live server)
 app.get(['/favicon.ico', '/favicon.png', '/logo.png'], (req, res) => {
   const iconName = path.basename(req.path);
@@ -507,12 +525,20 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`  BSC HRMS running on port ${PORT}`);
-  console.log(`  Health: http://localhost:${PORT}/health`);
-  console.log(`====================================================`);
-});
+if (isSocketPort) {
+  server.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`  BSC HRMS running on domain socket: ${PORT}`);
+    console.log(`====================================================`);
+  });
+} else {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`====================================================`);
+    console.log(`  BSC HRMS running on http://0.0.0.0:${PORT}`);
+    console.log(`  Health: http://localhost:${PORT}/health`);
+    console.log(`====================================================`);
+  });
+}
 
 server.on('error', (err) => {
   console.error('[Server listen error]', err.code, err.message);
