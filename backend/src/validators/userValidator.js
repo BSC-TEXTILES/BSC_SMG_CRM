@@ -7,13 +7,10 @@
 const db = require('../config/db');
 const { errorRes } = require('../utils/response');
 
-// Password policy: at least 8 chars, 1 uppercase, 1 lowercase, 1 digit
+// Password policy: at least 6 chars
 function validatePasswordPolicy(password) {
   if (!password || typeof password !== 'string') return 'Password is required';
-  if (password.length < 8) return 'Password must be at least 8 characters long';
-  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
-  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
-  if (!/\d/.test(password)) return 'Password must contain at least one digit';
+  if (password.length < 6) return 'Password must be at least 6 characters long';
   return null;
 }
 
@@ -56,10 +53,34 @@ function normalizeMobile(mobile) {
 // Username validation
 function isValidUsername(username) {
   if (!username) return false;
-  if (username.length < 3 || username.length > 100) return false;
-  // Allow email-format usernames and alphanumeric+dots+underscores+hyphens
-  const re = /^[a-zA-Z0-9._@+-]+$/;
-  return re.test(username.trim());
+  const trimmed = username.trim();
+  if (trimmed.length < 3 || trimmed.length > 100) return false;
+  // Allow email-format usernames and alphanumeric+dots+underscores+hyphens+spaces
+  const re = /^[a-zA-Z0-9._@+\-\s]+$/;
+  return re.test(trimmed);
+}
+
+// System roles recognized across the platform
+const VALID_SYSTEM_ROLES = [
+  'Super Admin', 'Admin', 'HR', 'Manager', 'Recruiter', 'Interviewer', 'Employee', 'Greeter', 'Guest'
+];
+
+async function isValidRole(role) {
+  if (!role || typeof role !== 'string') return false;
+  const trimmed = role.trim();
+  if (VALID_SYSTEM_ROLES.some(r => r.toLowerCase() === trimmed.toLowerCase())) return true;
+  try {
+    const [rows] = await db.query(
+      `SELECT roleName FROM role WHERE LOWER(roleName) = ?`,
+      [trimmed.toLowerCase()]
+    );
+    if (rows.length > 0) return true;
+  } catch (e) {}
+  try {
+    const [rows2] = await db.query(`SELECT name FROM roles WHERE LOWER(name) = ?`, [trimmed.toLowerCase()]);
+    if (rows2.length > 0) return true;
+  } catch (e) {}
+  return false;
 }
 
 /**
@@ -85,13 +106,9 @@ async function validateCreateUser(req, res, next) {
 
   if (!role) errors.push('Role is required');
   else {
-    try {
-      const [rows] = await db.query('SELECT name FROM roles WHERE active = TRUE AND name = ?', [role]);
-      if (rows.length === 0) {
-        errors.push(`Invalid role or role is not active.`);
-      }
-    } catch (err) {
-      errors.push('Database error validating role');
+    const valid = await isValidRole(role);
+    if (!valid) {
+      errors.push(`Invalid role "${role}".`);
     }
   }
 
@@ -137,13 +154,9 @@ async function validateUpdateUser(req, res, next) {
   if (phone !== undefined && phone) req.body.phone = normalizeMobile(phone);
 
   if (role !== undefined) {
-    try {
-      const [rows] = await db.query('SELECT name FROM roles WHERE active = TRUE AND name = ?', [role]);
-      if (rows.length === 0) {
-        errors.push(`Invalid role or role is not active.`);
-      }
-    } catch (err) {
-      errors.push('Database error validating role');
+    const valid = await isValidRole(role);
+    if (!valid) {
+      errors.push(`Invalid role "${role}".`);
     }
   }
 

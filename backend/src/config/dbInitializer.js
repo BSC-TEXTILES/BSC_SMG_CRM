@@ -841,7 +841,12 @@ async function autoInitializeDatabase(pool) {
         'Employee', 'Greeter', 'Guest', 'CRM Manager', 'CRM Executive', 'VM Extension Telecaller'
       ];
       for (const r of allSystemRoles) {
-        await connection.query(`INSERT IGNORE INTO roles (name, active) VALUES (?, 1)`, [r]);
+        try {
+          await connection.query(`INSERT IGNORE INTO role (roleName, status) VALUES (?, 'active')`, [r]);
+        } catch (e1) {}
+        try {
+          await connection.query(`INSERT IGNORE INTO roles (name) VALUES (?)`, [r]);
+        } catch (e2) {}
       }
       logDebug(`[Auto DB Initializer] system roles seeded`);
     } catch(e) {

@@ -283,12 +283,32 @@ const deleteInterviewQuestion = async (req, res) => {
 
 const getRoles = async (req, res) => {
   try {
-    const [rows] = await db.query(`SELECT name FROM roles WHERE active = TRUE ORDER BY name ASC`);
-    const roles = rows.map(r => r.name);
+    let roles = [];
+    try {
+      const [rows] = await db.query(
+        `SELECT roleName as name FROM role WHERE (status = 'Active' OR status IS NULL) ORDER BY id ASC`
+      );
+      if (rows.length > 0) {
+        roles = rows.map(r => r.name).filter(Boolean);
+      }
+    } catch (e1) {
+      try {
+        const [rows2] = await db.query(`SELECT name FROM roles ORDER BY id ASC`);
+        if (rows2.length > 0) {
+          roles = rows2.map(r => r.name).filter(Boolean);
+        }
+      } catch (e2) {}
+    }
+
+    const defaultRoles = ['Super Admin', 'Admin', 'HR', 'Manager', 'Recruiter', 'Interviewer', 'Employee', 'Greeter', 'Guest'];
+    defaultRoles.forEach(r => {
+      if (!roles.includes(r)) roles.push(r);
+    });
+
     return res.json({ roles });
   } catch (err) {
     console.error('[Settings - getRoles] error:', err.message);
-    return res.json({ roles: [] });
+    return res.json({ roles: ['Super Admin', 'Admin', 'HR', 'Manager', 'Recruiter', 'Interviewer', 'Employee', 'Greeter', 'Guest'] });
   }
 };
 

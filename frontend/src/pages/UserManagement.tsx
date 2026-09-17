@@ -90,6 +90,18 @@ interface AuditLog {
 
 
 
+const DEFAULT_SYSTEM_ROLES = [
+  'Super Admin',
+  'Admin',
+  'HR',
+  'Manager',
+  'Recruiter',
+  'Interviewer',
+  'Employee',
+  'Greeter',
+  'Guest'
+];
+
 export default function UserManagementPage() {
   const navigate = useNavigate();
   const [session, setSession] = useState<UserSession | null>(null);
@@ -106,7 +118,7 @@ export default function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [deptFilter, setDeptFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
-  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<string[]>(DEFAULT_SYSTEM_ROLES);
   const [locationFilter, setLocationFilter] = useState('ALL');
 
   // Modals state
@@ -248,10 +260,16 @@ export default function UserManagementPage() {
         setLocations(locsRes.locations);
       }
 
-      if (rolesRes?.roles && Array.isArray(rolesRes.roles)) {
-        setAvailableRoles(rolesRes.roles);
-      } else if (Array.isArray(rolesRes)) {
-        setAvailableRoles(rolesRes);
+      if (rolesRes?.roles && Array.isArray(rolesRes.roles) && rolesRes.roles.length > 0) {
+        const parsed = rolesRes.roles.map((r: any) => typeof r === 'string' ? r : (r.name || r.roleName || '')).filter(Boolean);
+        if (parsed.length > 0) {
+          setAvailableRoles(Array.from(new Set([...DEFAULT_SYSTEM_ROLES, ...parsed])));
+        }
+      } else if (Array.isArray(rolesRes) && rolesRes.length > 0) {
+        const parsed = rolesRes.map((r: any) => typeof r === 'string' ? r : (r.name || r.roleName || '')).filter(Boolean);
+        if (parsed.length > 0) {
+          setAvailableRoles(Array.from(new Set([...DEFAULT_SYSTEM_ROLES, ...parsed])));
+        }
       }
     } catch (err: any) {
       showToast('Error loading user management data: ' + (err.message || 'Server error'), 'error');
@@ -327,8 +345,8 @@ export default function UserManagementPage() {
       showToast('Username, Password, and Role are mandatory', 'error');
       return;
     }
-    if (formPassword.trim().length < 8) {
-      showToast('Password must be at least 8 characters long', 'error');
+    if (formPassword.trim().length < 6) {
+      showToast('Password must be at least 6 characters long', 'error');
       return;
     }
 
