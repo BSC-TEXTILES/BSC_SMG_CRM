@@ -37,13 +37,6 @@ export interface FloorItem {
 
 // Built-in Floor and Section Definitions
 export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
-  'Third Floor': {
-    name: 'Third Floor',
-    label: 'Third Floor',
-    description: 'Mens Wear and Home Furnishing',
-    badge: '1 Section',
-    sections: ['Mens Wear and Home Furnishing']
-  },
   'Ground Floor': {
     name: 'Ground Floor',
     label: 'Ground Floor',
@@ -64,6 +57,13 @@ export const DEFAULT_VM_FLOORS: Record<string, FloorItem> = {
     description: 'Ladies Wear and Kids Wear',
     badge: '1 Section',
     sections: ['Ladies Wear and Kids Wear']
+  },
+  'Third Floor': {
+    name: 'Third Floor',
+    label: 'Third Floor',
+    description: 'Mens Wear and Home Furnishing',
+    badge: '1 Section',
+    sections: ['Mens Wear and Home Furnishing']
   }
 };
 
@@ -295,7 +295,7 @@ export default function VmChecklist() {
         entries
       });
       setSubmittedMsg(
-        `Visual Merchandising Checklist submitted successfully for ${selectedFloor} Ã¢â‚¬â€ ${selectedSection}! Score: ${scorePercent.toFixed(0)}%`
+        `Visual Merchandising Checklist submitted successfully for ${selectedFloor} — ${selectedSection}! Score: ${scorePercent.toFixed(0)}%`
       );
       loadData();
     } catch (err: any) {
@@ -469,12 +469,12 @@ export default function VmChecklist() {
                 <div>
                   <div className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-1.5">
                     <span>Step 1 of 2</span>
-                    <span>Ã¢â‚¬Â¢</span>
+                    <span>•</span>
                     <span>Store Floor Directory</span>
                   </div>
                   <h2 className="text-xl font-black text-primary tracking-tight">Select Store Floor</h2>
                   <p className="text-xs text-primary/70 font-medium mt-0.5">
-                    Choose a store floor to begin the Visual Merchandising audit inspection.
+                    Choose a store floor to begin the Visual Merchandising Audit inspection.
                   </p>
                 </div>
               </div>
@@ -509,7 +509,7 @@ export default function VmChecklist() {
 
             {/* Floor Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Object.entries(floorsData).map(([floorKey, floorInfo]) => (
+              {Object.entries(floorsData).sort((a, b) => { const order = ["Ground Floor", "First Floor", "Second Floor", "Third Floor"]; const aIdx = order.indexOf(a[0]); const bIdx = order.indexOf(b[0]); return (aIdx !== -1 ? aIdx : 99) - (bIdx !== -1 ? bIdx : 99); }).map(([floorKey, floorInfo]) => (
                 <div
                   key={floorKey}
                   onClick={() => setSelectedFloor(floorKey)}
@@ -579,7 +579,7 @@ export default function VmChecklist() {
                 <div>
                   <div className="text-xs font-black text-accent uppercase tracking-wider flex items-center gap-1.5">
                     <span>Floor: {selectedFloor}</span>
-                    <span>Ã¢â‚¬Â¢</span>
+                    <span>•</span>
                     <span>Step 2 of 2</span>
                   </div>
                   <h2 className="text-xl font-black text-primary tracking-tight">
@@ -815,7 +815,7 @@ export default function VmChecklist() {
                     Visual Merchandising Checklist Evaluation (11 Points)
                   </h3>
                   <p className="text-xs text-primary/70 font-medium mt-0.5">
-                    Evaluating section standard compliance for: <strong className="text-primary">{selectedFloor} Ã¢â‚¬â€ {selectedSection}</strong>
+                    Evaluating section standard compliance for: <strong className="text-primary">{selectedFloor} — {selectedSection}</strong>
                   </p>
                 </div>
                 <span className="text-xs font-bold text-accent">
@@ -865,7 +865,7 @@ export default function VmChecklist() {
                                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                                 }`}
                             >
-                              {sc === 'Pass' ? 'Ã¢Å“â€œ Pass' : sc === 'Fail' ? 'Ã¢Å“â€” Fail' : 'Ã¢â‚¬â€ N/A'}
+                              {sc === 'Pass' ? '✓ Pass' : sc === 'Fail' ? '✗ Fail' : '— N/A'}
                             </button>
                           );
                         })}
