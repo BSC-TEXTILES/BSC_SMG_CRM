@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ToastContainer from '../components/Toast';
 import { API, Auth, UserSession } from '../services/api';
+import { getDashboardTypeForRole, getDashboardLabelForRole } from '../utils/dashboardRouting';
 import MetricCard from '../components/ui/MetricCard';
 import PageHeader from '../components/ui/PageHeader';
 import {
@@ -33,7 +34,10 @@ import {
   QrCode,
   LogIn,
   ShieldCheck,
-  ShieldAlert
+  ShieldAlert,
+  FileText,
+  CheckSquare,
+  Settings
 } from 'lucide-react';
 import EmployeeProfileModal from '../components/ui/EmployeeProfileModal';
 
@@ -174,6 +178,27 @@ export default function DashboardPage() {
 
   const isGreeter = session?.role === 'Greeter';
 
+  // Role detection for the three dashboards: Admin Dashboard, HR Dashboard, Manager Dashboard
+  const [searchParams] = useSearchParams();
+  const requestedView = searchParams.get('view');
+  const roleType = getDashboardTypeForRole(session?.role);
+  const activeDashboard = (requestedView === 'admin' || requestedView === 'hr' || requestedView === 'manager')
+    ? requestedView
+    : roleType;
+
+  const isAdminUser = ['Admin', 'Super Admin'].includes(session?.role || '');
+  const isAdminDashboard = activeDashboard === 'admin';
+  const isHRDashboard = activeDashboard === 'hr';
+  const isManagerDashboard = activeDashboard === 'manager';
+
+  const dashboardTitle = isGreeter
+    ? "Entrance Greeter & Visitor Desk"
+    : isAdminDashboard
+    ? "Admin Dashboard"
+    : isHRDashboard
+    ? "HR Dashboard"
+    : "Manager Dashboard";
+
   return (
     <div className="min-h-screen bg-background flex">
       <ToastContainer />
@@ -186,7 +211,7 @@ export default function DashboardPage() {
 
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
         <Topbar 
-          title={isGreeter ? "Entrance Greeter & Visitor Desk" : "Executive Operations & Workforce Hub"} 
+          title={dashboardTitle} 
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />
@@ -197,21 +222,64 @@ export default function DashboardPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary text-accent text-[10px] font-black uppercase tracking-widest mb-1.5">
                 <Building2 className="w-3.5 h-3.5" />
-                <span>BSC EXCLUSIVE DAVANAGERE</span>
+                <span>
+                  {isGreeter
+                    ? 'GREETER KIOSK • BSC EXCLUSIVE'
+                    : isAdminDashboard
+                    ? 'ADMIN DASHBOARD • EXECUTIVE WORKSPACE'
+                    : isHRDashboard
+                    ? 'HR DASHBOARD • TALENT MANAGEMENT'
+                    : 'MANAGER DASHBOARD • STORE OPERATIONS'}
+                </span>
               </div>
               <h2 className="text-xl font-black text-primary tracking-tight flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-accent" />
-                <span>{isGreeter ? 'Entrance Greeter & Visitor Operations Hub' : 'Employee Maintenance & Store Feedback Analytics'}</span>
+                <span>
+                  {isGreeter
+                    ? 'Entrance Greeter & Visitor Operations Hub'
+                    : isAdminDashboard
+                    ? 'Admin Dashboard — Executive & Workforce Operations'
+                    : isHRDashboard
+                    ? 'HR Dashboard — Talent Acquisition & Employee Operations'
+                    : 'Manager Dashboard — Store Floor & Service Operations'}
+                </span>
               </h2>
               <p className="text-xs text-primary/70 font-medium mt-0.5">
                 {isGreeter 
                   ? 'Real-time visitor footfall counters, entrance greeter kiosk, customer feedback QR & sourcing diverts.'
-                  : 'Active workforce directory, customer feedback collections & daily store operations.'
+                  : isAdminDashboard
+                  ? 'Executive storewide operational metrics, active employee directory, customer CSAT index & admin controls.'
+                  : isHRDashboard
+                  ? 'Active workforce directory, candidate pipeline, recruitment offers & attendance rosters.'
+                  : 'Daily MCheck audits, hourly footfall registers, feedback call queues & merchandise diverts.'
                 }
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {isAdminUser && (
+                <div className="hidden md:flex items-center gap-1 bg-white p-1 rounded-xl border border-accent-soft shadow-xs text-xs font-bold mr-2">
+                  <button
+                    onClick={() => navigate('/dashboard?view=admin')}
+                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isAdminDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary/70 hover:text-primary'}`}
+                  >
+                    Admin
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard?view=hr')}
+                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isHRDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary/70 hover:text-primary'}`}
+                  >
+                    HR
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard?view=manager')}
+                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isManagerDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary/70 hover:text-primary'}`}
+                  >
+                    Manager
+                  </button>
+                </div>
+              )}
+
               {isGreeter ? (
                 <>
                   <button 
@@ -236,21 +304,76 @@ export default function DashboardPage() {
                     <span>Feedback QR</span>
                   </button>
                 </>
-              ) : (
+              ) : isAdminDashboard ? (
                 <>
                   <button 
-                    onClick={() => navigate('/feedback-collection')} 
+                    onClick={() => navigate('/user-management')} 
                     className="btn-gold text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Feedback Collection</span>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>User Management</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/settings')} 
+                    className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>System Settings</span>
                   </button>
                   <button 
                     onClick={() => navigate('/attendance')} 
+                    className="px-4 py-2 rounded-xl bg-white border border-accent-soft text-primary text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    <CalendarCheck className="w-4 h-4 text-accent" />
+                    <span>Attendance</span>
+                  </button>
+                </>
+              ) : isHRDashboard ? (
+                <>
+                  <button 
+                    onClick={() => navigate('/candidates')} 
+                    className="btn-gold text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Candidate CRM</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/offer-process')} 
                     className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
                   >
-                    <CalendarCheck className="w-4 h-4" />
+                    <FileText className="w-4 h-4" />
+                    <span>Offer Desk</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/attendance')} 
+                    className="px-4 py-2 rounded-xl bg-white border border-accent-soft text-primary text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    <CalendarCheck className="w-4 h-4 text-accent" />
                     <span>Mark Attendance</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => navigate('/daily-mcheck')} 
+                    className="btn-gold text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Daily MCheck</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/footfall')} 
+                    className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
+                  >
+                    <Footprints className="w-4 h-4" />
+                    <span>Hourly Footfall</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/feedback-collection')} 
+                    className="px-4 py-2 rounded-xl bg-white border border-accent-soft text-primary text-xs font-extrabold hover:bg-gray-50 flex items-center gap-1.5 shadow-xs"
+                  >
+                    <MessageSquare className="w-4 h-4 text-accent" />
+                    <span>Feedback Queue</span>
                   </button>
                 </>
               )}
@@ -528,8 +651,8 @@ export default function DashboardPage() {
                         className="input-modern pl-9 pr-4 text-xs py-2 w-full sm:w-64"
                       />
                     </div>
-                    <button onClick={() => navigate('/wedding-registration')} className="btn-primary text-xs py-2 whitespace-nowrap shadow-sm">
-                      + Add Wedding Registration
+                    <button onClick={() => navigate('/employees')} className="btn-primary text-xs py-2 whitespace-nowrap shadow-sm">
+                      + Employee Directory
                     </button>
                   </div>
                 </div>

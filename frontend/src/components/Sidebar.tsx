@@ -26,6 +26,7 @@ import {
   setSidebarCollapsed, 
   subscribeSidebarCollapsed 
 } from '../utils/sidebarState';
+import { getDashboardLabelForRole } from '../utils/dashboardRouting';
 
 interface SidebarProps {
   session: UserSession | null;
@@ -133,7 +134,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'pm_view', href: '/pm-view', label: 'Purchase Manager View', icon: Briefcase, section: 'Store Operations' },
     { key: 'vm_checklist', href: '/vm-checklist', label: 'VM Checklist', icon: ClipboardList, section: 'Store Operations' },
     { key: 'attendance', href: '/attendance', label: 'Attendance & Roster', icon: UserCheck, section: 'Store Operations' },
-    { key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: BarChart3, section: 'Core Workspace' },
+    { key: 'dashboard', href: '/dashboard', label: getDashboardLabelForRole(role), icon: BarChart3, section: 'Core Workspace' },
     { key: 'candidates', href: '/candidates', label: 'Candidate CRM', icon: Users, section: 'Core Workspace' },
     { key: 'offer', href: '/offer-process', label: 'Offer Desk', icon: FileText, section: 'Core Workspace' },
     { key: 'openings', href: '/openings', label: 'Manpower Planning', icon: Briefcase, section: 'Core Workspace' },

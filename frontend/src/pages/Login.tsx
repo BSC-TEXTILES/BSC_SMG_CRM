@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { API, Auth } from '../services/api';
 import ToastContainer, { showToast } from '../components/Toast';
 import { ShieldCheck, Lock, User, ArrowRight, MapPin, RefreshCw, Hash, Eye, EyeOff, Sparkles, Search } from 'lucide-react';
+import { getDashboardRouteForRole } from '../utils/dashboardRouting';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -117,11 +118,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (Auth.check()) {
       const user = Auth.get();
-      if (user && ['Admin', 'Super Admin'].includes(user.role)) {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      navigate(getDashboardRouteForRole(user?.role), { replace: true });
     }
   }, [navigate]);
 
@@ -196,11 +193,9 @@ export default function LoginPage() {
             { timeout: 8000, maximumAge: 300000 }
           );
         }
-        if (['Admin', 'Super Admin'].includes(user.role)) {
-        navigate('/wedding-registration', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
+        // Detect role and route directly to authorized dashboard (Admin, HR, or Manager Dashboard)
+        const targetDashboard = getDashboardRouteForRole(user.role);
+        navigate(targetDashboard, { replace: true });
       } else {
         if (res.locked || res.remainingSeconds) {
           setIsLocked(true);
