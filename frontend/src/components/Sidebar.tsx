@@ -314,7 +314,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
                       <Link
                         key={item.key}
                         to={item.href}
-                        target={item.target}
+                        target={(item as any).target}
                         onClick={onClose}
                         title={item.label}
                         data-active={isActive ? 'true' : undefined}
