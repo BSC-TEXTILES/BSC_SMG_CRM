@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [captchaSvg, setCaptchaSvg] = useState('');
   const [captchaId, setCaptchaId] = useState('');
   const [captchaText, setCaptchaText] = useState('');
+  const captchaTextRef = React.useRef(captchaText);
+  captchaTextRef.current = captchaText;
   const [codeLength, setCodeLength] = useState(4);
   const [captchaLoading, setCaptchaLoading] = useState(false);
   const [countdown, setCountdown] = useState(30);
@@ -84,10 +86,9 @@ export default function LoginPage() {
 
   // ── Numeric captcha: fetched from the server, auto-refreshed every 30 s,
   // and reloaded automatically after any failed sign-in attempt. ──
-  // Only auto-refresh when user is NOT typing in the captcha field
-  const loadCaptcha = React.useCallback(async () => {
-    // Don't refresh if user is currently typing in captcha
-    if (captchaText && captchaText.length > 0) {
+  const loadCaptcha = React.useCallback(async (force = false) => {
+    // Don't refresh if user is currently typing in captcha (unless forced)
+    if (!force && captchaTextRef.current && captchaTextRef.current.length > 0) {
       return;
     }
     setCaptchaLoading(true);
@@ -95,7 +96,9 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/captcha');
       const json = await res.json();
       if (json?.data?.svg) {
-        setCaptchaSvg('data:image/svg+xml;utf8,' + encodeURIComponent(json.data.svg));
+        // Use base64 encoding for reliable SVG rendering in <img>
+        const base64Svg = btoa(json.data.svg);
+        setCaptchaSvg('data:image/svg+xml;base64,' + base64Svg);
         setCaptchaId(json.data.captchaId);
         if (typeof json.data.codeLength === 'number' && json.data.codeLength > 0) {
           setCodeLength(json.data.codeLength);
@@ -105,17 +108,17 @@ export default function LoginPage() {
       setCaptchaSvg('');
     } finally {
       setCaptchaLoading(false);
-      setCaptchaText('');
+      if (force) setCaptchaText('');
     }
-  }, [captchaText]);
+  }, []);
 
   useEffect(() => {
-    loadCaptcha();
+    loadCaptcha(true);
     setCountdown(30);
     const t = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          loadCaptcha();
+          loadCaptcha(true);
           return 30;
         }
         return prev - 1;
@@ -204,13 +207,13 @@ export default function LoginPage() {
           setLockRemainingSeconds(res.remainingSeconds || 600);
         }
         setErrorMsg(res.message || 'Sign-in failed. Please check your details and the captcha.');
-        loadCaptcha();
+        loadCaptcha(true);
       }
     } catch (err: any) {
       // If error message indicates lockout, check server lock status
       checkServerLock();
       setErrorMsg(err.message || 'Sign-in failed. Please try again.');
-      loadCaptcha();
+      loadCaptcha(true);
     } finally {
       setLoading(false);
     }
@@ -350,7 +353,7 @@ export default function LoginPage() {
                 )}
                 <button
                   type="button"
-                  onClick={() => { loadCaptcha(); setCountdown(30); }}
+                  onClick={() => { loadCaptcha(true); setCountdown(30); }}
                   className="p-2 rounded-lg border border-accent-soft text-primary hover:bg-background transition-colors"
                   title="Load a new security code"
                   aria-label="Refresh captcha"

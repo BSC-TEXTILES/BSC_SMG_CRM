@@ -7,38 +7,47 @@
  * Do NOT hardcode PORT=5000 - Passenger assigns a dynamic port each time.
  */
 
+const fs = require('fs');
+const path = require('path');
+
+// ── Directory References ──────────────────────────────────────────────────────
+const APP_ROOT = __dirname;
+const SERVER_DIR = path.join(APP_ROOT, 'server');
+
+// ── Global Crash Handlers (Mounted immediately before any other requires) ────
+process.on('uncaughtException', (err) => {
+  const msg = `[CRITICAL uncaughtException] ${new Date().toISOString()} ${err?.code || ''} ${err?.message || err}\n${err?.stack || ''}\n`;
+  console.error(msg);
+  try { fs.appendFileSync(path.join(APP_ROOT, 'crash.log'), msg); } catch(e) {}
+  process.exit(1); // Exit so Passenger/process manager can cleanly restart
+});
+process.on('unhandledRejection', (reason) => {
+  const msg = `[CRITICAL unhandledRejection] ${new Date().toISOString()} ${reason?.message || reason}\n${reason?.stack || ''}\n`;
+  console.error(msg);
+  try { fs.appendFileSync(path.join(APP_ROOT, 'crash.log'), msg); } catch(e) {}
+});
+
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const http = require('http');
-const { Server } = require('socket.io');
-// ── Directory References ──────────────────────────────────────────────────────
-const APP_ROOT = __dirname;
-const SERVER_DIR = path.join(APP_ROOT, 'server');
+
+let Server = null;
+try {
+  Server = require('socket.io').Server;
+} catch (e) {
+  console.warn('[Boot] socket.io module not found or failed to load. Real-time updates disabled:', e.message);
+}
 
 // ── Load .env as FALLBACK only ────────────────────────────────────────────────
 // Passenger injects PORT before this script runs. dotenv NEVER overrides
 // already-set process.env values, so Passenger's PORT is always preserved.
-// Do NOT add PORT to server/.env or hPanel dashboard!
 dotenv.config({ path: path.join(APP_ROOT, '..', '.env') });
 dotenv.config({ path: path.join(APP_ROOT, '.env') });
 dotenv.config({ path: path.join(SERVER_DIR, '.env') });
-
-// ── Global Crash Handlers ─────────────────────────────────────────────────────
-process.on('uncaughtException', (err) => {
-  const msg = `[CRITICAL uncaughtException] ${new Date().toISOString()} ${err.code} ${err.message}\n${err.stack}\n`;
-  console.error(msg);
-  try { fs.appendFileSync(path.join(APP_ROOT, 'crash.log'), msg); } catch(e) {}
-  process.exit(1); // Always exit on uncaught exception so Passenger can restart cleanly
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('[CRITICAL unhandledRejection]', reason);
-});
 
 // ── Load modules ──────────────────────────────────────────────────────────────
 const pool = require('./src/config/db');
@@ -54,7 +63,6 @@ const workflowProcessor = require('./src/services/workflowProcessor');
 const app = express();
 
 // Resilient PORT parsing: strictly respects deployment platform's PORT (integers or Passenger domain sockets)
-// Note: Passenger or deployment proxies often pass dynamic ports. Only fallback to 3000 if PORT is completely unset.
 let rawPort = process.env.PORT;
 let PORT = 3000;
 let isSocketPort = false;
@@ -528,21 +536,27 @@ autoInitializeDatabase(pool)
 // The listen() call is what signals to Passenger that the app is ready.
 const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
+if (Server) {
+  try {
+    const io = new Server(server, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+      }
+    });
+
+    app.set('io', io);
+
+    io.on('connection', (socket) => {
+      console.log(`[Socket] Client connected: ${socket.id}`);
+      socket.on('disconnect', () => {
+        console.log(`[Socket] Client disconnected: ${socket.id}`);
+      });
+    });
+  } catch (socketErr) {
+    console.warn('[Socket] Failed to initialize Socket.io:', socketErr.message);
   }
-});
-
-app.set('io', io);
-
-io.on('connection', (socket) => {
-  console.log(`[Socket] Client connected: ${socket.id}`);
-  socket.on('disconnect', () => {
-    console.log(`[Socket] Client disconnected: ${socket.id}`);
-  });
-});
+}
 
 if (isSocketPort) {
   server.listen(PORT, () => {
