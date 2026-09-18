@@ -20,7 +20,7 @@ export default function EmptyState({
         <Icon className="w-8 h-8 stroke-[1.5]" />
       </div>
       <h3 className="text-base font-extrabold text-primary">{title}</h3>
-      <p className="text-xs text-primary/70 max-w-sm mt-1 mb-5 font-medium leading-relaxed">
+      <p className="text-xs text-primary max-w-sm mt-1 mb-5 font-medium leading-relaxed">
         {description}
       </p>
       {action && <div>{action}</div>}

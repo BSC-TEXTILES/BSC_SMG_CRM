@@ -163,12 +163,12 @@ export default function DeveloperTools() {
 
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-4">
           {/* Header */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-2xl p-4 sm:p-6 text-white shadow-xl">
+          <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-2xl p-4 sm:p-6 text-black shadow-xl">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white/10 rounded-xl"><Server className="w-6 h-6" /></div>
+              <div className="p-2 bg-black/10 rounded-xl"><Server className="w-6 h-6" /></div>
               <div>
                 <h2 className="text-lg sm:text-xl font-black">Developer Tools & System Diagnostics</h2>
-                <p className="text-xs text-white/60">API health, database status, route inspection, system diagnostics & application logs</p>
+                <p className="text-xs text-black">API health, database status, route inspection, system diagnostics & application logs</p>
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function DeveloperTools() {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                     activeTab === tab.key
                       ? 'bg-primary text-white shadow-lg'
-                      : 'bg-white text-primary/70 hover:bg-primary/5 border border-gray-200'
+                      : 'bg-white text-primary hover:bg-primary/5 border border-gray-200'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export default function DeveloperTools() {
                 </button>
               );
             })}
-            <button onClick={() => { const loadMap: Record<string, () => void> = { health: loadHealth, database: loadDbHealth, routes: loadRoutes, logs: loadLogs, diagnostics: loadDiagnostics, dependencies: loadDependencies }; loadMap[activeTab]?.(); }} className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold bg-white text-primary/70 hover:bg-primary/5 border border-gray-200">
+            <button onClick={() => { const loadMap: Record<string, () => void> = { health: loadHealth, database: loadDbHealth, routes: loadRoutes, logs: loadLogs, diagnostics: loadDiagnostics, dependencies: loadDependencies }; loadMap[activeTab]?.(); }} className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold bg-white text-primary hover:bg-primary/5 border border-gray-200">
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>

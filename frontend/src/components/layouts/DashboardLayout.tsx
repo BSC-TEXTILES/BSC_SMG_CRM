@@ -86,7 +86,7 @@ export default function DashboardLayout({
               onClick={() => { setSpeedDialOpen(false); navigate('/divert'); }}
               className="px-4 py-2.5 rounded-2xl bg-primary text-white text-xs font-black shadow-xl border border-accent/20 flex items-center gap-2"
             >
-              <Target className="w-4 h-4 text-[#C58A24]" />
+              <Target className="w-4 h-4 text-[#B8860B]" />
               <span>Sourcing Diverts</span>
             </button>
 
@@ -94,7 +94,7 @@ export default function DashboardLayout({
               onClick={() => { setSpeedDialOpen(false); navigate('/feedback-list'); }}
               className="px-4 py-2.5 rounded-2xl bg-primary text-white text-xs font-black shadow-xl border border-accent/20 flex items-center gap-2"
             >
-              <PhoneCall className="w-4 h-4 text-[#27805B]" />
+              <PhoneCall className="w-4 h-4 text-[#2D8659]" />
               <span>Feedback Call Queue</span>
             </button>
 

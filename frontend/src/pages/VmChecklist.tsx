@@ -353,9 +353,9 @@ export default function VmChecklist() {
 
   // Chart Data: Audit Status Distribution
   const statusData = [
-    { name: 'Passed', value: completedInspections, fill: '#059669' },
-    { name: 'Review', value: pendingInspections, fill: '#D97706' },
-    { name: 'Failed', value: failedInspections, fill: '#E11D48' }
+    { name: 'Passed', value: completedInspections, fill: '#2D8659' },
+    { name: 'Review', value: pendingInspections, fill: '#B8860B' },
+    { name: 'Failed', value: failedInspections, fill: '#C0392B' }
   ].filter(d => d.value > 0);
 
   // Chart Data: Floor-wise Performance
@@ -473,7 +473,7 @@ export default function VmChecklist() {
                     <span>Store Floor Directory</span>
                   </div>
                   <h2 className="text-xl font-black text-primary tracking-tight">Select Store Floor</h2>
-                  <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  <p className="text-xs text-primary font-medium mt-0.5">
                     Choose a store floor to begin the Visual Merchandising Audit inspection.
                   </p>
                 </div>
@@ -526,7 +526,7 @@ export default function VmChecklist() {
                       <h3 className="font-extrabold text-base text-primary group-hover:text-accent-hover transition-colors flex items-center gap-1.5">
                         <span>{floorInfo.label}</span>
                       </h3>
-                      <p className="text-[11px] text-primary/70 font-medium mt-0.5 line-clamp-2">
+                      <p className="text-[11px] text-primary font-medium mt-0.5 line-clamp-2">
                         {floorInfo.description}
                       </p>
                     </div>
@@ -585,7 +585,7 @@ export default function VmChecklist() {
                   <h2 className="text-xl font-black text-primary tracking-tight">
                     Select Section on {selectedFloor}
                   </h2>
-                  <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  <p className="text-xs text-primary font-medium mt-0.5">
                     Showing only sections assigned to {selectedFloor}. Select one to load the 11 VM evaluation check points.
                   </p>
                 </div>
@@ -620,7 +620,7 @@ export default function VmChecklist() {
                     <h3 className="font-extrabold text-base text-primary group-hover:text-accent-hover transition-colors">
                       {secName}
                     </h3>
-                    <p className="text-[11px] text-primary/70 font-medium">
+                    <p className="text-[11px] text-primary font-medium">
                       {selectedFloor} Department Section
                     </p>
                   </div>
@@ -686,7 +686,7 @@ export default function VmChecklist() {
               {/* Controls Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end pt-1">
                 <div>
-                  <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider">
+                  <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider">
                     Store Floor
                   </label>
                   <select
@@ -703,7 +703,7 @@ export default function VmChecklist() {
                 </div>
 
                 <div>
-                  <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider">
+                  <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider">
                     Floor Section
                   </label>
                   <select
@@ -720,7 +720,7 @@ export default function VmChecklist() {
                 </div>
 
                 <div>
-                  <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider">
+                  <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider">
                     Audit Shift
                   </label>
                   <select
@@ -814,7 +814,7 @@ export default function VmChecklist() {
                   <h3 className="text-sm font-extrabold text-primary uppercase tracking-wider">
                     Visual Merchandising Checklist Evaluation (11 Points)
                   </h3>
-                  <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  <p className="text-xs text-primary font-medium mt-0.5">
                     Evaluating section standard compliance for: <strong className="text-primary">{selectedFloor} — {selectedSection}</strong>
                   </p>
                 </div>
@@ -860,8 +860,8 @@ export default function VmChecklist() {
                                 ? sc === 'Pass'
                                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                                   : sc === 'Fail'
-                                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
-                                    : 'bg-gray-700 text-white border-gray-700 shadow-sm'
+                                    ? 'bg-rose-600 text-black border-rose-600 shadow-sm'
+                                    : 'bg-gray-700 text-black border-gray-700 shadow-sm'
                                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                                 }`}
                             >
@@ -923,7 +923,7 @@ export default function VmChecklist() {
                 <MinusCircle className="w-5 h-5" />
                 Areas Requiring Attention
               </h3>
-              <p className="text-xs text-primary/70 font-medium">Sections and questions that consistently score low.</p>
+              <p className="text-xs text-primary font-medium">Sections and questions that consistently score low.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -959,7 +959,7 @@ export default function VmChecklist() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-black text-primary tracking-tight">Recent Inspections</h3>
-              <p className="text-xs text-primary/70 font-medium">History of saved Visual Merchandising checklists (filtered by selection).</p>
+              <p className="text-xs text-primary font-medium">History of saved Visual Merchandising checklists (filtered by selection).</p>
             </div>
             <div className="px-3 py-1 bg-accent/10 text-accent font-bold text-[10px] uppercase rounded-full tracking-widest">
               {filteredSubmissions.length} Records
@@ -994,7 +994,7 @@ export default function VmChecklist() {
                     }
                     window.scrollTo({ top: 300, behavior: 'smooth' });
                   }}>
-                    <div className={`absolute top-0 left-0 w-1 h-full ${subScore >= 80 ? 'bg-emerald-500' : subScore >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                    <div className={`absolute top-0 left-0 w-1 h-full ${subScore >= 80 ? 'bg-emerald-500' : subScore >= 50 ? 'bg-black' : 'bg-rose-500'}`} />
                     <div className="flex justify-between items-start mb-2">
                       <div className="text-[10px] font-black uppercase text-primary/60">{d}</div>
                       <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${subScore >= 80 ? 'bg-emerald-100 text-emerald-700' : subScore >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
@@ -1003,10 +1003,10 @@ export default function VmChecklist() {
                     </div>
                     <div className="font-extrabold text-sm text-primary mb-1">{sub.floor}</div>
                     <div className="text-xs font-bold text-accent mb-2">{sub.section || 'General Section'}</div>
-                    <div className="text-[10px] font-bold text-primary/70 mb-3">
+                    <div className="text-[10px] font-bold text-primary mb-3">
                       {passedQ} / {totalQ} Questions Passed
                     </div>
-                    <div className="pt-3 border-t border-accent-soft/60 flex justify-between items-center text-[10px] font-medium text-primary/70">
+                    <div className="pt-3 border-t border-accent-soft/60 flex justify-between items-center text-[10px] font-medium text-primary">
                       <span>{sub.shift || 'Opening'} Shift</span>
                       <span className="font-bold">{sub.submittedBy}</span>
                     </div>
@@ -1026,7 +1026,7 @@ export default function VmChecklist() {
                   <Sparkles className="w-5 h-5 text-accent" />
                   Visual Merchandising Analytics
                 </h2>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                <p className="text-xs text-primary font-medium mt-0.5">
                   Real-time insights and performance metrics derived from actual saved inspections.
                 </p>
               </div>
@@ -1130,11 +1130,11 @@ export default function VmChecklist() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Overall VM Score Ring */}
             <div className="card-glass p-5 bg-white border-accent/20 flex flex-col items-center justify-center text-center col-span-1">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-6">Overall VM Score</h3>
+              <h3 className="text-sm font-black uppercase text-primary mb-6">Overall VM Score</h3>
               <div className="relative w-40 h-40 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" strokeWidth="8" />
-                  <circle cx="50" cy="50" r="45" fill="none" stroke={averageScore >= 80 ? '#059669' : averageScore >= 50 ? '#d97706' : '#e11d48'} strokeWidth="8" strokeDasharray={`${(averageScore / 100) * 283} 283`} strokeLinecap="round" className="transition-all duration-1000" />
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#F5F0EB" strokeWidth="8" />
+                  <circle cx="50" cy="50" r="45" fill="none" stroke={averageScore >= 80 ? '#2D8659' : averageScore >= 50 ? '#B8860B' : '#C0392B'} strokeWidth="8" strokeDasharray={`${(averageScore / 100) * 283} 283`} strokeLinecap="round" className="transition-all duration-1000" />
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center">
                   <span className="text-3xl font-black text-primary">{averageScore}%</span>
@@ -1164,20 +1164,20 @@ export default function VmChecklist() {
 
             {/* Floor-wise Performance Chart */}
             <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Floor-wise Performance</h3>
+              <h3 className="text-sm font-black uppercase text-primary mb-4">Floor-wise Performance</h3>
               <div className="h-56 flex items-center justify-center">
                 {floorChartData.length === 0 ? (
                   <span className="text-xs text-primary/50 font-bold">No data available</span>
                 ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={floorChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DDD4" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B5D50', fontWeight: 600 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B5D50' }} domain={[0, 100]} />
+                    <Tooltip cursor={{ fill: '#FBF8F5' }} contentStyle={{ borderRadius: '12px', border: '1px solid #E8DDD4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }} />
                     <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={50}>
                       {floorChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.score >= 80 ? '#059669' : entry.score >= 50 ? '#d97706' : '#e11d48'} />
+                        <Cell key={`cell-${index}`} fill={entry.score >= 80 ? '#2D8659' : entry.score >= 50 ? '#B8860B' : '#C0392B'} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -1190,7 +1190,7 @@ export default function VmChecklist() {
           {/* Charts Row 2: Status Distribution & VM Trend */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="card-glass p-5 bg-white border-accent/20">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">Audit Status Distribution</h3>
+              <h3 className="text-sm font-black uppercase text-primary mb-2">Audit Status Distribution</h3>
               <div className="h-52 flex items-center justify-center">
                 {statusData.length === 0 ? (
                   <span className="text-xs text-primary/50 font-bold">No data available</span>
@@ -1211,18 +1211,18 @@ export default function VmChecklist() {
             </div>
 
             <div className="card-glass p-5 bg-white border-accent/20 col-span-1 lg:col-span-2">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-2">VM Score Trend</h3>
+              <h3 className="text-sm font-black uppercase text-primary mb-2">VM Score Trend</h3>
               <div className="h-52 flex items-center justify-center">
                 {trendChartData.length === 0 ? (
                   <span className="text-xs text-primary/50 font-bold">No data available</span>
                 ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={trendChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} minTickGap={20} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} domain={[0, 100]} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DDD4" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B5D50' }} minTickGap={20} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6B5D50' }} domain={[0, 100]} />
                     <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '11px', fontWeight: 'bold' }} />
-                    <Line type="monotone" dataKey="score" stroke="#c5a365" strokeWidth={3} dot={{ r: 3, fill: '#c5a365' }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="score" stroke="#D4A58A" strokeWidth={3} dot={{ r: 3, fill: '#D4A58A' }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
                 )}
@@ -1232,7 +1232,7 @@ export default function VmChecklist() {
 
           {/* Floor-wise Progress Bars */}
           <div className="card-glass p-5 bg-white border-accent/20">
-            <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Overall Progress Bars</h3>
+            <h3 className="text-sm font-black uppercase text-primary mb-4">Overall Progress Bars</h3>
             <div className="space-y-4">
               {floorProgressData.map((floor, i) => (
                 <div key={i} className="space-y-1.5">
@@ -1241,7 +1241,7 @@ export default function VmChecklist() {
                     <span className={floor.score >= 80 ? 'text-emerald-700' : floor.score >= 50 ? 'text-amber-700' : 'text-rose-700'}>{floor.score}%</span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div className={`h-full rounded-full ${floor.score >= 80 ? 'bg-emerald-500' : floor.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${floor.score}%` }}></div>
+                    <div className={`h-full rounded-full ${floor.score >= 80 ? 'bg-emerald-500' : floor.score >= 50 ? 'bg-black' : 'bg-rose-500'}`} style={{ width: `${floor.score}%` }}></div>
                   </div>
                 </div>
               ))}
@@ -1251,7 +1251,7 @@ export default function VmChecklist() {
           {/* Progress Bars: Section & Question Wise */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="card-glass p-5 bg-white border-accent/20">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Section-wise Performance</h3>
+              <h3 className="text-sm font-black uppercase text-primary mb-4">Section-wise Performance</h3>
               <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
                 {sectionChartData.length === 0 && <p className="text-xs text-primary/50">No sections match criteria.</p>}
                 {sectionChartData.map((sec, i) => (
@@ -1263,7 +1263,7 @@ export default function VmChecklist() {
                       </span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div className={`h-full rounded-full ${sec.score >= 80 ? 'bg-emerald-500' : sec.score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${sec.score}%` }}></div>
+                      <div className={`h-full rounded-full ${sec.score >= 80 ? 'bg-emerald-500' : sec.score >= 50 ? 'bg-black' : 'bg-rose-500'}`} style={{ width: `${sec.score}%` }}></div>
                     </div>
                     {sec.lastDate && (
                       <div className="text-[10px] text-primary/50 font-medium">
@@ -1276,7 +1276,7 @@ export default function VmChecklist() {
             </div>
 
             <div className="card-glass p-5 bg-white border-accent/20">
-              <h3 className="text-sm font-black uppercase text-primary/80 mb-4">Question-wise Performance</h3>
+              <h3 className="text-sm font-black uppercase text-primary mb-4">Question-wise Performance</h3>
               <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
                 {questionChartData.map((q) => (
                   <div key={q.id} className="space-y-1.5">
@@ -1305,20 +1305,20 @@ export default function VmChecklist() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <div className="card-glass bg-white rounded-3xl w-full max-w-lg shadow-2xl border-2 border-accent/40 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="p-5 bg-gradient-to-r from-primary via-primary to-[#0B1F35] text-white flex items-center justify-between">
+            <div className="p-5 bg-gradient-to-r from-primary via-primary to-[#3D2B1F] text-black flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center font-black">
                   <FolderPlus className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Create New Floor / Department Folder</h3>
+                  <h3 className="text-base font-extrabold text-black">Create New Floor / Department Folder</h3>
                   <p className="text-xs text-accent">Admin Store Configuration</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10"
+                className="text-black hover:text-black p-1 rounded-lg hover:bg-black/10"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1335,7 +1335,7 @@ export default function VmChecklist() {
 
               {/* Floor Name */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-black uppercase text-primary/70 tracking-wider">
+                <label className="block text-xs font-black uppercase text-primary tracking-wider">
                   Floor / Folder Name <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -1350,7 +1350,7 @@ export default function VmChecklist() {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-black uppercase text-primary/70 tracking-wider">
+                <label className="block text-xs font-black uppercase text-primary tracking-wider">
                   Description / Department Category
                 </label>
                 <input
@@ -1364,7 +1364,7 @@ export default function VmChecklist() {
 
               {/* Department Sections */}
               <div className="space-y-2">
-                <label className="block text-xs font-black uppercase text-primary/70 tracking-wider">
+                <label className="block text-xs font-black uppercase text-primary tracking-wider">
                   Department Sections <span className="text-rose-600">*</span>
                 </label>
                 <div className="flex gap-2">

@@ -47,7 +47,7 @@ const STATUS_OPTIONS = ['PENDING', 'IN_PROGRESS', 'DONE', 'NOT_DONE', 'POSTPONED
 function Toast({ msg, type }: { msg: string; type: 'success' | 'error' | 'info' }) {
   const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-primary';
   return (
-    <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>
+    <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-black text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>
       {msg}
     </div>
   );
@@ -313,7 +313,7 @@ export default function DailyMCheck() {
   const KpiCard = ({ label, value, color, icon: Icon }: any) => (
     <div className="card-glass p-4 flex items-center gap-3 min-w-0 bg-white border border-gray-100 shadow-sm rounded-2xl">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-        <Icon className="w-5 h-5 text-white" />
+        <Icon className="w-5 h-5 text-black" />
       </div>
       <div className="min-w-0">
         <div className="text-2xl font-black text-primary leading-tight">{value}</div>
@@ -428,20 +428,20 @@ export default function DailyMCheck() {
           {!selectedModule ? (
             <>
               {/* Date Banner */}
-              <div className="bg-primary rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-md border border-white/10">
+              <div className="bg-primary rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-md border border-black/10">
                 <div>
                   <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-1">BSC SMG CRM — DAILY MANAGEMENT CHECKLIST</div>
                   <div className="text-2xl font-black">{dashData?.dateDisplay || selectedDate}</div>
-                  <div className="text-sm text-white/70 mt-0.5">
+                  <div className="text-sm text-black/90 mt-0.5">
                     {dashLoading ? 'Loading metrics...' : `${kpi?.total ?? 0} Total Daily Checkpoints`}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="text-4xl font-black text-accent">{dashLoading ? '—' : `${kpi?.completionPct || 0}%`}</div>
-                    <div className="text-[10px] font-bold text-white/60 uppercase tracking-wide">Overall Completion</div>
+                    <div className="text-[10px] font-bold text-black uppercase tracking-wide">Overall Completion</div>
                   </div>
-                  <div className="w-14 h-14 rounded-full border-4 border-white/20 flex items-center justify-center relative">
+                  <div className="w-14 h-14 rounded-full border-4 border-black/20 flex items-center justify-center relative">
                     <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 56 56">
                       <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="5" />
                       <circle
@@ -450,7 +450,7 @@ export default function DailyMCheck() {
                         strokeLinecap="round"
                       />
                     </svg>
-                    <BarChart3 className="w-5 h-5 text-white/80 relative z-10" />
+                    <BarChart3 className="w-5 h-5 text-black relative z-10" />
                   </div>
                 </div>
               </div>
@@ -468,7 +468,7 @@ export default function DailyMCheck() {
                   <KpiCard label="Completed" value={kpi?.done ?? 0} color="bg-emerald-600" icon={CheckCircle2} />
                   <KpiCard label="Pending" value={kpi?.pending ?? 0} color="bg-gray-400" icon={Circle} />
                   <KpiCard label="Not Done" value={kpi?.notDone ?? 0} color="bg-red-500" icon={XCircle} />
-                  <KpiCard label="In Progress" value={kpi?.inProgress ?? 0} color="bg-amber-500" icon={Clock} />
+                  <KpiCard label="In Progress" value={kpi?.inProgress ?? 0} color="bg-black" icon={Clock} />
                   <KpiCard label="Postponed" value={kpi?.postponed ?? 0} color="bg-purple-600" icon={AlertCircle} />
                   <KpiCard label="Completion" value={`${kpi?.completionPct ?? 0}%`} color="bg-accent" icon={Zap} />
                 </div>
@@ -575,7 +575,7 @@ export default function DailyMCheck() {
                           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary transition-all shadow-sm disabled:opacity-60"
                         >
                           {submitAllLoading ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                           ) : (
                             <Send className="w-3.5 h-3.5 text-accent" />
                           )}
@@ -645,7 +645,7 @@ export default function DailyMCheck() {
 
                           {/* Response Form (Section 10) */}
                           {isExpanded && (
-                            <div className="px-5 pb-6 border-t border-gray-100 pt-5 space-y-5 bg-[#FFFFFF]/60 animate-fade-in">
+                            <div className="px-5 pb-6 border-t border-gray-100 pt-5 space-y-5 bg-white/60 animate-fade-in">
                               {/* Checkpoint Meta Details */}
                               <div className="bg-white border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                                 <div>
@@ -823,7 +823,7 @@ export default function DailyMCheck() {
                                   className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary transition-all disabled:opacity-60 shadow-md"
                                 >
                                   {saving[cp.id] ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                                   ) : (
                                     <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
                                   )}
@@ -854,9 +854,9 @@ export default function DailyMCheck() {
                   <Settings className="w-5 h-5 text-accent" />
                   MCheck Administrator Configuration
                 </h3>
-                <p className="text-xs text-white/70">Manage modules, checkpoints, assignments, and verification schedules</p>
+                <p className="text-xs text-black/90">Manage modules, checkpoints, assignments, and verification schedules</p>
               </div>
-              <button onClick={() => setShowAdminModal(false)} className="text-white/60 hover:text-white">
+              <button onClick={() => setShowAdminModal(false)} className="text-black hover:text-black">
                 <X className="w-5 h-5" />
               </button>
             </div>

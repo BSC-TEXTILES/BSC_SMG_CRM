@@ -31,7 +31,7 @@ export const Auth = {
       }));
       
       // Track login in user tracking system
-      const ipAddress = typeof window !== 'undefined' ? window.ipAddress : undefined;
+      const ipAddress = typeof window !== 'undefined' ? (window as any).ipAddress : undefined;
       const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : undefined;
       API.trackUserLogin(
         session.id,
@@ -460,11 +460,7 @@ export const API = {
     return apiFetch('/settings/users/delete', { method: 'POST', body: JSON.stringify(payload) });
   },
   async getPageSettings() { 
-    try {
-      return await apiFetch('/settings/page-visibility'); 
-    } catch (e) {
-      return {};
-    }
+    return await apiFetch('/settings/page-visibility'); 
   },
   async savePageSettings(settings: any) { return apiFetch('/settings/page-visibility', { method: 'POST', body: JSON.stringify({ settings }) }); },
   async getRoles() { return apiFetch('/settings/roles'); },
@@ -963,6 +959,231 @@ export const API = {
   async exportWeddingRegistrations(params?: any) {
     const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
     const res = await apiFetch(`/wedding-registration/wedding-registrations/export${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Feedback QR Code Module ─────────────────────────────────────
+  async getQrCodes(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    locationId?: number | string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/feedback-qr${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getQrCodeStats() {
+    const res = await apiFetch('/feedback-qr/stats');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getQrCodeById(id: string | number) {
+    const res = await apiFetch(`/feedback-qr/${id}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async createQrCode(data: {
+    name: string;
+    description?: string;
+    locationId: number | string;
+    locationCode: string;
+    locationName: string;
+    sectionId?: string;
+    sectionName?: string;
+    feedbackFormId?: string;
+    status?: 'active' | 'inactive' | 'archived';
+  }) {
+    const res = await apiFetch('/feedback-qr', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async updateQrCode(id: string | number, data: {
+    name?: string;
+    description?: string;
+    sectionId?: string;
+    sectionName?: string;
+    feedbackFormId?: string;
+    status?: 'active' | 'inactive' | 'archived';
+  }) {
+    const res = await apiFetch(`/feedback-qr/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async deleteQrCode(id: string | number) {
+    const res = await apiFetch(`/feedback-qr/${id}`, {
+      method: 'DELETE'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async toggleQrCodeStatus(id: string | number) {
+    const res = await apiFetch(`/feedback-qr/${id}/toggle-status`, {
+      method: 'POST'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async regenerateQrCode(id: string | number) {
+    const res = await apiFetch(`/feedback-qr/${id}/regenerate`, {
+      method: 'POST'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getQrCodeScans(qrCodeId: string, params?: { page?: number; limit?: number; date?: string }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/feedback-qr/${qrCodeId}/scans${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getLocationsForQr() {
+    const res = await apiFetch('/feedback-qr/locations');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getSectionsForQr(locationId?: number | string) {
+    const q = locationId ? new URLSearchParams({ locationId: String(locationId) }).toString() : '';
+    const res = await apiFetch(`/feedback-qr/sections${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getFeedbackForms() {
+    const res = await apiFetch('/feedback-qr/forms');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async exportQrCodes(params?: { format?: string; status?: string; locationId?: number | string }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/feedback-qr/export${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // Track QR scan (public endpoint)
+  async trackQrScan(qrCodeId: string, source?: string) {
+    const res = await apiFetch(`/feedback-qr/scan/${qrCodeId}`, {
+      method: 'POST',
+      body: JSON.stringify({ source })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // ── Workflow & Approval Module ─────────────────────────────────────
+  async submitForApproval(data: {
+    workflowKey: string;
+    recordId: string;
+    recordType: string;
+    initialData?: Record<string, any>;
+  }) {
+    const res = await apiFetch('/workflow/submit', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async approveRequest(approvalRequestId: string, notes?: string) {
+    const res = await apiFetch(`/workflow/approve/${approvalRequestId}`, {
+      method: 'POST',
+      body: JSON.stringify({ notes })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async rejectRequest(approvalRequestId: string, notes: string) {
+    const res = await apiFetch(`/workflow/reject/${approvalRequestId}`, {
+      method: 'POST',
+      body: JSON.stringify({ notes })
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getPendingApprovals(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    role?: string;
+    locationId?: number | string;
+  }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/workflow/pending${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getWorkflowInstance(instanceId: string) {
+    const res = await apiFetch(`/workflow/instance/${instanceId}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getApprovalHistory(instanceId: string) {
+    const res = await apiFetch(`/workflow/history/${instanceId}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getWorkflowDefinitions() {
+    const res = await apiFetch('/workflow/definitions');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getWorkflowStats() {
+    const res = await apiFetch('/workflow/stats');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  // Role-scoped workflow dashboard: counts, pending approval queue with
+  // remaining time, recent decisions and the caller's own submissions.
+  // Backend returns ONLY what the caller's role/location is authorized to see.
+  async getWorkflowDashboard() {
+    const res = await apiFetch('/workflow/dashboard');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async triggerAutoAdvance(instanceId: string) {
+    const res = await apiFetch(`/workflow/auto-advance/${instanceId}`, {
+      method: 'POST'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async getWorkflowNotifications(params?: { page?: number; limit?: number; unreadOnly?: boolean }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/workflow/notifications${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async markNotificationRead(notificationId: string) {
+    const res = await apiFetch(`/workflow/notifications/${notificationId}/read`, {
+      method: 'POST'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async markAllNotificationsRead() {
+    const res = await apiFetch('/workflow/notifications/read-all', {
+      method: 'POST'
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
+  async reassignApproval(approvalRequestId: string, data: {
+    assignedToUserId?: number;
+    assignedToRole?: string;
+    assignedLocationId?: number;
+  }) {
+    const res = await apiFetch(`/workflow/reassign/${approvalRequestId}`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
 

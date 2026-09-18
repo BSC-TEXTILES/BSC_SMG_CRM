@@ -82,7 +82,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)] flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20">
-                <span className="text-white font-black text-sm tracking-tight">B</span>
+                <span className="text-black font-black text-sm tracking-tight">B</span>
               </div>
               <span className="font-extrabold text-[var(--color-primary)] text-lg tracking-tight hidden sm:block">
                 BSC EXCLUSIVE
@@ -103,7 +103,7 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => navigate('/login')}
-                className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[var(--color-primary-hover)] transition-all shadow-lg shadow-[var(--color-primary)]/20 hover:shadow-xl hover:shadow-[var(--color-primary)]/30 hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-black text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-[var(--color-primary-hover)] transition-all shadow-lg shadow-[var(--color-primary)]/20 hover:shadow-xl hover:shadow-[var(--color-primary)]/30 hover:-translate-y-0.5"
               >
                 Sign In
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -140,7 +140,7 @@ export default function LandingPage() {
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => navigate('/login')}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[var(--color-primary)] text-white font-bold text-base px-8 py-3.5 rounded-xl hover:bg-[var(--color-primary-hover)] transition-all shadow-xl shadow-[var(--color-primary)]/25 hover:shadow-2xl hover:shadow-[var(--color-primary)]/30 hover:-translate-y-0.5"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[var(--color-primary)] text-black font-bold text-base px-8 py-3.5 rounded-xl hover:bg-[var(--color-primary-hover)] transition-all shadow-xl shadow-[var(--color-primary)]/25 hover:shadow-2xl hover:shadow-[var(--color-primary)]/30 hover:-translate-y-0.5"
               >
                 Get Started
                 <ArrowRight className="w-4 h-4" />
@@ -258,7 +258,7 @@ export default function LandingPage() {
           </blockquote>
           <div className="mt-8 flex items-center justify-center gap-4">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
+              <Heart className="w-5 h-5 text-black" />
             </div>
             <div className="text-left">
               <div className="font-bold text-[var(--text-main)]">BSC Exclusive Management</div>
@@ -271,16 +271,16 @@ export default function LandingPage() {
       {/* ── CTA ── */}
       <section className="py-20 sm:py-28">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-primary)] to-[#4A0E1E] p-10 sm:p-14 text-center shadow-2xl shadow-[var(--color-primary)]/20">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-primary)] to-[#3D2B1F] p-10 sm:p-14 text-center shadow-2xl shadow-[var(--color-primary)]/20">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-[var(--color-accent)]/10 blur-3xl" />
               <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-white/5 blur-3xl" />
             </div>
             <div className="relative">
-              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-black text-black tracking-tight">
                 Ready to Elevate Your Operations?
               </h2>
-              <p className="mt-4 text-white/70 text-lg max-w-xl mx-auto">
+              <p className="mt-4 text-black/90 text-lg max-w-xl mx-auto">
                 Join the team that powers BSC Exclusive's retail excellence. Sign in to access
                 your dashboard.
               </p>
@@ -294,7 +294,7 @@ export default function LandingPage() {
                 </button>
                 <button
                   onClick={() => navigate('/candidate-entry')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/10 text-white font-bold text-base px-8 py-3.5 rounded-xl border border-white/20 hover:bg-white/20 transition-all backdrop-blur-sm"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-black/10 text-black font-bold text-base px-8 py-3.5 rounded-xl border border-black/20 hover:bg-black/20 transition-all backdrop-blur-sm"
                 >
                   Join as Candidate
                 </button>
@@ -310,7 +310,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-                <span className="text-white font-black text-xs">B</span>
+                <span className="text-black font-black text-xs">B</span>
               </div>
               <span className="font-extrabold text-[var(--color-primary)] text-sm tracking-tight">
                 BSC EXCLUSIVE

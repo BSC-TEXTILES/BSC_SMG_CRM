@@ -436,7 +436,7 @@ export default function EmployeesPage() {
                   <TrendingUp className="w-5 h-5 text-accent" />
                   <span>Workforce Overview &amp; Section Analytics</span>
                 </h3>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                <p className="text-xs text-primary font-medium mt-0.5">
                   Real-time active employee records, department floor allocations &amp; section master lists.
                 </p>
               </div>
@@ -457,7 +457,7 @@ export default function EmployeesPage() {
                     className={`px-3 py-1.5 rounded-xl transition-all ${
                       activeRange === range.key
                         ? 'bg-primary text-white font-extrabold shadow-xs'
-                        : 'bg-background text-[#475569] border border-accent-soft hover:bg-white'
+                        : 'bg-background text-[#5D4E42] border border-accent-soft hover:bg-white'
                     }`}
                   >
                     {range.label}
@@ -468,7 +468,7 @@ export default function EmployeesPage() {
 
             {/* Custom Date Range Picker */}
             <div className="flex flex-wrap items-center gap-3 bg-background p-3 rounded-2xl border border-accent-soft text-xs font-bold text-primary">
-              <span className="text-primary/70 uppercase text-[10.5px] font-black">Custom Date Range:</span>
+              <span className="text-primary uppercase text-[10.5px] font-black">Custom Date Range:</span>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
@@ -476,7 +476,7 @@ export default function EmployeesPage() {
                   onChange={(e) => { setFromDate(e.target.value); setActiveRange('custom'); }}
                   className="px-2.5 py-1.5 rounded-xl border border-accent-soft bg-white font-semibold outline-none text-xs"
                 />
-                <span className="text-primary/70 font-extrabold">to</span>
+                <span className="text-primary font-extrabold">to</span>
                 <input
                   type="date"
                   value={toDate}
@@ -502,7 +502,7 @@ export default function EmployeesPage() {
                 <UserCheck className="w-5 h-5 text-accent" />
                 <span>Onboarded Staff Directory</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5 font-sans">Active company workforce records, store section allocations &amp; employee profiles.</p>
+              <p className="text-xs text-primary font-medium mt-0.5 font-sans">Active company workforce records, store section allocations &amp; employee profiles.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -520,7 +520,7 @@ export default function EmployeesPage() {
               </div>
 
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary/70" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -612,7 +612,7 @@ export default function EmployeesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/60">
+                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary bg-background/60">
                     <th className="py-3 px-3 text-center">#</th>
                     <th className="py-3 px-4">Emp / App No</th>
                     <th className="py-3 px-4">Employee Name</th>
@@ -628,8 +628,8 @@ export default function EmployeesPage() {
                 <tbody className="divide-y divide-accent-soft/60">
                   {filtered.map((emp, idx) => (
                     <tr key={emp.appNo || idx} onClick={() => setDrawerEmp(emp)} className="hover:bg-black/5 cursor-pointer transition-colors font-medium">
-                      <td className="py-3.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
-                      <td className="py-3.5 px-4 font-mono text-[#475569] font-bold">{emp.appNo || emp.empNo}</td>
+                      <td className="py-3.5 px-3 text-center font-bold text-primary">{idx + 1}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#5D4E42] font-bold">{emp.appNo || emp.empNo}</td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3 group text-left">
                           <div className="w-8 h-8 rounded-full bg-primary text-white font-black text-xs flex items-center justify-center shadow-xs">
@@ -637,15 +637,15 @@ export default function EmployeesPage() {
                           </div>
                           <div>
                             <span className="font-extrabold text-primary group-hover:underline block">{formatName(emp.name)}</span>
-                            {emp.email && <span className="text-[10px] text-[#64748B] font-semibold truncate max-w-[150px] block">{emp.email}</span>}
+                            {emp.email && <span className="text-[10px] text-[#6B5D50] font-semibold truncate max-w-[150px] block">{emp.email}</span>}
                           </div>
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-primary font-extrabold">{emp.desig || emp.designation || 'Staff'}</td>
-                      <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.department || '—'}</td>
+                      <td className="py-3.5 px-4 text-[#5D4E42] font-semibold">{emp.department || '—'}</td>
                       <td className="py-3.5 px-4 text-accent font-extrabold">{emp.section || 'Unassigned'}</td>
-                      <td className="py-3.5 px-4 font-mono text-[#475569]">{emp.phone}</td>
-                      <td className="py-3.5 px-4 font-bold text-primary/70">
+                      <td className="py-3.5 px-4 font-mono text-[#5D4E42]">{emp.phone}</td>
+                      <td className="py-3.5 px-4 font-bold text-primary">
                         {emp.offeredDoj || emp.estDoj || emp.actualDoj || '—'}
                       </td>
                       <td className="py-3.5 px-4">
@@ -677,7 +677,7 @@ export default function EmployeesPage() {
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-xs text-[#64748B] font-semibold">
+                      <td colSpan={10} className="py-12 text-center text-xs text-[#6B5D50] font-semibold">
                         No employees found matching the filters.
                       </td>
                     </tr>
@@ -700,14 +700,14 @@ export default function EmployeesPage() {
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-white text-base sm:text-lg">Edit Employee Details — {editModal.emp?.name}</h3>
+                  <h3 className="font-extrabold text-black text-base sm:text-lg">Edit Employee Details — {editModal.emp?.name}</h3>
                   <div className="text-xs text-accent font-mono mt-0.5 font-bold">
                     App/Emp ID: {editModal.emp?.appNo || editModal.emp?.empNo}
                   </div>
                 </div>
               </div>
 
-              <button onClick={() => setEditModal({ open: false, emp: null })} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
+              <button onClick={() => setEditModal({ open: false, emp: null })} className="p-2 rounded-xl bg-black/10 text-black hover:bg-black/20 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -727,7 +727,7 @@ export default function EmployeesPage() {
                   className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-1.5 text-xs font-extrabold ${
                     editTab === tab.id
                       ? 'bg-primary text-white shadow-sm'
-                      : 'text-[#475569] hover:bg-white hover:text-primary'
+                      : 'text-[#5D4E42] hover:bg-white hover:text-primary'
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -749,7 +749,7 @@ export default function EmployeesPage() {
                     <div>
                       <label className="block font-bold text-primary mb-1">Phone Number *</label>
                       <div className="flex">
-                        <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                        <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                           +91
                         </span>
                         <input type="tel" maxLength={10} value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className="input-modern font-mono rounded-l-none" required />
@@ -945,11 +945,11 @@ export default function EmployeesPage() {
 
             {/* Modal Sticky Footer */}
             <div className="flex items-center justify-between p-4 bg-background border-t border-accent-soft">
-              <div className="text-[11px] text-primary/70 font-semibold">
+              <div className="text-[11px] text-primary font-semibold">
                 Changes persist directly to MySQL Database.
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setEditModal({ open: false, emp: null })} className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#475569]">
+                <button onClick={() => setEditModal({ open: false, emp: null })} className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#5D4E42]">
                   Cancel
                 </button>
                 <button onClick={handleSaveEdit} disabled={saving} className="btn-primary text-xs shadow-md disabled:opacity-50 px-6 py-2">

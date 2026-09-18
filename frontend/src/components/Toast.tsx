@@ -44,9 +44,9 @@ export default function ToastContainer() {
     <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
       {toasts.map(t => {
         const bgMap = {
-          success: 'bg-[#27805B] text-white border-[#1E6849]',
-          error: 'bg-[#C43D4B] text-white border-[#A82D3B]',
-          warn: 'bg-[#C58A24] text-white border-[#B27B1E]',
+          success: 'bg-[#2D8659] text-black border-[#1B6B45]',
+          error: 'bg-[#C0392B] text-black border-[#A93226]',
+          warn: 'bg-[#B8860B] text-black border-[#996515]',
           info: 'bg-primary text-white border-primary'
         };
 

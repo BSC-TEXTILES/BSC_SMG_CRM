@@ -78,17 +78,17 @@ export default function WeddingTracking() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f4f8] via-[#e8f0fe] to-[#f0f4f8]">
+    <div className="min-h-screen bg-gradient-to-br from-[#FBF8F5] via-[#F5F0EB] to-[#FBF8F5]">
       <ToastContainer />
 
       {/* Header */}
-      <header className="bg-[#1a365d] p-4 sm:p-5 text-white shadow-lg border-b border-[#d4af37]/30">
+      <header className="bg-[#3D2B1F] p-4 sm:p-5 text-black shadow-lg border-b border-[#D4A58A]/30">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md" />
             <div>
               <h1 className="font-extrabold text-base sm:text-lg leading-tight">BSC Wedding Tracking</h1>
-              <div className="text-[10px] text-[#d4af37] font-bold uppercase tracking-widest mt-0.5">
+              <div className="text-[10px] text-[#D4A58A] font-bold uppercase tracking-widest mt-0.5">
                 Track your wedding shopping request
               </div>
             </div>
@@ -98,31 +98,31 @@ export default function WeddingTracking() {
 
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Tracking Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 border border-[#e2e8f0]">
-          <div className="border-b border-[#e2e8f0] pb-4">
-            <h2 className="text-lg font-extrabold text-[#1a365d] flex items-center gap-2">
-              <Search className="w-5 h-5 text-[#d4af37]" />
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 border border-[#E8DDD4]">
+          <div className="border-b border-[#E8DDD4] pb-4">
+            <h2 className="text-lg font-extrabold text-[#3D2B1F] flex items-center gap-2">
+              <Search className="w-5 h-5 text-[#D4A58A]" />
               Track Wedding Request
             </h2>
-            <p className="text-sm text-[#64748b] mt-1">Enter your Wedding Request ID and registered mobile number to check your status.</p>
+            <p className="text-sm text-[#6B5D50] mt-1">Enter your Wedding Request ID and registered mobile number to check your status.</p>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-[#1a365d] mb-1.5">Wedding Request ID <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-bold text-[#3D2B1F] mb-1.5">Wedding Request ID <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={regId}
                 onChange={e => setRegId(e.target.value.toUpperCase())}
                 placeholder="e.g. BSC-WED-DAV-2026-000001"
-                className="w-full px-4 py-3 rounded-xl border-2 border-[#e2e8f0] focus:border-[#1a365d] focus:ring-2 focus:ring-[#1a365d]/10 outline-none transition-all text-sm font-mono font-bold"
+                className="w-full px-4 py-3 rounded-xl border-2 border-[#E8DDD4] focus:border-[#3D2B1F] focus:ring-2 focus:ring-[#3D2B1F]/10 outline-none transition-all text-sm font-mono font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#1a365d] mb-1.5">Registered Mobile Number <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-bold text-[#3D2B1F] mb-1.5">Registered Mobile Number <span className="text-red-500">*</span></label>
               <div className="flex">
-                <span className="px-3 py-3 bg-[#f1f5f9] border-2 border-r-0 border-[#e2e8f0] rounded-l-xl font-extrabold text-xs text-[#64748b] flex items-center">
+                <span className="px-3 py-3 bg-[#F5F0EB] border-2 border-r-0 border-[#E8DDD4] rounded-l-xl font-extrabold text-xs text-[#6B5D50] flex items-center">
                   +91
                 </span>
                 <input
@@ -131,7 +131,7 @@ export default function WeddingTracking() {
                   value={mobile}
                   onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="10-digit mobile number"
-                  className="w-full px-4 py-3 rounded-r-xl border-2 border-[#e2e8f0] focus:border-[#1a365d] focus:ring-2 focus:ring-[#1a365d]/10 outline-none transition-all text-sm"
+                  className="w-full px-4 py-3 rounded-r-xl border-2 border-[#E8DDD4] focus:border-[#3D2B1F] focus:ring-2 focus:ring-[#3D2B1F]/10 outline-none transition-all text-sm"
                 />
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function WeddingTracking() {
             <button
               onClick={handleTrack}
               disabled={loading}
-              className="w-full py-3 bg-[#1a365d] hover:bg-[#2c5282] text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#3D2B1F] hover:bg-[#5D4E42] text-black font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span>Checking your request...</span>
@@ -159,8 +159,8 @@ export default function WeddingTracking() {
             <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto">
               <AlertCircle className="w-7 h-7" />
             </div>
-            <h3 className="font-bold text-[#1a365d]">Something Went Wrong</h3>
-            <p className="text-sm text-[#64748b]">{serverError}</p>
+            <h3 className="font-bold text-[#3D2B1F]">Something Went Wrong</h3>
+            <p className="text-sm text-[#6B5D50]">{serverError}</p>
           </div>
         )}
 
@@ -170,18 +170,18 @@ export default function WeddingTracking() {
             <div className="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto">
               <AlertCircle className="w-7 h-7" />
             </div>
-            <h3 className="font-bold text-[#1a365d]">Registration Not Found</h3>
-            <p className="text-sm text-[#64748b]">No registration was found for the Wedding Request ID and mobile number provided. Please verify both details and try again.</p>
+            <h3 className="font-bold text-[#3D2B1F]">Registration Not Found</h3>
+            <p className="text-sm text-[#6B5D50]">No registration was found for the Wedding Request ID and mobile number provided. Please verify both details and try again.</p>
           </div>
         )}
 
         {/* Result */}
         {result && (
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#e2e8f0]">
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-[#E8DDD4]">
             {/* Status Banner */}
-            <div className="bg-gradient-to-r from-[#1a365d] to-[#2c5282] p-6 text-white text-center">
-              <Sparkles className="w-8 h-8 text-[#d4af37] mx-auto mb-2" />
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[#d4af37] mb-1">Wedding Request</h3>
+            <div className="bg-gradient-to-r from-[#3D2B1F] to-[#5D4E42] p-6 text-black text-center">
+              <Sparkles className="w-8 h-8 text-[#D4A58A] mx-auto mb-2" />
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[#D4A58A] mb-1">Wedding Request</h3>
               <p className="text-xl font-mono font-black tracking-wider">{result.registration_id}</p>
             </div>
 
@@ -195,68 +195,68 @@ export default function WeddingTracking() {
 
               {/* Details Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
-                  <CheckCircle2 className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FBF8F5]">
+                  <CheckCircle2 className="w-5 h-5 text-[#3D2B1F] mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Customer Name</p>
-                    <p className="text-sm font-bold text-[#1a365d]">{result.customer_name}</p>
+                    <p className="text-[10px] font-bold text-[#9A8D82] uppercase">Customer Name</p>
+                    <p className="text-sm font-bold text-[#3D2B1F]">{result.customer_name}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
-                  <MapPin className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FBF8F5]">
+                  <MapPin className="w-5 h-5 text-[#3D2B1F] mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">BSC Store</p>
-                    <p className="text-sm font-bold text-[#1a365d]">{result.store_name} ({result.store_code})</p>
+                    <p className="text-[10px] font-bold text-[#9A8D82] uppercase">BSC Store</p>
+                    <p className="text-sm font-bold text-[#3D2B1F]">{result.store_name} ({result.store_code})</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
-                  <Calendar className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FBF8F5]">
+                  <Calendar className="w-5 h-5 text-[#3D2B1F] mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Registration Date</p>
-                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.registration_date)}</p>
+                    <p className="text-[10px] font-bold text-[#9A8D82] uppercase">Registration Date</p>
+                    <p className="text-sm font-bold text-[#3D2B1F]">{formatDate(result.registration_date)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
-                  <Heart className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FBF8F5]">
+                  <Heart className="w-5 h-5 text-[#3D2B1F] mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Wedding Date</p>
-                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.wedding_date)}</p>
+                    <p className="text-[10px] font-bold text-[#9A8D82] uppercase">Wedding Date</p>
+                    <p className="text-sm font-bold text-[#3D2B1F]">{formatDate(result.wedding_date)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
-                  <Clock className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FBF8F5]">
+                  <Clock className="w-5 h-5 text-[#3D2B1F] mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Expected Shopping Date</p>
-                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.expected_shopping_date)}</p>
+                    <p className="text-[10px] font-bold text-[#9A8D82] uppercase">Expected Shopping Date</p>
+                    <p className="text-sm font-bold text-[#3D2B1F]">{formatDate(result.expected_shopping_date)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
-                  <Phone className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#FBF8F5]">
+                  <Phone className="w-5 h-5 text-[#3D2B1F] mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Next Follow-up</p>
-                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.next_followup)}</p>
+                    <p className="text-[10px] font-bold text-[#9A8D82] uppercase">Next Follow-up</p>
+                    <p className="text-sm font-bold text-[#3D2B1F]">{formatDate(result.next_followup)}</p>
                   </div>
                 </div>
               </div>
 
               {/* Status Timeline */}
               {result.status_timeline && result.status_timeline.length > 0 && (
-                <div className="pt-4 border-t border-[#e2e8f0]">
-                  <h4 className="text-xs font-bold text-[#1a365d] uppercase tracking-wider mb-3">Progress</h4>
+                <div className="pt-4 border-t border-[#E8DDD4]">
+                  <h4 className="text-xs font-bold text-[#3D2B1F] uppercase tracking-wider mb-3">Progress</h4>
                   <div className="space-y-2">
                     {result.status_timeline.map((status: string, idx: number) => {
                       const isCurrent = idx === result.status_timeline.length - 1;
                       return (
-                        <div key={status} className={`flex items-center gap-3 p-2 rounded-lg ${isCurrent ? 'bg-[#1a365d]/5 border border-[#1a365d]/10' : ''}`}>
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCurrent ? 'bg-[#1a365d] text-white' : 'bg-[#e2e8f0] text-[#94a3b8]'}`}>
+                        <div key={status} className={`flex items-center gap-3 p-2 rounded-lg ${isCurrent ? 'bg-[#3D2B1F]/5 border border-[#3D2B1F]/10' : ''}`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isCurrent ? 'bg-[#3D2B1F] text-black' : 'bg-[#E8DDD4] text-[#9A8D82]'}`}>
                             {isCurrent ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span className="text-[10px] font-bold">{idx + 1}</span>}
                           </div>
-                          <span className={`text-xs font-bold ${isCurrent ? 'text-[#1a365d]' : 'text-[#94a3b8]'}`}>{status}</span>
+                          <span className={`text-xs font-bold ${isCurrent ? 'text-[#3D2B1F]' : 'text-[#9A8D82]'}`}>{status}</span>
                         </div>
                       );
                     })}
@@ -265,15 +265,15 @@ export default function WeddingTracking() {
               )}
 
               {/* Help Text */}
-              <div className="pt-4 border-t border-[#e2e8f0] text-center">
-                <p className="text-xs text-[#94a3b8]">For any queries, contact your BSC store directly.</p>
+              <div className="pt-4 border-t border-[#E8DDD4] text-center">
+                <p className="text-xs text-[#9A8D82]">For any queries, contact your BSC store directly.</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Footer Info */}
-        <div className="text-center text-xs text-[#94a3b8] pb-6">
+        <div className="text-center text-xs text-[#9A8D82] pb-6">
           <p>BSC Textiles — Wedding Shopping Registration & Tracking</p>
         </div>
       </div>

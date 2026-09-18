@@ -22,7 +22,7 @@ export default function PageHeader({
           <span>{title}</span>
         </h1>
         {description && (
-          <p className="text-xs sm:text-sm text-primary/70 font-medium mt-1">
+          <p className="text-xs sm:text-sm text-primary font-medium mt-1">
             {description}
           </p>
         )}

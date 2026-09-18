@@ -137,7 +137,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
               <Layers className="w-5 h-5 text-accent" />
               <span>Manage Department Sections</span>
             </h3>
-            <p className="text-xs text-primary/70 font-medium mt-0.5">
+            <p className="text-xs text-primary font-medium mt-0.5">
               Add, edit or remove floor sections stored directly in the database.
             </p>
           </div>
@@ -158,7 +158,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Department</label>
+              <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Department</label>
               <select
                 value={newDept}
                 onChange={(e) => setNewDept(e.target.value)}
@@ -171,7 +171,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
             </div>
 
             <div>
-              <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Section Name *</label>
+              <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Section Name *</label>
               <input
                 type="text"
                 value={newSectionName}
@@ -182,7 +182,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
             </div>
 
             <div>
-              <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Description (Optional)</label>
+              <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Description (Optional)</label>
               <input
                 type="text"
                 value={newDescription}
@@ -212,7 +212,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[10.5px] font-extrabold text-[#475569] uppercase">Filter Dept:</span>
+              <span className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase">Filter Dept:</span>
               <select
                 value={filterDept}
                 onChange={(e) => setFilterDept(e.target.value)}
@@ -229,7 +229,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
           <div className="overflow-x-auto max-h-64 overflow-y-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background">
+                <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary bg-background">
                   <th className="py-2.5 px-3 text-center w-12">SL.NO</th>
                   <th className="py-2.5 px-3">Department</th>
                   <th className="py-2.5 px-3">Section Name</th>
@@ -244,8 +244,8 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
 
                     if (isEditing) {
                       return (
-                        <tr key={sec.id} className="bg-amber-50">
-                          <td className="py-2 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                        <tr key={sec.id} className="bg-black/5">
+                          <td className="py-2 px-3 text-center font-bold text-primary">{idx + 1}</td>
                           <td className="py-2 px-3">
                             <select
                               value={editDept}
@@ -295,10 +295,10 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
 
                     return (
                       <tr key={sec.id} className="hover:bg-black/5 transition-colors">
-                        <td className="py-2.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                        <td className="py-2.5 px-3 text-center font-bold text-primary">{idx + 1}</td>
                         <td className="py-2.5 px-3 font-bold text-primary">{sec.department}</td>
                         <td className="py-2.5 px-3 font-black text-accent">{sec.section_name}</td>
-                        <td className="py-2.5 px-3 text-primary/70">{sec.description || '—'}</td>
+                        <td className="py-2.5 px-3 text-primary">{sec.description || '—'}</td>
                         <td className="py-2.5 px-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
@@ -308,14 +308,14 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
                                 setEditName(sec.section_name);
                                 setEditDesc(sec.description || '');
                               }}
-                              className="p-1 rounded-lg bg-sky-100 text-sky-800 hover:bg-sky-600 hover:text-white transition-colors"
+                              className="p-1 rounded-lg bg-sky-100 text-sky-800 hover:bg-sky-600 hover:text-black transition-colors"
                               title="Edit Section"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDeleteSection(sec.id, sec.section_name)}
-                              className="p-1 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-600 hover:text-white transition-colors"
+                              className="p-1 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-600 hover:text-black transition-colors"
                               title="Delete Section"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -327,7 +327,7 @@ export default function ManageSectionsModal({ isOpen, onClose, onSectionsUpdated
                   })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-xs text-primary/70 font-semibold">
+                    <td colSpan={4} className="py-6 text-center text-xs text-primary font-semibold">
                       No department sections found.
                     </td>
                   </tr>

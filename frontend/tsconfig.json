@@ -13,12 +13,8 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["components/*", "./components/*"],
-      "@/services/*": ["services/*", "./services/*"],
-      "@/app/*": ["app/*", "./app/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/vite-env.d.ts", "**/*.ts", "**/*.tsx"],

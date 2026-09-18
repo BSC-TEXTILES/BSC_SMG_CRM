@@ -21,6 +21,8 @@ const mcheckController = require('../controllers/mcheckController');
 const locationController = require('../controllers/locationController');
 const userMgmtController = require('../controllers/userManagementController');
 const userValidator = require('../validators/userValidator');
+const feedbackQrController = require('../controllers/feedbackQrController');
+const workflowController = require('../controllers/workflowController');
 
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
@@ -223,8 +225,28 @@ const weddingRoutes = require('./weddingRoutes');
 router.use('/wedding-crm', weddingRoutes);
 
 // ── Wedding Registration ──────────────────────────────────────
+const workflowRoutes = require('./workflowRoutes');
+console.log('[DEBUG] Loading workflow routes...');
 const weddingRegistrationRoutes = require('./weddingRegistrationRoutes');
 router.use('/wedding-registration', weddingRegistrationRoutes);
+router.use('/workflow', workflowRoutes);
+console.log('[DEBUG] Workflow routes mounted at /workflow');
+
+// ── Feedback QR Code Module ─────────────────────────────────────
+// Admin routes (require authentication)
+router.get('/feedback-qr', authenticate, feedbackQrController.getQrCodes);
+router.get('/feedback-qr/stats', authenticate, feedbackQrController.getQrCodeStats);
+router.get('/feedback-qr/locations', authenticate, feedbackQrController.getLocationsForQr);
+router.get('/feedback-qr/sections', authenticate, feedbackQrController.getSectionsForLocation);
+router.get('/feedback-qr/forms', authenticate, feedbackQrController.getFeedbackForms);
+router.get('/feedback-qr/export', authenticate, feedbackQrController.exportQrCodes);
+router.get('/feedback-qr/:id', authenticate, feedbackQrController.getQrCodeById);
+router.get('/feedback-qr/:qrCodeId/scans', authenticate, feedbackQrController.getQrCodeScans);
+router.post('/feedback-qr', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), feedbackQrController.createQrCode);
+router.put('/feedback-qr/:id', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), feedbackQrController.updateQrCode);
+router.delete('/feedback-qr/:id', authenticate, authorize('Admin', 'Super Admin'), feedbackQrController.deleteQrCode);
+router.post('/feedback-qr/:id/toggle-status', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), feedbackQrController.toggleQrCodeStatus);
+router.post('/feedback-qr/:id/regenerate', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), feedbackQrController.regenerateQrCode);
 
 // ── Security Center (DevTools shield, GPS trail, login activity) ────────────
 // Developer Tools Detection is OFF by default. An Admin enables it from

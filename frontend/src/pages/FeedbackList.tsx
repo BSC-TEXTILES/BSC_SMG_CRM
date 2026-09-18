@@ -158,7 +158,7 @@ export default function FeedbackList() {
     const hoursElapsed = (Date.now() - createdTime) / (1000 * 60 * 60);
     
     if (hoursElapsed > 24) {
-      return { label: '🚨 SLA Critical (>24h)', color: 'bg-rose-600 text-white font-black animate-pulse' };
+      return { label: '🚨 SLA Critical (>24h)', color: 'bg-rose-600 text-black font-black animate-pulse' };
     } else if (hoursElapsed > 2) {
       return { label: '⚠️ SLA Warning (>2h)', color: 'bg-amber-100 text-amber-900 border border-amber-300 font-extrabold' };
     }
@@ -178,7 +178,7 @@ export default function FeedbackList() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="card-glass p-5 flex items-center justify-between border-l-4 border-l-rose-500">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">Pending Calls</div>
+              <div className="text-[10.5px] font-black uppercase text-primary tracking-wider">Pending Calls</div>
               <div className="text-2xl font-black text-rose-600 mt-1">{pendingCount}</div>
               <div className="text-[11px] text-rose-700 font-bold mt-0.5 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Auto-Escalated Tickets
@@ -191,7 +191,7 @@ export default function FeedbackList() {
 
           <div className="card-glass p-5 flex items-center justify-between">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">In Progress</div>
+              <div className="text-[10.5px] font-black uppercase text-primary tracking-wider">In Progress</div>
               <div className="text-2xl font-black text-blue-600 mt-1">{inProgressCount}</div>
               <div className="text-[11px] text-blue-700 font-bold mt-0.5 flex items-center gap-1">
                 <Clock className="w-3 h-3" /> Telecaller Contacted
@@ -204,7 +204,7 @@ export default function FeedbackList() {
 
           <div className="card-glass p-5 flex items-center justify-between">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">Resolved Today</div>
+              <div className="text-[10.5px] font-black uppercase text-primary tracking-wider">Resolved Today</div>
               <div className="text-2xl font-black text-emerald-600 mt-1">{resolvedCount}</div>
               <div className="text-[11px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Issue Closed
@@ -217,7 +217,7 @@ export default function FeedbackList() {
 
           <div className="card-glass p-5 flex items-center justify-between">
             <div>
-              <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider">Escalated Manager</div>
+              <div className="text-[10.5px] font-black uppercase text-primary tracking-wider">Escalated Manager</div>
               <div className="text-2xl font-black text-purple-700 mt-1">{escalatedCount}</div>
               <div className="text-[11px] text-purple-800 font-bold mt-0.5 flex items-center gap-1">
                 <ShieldAlert className="w-3 h-3" /> Senior Review
@@ -515,7 +515,7 @@ export default function FeedbackList() {
                 {/* Existing Call History Log Display */}
                 {selectedItem.notes && (
                   <div className="space-y-1.5 pt-2 border-t border-accent-soft">
-                    <div className="text-[10.5px] font-black uppercase text-primary/70 tracking-wider flex items-center gap-1">
+                    <div className="text-[10.5px] font-black uppercase text-primary tracking-wider flex items-center gap-1">
                       <History className="w-3.5 h-3.5 text-accent" /> Call Log History
                     </div>
                     <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[11px] font-mono text-gray-700 max-h-32 overflow-y-auto whitespace-pre-wrap">
@@ -537,7 +537,7 @@ export default function FeedbackList() {
                     <button
                       onClick={() => handleUpdateCall('escalated_manager')}
                       disabled={updating}
-                      className="px-3.5 py-2 rounded-xl bg-purple-700 text-white font-extrabold text-xs shadow-xs"
+                      className="px-3.5 py-2 rounded-xl bg-purple-700 text-black font-extrabold text-xs shadow-xs"
                     >
                       Escalate Manager
                     </button>

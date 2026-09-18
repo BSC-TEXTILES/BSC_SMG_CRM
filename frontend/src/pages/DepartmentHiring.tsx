@@ -485,7 +485,7 @@ export default function DepartmentHiringPage() {
                 <Building2 className="w-5 h-5 text-accent" />
                 <span>BSC Textiles - Sales Executive Workforce Dashboard</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">
+              <p className="text-xs text-primary font-medium mt-0.5">
                 Tree-based department &amp; section-wise Required, Filled and Remaining Sales Executives status.
               </p>
             </div>
@@ -585,7 +585,7 @@ export default function DepartmentHiringPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Department Filter */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Department</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Department</label>
                 <select
                   value={selectedDept}
                   onChange={(e) => { setSelectedDept(e.target.value); setSelectedSection('All'); }}
@@ -600,7 +600,7 @@ export default function DepartmentHiringPage() {
 
               {/* Section Filter */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Section</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Section</label>
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value)}
@@ -615,7 +615,7 @@ export default function DepartmentHiringPage() {
 
               {/* Status Filter */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Hiring Status</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Hiring Status</label>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
@@ -631,9 +631,9 @@ export default function DepartmentHiringPage() {
 
               {/* Search */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Search</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Search</label>
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/70" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-primary" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -654,7 +654,7 @@ export default function DepartmentHiringPage() {
                   <FolderOpen className="w-5 h-5 text-accent" />
                   <span>Showroom Department &amp; Section Workforce Tree</span>
                 </h3>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                <p className="text-xs text-primary font-medium mt-0.5">
                   Designation Target: <span className="font-bold text-primary bg-accent/20 px-2 py-0.5 rounded-md">Sales Executive</span>
                 </p>
               </div>
@@ -690,7 +690,7 @@ export default function DepartmentHiringPage() {
                             <h4 className="font-black text-primary text-base tracking-tight">
                               {deptNode.department}
                             </h4>
-                            <p className="text-[11px] text-primary/70 font-medium">
+                            <p className="text-[11px] text-primary font-medium">
                               {deptNode.sections.length} Showroom Sections
                             </p>
                           </div>
@@ -699,7 +699,7 @@ export default function DepartmentHiringPage() {
                         {/* Department Summary Metrics & Progress */}
                         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                           <div className="text-right text-xs">
-                            <span className="text-[10px] text-primary/70 font-extrabold uppercase block">Required</span>
+                            <span className="text-[10px] text-primary font-extrabold uppercase block">Required</span>
                             <span className="font-extrabold text-primary text-sm">{deptNode.required}</span>
                           </div>
 
@@ -756,7 +756,7 @@ export default function DepartmentHiringPage() {
                                     <span className="font-extrabold text-primary text-xs sm:text-sm">
                                       {secNode.section}
                                     </span>
-                                    <span className="text-[10px] text-primary/70 block font-medium">
+                                    <span className="text-[10px] text-primary block font-medium">
                                       Sales Executive Target
                                     </span>
                                   </div>
@@ -764,7 +764,7 @@ export default function DepartmentHiringPage() {
 
                                 <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                                   <div className="text-right text-xs">
-                                    <span className="text-[9.5px] text-primary/70 font-bold block">Required</span>
+                                    <span className="text-[9.5px] text-primary font-bold block">Required</span>
                                     <span className="font-extrabold text-primary">{secNode.required}</span>
                                   </div>
 
@@ -824,7 +824,7 @@ export default function DepartmentHiringPage() {
                   );
                 })
               ) : (
-                <div className="py-12 text-center text-xs text-primary/70 font-semibold bg-white rounded-2xl border border-accent-soft">
+                <div className="py-12 text-center text-xs text-primary font-semibold bg-white rounded-2xl border border-accent-soft">
                   No department hiring hierarchy data matches your filters.
                 </div>
               )}
@@ -845,7 +845,7 @@ export default function DepartmentHiringPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-accent-soft)" />
                     <XAxis dataKey="department" tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--color-primary)' }} />
                     <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: 'var(--color-primary)' }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-primary)', borderRadius: '12px', color: '#fff', fontSize: '12px' }} />
+                    <Tooltip contentStyle={{ backgroundColor: 'var(--color-primary)', borderRadius: '12px', color: '#000', fontSize: '12px' }} />
                     <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 700 }} />
                     <Bar dataKey="required" name="Required Target" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="filled" name="Filled Staff" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
@@ -910,7 +910,7 @@ export default function DepartmentHiringPage() {
             <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <div>
                 <h3 className="font-extrabold text-primary text-base">Edit Sales Executive Target</h3>
-                <p className="text-xs text-primary/70 font-medium">
+                <p className="text-xs text-primary font-medium">
                   {editModal.department} · {editModal.section}
                 </p>
               </div>

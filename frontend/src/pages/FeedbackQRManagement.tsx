@@ -1,0 +1,1326 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import DashboardLayout from '../components/layouts/DashboardLayout';
+import {
+  QrCode,
+  Plus,
+  Search,
+  Filter,
+  Download,
+  RefreshCw,
+  Edit,
+  Trash2,
+  Eye,
+  Copy,
+  CheckCircle2,
+  XCircle,
+  ArrowUpRight,
+  Image,
+  Printer,
+  Share2,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  BarChart3,
+  ScanLine,
+  Zap,
+  Shield,
+  AlertCircle,
+  CheckCircle,
+  X,
+  Loader2,
+  MoreVertical,
+  Grid,
+  List,
+  Calendar,
+  MapPin,
+  Building2,
+  Users,
+  Activity,
+  TrendingUp,
+  TrendingDown,
+  Mail,
+  Phone,
+  Globe,
+  Wifi,
+  Battery,
+  Cpu,
+  HardDrive,
+  Monitor,
+  Smartphone,
+  Tablet,
+  Laptop,
+  Server,
+  Database,
+  Cloud,
+  Lock,
+  Unlock,
+  Key,
+  Fingerprint,
+  UserCheck,
+  ClipboardList,
+  FileText,
+  Save,
+  RotateCcw,
+  History,
+  Clock,
+  CalendarDays,
+  CalendarRange,
+  ArrowLeft,
+  ArrowRight,
+  Minus,
+  PlusCircle,
+  Menu,
+  Bell,
+  BellOff,
+  Flag,
+  Star,
+  Heart,
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Send,
+  Reply,
+  Forward,
+  Archive,
+  FolderOpen,
+  FilePlus,
+  FileMinus,
+  FileQuestion,
+  FileSearch,
+  FileText as FileTextIcon,
+  Video,
+  Music,
+  Code,
+  Terminal,
+  Bug,
+  TestTube,
+  FlaskConical,
+  Microscope,
+  Dna,
+  Brain,
+  Lightbulb,
+  Target,
+  Award,
+  Trophy,
+  Medal,
+  Crown,
+  Gem,
+  Sparkles,
+  Paintbrush,
+  Palette,
+  Camera,
+  Mic,
+  Headphones,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  FastForward,
+  Rewind,
+  Shuffle,
+  Repeat,
+  Bookmark,
+  Tag,
+  Link,
+  Link2,
+  Unlink,
+  ExternalLink,
+  Anchor,
+  Share,
+  User,
+  UserPlus,
+  UserMinus,
+  UserX,
+  UserCheck as UserCheckIcon,
+  UserCog,
+  UserPen,
+  UserRound,
+  UserRoundPlus,
+  UserRoundMinus,
+  UserRoundX,
+  Maximize,
+  Minimize,
+  Fullscreen,
+  RotateCw,
+  FlipHorizontal,
+  FlipVertical,
+  Crop,
+  Move,
+  Hand,
+  Pointer,
+  Crosshair,
+  Scissors,
+  Eraser,
+  Pen,
+  PenTool,
+  Highlighter,
+  Brush,
+  SprayCan,
+  Droplet,
+  Pipette,
+  SwatchBook,
+  Layers,
+  Layout,
+  LayoutDashboard,
+  LayoutGrid,
+  LayoutList,
+  LayoutPanelLeft,
+  LayoutPanelTop,
+  Sidebar,
+  PanelLeft,
+  PanelRight,
+  PanelTop,
+  PanelBottom,
+  TableCellsMerge,
+  TableCellsSplit,
+  TableColumnsSplit,
+  TableOfContents,
+  TableProperties,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Indent,
+  Outdent,
+  ListOrdered,
+  ListTodo,
+  ListChecks,
+  ListX,
+  ListMinus,
+  ListPlus,
+  ListMusic,
+  ListVideo,
+  ListFilter,
+  ListStart,
+  ListEnd,
+  ListRestart,
+  ListTree,
+  GitBranch,
+  GitCommit,
+  GitCompare,
+  GitFork,
+  GitMerge,
+  GitPullRequest,
+  GitBranchPlus,
+  GitCommitHorizontal,
+  GitCompareArrows,
+  GitPullRequestArrow,
+  GitCommitVertical,
+  GitGraph,
+} from 'lucide-react';
+import { API, Auth } from '../services/api';
+import { format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+
+interface QRCode {
+  id: string;
+  qrCodeId: string;
+  name: string;
+  description: string;
+  locationId: number;
+  locationCode: string;
+  locationName: string;
+  sectionId: string | null;
+  sectionName: string | null;
+  feedbackFormId: string | null;
+  targetUrl: string;
+  qrCodeDataUrl: string | null;
+  qrCodeSvg: string | null;
+  status: 'active' | 'inactive' | 'archived';
+  scanCount: number;
+  lastScannedAt: string | null;
+  createdBy: number;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+  feedbackCount: number;
+  totalScans: number;
+  scansWithFeedback: number;
+}
+
+interface QRCodeStats {
+  totalQrCodes: number;
+  activeQrCodes: number;
+  inactiveQrCodes: number;
+  totalScans: number;
+  totalFeedback: number;
+  todayFeedback: number;
+  averageRating: string;
+  charts: {
+    scansByDay: { date: string; scans: number }[];
+    feedbackByDay: { date: string; feedback: number }[];
+  };
+}
+
+interface Location {
+  id: number;
+  locationCode: string;
+  locationName: string;
+}
+
+interface Section {
+  id: string;
+  name: string;
+}
+
+interface FeedbackForm {
+  id: string;
+  formId: string;
+  name: string;
+  description: string;
+  questionsJson: any[];
+  isDefault: number;
+  status: string;
+}
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const config = {
+    active: { className: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: <CheckCircle2 className="w-3 h-3" />, label: 'Active' },
+    inactive: { className: 'bg-gray-100 text-gray-800 border-gray-200', icon: <XCircle className="w-3 h-3" />, label: 'Inactive' },
+    archived: { className: 'bg-rose-100 text-rose-800 border-rose-200', icon: <Archive className="w-3 h-3" />, label: 'Archived' }
+  };
+  const c = config[status as keyof typeof config] || config.inactive;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold border ${c.className}`}>
+      {c.icon} {c.label}
+    </span>
+  );
+};
+
+const ActionButton = ({
+  onClick,
+  children,
+  variant = 'default',
+  size = 'sm',
+  disabled = false,
+  icon,
+  title,
+  className = '',
+  type = 'button',
+}: {
+  onClick?: () => void;
+  children?: React.ReactNode;
+  variant?: 'default' | 'primary' | 'secondary' | 'danger' | 'ghost' | 'gold';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  icon?: React.ReactNode;
+  title?: string;
+  className?: string;
+  type?: 'button' | 'submit' | 'reset';
+}) => {
+  const variants = {
+    default: 'bg-white border-accent-soft text-primary hover:bg-gray-50',
+    primary: 'bg-primary text-accent hover:bg-primary-hover',
+    secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+    danger: 'bg-rose-100 text-rose-700 hover:bg-rose-200 border-rose-200',
+    ghost: 'bg-transparent hover:bg-gray-100',
+    gold: 'btn-gold'
+  };
+  const sizes = {
+    xs: 'px-2 py-1 text-[10px] gap-1',
+    sm: 'px-3 py-1.5 text-xs gap-1.5',
+    md: 'px-4 py-2 text-sm gap-2',
+    lg: 'px-6 py-3 text-base gap-2.5'
+  };
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`inline-flex items-center justify-center rounded-xl font-extrabold transition-all shadow-xs border ${variants[variant]} ${sizes[size]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+};
+
+const StatCard = ({ 
+  title, 
+  value, 
+  subtitle, 
+  icon: Icon, 
+  color = 'primary', 
+  trend,
+  trendUp = true
+}: {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color?: 'primary' | 'emerald' | 'rose' | 'blue' | 'purple' | 'amber';
+  trend?: string;
+  trendUp?: boolean;
+}) => {
+  const colors = {
+    primary: 'bg-primary/10 text-primary border-primary/20',
+    emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    rose: 'bg-rose-100 text-rose-700 border-rose-200',
+    blue: 'bg-blue-100 text-blue-700 border-blue-200',
+    purple: 'bg-purple-100 text-purple-700 border-purple-200',
+    amber: 'bg-amber-100 text-amber-700 border-amber-200'
+  };
+  const iconColors = {
+    primary: 'text-primary',
+    emerald: 'text-emerald-600',
+    rose: 'text-rose-600',
+    blue: 'text-blue-600',
+    purple: 'text-purple-600',
+    amber: 'text-amber-600'
+  };
+
+  return (
+    <div className="card-glass p-5 flex items-center justify-between border-l-4 border-l-current">
+      <div>
+        <div className="text-[10.5px] font-black uppercase tracking-wider text-primary">{title}</div>
+        <div className="text-2xl font-black text-primary mt-1">{value}</div>
+        {subtitle && <div className="text-[11px] text-primary/60 font-semibold mt-0.5">{subtitle}</div>}
+        {trend && (
+          <div className={`text-[11px] font-bold mt-0.5 flex items-center gap-1 ${trendUp ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            <span>{trend}</span>
+          </div>
+        )}
+      </div>
+      <div className={`w-12 h-12 rounded-2xl ${colors[color]} flex items-center justify-center`}>
+        <Icon className={`w-6 h-6 ${iconColors[color]}`} />
+      </div>
+    </div>
+  );
+};
+
+export default function FeedbackQRManagement() {
+  const [session, setSession] = useState<any>(null);
+  const [qrCodes, setQrCodes] = useState<QRCode[]>([]);
+  const [stats, setStats] = useState<QRCodeStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // Modals
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingQrCode, setEditingQrCode] = useState<QRCode | null>(null);
+  const [previewQrCode, setPreviewQrCode] = useState<QRCode | null>(null);
+  const [scanHistoryQrCode, setScanHistoryQrCode] = useState<QRCode | null>(null);
+  const [scanHistory, setScanHistory] = useState<any[]>([]);
+  const [scanHistoryLoading, setScanHistoryLoading] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    locationId: '',
+    locationCode: '',
+    locationName: '',
+    sectionId: '',
+    sectionName: '',
+    feedbackFormId: '',
+    status: 'active' as 'active' | 'inactive' | 'archived'
+  });
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [feedbackForms, setFeedbackForms] = useState<FeedbackForm[]>([]);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // View mode
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+        search: search || undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        locationId: locationFilter || undefined,
+        sortBy,
+        sortOrder
+      };
+      const [qrRes, statsRes, locRes, secRes, formRes] = await Promise.all([
+        API.getQrCodes(params),
+        API.getQrCodeStats(),
+        API.getLocationsForQr(),
+        API.getSectionsForQr(locationFilter || undefined),
+        API.getFeedbackForms()
+      ]);
+      if (qrRes?.success) {
+        setQrCodes(qrRes.data || []);
+        setTotalItems(qrRes.pagination?.total || 0);
+        setTotalPages(qrRes.pagination?.totalPages || 1);
+      }
+      if (statsRes?.success) setStats(statsRes.stats);
+      if (locRes?.success) setLocations(locRes.data || []);
+      if (secRes?.success) setSections(secRes.data || []);
+      if (formRes?.success) setFeedbackForms(formRes.data || []);
+    } catch (err: any) {
+      console.error('Load data error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, pageSize, search, statusFilter, locationFilter, sortBy, sortOrder]);
+
+  useEffect(() => {
+    if (!Auth.check()) {
+      window.location.href = '/login';
+      return;
+    }
+    setSession(Auth.get());
+    loadData();
+  }, [loadData]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    if (key === 'status') setStatusFilter(value);
+    else if (key === 'location') setLocationFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortBy(field);
+      setSortOrder('DESC');
+    }
+  };
+
+  const openCreateModal = () => {
+    resetForm();
+    setShowCreateModal(true);
+  };
+
+  const openEditModal = (qr: QRCode) => {
+    setEditingQrCode(qr);
+    setFormData({
+      name: qr.name,
+      description: qr.description || '',
+      locationId: String(qr.locationId),
+      locationCode: qr.locationCode,
+      locationName: qr.locationName,
+      sectionId: qr.sectionId || '',
+      sectionName: qr.sectionName || '',
+      feedbackFormId: qr.feedbackFormId || '',
+      status: qr.status
+    });
+    setShowCreateModal(true);
+  };
+
+  const openPreviewModal = (qr: QRCode) => {
+    setPreviewQrCode(qr);
+  };
+
+  const openScanHistory = async (qr: QRCode) => {
+    setScanHistoryQrCode(qr);
+    setScanHistoryLoading(true);
+    try {
+      const res = await API.getQrCodeScans(qr.qrCodeId, { limit: 100 });
+      if (res?.success) setScanHistory(res.data || []);
+    } catch (err) {
+      console.error('Scan history error:', err);
+    } finally {
+      setScanHistoryLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setEditingQrCode(null);
+    setFormData({
+      name: '',
+      description: '',
+      locationId: '',
+      locationCode: '',
+      locationName: '',
+      sectionId: '',
+      sectionName: '',
+      feedbackFormId: '',
+      status: 'active'
+    });
+    setFormErrors({});
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.name.trim()) errors.name = 'QR Code name is required';
+    if (!formData.locationId) errors.locationId = 'Location is required';
+    if (!formData.locationCode) errors.locationCode = 'Location code is required';
+    if (!formData.locationName) errors.locationName = 'Location name is required';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+    setSaving(true);
+    try {
+      if (editingQrCode) {
+        await API.updateQrCode(editingQrCode.id, formData);
+      } else {
+        await API.createQrCode(formData);
+      }
+      setShowCreateModal(false);
+      resetForm();
+      loadData();
+    } catch (err: any) {
+      console.error('Submit error:', err);
+      setFormErrors({ submit: err.message || 'Failed to save QR code' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (qr: QRCode) => {
+    if (!window.confirm(`Delete QR Code "${qr.name}" (${qr.qrCodeId})? This action cannot be undone.`)) return;
+    try {
+      await API.deleteQrCode(qr.id);
+      loadData();
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Failed to delete QR code');
+    }
+  };
+
+  const handleToggleStatus = async (qr: QRCode) => {
+    try {
+      await API.toggleQrCodeStatus(qr.id);
+      loadData();
+    } catch (err) {
+      console.error('Toggle status error:', err);
+      alert('Failed to toggle status');
+    }
+  };
+
+  const handleRegenerate = async (qr: QRCode) => {
+    try {
+      const res = await API.regenerateQrCode(qr.id);
+      if (res?.success) {
+        loadData();
+        setPreviewQrCode({ ...qr, qrCodeDataUrl: res.data.qrCodeDataUrl, qrCodeSvg: res.data.qrCodeSvg });
+      }
+    } catch (err) {
+      console.error('Regenerate error:', err);
+      alert('Failed to regenerate QR code');
+    }
+  };
+
+  const handleCopyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    // Could add toast here
+  };
+
+  const handleDownloadPng = (qr: QRCode) => {
+    if (!qr.qrCodeDataUrl) return;
+    const link = document.createElement('a');
+    link.href = qr.qrCodeDataUrl;
+    link.download = `${qr.qrCodeId}_${qr.name.replace(/\s+/g, '_')}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadSvg = (qr: QRCode) => {
+    if (!qr.qrCodeSvg) return;
+    const blob = new Blob([qr.qrCodeSvg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${qr.qrCodeId}_${qr.name.replace(/\s+/g, '_')}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = (qr: QRCode) => {
+    if (!qr.qrCodeDataUrl) return;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print QR Code - ${qr.name}</title>
+            <style>
+              body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+              .qr-container { display: inline-block; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+              img { max-width: 300px; }
+              h2 { color: #3D2B1F; margin-bottom: 8px; }
+              .meta { color: #6B5D50; font-size: 14px; margin-top: 16px; }
+              @media print { body { padding: 0; } .no-print { display: none; } }
+            </style>
+          </head>
+          <body>
+            <div class="qr-container">
+              <h2>${qr.name}</h2>
+              <img src="${qr.qrCodeDataUrl}" alt="QR Code" />
+              <div class="meta">
+                <div>QR Code ID: ${qr.qrCodeId}</div>
+                <div>Location: ${qr.locationName}</div>
+                ${qr.sectionName ? `<div>Section: ${qr.sectionName}</div>` : ''}
+                <div>Status: ${qr.status}</div>
+                <div>URL: ${qr.targetUrl}</div>
+              </div>
+            </div>
+            <script>window.onload = () => window.print();</script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await API.exportQrCodes({ format: 'csv', status: statusFilter !== 'all' ? statusFilter : undefined, locationId: locationFilter || undefined });
+      if (res) {
+        const blob = new Blob([res], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `feedback_qr_codes_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Failed to export');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const getLocationName = (id: string | number) => {
+    const loc = locations.find(l => l.id === Number(id));
+    return loc?.locationName || 'Unknown';
+  };
+
+  const getSectionName = (id: string) => {
+    const sec = sections.find(s => s.id === id);
+    return sec?.name || 'Unknown';
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return 'Never';
+    try {
+      return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  const formatFullDate = (dateStr: string | null) => {
+    if (!dateStr) return 'Never';
+    try {
+      return format(new Date(dateStr), 'MMM dd, yyyy hh:mm a');
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  return (
+    <DashboardLayout 
+      title="Feedback QR Code Management" 
+      subtitle="Create, manage, and track customer feedback QR codes across all locations"
+      rightElement={
+        <div className="flex items-center gap-2">
+          <ActionButton onClick={handleExport} icon={<Download className="w-3.5 h-3.5" />} title="Export CSV">Export</ActionButton>
+          <ActionButton onClick={openCreateModal} variant="gold" icon={<Plus className="w-3.5 h-3.5" />}>Create QR Code</ActionButton>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* Stats Dashboard */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Total QR Codes" value={stats?.totalQrCodes || 0} icon={QrCode} color="primary" />
+          <StatCard title="Active QR Codes" value={stats?.activeQrCodes || 0} subtitle={`${stats?.inactiveQrCodes || 0} inactive`} icon={CheckCircle2} color="emerald" />
+          <StatCard title="Total Scans" value={stats?.totalScans || 0} icon={ScanLine} color="blue" />
+          <StatCard title="Total Feedback" value={stats?.totalFeedback || 0} subtitle={`Today: ${stats?.todayFeedback || 0} • Avg Rating: ${stats?.averageRating || '0.0'}/5`} icon={MessageSquare} color="purple" />
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="card-glass p-5">
+            <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider flex items-center gap-2 mb-4">
+              <Activity className="w-4 h-4 text-accent" />
+              Scans (Last 7 Days)
+            </h3>
+            <div className="h-48 flex items-end justify-center gap-2">
+              {stats?.charts?.scansByDay?.map((day, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-0">
+                  <div 
+                    className="w-full bg-accent rounded-t transition-all hover:bg-amber-400" 
+                    style={{ height: `${Math.max(4, (day.scans / Math.max(1, ...stats.charts.scansByDay.map(d => d.scans))) * 100)}%` }}
+                    title={`${day.date}: ${day.scans} scans`}
+                  />
+                  <span className="text-[9px] text-primary/60 font-medium mt-1">{day.date.split('-').slice(1).join('-')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card-glass p-5">
+            <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider flex items-center gap-2 mb-4">
+              <MessageSquare className="w-4 h-4 text-accent" />
+              Feedback Received (Last 7 Days)
+            </h3>
+            <div className="h-48 flex items-end justify-center gap-2">
+              {stats?.charts?.feedbackByDay?.map((day, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-0">
+                  <div 
+                    className="w-full bg-emerald-500 rounded-t transition-all hover:bg-emerald-400" 
+                    style={{ height: `${Math.max(4, (day.feedback / Math.max(1, ...stats.charts.feedbackByDay.map(d => d.feedback))) * 100)}%` }}
+                    title={`${day.date}: ${day.feedback} feedback`}
+                  />
+                  <span className="text-[9px] text-primary/60 font-medium mt-1">{day.date.split('-').slice(1).join('-')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Toolbar */}
+        <div className="card-glass p-4 flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full max-w-md">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, QR Code ID, or description..."
+              value={search}
+              onChange={handleSearch}
+              className="input-modern pl-9 py-2 text-xs font-semibold"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Filter className="w-3.5 h-3.5 text-accent hidden sm:block" />
+            
+            <select value={statusFilter} onChange={(e) => handleFilterChange('status', e.target.value)} className="select-modern text-xs font-bold py-2 min-w-[140px]">
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="archived">Archived</option>
+            </select>
+
+            <select value={locationFilter} onChange={(e) => handleFilterChange('location', e.target.value)} className="select-modern text-xs font-bold py-2 min-w-[160px]">
+              <option value="">All Locations</option>
+              {locations.map(loc => (
+                <option key={loc.id} value={String(loc.id)}>{loc.locationName} ({loc.locationCode})</option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-1.5 ml-auto">
+              <ActionButton 
+                variant="ghost" 
+                size="xs" 
+                onClick={() => setViewMode('grid')} 
+                title="Grid View"
+                className={viewMode === 'grid' ? 'bg-primary text-accent' : ''}
+              >
+                <Grid className="w-3.5 h-3.5" />
+              </ActionButton>
+              <ActionButton 
+                variant="ghost" 
+                size="xs" 
+                onClick={() => setViewMode('list')} 
+                title="List View"
+                className={viewMode === 'list' ? 'bg-primary text-accent' : ''}
+              >
+                <List className="w-3.5 h-3.5" />
+              </ActionButton>
+            </div>
+          </div>
+        </div>
+
+        {/* QR Codes Table/Grid */}
+        <div className="card-glass overflow-hidden">
+          {viewMode === 'list' ? (
+            <div>
+              <div className="p-5 border-b border-accent-soft flex items-center justify-between">
+                <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider flex items-center gap-2">
+                  <QrCode className="w-4 h-4 text-accent" />
+                  <span>QR Codes ({totalItems})</span>
+                </h3>
+                <ActionButton onClick={loadData} icon={<RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />} title="Refresh" variant="ghost" size="xs">Refresh</ActionButton>
+              </div>
+
+              {loading ? (
+                <div className="py-12 text-center text-gray-500 font-bold text-xs flex flex-col items-center gap-2">
+                  <RefreshCw className="w-6 h-6 animate-spin text-accent" />
+                  <span>Loading QR codes...</span>
+                </div>
+              ) : qrCodes.length === 0 ? (
+                <div className="py-12 text-center text-gray-500 font-bold text-xs space-y-2">
+                  <QrCode className="w-10 h-10 text-gray-300 mx-auto" />
+                  <div className="text-sm text-primary font-black">No QR Codes Found</div>
+                  <p className="text-gray-400 font-medium">Create your first QR code to start collecting customer feedback.</p>
+                  <ActionButton onClick={openCreateModal} variant="gold" className="mt-4" icon={<Plus className="w-3.5 h-3.5" />}>Create QR Code</ActionButton>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-semibold border-collapse">
+                    <thead className="bg-primary text-white uppercase text-[10.5px] tracking-wider">
+                      <tr>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('qrCodeId')}>QR Code ID {sortBy === 'qrCodeId' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('name')}>Name {sortBy === 'name' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('locationName')}>Location {sortBy === 'locationName' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4">Section</th>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('status')}>Status {sortBy === 'status' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('scanCount')}>Scans {sortBy === 'scanCount' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4">Feedback</th>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('lastScannedAt')}>Last Scan {sortBy === 'lastScannedAt' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4 cursor-pointer" onClick={() => handleSort('createdAt')}>Created {sortBy === 'createdAt' && (sortOrder === 'ASC' ? <ChevronUp className="w-3.5 h-3.5 inline" /> : <ChevronDown className="w-3.5 h-3.5 inline" />)}</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {qrCodes.map((qr) => (
+                        <tr key={qr.id} className="hover:bg-black/5 transition-colors">
+                          <td className="p-4">
+                            <div className="font-extrabold text-primary font-mono text-[11px]">{qr.qrCodeId}</div>
+                            {qr.targetUrl && (
+                              <div className="text-[10px] text-gray-500 font-mono truncate max-w-xs mt-0.5" title={qr.targetUrl}>
+                                {qr.targetUrl}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <div className="font-extrabold text-primary">{qr.name}</div>
+                            {qr.description && <div className="text-[10px] text-gray-500 truncate max-w-xs mt-0.5">{qr.description}</div>}
+                          </td>
+                          <td className="p-4">
+                            <div className="font-medium text-primary flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-accent" />
+                              <span>{qr.locationName}</span>
+                            </div>
+                            <div className="text-[10px] text-gray-500 font-mono">{qr.locationCode}</div>
+                          </td>
+                          <td className="p-4">
+                            {qr.sectionName ? (
+                              <div className="font-medium text-primary flex items-center gap-1">
+                                <Building2 className="w-3 h-3 text-accent" />
+                                <span>{qr.sectionName}</span>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="p-4"><StatusBadge status={qr.status} /></td>
+                          <td className="p-4 font-extrabold text-primary">{qr.scanCount}</td>
+                          <td className="p-4">
+                            <div className="font-extrabold text-emerald-600">{qr.feedbackCount}</div>
+                            <div className="text-[10px] text-gray-500">{qr.scansWithFeedback} converted</div>
+                          </td>
+                          <td className="p-4 text-gray-600">{formatDate(qr.lastScannedAt)}</td>
+                          <td className="p-4 text-gray-600">{formatFullDate(qr.createdAt)}</td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <ActionButton onClick={() => handleCopyUrl(qr.targetUrl)} variant="ghost" size="xs" icon={<Copy className="w-3 h-3" />} title="Copy URL" />
+                              <ActionButton onClick={() => openPreviewModal(qr)} variant="ghost" size="xs" icon={<Eye className="w-3 h-3" />} title="Preview QR" />
+                              <ActionButton onClick={() => handleDownloadPng(qr)} variant="ghost" size="xs" icon={<Image className="w-3 h-3" />} title="Download PNG" />
+                              <ActionButton onClick={() => handleDownloadSvg(qr)} variant="ghost" size="xs" icon={<FileTextIcon className="w-3 h-3" />} title="Download SVG" />
+                              <ActionButton onClick={() => handlePrint(qr)} variant="ghost" size="xs" icon={<Printer className="w-3 h-3" />} title="Print QR" />
+                              <ActionButton onClick={() => openScanHistory(qr)} variant="ghost" size="xs" icon={<History className="w-3 h-3" />} title="Scan History" />
+                              <ActionButton onClick={() => handleRegenerate(qr)} variant="ghost" size="xs" icon={<RotateCcw className="w-3 h-3" />} title="Regenerate QR" />
+                              <ActionButton onClick={() => handleToggleStatus(qr)} variant="ghost" size="xs" icon={qr.status === 'active' ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />} title={qr.status === 'active' ? 'Deactivate' : 'Activate'} />
+                              <ActionButton onClick={() => openEditModal(qr)} variant="ghost" size="xs" icon={<Edit className="w-3 h-3" />} title="Edit" />
+                              <ActionButton onClick={() => handleDelete(qr)} variant="danger" size="xs" icon={<Trash2 className="w-3 h-3" />} title="Delete" />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="p-4 border-t border-accent-soft flex items-center justify-between">
+                  <span className="text-xs text-primary font-semibold">Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems}</span>
+                  <div className="flex items-center gap-1">
+                    <ActionButton onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} variant="ghost" size="xs" icon={<ChevronLeft className="w-3.5 h-3.5" />} />
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) pageNum = i + 1;
+                      else if (currentPage <= 3) pageNum = i + 1;
+                      else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                      else pageNum = currentPage - 2 + i;
+                      return (
+                        <ActionButton 
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          variant={currentPage === pageNum ? 'primary' : 'ghost'}
+                          size="xs"
+                          className="w-8 h-8"
+                        >
+                          {pageNum}
+                        </ActionButton>
+                      );
+                    })}
+                    <ActionButton onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} variant="ghost" size="xs" icon={<ChevronRight className="w-3.5 h-3.5" />} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {qrCodes.map((qr) => (
+                  <div key={qr.id} className="card-glass p-4 space-y-3 border border-accent-soft hover:border-primary/50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-extrabold text-primary text-sm truncate">{qr.name}</div>
+                        <div className="text-[10px] font-mono text-accent font-black mt-0.5">{qr.qrCodeId}</div>
+                      </div>
+                      <StatusBadge status={qr.status} />
+                    </div>
+                    <div className="space-y-1 text-[11px] text-gray-600">
+                      <div className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-accent" /><span>{qr.locationName}</span></div>
+                      {qr.sectionName && <div className="flex items-center gap-1.5"><Building2 className="w-3 h-3 text-accent" /><span>{qr.sectionName}</span></div>}
+                      <div className="flex items-center gap-1.5"><ScanLine className="w-3 h-3 text-accent" /><span>{qr.scanCount} scans</span></div>
+                      <div className="flex items-center gap-1.5"><MessageSquare className="w-3 h-3 text-emerald-600" /><span>{qr.feedbackCount} feedback</span></div>
+                      <div className="flex items-center gap-1.5"><Clock className="w-3 h-3 text-gray-400" /><span>Last: {formatDate(qr.lastScannedAt)}</span></div>
+                    </div>
+                    {qr.qrCodeDataUrl && (
+                      <div className="p-2 bg-white rounded-xl border border-accent-soft text-center">
+                        <img src={qr.qrCodeDataUrl} alt={`QR Code ${qr.qrCodeId}`} className="w-32 h-32 mx-auto" />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-accent-soft">
+                      <ActionButton onClick={() => openPreviewModal(qr)} variant="ghost" size="xs" icon={<Eye className="w-3 h-3" />} className="flex-1 min-w-0" title="Preview" />
+                      <ActionButton onClick={() => handleDownloadPng(qr)} variant="ghost" size="xs" icon={<Image className="w-3 h-3" />} className="flex-1 min-w-0" title="PNG" />
+                      <ActionButton onClick={() => handleDownloadSvg(qr)} variant="ghost" size="xs" icon={<FileTextIcon className="w-3 h-3" />} className="flex-1 min-w-0" title="SVG" />
+                      <ActionButton onClick={() => openEditModal(qr)} variant="ghost" size="xs" icon={<Edit className="w-3 h-3" />} className="flex-1 min-w-0" title="Edit" />
+                      <ActionButton onClick={() => handleToggleStatus(qr)} variant="ghost" size="xs" icon={qr.status === 'active' ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />} className="flex-1 min-w-0" title={qr.status === 'active' ? 'Deactivate' : 'Activate'} />
+                      <ActionButton onClick={() => handleDelete(qr)} variant="danger" size="xs" icon={<Trash2 className="w-3 h-3" />} className="flex-1 min-w-0" title="Delete" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="p-4 border-t border-accent-soft flex items-center justify-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) pageNum = i + 1;
+                    else if (currentPage <= 3) pageNum = i + 1;
+                    else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                    else pageNum = currentPage - 2 + i;
+                    return (
+                      <ActionButton 
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        variant={currentPage === pageNum ? 'primary' : 'ghost'}
+                        size="xs"
+                        className="w-8 h-8"
+                      >
+                        {pageNum}
+                      </ActionButton>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Create/Edit Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-primary/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-glass max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in shadow-2xl rounded-3xl border border-white/40 bg-white text-primary">
+              <div className="p-6 border-b border-accent-soft flex items-center justify-between">
+                <h3 className="text-lg font-black text-primary flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-accent" />
+                  <span>{editingQrCode ? 'Edit QR Code' : 'Create New QR Code'}</span>
+                </h3>
+                <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500"><X className="w-4 h-4" /></button>
+              </div>
+
+              <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="p-6 space-y-5">
+                {formErrors.submit && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">{formErrors.submit}</div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-extrabold text-primary">QR Code Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleFormChange}
+                    placeholder="e.g., Main Entrance Feedback, POS Counter 1, Ladies Section"
+                    className={`input-modern text-xs font-semibold py-2 ${formErrors.name ? 'border-rose-400' : ''}`}
+                  />
+                  {formErrors.name && <p className="text-[10px] text-rose-600 font-medium">{formErrors.name}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-extrabold text-primary">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleFormChange}
+                    rows={2}
+                    placeholder="Optional description for internal reference"
+                    className="input-modern text-xs font-medium py-2"
+                  ></textarea>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-primary">Location *</label>
+                    <select
+                      name="locationId"
+                      value={formData.locationId}
+                      onChange={(e) => {
+                        const loc = locations.find(l => String(l.id) === e.target.value);
+                        handleFormChange(e);
+                        if (loc) {
+                          setFormData(prev => ({ ...prev, locationCode: loc.locationCode, locationName: loc.locationName }));
+                        }
+                      }}
+                      className={`select-modern text-xs font-bold py-2 ${formErrors.locationId ? 'border-rose-400' : ''}`}
+                    >
+                      <option value="">Select Location</option>
+                      {locations.map(loc => (
+                        <option key={loc.id} value={String(loc.id)}>{loc.locationName} ({loc.locationCode})</option>
+                      ))}
+                    </select>
+                    {formErrors.locationId && <p className="text-[10px] text-rose-600 font-medium">{formErrors.locationId}</p>}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-primary">Location Code *</label>
+                    <input
+                      type="text"
+                      name="locationCode"
+                      value={formData.locationCode}
+                      onChange={handleFormChange}
+                      readOnly
+                      className="input-modern text-xs font-semibold py-2 bg-gray-50"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-primary">Location Name *</label>
+                    <input
+                      type="text"
+                      name="locationName"
+                      value={formData.locationName}
+                      onChange={handleFormChange}
+                      readOnly
+                      className="input-modern text-xs font-semibold py-2 bg-gray-50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-primary">Section/Department</label>
+                    <select
+                      name="sectionId"
+                      value={formData.sectionId}
+                      onChange={handleFormChange}
+                      className="select-modern text-xs font-bold py-2"
+                    >
+                      <option value="">Select Section (Optional)</option>
+                      {sections.map(sec => (
+                        <option key={sec.id} value={sec.id}>{sec.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-extrabold text-primary">Feedback Form</label>
+                    <select
+                      name="feedbackFormId"
+                      value={formData.feedbackFormId}
+                      onChange={handleFormChange}
+                      className="select-modern text-xs font-bold py-2"
+                    >
+                      <option value="">Default Form</option>
+                      {feedbackForms.map(form => (
+                        <option key={form.id} value={form.id}>{form.name} ({form.formId})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-extrabold text-primary">Status</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleFormChange}
+                    className="select-modern text-xs font-bold py-2"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t border-accent-soft">
+                  <ActionButton type="button" onClick={() => { setShowCreateModal(false); resetForm(); }} variant="secondary">Cancel</ActionButton>
+                  <ActionButton type="submit" disabled={saving} variant="gold" icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+                    {saving ? 'Saving...' : (editingQrCode ? 'Update QR Code' : 'Create QR Code')}
+                  </ActionButton>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Preview Modal */}
+        {previewQrCode && (
+          <div className="fixed inset-0 bg-primary/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-glass max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scale-in shadow-2xl rounded-3xl border border-white/40 bg-white text-primary">
+              <div className="p-6 border-b border-accent-soft flex items-center justify-between">
+                <h3 className="text-lg font-black text-primary flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-accent" />
+                  <span>QR Code Preview</span>
+                </h3>
+                <button onClick={() => setPreviewQrCode(null)} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500"><X className="w-4 h-4" /></button>
+              </div>
+
+              <div className="p-6 space-y-5 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary text-accent text-[10px] font-black uppercase tracking-widest">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{previewQrCode.locationName}</span>
+                </div>
+
+                <h4 className="text-lg font-black text-primary">{previewQrCode.name}</h4>
+                {previewQrCode.sectionName && (
+                  <div className="text-sm text-primary flex items-center justify-center gap-1">
+                    <Building2 className="w-3.5 h-3.5" /> {previewQrCode.sectionName}
+                  </div>
+                )}
+
+                <div className="p-6 bg-white rounded-2xl shadow-xl border border-gray-200 inline-block">
+                  {previewQrCode.qrCodeDataUrl ? (
+                    <img src={previewQrCode.qrCodeDataUrl} alt={`QR Code ${previewQrCode.qrCodeId}`} className="w-64 h-64 object-contain mx-auto" />
+                  ) : (
+                    <div className="w-64 h-64 flex items-center justify-center text-gray-400">QR Code not generated</div>
+                  )}
+                  <div className="mt-4 font-black text-xs text-primary uppercase tracking-wider">BSC EXCLUSIVE</div>
+                </div>
+
+                <div className="pt-4 border-t space-y-3">
+                  <div className="flex items-center gap-2 bg-background p-3 rounded-xl border max-w-md mx-auto">
+                    <ExternalLink className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <input
+                      type="text"
+                      readOnly
+                      value={previewQrCode.targetUrl}
+                      className="bg-transparent text-xs font-bold text-gray-700 flex-1 outline-none truncate"
+                    />
+                    <ActionButton onClick={() => handleCopyUrl(previewQrCode.targetUrl)} variant="ghost" size="xs" icon={<Copy className="w-3.5 h-3.5" />} title="Copy URL">Copy</ActionButton>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <ActionButton onClick={() => handleDownloadPng(previewQrCode)} variant="secondary" icon={<Image className="w-3.5 h-3.5" />} title="Download PNG">Download PNG</ActionButton>
+                    <ActionButton onClick={() => handleDownloadSvg(previewQrCode)} variant="secondary" icon={<FileTextIcon className="w-3.5 h-3.5" />} title="Download SVG">Download SVG</ActionButton>
+                    <ActionButton onClick={() => handlePrint(previewQrCode)} variant="secondary" icon={<Printer className="w-3.5 h-3.5" />} title="Print QR">Print</ActionButton>
+                    <ActionButton onClick={() => handleRegenerate(previewQrCode)} variant="ghost" icon={<RotateCcw className="w-3.5 h-3.5" />} title="Regenerate">Regenerate</ActionButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Scan History Modal */}
+        {scanHistoryQrCode && (
+          <div className="fixed inset-0 bg-primary/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-glass max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-scale-in shadow-2xl rounded-3xl border border-white/40 bg-white text-primary">
+              <div className="p-6 border-b border-accent-soft flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-primary flex items-center gap-2">
+                    <History className="w-5 h-5 text-accent" />
+                    <span>Scan History</span>
+                  </h3>
+                  <p className="text-sm text-primary mt-0.5">{scanHistoryQrCode.name} ({scanHistoryQrCode.qrCodeId})</p>
+                </div>
+                <button onClick={() => setScanHistoryQrCode(null)} className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500"><X className="w-4 h-4" /></button>
+              </div>
+
+              <div className="p-6">
+                {scanHistoryLoading ? (
+                  <div className="py-12 text-center text-gray-500 font-bold text-xs flex flex-col items-center gap-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-accent" />
+                    <span>Loading scan history...</span>
+                  </div>
+                ) : scanHistory.length === 0 ? (
+                  <div className="py-12 text-center text-gray-500 font-bold text-xs space-y-2">
+                    <ScanLine className="w-10 h-10 text-gray-300 mx-auto" />
+                    <div className="text-sm text-primary font-black">No Scans Recorded</div>
+                    <p className="text-gray-400 font-medium">This QR code has not been scanned yet.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs font-semibold border-collapse">
+                    <thead className="bg-primary text-white uppercase text-[10.5px] tracking-wider">
+                        <tr>
+                          <th className="p-3">Scan Time</th>
+                          <th className="p-3">Device</th>
+                          <th className="p-3">Browser / OS</th>
+                          <th className="p-3">Location</th>
+                          <th className="p-3">Feedback</th>
+                          <th className="p-3">Referrer</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {scanHistory.map((scan) => (
+                          <tr key={scan.id} className="hover:bg-black/5 transition-colors">
+                            <td className="p-3 text-gray-600">{formatFullDate(scan.scannedAt)}</td>
+                            <td className="p-3">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 capitalize">{scan.deviceType}</span>
+                            </td>
+                            <td className="p-3 text-gray-600">{scan.browser} / {scan.os}</td>
+                            <td className="p-3 text-gray-600">{scan.city || 'Unknown'}, {scan.country || 'Unknown'}</td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${scan.isFeedbackSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
+                                {scan.isFeedbackSubmitted ? 'Submitted' : 'No Feedback'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-[10px] text-gray-500 truncate max-w-xs">{scan.referrer || 'Direct'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

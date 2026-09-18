@@ -854,7 +854,7 @@ async function autoInitializeDatabase(pool) {
     try {
       const allSystemRoles = [
         'Super Admin', 'Admin', 'HR Manager', 'Recruiter', 'Interviewer',
-        'Employee', 'Greeter', 'Guest', 'CRM Manager', 'CRM Executive', 'VM Extension Telecaller'
+        'Employee', 'Greeter', 'Guest', 'CRM Manager', 'CRM Executive', 'VM Extension Telecaller', 'Telecaller'
       ];
       for (const r of allSystemRoles) {
         try {
@@ -1052,6 +1052,115 @@ async function autoInitializeDatabase(pool) {
           updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // ── Feedback QR Code Module Tables ───────────────────────────
+      try {
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS \`FeedbackQrCode\` (
+            \`id\` VARCHAR(64) PRIMARY KEY,
+            \`qrCodeId\` VARCHAR(64) NOT NULL UNIQUE,
+            \`name\` VARCHAR(255) NOT NULL,
+            \`description\` TEXT NULL,
+            \`locationId\` INT NOT NULL,
+            \`locationCode\` VARCHAR(10) NOT NULL,
+            \`locationName\` VARCHAR(100) NOT NULL,
+            \`sectionId\` VARCHAR(64) NULL,
+            \`sectionName\` VARCHAR(150) NULL,
+            \`feedbackFormId\` VARCHAR(64) NULL,
+            \`targetUrl\` TEXT NOT NULL,
+            \`qrCodeDataUrl\` LONGTEXT NULL,
+            \`qrCodeSvg\` LONGTEXT NULL,
+            \`status\` ENUM('active', 'inactive', 'archived') NOT NULL DEFAULT 'active',
+            \`scanCount\` INT NOT NULL DEFAULT 0,
+            \`lastScannedAt\` TIMESTAMP NULL,
+            \`createdBy\` INT NOT NULL,
+            \`createdByName\` VARCHAR(150) NOT NULL,
+            \`createdAt\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            \`updatedAt\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            \`deletedAt\` TIMESTAMP NULL,
+            FOREIGN KEY (\`locationId\`) REFERENCES \`Company\`(\`id\`) ON DELETE RESTRICT,
+            FOREIGN KEY (\`createdBy\`) REFERENCES \`User\`(\`id\`) ON DELETE RESTRICT,
+            INDEX \`idx_qr_code_id\` (\`qrCodeId\`),
+            INDEX \`idx_location_id\` (\`locationId\`),
+            INDEX \`idx_status\` (\`status\`),
+            INDEX \`idx_created_by\` (\`createdBy\`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS \`FeedbackQrScan\` (
+            \`id\` VARCHAR(64) PRIMARY KEY,
+            \`qrCodeId\` VARCHAR(64) NOT NULL,
+            \`qrCodeRefId\` VARCHAR(64) NOT NULL,
+            \`scannedAt\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            \`ipAddress\` VARCHAR(45) NULL,
+            \`userAgent\` TEXT NULL,
+            \`deviceType\` VARCHAR(50) NULL,
+            \`browser\` VARCHAR(100) NULL,
+            \`os\` VARCHAR(100) NULL,
+            \`referrer\` TEXT NULL,
+            \`country\` VARCHAR(100) NULL,
+            \`city\` VARCHAR(100) NULL,
+            \`isFeedbackSubmitted\` TINYINT(1) DEFAULT 0,
+            \`feedbackId\` VARCHAR(64) NULL,
+            \`createdAt\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (\`qrCodeRefId\`) REFERENCES \`FeedbackQrCode\`(\`qrCodeId\`) ON DELETE CASCADE,
+            INDEX \`idx_qr_code_ref_id\` (\`qrCodeRefId\`),
+            INDEX \`idx_scanned_at\` (\`scannedAt\`),
+            INDEX \`idx_feedback_submitted\` (\`isFeedbackSubmitted\`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS \`FeedbackForm\` (
+            \`id\` VARCHAR(64) PRIMARY KEY,
+            \`formId\` VARCHAR(64) NOT NULL UNIQUE,
+            \`name\` VARCHAR(255) NOT NULL,
+            \`description\` TEXT NULL,
+            \`questionsJson\` JSON NOT NULL,
+            \`isDefault\` TINYINT(1) DEFAULT 0,
+            \`status\` ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+            \`createdBy\` INT NOT NULL,
+            \`createdByName\` VARCHAR(150) NOT NULL,
+            \`createdAt\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            \`updatedAt\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            \`deletedAt\` TIMESTAMP NULL,
+            FOREIGN KEY (\`createdBy\`) REFERENCES \`User\`(\`id\`) ON DELETE RESTRICT,
+            INDEX \`idx_form_id\` (\`formId\`),
+            INDEX \`idx_status\` (\`status\`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        `);
+
+        // Insert default feedback form
+        await connection.query(`
+          INSERT INTO \`FeedbackForm\` (\`id\`, \`formId\`, \`name\`, \`description\`, \`questionsJson\`, \`isDefault\`, \`status\`, \`createdBy\`, \`createdByName\`)
+          SELECT 
+            'form_default_001',
+            'FORM-001',
+            'Standard Customer Experience Survey',
+            'Default 5-question customer satisfaction survey for all locations',
+            '[
+              {"id": "q1", "question": "How satisfied are you with your overall shopping experience today?", "category": "Shopping Experience", "options": ["Very satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very dissatisfied"], "required": true, "position": 1},
+              {"id": "q2", "question": "Did you find the product you were looking for?", "category": "Product Availability", "options": ["Yes, exactly what I wanted", "Yes, with assistance", "Partially", "No"], "required": true, "position": 2},
+              {"id": "q3", "question": "How would you rate the quality & variety of our collection?", "category": "Collection Quality", "options": ["Excellent", "Good", "Average", "Poor"], "required": true, "position": 3},
+              {"id": "q4", "question": "How would you rate the behavior and helpfulness of our staff?", "category": "Staff Courtesy", "options": ["Extremely helpful", "Helpful", "Average", "Poor"], "required": true, "position": 4},
+              {"id": "q5", "question": "How likely are you to recommend BSC Exclusive to your friends and family?", "category": "Store Recommendation", "options": ["Definitely recommend", "Probably recommend", "Neutral", "Not recommend"], "required": true, "position": 5}
+            ]',
+            1,
+            'active',
+            1,
+            'System Admin'
+          WHERE NOT EXISTS (SELECT 1 FROM \`FeedbackForm\` WHERE \`formId\` = 'FORM-001');
+        `);
+
+        // Add qrCodeId column to Feedback table if not exists
+        await connection.query(`ALTER TABLE \`Feedback\` ADD COLUMN \`qrCodeId\` VARCHAR(64) NULL AFTER \`sectionId\``).catch(() => {});
+        await connection.query(`ALTER TABLE \`Feedback\` ADD INDEX \`idx_qr_code_id\` (\`qrCodeId\`)`).catch(() => {});
+
+        logDebug(`[Auto DB Initializer] Feedback QR Code module tables ready`);
+      } catch (e) {
+        logDebug(`[Auto DB Initializer Warning for Feedback QR Code tables]:`, e.message);
+      }
 
       const [fbCountRows] = await connection.query(`SELECT COUNT(*) as cnt FROM Feedback`);
       if (fbCountRows && fbCountRows[0] && fbCountRows[0].cnt === 0) {
@@ -1392,6 +1501,91 @@ async function autoInitializeDatabase(pool) {
 
     // ── Multi-Location Migration (idempotent) ──────────────────
     try {
+      // ── Workflow & Approval System Migration ──────────────────────
+      try {
+        const possibleWfDirs = [
+          path.join(__dirname, '../database'),
+          path.join(__dirname, '../../database'),
+          path.join(__dirname, '../../../database'),
+          path.join(process.cwd(), 'database'),
+        ];
+        const wfDir = possibleWfDirs.find(d => fs.existsSync(path.join(d, 'workflow_schema.sql')));
+        if (wfDir) {
+          logDebug(`[Auto DB Initializer] Running workflow migration...`);
+          let wfSql = fs.readFileSync(path.join(wfDir, 'workflow_schema.sql'), 'utf8');
+          wfSql = wfSql.replace(/\/\*[\s\S]*?\*\//g, '');
+          wfSql = wfSql.replace(/^--.*$/gm, '').replace(/^#.*$/gm, '');
+
+          const wfStatements = wfSql
+            .split(';')
+            .map(s => s.trim())
+            .filter(s => s.length > 0 && !s.toUpperCase().startsWith('SELECT'));
+
+          for (const stmt of wfStatements) {
+            try {
+              await connection.query(stmt);
+            } catch (e) {
+              if (
+                !e.message.includes('Duplicate') &&
+                !e.message.includes('already exists') &&
+                !e.message.includes("doesn't exist") &&
+                !e.message.includes('ER_DUP_FIELDNAME')
+              ) {
+                logDebug(`[Workflow Migration Warning]:`, e.message.slice(0, 120));
+              }
+            }
+          }
+          logDebug(`[Auto DB Initializer] Workflow migration complete`);
+        }
+      } catch (wfErr) {
+        logDebug(`[Auto DB Initializer] Workflow migration warning:`, wfErr.message);
+      }
+
+      // ── Workflow Schema Repair (idempotent) ─────────────────────────
+      // Older workflow tables referenced the legacy `user` table via foreign
+      // keys, which blocks submissions from real `users` accounts and system
+      // (auto-advance) actions. This repair drops those constraints and relaxes
+      // the actor columns — matching the current schema definition.
+      try {
+        const wfTables = ['WorkflowInstance', 'ApprovalRequest', 'ApprovalHistory', 'WorkflowNotification'];
+        for (const wfTable of wfTables) {
+          const [fkRows] = await connection.query(
+            `SELECT CONSTRAINT_NAME, REFERENCED_TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL`,
+            [wfTable]
+          );
+          for (const fk of fkRows) {
+            // Drop only user-table references; keep definition/instance integrity FKs
+            if (/^user(s)?$/i.test(fk.REFERENCED_TABLE_NAME || '')) {
+              try { await connection.query(`ALTER TABLE \`${wfTable}\` DROP FOREIGN KEY \`${fk.CONSTRAINT_NAME}\``); } catch (e) {}
+            }
+          }
+        }
+        // Explicitly drop legacy user FKs (covers older constraint naming)
+        const legacyFkDrops = [
+          `ALTER TABLE WorkflowInstance DROP FOREIGN KEY WorkflowInstance_ibfk_2`,
+          `ALTER TABLE WorkflowInstance DROP FOREIGN KEY WorkflowInstance_ibfk_3`,
+          `ALTER TABLE ApprovalRequest DROP FOREIGN KEY ApprovalRequest_ibfk_2`,
+          `ALTER TABLE ApprovalRequest DROP FOREIGN KEY ApprovalRequest_ibfk_3`,
+          `ALTER TABLE ApprovalHistory DROP FOREIGN KEY ApprovalHistory_ibfk_3`,
+          `ALTER TABLE WorkflowNotification DROP FOREIGN KEY WorkflowNotification_ibfk_3`
+        ];
+        for (const ddl of legacyFkDrops) {
+          try { await connection.query(ddl); } catch (e) { /* already dropped */ }
+        }
+        // Relax actor columns for public/system submissions
+        const columnRelax = [
+          `ALTER TABLE WorkflowInstance MODIFY COLUMN submittedBy INT NULL`,
+          `ALTER TABLE ApprovalHistory MODIFY COLUMN actionByUserId INT NULL`,
+          `ALTER TABLE WorkflowNotification MODIFY COLUMN recipientRole VARCHAR(100) NULL`
+        ];
+        for (const ddl of columnRelax) {
+          try { await connection.query(ddl); } catch (e) { /* already relaxed */ }
+        }
+      } catch (wfRepairErr) {
+        logDebug(`[Workflow Schema Repair] warning:`, wfRepairErr.message);
+      }
+
       const possibleMigDirs = [
         path.join(__dirname, '../database'),
         path.join(__dirname, '../../database'),

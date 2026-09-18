@@ -84,7 +84,12 @@ export default function LoginPage() {
 
   // ── Numeric captcha: fetched from the server, auto-refreshed every 30 s,
   // and reloaded automatically after any failed sign-in attempt. ──
+  // Only auto-refresh when user is NOT typing in the captcha field
   const loadCaptcha = React.useCallback(async () => {
+    // Don't refresh if user is currently typing in captcha
+    if (captchaText && captchaText.length > 0) {
+      return;
+    }
     setCaptchaLoading(true);
     try {
       const res = await fetch('/api/auth/captcha');
@@ -102,7 +107,7 @@ export default function LoginPage() {
       setCaptchaLoading(false);
       setCaptchaText('');
     }
-  }, []);
+  }, [captchaText]);
 
   useEffect(() => {
     loadCaptcha();
@@ -172,26 +177,19 @@ export default function LoginPage() {
         // security trail). Silently skipped if the user denies permission.
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              const session = Auth.get();
-              if (!session?.token) return;
-              fetch('/api/security/log-event', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${session.token}`,
-                  'x-auth-token': session.token
-                },
-                body: JSON.stringify({
-                  event: 'GPS_PING',
-                  details: {
-                    lat: Number(pos.coords.latitude.toFixed(5)),
-                    lng: Number(pos.coords.longitude.toFixed(5)),
-                    accuracyM: Math.round(pos.coords.accuracy),
-                    at: new Date().toISOString()
-                  }
-                })
-              }).catch(() => {});
+            async (pos) => {
+              try {
+                const session = Auth.get();
+                if (!session?.token) return;
+                await API.logSecurityEvent('GPS_PING', {
+                  lat: Number(pos.coords.latitude.toFixed(5)),
+                  lng: Number(pos.coords.longitude.toFixed(5)),
+                  accuracyM: Math.round(pos.coords.accuracy),
+                  at: new Date().toISOString()
+                });
+              } catch {
+                // Silently fail
+              }
             },
             () => { /* permission denied / unavailable — skip silently */ },
             { timeout: 8000, maximumAge: 300000 }
@@ -227,7 +225,7 @@ export default function LoginPage() {
         <div className="bg-primary p-6 flex items-center gap-4 border-b border-accent/30">
           <img src="/logo.png" alt="BSC Logo" className="w-12 h-12 object-contain rounded-2xl bg-white p-1.5 shadow-md border border-accent/30" />
           <div>
-            <h2 className="text-lg font-black text-white leading-tight tracking-tight">Enterprise Operations Portal</h2>
+            <h2 className="text-lg font-black text-primary leading-tight tracking-tight">Enterprise Operations Portal</h2>
             <div className="text-[10px] text-accent font-bold uppercase tracking-widest mt-0.5">
               BSC EXCLUSIVE · MULTI-LOCATION SYSTEM
             </div>
@@ -238,22 +236,22 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="p-7 space-y-5">
           <div>
             <h3 className="text-xl font-black text-primary tracking-tight">Welcome Back</h3>
-            <p className="text-xs text-primary/70 font-medium mt-1">Sign in with your authorized system credentials. Your location will be loaded automatically.</p>
+            <p className="text-xs text-primary font-medium mt-1">Sign in with your authorized system credentials. Your location will be loaded automatically.</p>
           </div>
 
           {/* 10-Minute Lockout Countdown Alert */}
           {isLocked && lockRemainingSeconds > 0 && (
-            <div className="p-4 rounded-2xl bg-[#FFF5F5] border-2 border-[#FEB2B2] text-[#9B2C2C] space-y-2 animate-scale-in">
+            <div className="p-4 rounded-2xl bg-[#FDE8E8] border-2 border-[#F5B7B7] text-[#C0392B] space-y-2 animate-scale-in">
               <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
-                <Lock className="w-4 h-4 text-[#E53E3E]" />
+                <Lock className="w-4 h-4 text-[#C0392B]" />
                 <span>Account Temporarily Locked</span>
               </div>
               <p className="text-xs font-semibold leading-relaxed">
                 5 consecutive incorrect password attempts detected. For security, login is locked for 10 minutes.
               </p>
-              <div className="flex items-center justify-between pt-2 border-t border-[#FEB2B2]/60 text-xs">
-                <span className="font-bold text-[#742A2A]">Remaining Lock Time:</span>
-                <span className="font-mono font-black text-sm bg-[#FED7D7] px-2.5 py-1 rounded-lg text-[#9B2C2C] shadow-xs">
+              <div className="flex items-center justify-between pt-2 border-t border-[#F5B7B7]/60 text-xs">
+                <span className="font-bold text-[#C0392B]">Remaining Lock Time:</span>
+                <span className="font-mono font-black text-sm bg-[#FDE8E8] px-2.5 py-1 rounded-lg text-[#C0392B] shadow-xs">
                   {formatLockTimer(lockRemainingSeconds)}
                 </span>
               </div>
@@ -261,7 +259,7 @@ export default function LoginPage() {
           )}
 
           {errorMsg && !isLocked && (
-            <div className="p-3.5 rounded-xl bg-[#FDF0F2] border border-[#F6C8CE] text-[#C43D4B] text-xs font-semibold animate-fade-in">
+            <div className="p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F5B7B7] text-[#C0392B] text-xs font-semibold animate-fade-in">
               {errorMsg}
             </div>
           )}
@@ -271,7 +269,7 @@ export default function LoginPage() {
               Username / Email
             </label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/70" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary" />
               <input
                 type="text"
                 name="username"
@@ -292,7 +290,7 @@ export default function LoginPage() {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/70" />
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary" />
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -321,7 +319,7 @@ export default function LoginPage() {
             </label>
             <div className="flex items-center gap-2.5">
               <div className="relative flex-1">
-                <Hash className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/70" />
+                <Hash className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary" />
                 <input
                   type="text"
                   name="captcha"
@@ -361,7 +359,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <p className="text-[10px] text-primary/70 font-medium">Refreshes automatically in {countdown}s for your security.</p>
+            <p className="text-[10px] text-primary font-medium">Refreshes automatically in {countdown}s for your security.</p>
           </div>
 
           <div className="flex justify-end">
@@ -409,7 +407,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => navigate('/track')}
-              className="w-full py-2.5 px-4 rounded-xl border border-[#d4af37] text-[#1a365d] bg-[#fefce8] font-bold text-xs tracking-wide hover:bg-[#fef9c3] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl border border-[#D4A58A] text-[#3D2B1F] bg-[#FBF8F5] font-bold text-xs tracking-wide hover:bg-[#F5F0EB] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
               <Search className="w-3.5 h-3.5" />
               <span>Track Wedding Request</span>
@@ -418,7 +416,7 @@ export default function LoginPage() {
         </form>
 
         {/* Card Footer */}
-        <div className="bg-background px-7 py-3.5 border-t border-accent-soft flex items-center justify-between text-[10px] text-primary/70 font-semibold">
+        <div className="bg-background px-7 py-3.5 border-t border-accent-soft flex items-center justify-between text-[10px] text-primary font-semibold">
           <span className="flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-accent" />
             <span>Authorized access only · Location auto-assigned</span>
@@ -428,7 +426,7 @@ export default function LoginPage() {
       </div>
 
       {/* Location Info Note */}
-      <div className="mt-4 flex items-center gap-1.5 text-[10px] text-primary/70 font-medium">
+      <div className="mt-4 flex items-center gap-1.5 text-[10px] text-primary font-medium">
         <MapPin className="w-3 h-3 text-accent" />
         <span>Your location (Belagavi / Davanagere / Shivamogga) is assigned by the System Admin</span>
       </div>

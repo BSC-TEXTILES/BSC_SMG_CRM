@@ -114,7 +114,7 @@ export default function Attendance() {
                 <Calendar className="w-5 h-5" />
               </div>
               <div>
-                <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-0.5">
+                <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider mb-0.5">
                   Attendance Register Date
                 </label>
                 <input
@@ -135,7 +135,7 @@ export default function Attendance() {
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                     departmentFilter === dept
                       ? 'bg-primary text-accent shadow-xs'
-                      : 'bg-white/80 border border-accent-soft text-[#475569] hover:bg-white'
+                      : 'bg-white/80 border border-accent-soft text-[#5D4E42] hover:bg-white'
                   }`}
                 >
                   {dept}
@@ -213,17 +213,17 @@ export default function Attendance() {
                           <span>{emp.name || emp.fullName || '—'}</span>
                         </button>
                       </td>
-                      <td className="p-4 text-[#475569] font-semibold">{emp.department || 'Retail Sales'}</td>
+                      <td className="p-4 text-[#5D4E42] font-semibold">{emp.department || 'Retail Sales'}</td>
                       <td className="p-4 text-accent font-extrabold">{emp.desig || emp.designation || 'Staff'}</td>
-                      <td className="p-4 text-[#475569]">General Shift (10 AM - 9 PM)</td>
+                      <td className="p-4 text-[#5D4E42]">General Shift (10 AM - 9 PM)</td>
                       <td className="p-4">
                         <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100/90 text-emerald-800 border border-emerald-300/50 shadow-2xs inline-flex items-center gap-1.5">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                           <span>PRESENT</span>
                         </span>
                       </td>
-                      <td className="p-4 text-[#475569] font-mono">10:00 AM</td>
-                      <td className="p-4 text-[#475569] font-mono">09:00 PM</td>
+                      <td className="p-4 text-[#5D4E42] font-mono">10:00 AM</td>
+                      <td className="p-4 text-[#5D4E42] font-mono">09:00 PM</td>
                     </tr>
                   ))}
                 </tbody>

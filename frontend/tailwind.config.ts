@@ -16,56 +16,48 @@ const config: Config = {
     },
     extend: {
       colors: {
+        // Literal hex values (NOT var()) so Tailwind can correctly compile
+        // alpha utilities such as bg-accent/10, text-white/80, border-accent/25.
+        // (var() strings made Tailwind emit `rgb(var(--x) / a)` which is invalid
+        // CSS and was silently dropped, killing those styles entirely.)
         primary: {
-          DEFAULT: 'var(--color-primary)',
-          hover: 'var(--color-primary-hover)'
+          DEFAULT: '#6B1F2A',
+          hover: '#551829',
+          light: '#8B2E3A',
+          soft: '#F5ECEC'
         },
         accent: {
-          DEFAULT: 'var(--color-accent)',
-          hover: 'var(--color-accent-hover)',
-          soft: 'var(--color-accent-soft)',
-          softHover: 'var(--color-accent-soft-hover)'
+          DEFAULT: '#C9A227',
+          hover: '#A8881F',
+          soft: '#FBF5E1',
+          softHover: '#F5EBCC'
         },
-        background: 'var(--color-background)',
+        background: '#F7F3EF',
         // Keeping legacy names mapped to new colors to avoid breaking standard tailwind classes currently used
         burgundy: {
-          DEFAULT: 'var(--color-primary)',
-          dark: 'var(--color-primary-hover)',
-          light: 'var(--color-primary-hover)',
-          hover: 'var(--color-primary-hover)'
+          DEFAULT: '#6B1F2A',
+          dark: '#551829',
+          light: '#8B2E3A',
+          hover: '#551829'
         },
         champagne: {
-          DEFAULT: 'var(--color-accent)',
-          dark: 'var(--color-accent-hover)',
-          light: 'var(--color-accent-soft)',
-          hover: 'var(--color-accent-hover)'
+          DEFAULT: '#C9A227',
+          dark: '#A8881F',
+          light: '#FBF5E1',
+          hover: '#A8881F'
         },
         ivory: {
-          DEFAULT: 'var(--color-background)',
+          DEFAULT: '#F7F3EF',
           card: '#FFFFFF',
-          border: 'var(--color-accent-soft)'
+          border: '#F5ECEC'
         },
-        navy: {
-          DEFAULT: 'var(--color-primary)',
-          dark: 'var(--color-primary-hover)',
-          light: 'var(--color-primary-hover)'
-        },
-        gold: {
-          DEFAULT: 'var(--color-accent)',
-          dark: 'var(--color-accent-hover)',
-          light: 'var(--color-accent-soft)'
-        },
-        cream: {
-          DEFAULT: 'var(--color-background)',
-          bg: 'var(--color-background)'
-        }
       },
       textColor: {
         primary: {
-          DEFAULT: '#21181A', // Rich deep charcoal (non-blue)
-          hover: '#611427'
+          DEFAULT: '#2C1A1D',
+          hover: '#1A0F11'
         },
-        'primary-hover': '#611427'
+        'primary-hover': '#1A0F11'
       }
     },
   },

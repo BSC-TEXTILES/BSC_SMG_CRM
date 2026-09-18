@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Sparkles,
   CheckCircle2,
@@ -35,6 +36,9 @@ const defaultQuestions = [
 ];
 
 export default function PublicFeedback() {
+  const [searchParams] = useSearchParams();
+  const qrCodeId = searchParams.get('qr');
+
   const [questions, setQuestions] = useState<any[]>(defaultQuestions);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [customerName, setCustomerName] = useState<string>('');
@@ -48,6 +52,13 @@ export default function PublicFeedback() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [refNo, setRefNo] = useState<string>('');
+
+  // Track QR scan on mount
+  useEffect(() => {
+    if (qrCodeId) {
+      API.trackQrScan(qrCodeId, 'feedback_form').catch((err: any) => console.warn('QR scan tracking failed:', err));
+    }
+  }, [qrCodeId]);
 
   useEffect(() => {
     API.getFeedbackQuestions()
@@ -81,7 +92,8 @@ export default function PublicFeedback() {
         likedMost,
         canImprove,
         additionalComments,
-        source: 'qr'
+        source: 'qr',
+        qrCodeId: qrCodeId || undefined
       });
       setRefNo(res?.id || res?.refNo || `FB-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
       setSubmitted(true);
@@ -104,13 +116,13 @@ export default function PublicFeedback() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary via-primary-hover to-[#0B1F35] flex items-center justify-center p-4 sm:p-6 select-text relative overflow-hidden text-white">
+      <div className="min-h-screen bg-gradient-to-br from-primary via-primary-hover to-[#3D2B1F] flex items-center justify-center p-4 sm:p-6 select-text relative overflow-hidden text-black">
         {/* Background Ambient Glows */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="bg-white/10 backdrop-blur-2xl p-8 sm:p-10 max-w-lg w-full text-center space-y-6 animate-scale-in border border-white/20 rounded-3xl shadow-2xl relative z-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white rounded-3xl flex items-center justify-center mx-auto shadow-2xl border border-white/30 animate-bounce">
+        <div className="bg-black/10 backdrop-blur-2xl p-8 sm:p-10 max-w-lg w-full text-center space-y-6 animate-scale-in border border-black/20 rounded-3xl shadow-2xl relative z-10">
+          <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 text-black rounded-3xl flex items-center justify-center mx-auto shadow-2xl border border-black/30 animate-bounce">
             <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
           </div>
 
@@ -118,16 +130,16 @@ export default function PublicFeedback() {
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary border border-accent text-accent text-[10.5px] font-black uppercase tracking-widest">
               <Store className="w-3.5 h-3.5" /> BSC EXCLUSIVE DAVANAGERE
             </div>
-            <h2 className="text-3xl font-black text-white tracking-tight">Thank You!</h2>
-            <p className="text-white/85 text-sm font-medium leading-relaxed max-w-md mx-auto">
+            <h2 className="text-3xl font-black text-black tracking-tight">Thank You!</h2>
+            <p className="text-black/85 text-sm font-medium leading-relaxed max-w-md mx-auto">
               Your valuable feedback has been received successfully. We appreciate your time in helping us improve our retail experience.
             </p>
           </div>
 
           {/* Reference Badge */}
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-white/90 space-y-1">
+          <div className="p-4 rounded-2xl bg-black/5 border border-black/10 text-xs text-black/90 space-y-1">
             <div className="text-[10px] uppercase font-black tracking-widest text-accent">Survey Reference ID</div>
-            <div className="font-mono text-base font-black text-white">{refNo}</div>
+            <div className="font-mono text-base font-black text-black">{refNo}</div>
           </div>
 
           <button
@@ -140,12 +152,12 @@ export default function PublicFeedback() {
               setCanImprove('');
               setAdditionalComments('');
             }}
-            className="w-full h-14 bg-gradient-to-r from-accent via-[#F3C04D] to-accent text-primary font-black text-sm rounded-2xl shadow-xl active:scale-95 transition-all duration-150 border-2 border-amber-200/50"
+            className="w-full h-14 bg-gradient-to-r from-accent via-[#D4A58A] to-accent text-primary font-black text-sm rounded-2xl shadow-xl active:scale-95 transition-all duration-150 border-2 border-amber-200/50"
           >
             Submit Another Survey Response
           </button>
 
-          <div className="text-[10.5px] text-white/50 font-bold">
+          <div className="text-[10.5px] text-black/50 font-bold">
             BSC EXCLUSIVE • LUXURY STORE KIOSK FEEDBACK SYSTEM
           </div>
         </div>
@@ -158,7 +170,7 @@ export default function PublicFeedback() {
       <div className="max-w-4xl w-full space-y-5">
 
         {/* Luxury Deep Navy to Royal Navy & Gold Hero Section (220-260px Height) */}
-        <div className="p-6 sm:p-8 rounded-[24px] bg-gradient-to-br from-primary via-primary-hover to-[#0B1F35] text-white border border-white/20 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[230px] sm:min-h-[255px]">
+        <div className="p-6 sm:p-8 rounded-[24px] bg-gradient-to-br from-primary via-primary-hover to-[#3D2B1F] text-black border border-black/20 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[230px] sm:min-h-[255px]">
           {/* Subtle Decorative Gold Highlight & Shapes */}
           <div className="absolute -top-20 -right-20 w-80 h-80 bg-accent/20 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -172,23 +184,23 @@ export default function PublicFeedback() {
                 <span>BSC EXCLUSIVE DAVANAGERE • STORE SURVEY</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-white tracking-tight leading-tight drop-shadow-md">
+              <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-black tracking-tight leading-tight drop-shadow-md">
                 Customer Experience Survey
               </h1>
 
-              <p className="text-white/85 text-sm sm:text-base font-medium leading-relaxed max-w-xl">
+              <p className="text-black/85 text-sm sm:text-base font-medium leading-relaxed max-w-xl">
                 “Help us improve your shopping experience in just one minute.”
               </p>
             </div>
 
             {/* Right Side Glass Summary Panel with Circular Progress Ring */}
-            <div className="sm:col-span-1 bg-white/10 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/20 flex items-center justify-between sm:flex-col sm:justify-center gap-3 text-center shadow-lg">
+            <div className="sm:col-span-1 bg-black/10 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-black/20 flex items-center justify-between sm:flex-col sm:justify-center gap-3 text-center shadow-lg">
 
               {/* Circular Progress Ring */}
               <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                   <path
-                    className="text-white/15"
+                    className="text-black/15"
                     strokeWidth="3.5"
                     stroke="currentColor"
                     fill="none"
@@ -206,7 +218,7 @@ export default function PublicFeedback() {
                 </svg>
                 <div className="absolute flex flex-col items-center justify-center">
                   <span className="font-mono text-xs sm:text-sm font-black text-accent drop-shadow-xs">{progressStats.pct}%</span>
-                  <span className="text-[8px] uppercase font-bold text-white/75">Done</span>
+                  <span className="text-[8px] uppercase font-bold text-black/75">Done</span>
                 </div>
               </div>
 
@@ -216,8 +228,8 @@ export default function PublicFeedback() {
                   <Clock className="w-3 h-3 text-accent" />
                   <span>Est. Time: 1 Min</span>
                 </div>
-                <div className="text-white/95 text-[11px] font-extrabold">5 Survey Sections</div>
-                <div className="text-white/80 text-[10px] font-semibold">{progressStats.count} of {progressStats.total} Completed</div>
+                <div className="text-black/95 text-[11px] font-extrabold">5 Survey Sections</div>
+                <div className="text-black text-[10px] font-semibold">{progressStats.count} of {progressStats.total} Completed</div>
               </div>
 
             </div>
@@ -226,36 +238,36 @@ export default function PublicFeedback() {
 
           {/* Full-Width Animated Section Step Tracker below Hero */}
           <div className="relative z-10 pt-4 border-t border-white/15 space-y-2">
-            <div className="flex items-center justify-between text-[10.5px] font-extrabold text-white/90 overflow-x-auto gap-1.5 scrollbar-none">
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${customerName && mobile ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
+            <div className="flex items-center justify-between text-[10.5px] font-extrabold text-black/90 overflow-x-auto gap-1.5 scrollbar-none">
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${customerName && mobile ? 'bg-accent text-primary font-black' : 'bg-black/10 text-black'}`}>
                 Details
               </span>
-              <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q1'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className="text-black/40">·</span>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q1'] ? 'bg-accent text-primary font-black' : 'bg-black/10 text-black'}`}>
                 Shopping
               </span>
-              <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q2'] || answers['q3'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className="text-black/40">·</span>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q2'] || answers['q3'] ? 'bg-accent text-primary font-black' : 'bg-black/10 text-black'}`}>
                 Product
               </span>
-              <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q4'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className="text-black/40">·</span>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q4'] ? 'bg-accent text-primary font-black' : 'bg-black/10 text-black'}`}>
                 Staff
               </span>
-              <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q5'] ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className="text-black/40">·</span>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${answers['q5'] ? 'bg-accent text-primary font-black' : 'bg-black/10 text-black'}`}>
                 Recommendation
               </span>
-              <span className="text-white/40">·</span>
-              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${likedMost || canImprove ? 'bg-accent text-primary font-black' : 'bg-white/10 text-white/80'}`}>
+              <span className="text-black/40">·</span>
+              <span className={`px-2.5 py-0.5 rounded-full whitespace-nowrap ${likedMost || canImprove ? 'bg-accent text-primary font-black' : 'bg-black/10 text-black'}`}>
                 Feedback
               </span>
             </div>
 
             {/* Dark Navy Track & Gold Progress Line */}
-            <div className="w-full h-2.5 bg-primary/80 rounded-full overflow-hidden p-0.5 border border-white/10">
+            <div className="w-full h-2.5 bg-primary/80 rounded-full overflow-hidden p-0.5 border border-black/10">
               <div
-                className="h-full bg-gradient-to-r from-accent via-[#F3C04D] to-amber-300 rounded-full transition-all duration-300 shadow-md"
+                className="h-full bg-gradient-to-r from-accent via-[#D4A58A] to-amber-300 rounded-full transition-all duration-300 shadow-md"
                 style={{ width: `${progressStats.pct}%` }}
               ></div>
             </div>
@@ -312,7 +324,7 @@ export default function PublicFeedback() {
                     className="w-full text-xs font-mono font-semibold pl-16 pr-4 h-14 rounded-2xl border border-accent-soft bg-white/95 text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-xs"
                   />
                 </div>
-                <p className="text-[10.5px] font-bold text-primary/70 pt-0.5">
+                <p className="text-[10.5px] font-bold text-primary pt-0.5">
                   “We will only use this number for service follow-up.”
                 </p>
               </div>
@@ -381,7 +393,7 @@ export default function PublicFeedback() {
                 <MessageSquare className="w-4 h-4 text-accent" />
                 <span>Voice of Customer Notes (Optional)</span>
               </h3>
-              <span className="text-[10.5px] font-extrabold text-primary/70 uppercase tracking-wider">Store Feedback</span>
+              <span className="text-[10.5px] font-extrabold text-primary uppercase tracking-wider">Store Feedback</span>
             </div>
 
             <div className="space-y-4">
@@ -399,7 +411,7 @@ export default function PublicFeedback() {
                 ></textarea>
               </div>
 
-              <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-300/60 space-y-2">
+              <div className="p-4 rounded-2xl bg-black/5 border border-amber-300/60 space-y-2">
                 <label className="block text-xs font-extrabold text-amber-900 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-600" />
                   <span>What can we improve to serve you better?</span>
@@ -434,13 +446,13 @@ export default function PublicFeedback() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-[58px] bg-gradient-to-r from-accent via-[#F3C04D] to-accent text-primary font-black text-base sm:text-lg rounded-2xl shadow-2xl border-2 border-amber-200/50 flex items-center justify-center gap-2.5 hover:brightness-105 active:scale-95 transition-all duration-150"
+              className="w-full h-[58px] bg-gradient-to-r from-accent via-[#D4A58A] to-accent text-primary font-black text-base sm:text-lg rounded-2xl shadow-2xl border-2 border-amber-200/50 flex items-center justify-center gap-2.5 hover:brightness-105 active:scale-95 transition-all duration-150"
             >
               <Send className="w-5 h-5" />
               <span>{submitting ? 'Submitting Feedback...' : 'Submit Feedback Response'}</span>
             </button>
 
-            <div className="text-center text-xs text-primary/70 font-semibold flex items-center justify-center gap-1.5">
+            <div className="text-center text-xs text-primary font-semibold flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-accent" />
               <span>Your feedback helps us continuously improve your shopping experience.</span>
             </div>

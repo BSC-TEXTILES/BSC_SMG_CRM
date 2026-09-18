@@ -5,47 +5,55 @@
 @tailwind utilities;
 
 :root {
-  /* BSC Luxury Burgundy & Champagne Gold Theme */
+  /* BSC Brand Theme — Deep Maroon + Gold */
   
-  /* Primary Brand Color — Deep Imperial Burgundy */
-  --color-primary: #611427;
-  --color-primary-hover: #781D33;
+  /* Primary Brand Color — Deep Maroon */
+  --color-primary: #6B1F2A;
+  --color-primary-hover: #551829;
+  --color-primary-light: #8B2E3A;
+  --color-primary-soft: #F5ECEC;
+  --color-primary-soft-hover: #EDD8D8;
   
-  /* Accent Color — Warm Champagne Gold */
-  --color-accent: #B88D42;
-  --color-accent-hover: #9E742E;
-  --color-accent-soft: #EFE6DA; 
-  --color-accent-soft-hover: #E3D6C5;
+  /* Accent Color — Golden Amber */
+  --color-accent: #C9A227;
+  --color-accent-hover: #A8881F;
+  --color-accent-soft: #FBF5E1;
+  --color-accent-soft-hover: #F5EBCC;
 
-  /* Neutral Background — Warm Luxe Ivory / Cream */
-  --color-background: #F9F6F0;
+  /* Neutral Background */
+  --color-background: #F7F3EF;
   
   /* Standardized Status Indicators */
-  --green: #1F7A54;
-  --amber: #B87B19;
-  --red: #B82837;
+  --green: #2D8659;
+  --amber: #B8860B;
+  --red: #C0392B;
 
-  /* Legacy variable mappings to new theme for backward compatibility */
+  /* Legacy variable mappings for backward compatibility */
   --burgundy: var(--color-primary);
   --burgundy-dark: var(--color-primary-hover);
-  --burgundy-light: var(--color-primary-hover);
+  --burgundy-light: var(--color-primary-light);
   --champagne: var(--color-accent);
   --champagne-dark: var(--color-accent-hover);
   --champagne-light: var(--color-accent-soft);
   --cream: var(--color-background);
   --bg: var(--color-background);
   --surface: #FFFFFF;
-  --text-main: #21181A;
-  --text-muted: #6B5B5E;
-  --border: #E8DED2;
-  --border-warm: #DFCFC0;
-  
+  --text-main: #2C1A1D;
+  --text-muted: #5A493C;
+  --border: #E0D4CE;
+  --border-warm: #CEC0B8;
+
+  /* Readability system tokens */
+  --text-soft: #4A3A30;                 /* secondary body text — AA on ivory & white */
+  --color-accent-text: #8A6D1A;         /* dark gold for text/icons on light surfaces */
+  --color-accent-bright: #E9CE6B;       /* bright gold for text/icons on maroon/dark surfaces */
+
   --navy: var(--color-primary);
   --navy-dark: var(--color-primary-hover);
-  --navy-light: var(--color-primary-hover);
+  --navy-light: var(--color-primary-light);
   --gold: var(--color-accent);
   --gold-dark: var(--color-accent-hover);
-  --muted: #6B5B5E;
+  --muted: #5A493C;
 }
 
 body {
@@ -72,12 +80,12 @@ html, #root, * {
 
 /* Refined Selection Highlighting */
 ::selection {
-  background-color: rgba(184, 141, 66, 0.3);
-  color: #611427;
+  background-color: rgba(107, 31, 42, 0.2);
+  color: #2C1A1D;
 }
 ::-moz-selection {
-  background-color: rgba(184, 141, 66, 0.3);
-  color: #611427;
+  background-color: rgba(107, 31, 42, 0.2);
+  color: #2C1A1D;
 }
 
 /* Refined Cool Scrollbar */
@@ -89,11 +97,11 @@ html, #root, * {
   background: var(--color-background);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-accent-soft);
+  background: #D4B8BC;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent);
+  background: var(--color-primary);
 }
 
 /* Enterprise Cards & Glassmorphism */
@@ -101,12 +109,12 @@ html, #root, * {
   background: #FFFFFF;
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(97, 20, 39, 0.04);
+  box-shadow: 0 4px 16px rgba(107, 31, 42, 0.08);
   border-radius: 16px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-glass-hover:hover {
-  box-shadow: 0 8px 24px rgba(97, 20, 39, 0.08);
+  box-shadow: 0 8px 24px rgba(107, 31, 42, 0.14);
   transform: translateY(-1px);
 }
 
@@ -123,15 +131,15 @@ html, #root, * {
   letter-spacing: 0.01em;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
-.b-new { background: #FAF4E8; color: #8F6B23; border: 1px solid #ECD8B5; }
-.b-short { background: #FDF7EC; color: #B87B19; border: 1px solid #F5DEB4; }
-.b-int { background: #F8EDEF; color: #611427; border: 1px solid #E6CCD2; }
-.b-sel { background: #EAF5F0; color: #1F7A54; border: 1px solid #BBE3D1; }
-.b-offer { background: #FAF3E7; color: #8F6B23; border: 1px solid #ECD8B5; }
-.b-hold { background: #FDF7EC; color: #B87B19; border: 1px solid #F5DEB4; }
-.b-rej { background: #FDF0F2; color: #B82837; border: 1px solid #F6C8CE; }
-.b-board { background: #F6F1EA; color: #523D26; border: 1px solid #E0D4C5; }
-.b-info { background: #F6F1EA; color: #6B5B5E; border: 1px solid #E8DED2; }
+.b-new { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
+.b-short { background: #FBF5E1; color: #6B4C00; border: 1px solid #E8D9A0; }
+.b-int { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
+.b-sel { background: #E6F4EC; color: #2D8659; border: 1px solid #B2DFCC; }
+.b-offer { background: #FBF5E1; color: #6B4C00; border: 1px solid #E8D9A0; }
+.b-hold { background: #FFF8E1; color: #B8860B; border: 1px solid #F5E6A3; }
+.b-rej { background: #FDE8E8; color: #C0392B; border: 1px solid #F5B7B7; }
+.b-board { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
+.b-info { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
 
 /* Status Chips */
 .sc-chip {
@@ -142,9 +150,9 @@ html, #root, * {
   font-size: 10.5px;
   font-weight: 700;
 }
-.sc-done { background: #EAF5F0; color: #27805B; }
-.sc-fail { background: #FDF0F2; color: #C43D4B; }
-.sc-pending { background: #FDF7EC; color: #C58A24; }
+.sc-done { background: #E6F4EC; color: #2D8659; }
+.sc-fail { background: #FDE8E8; color: #C0392B; }
+.sc-pending { background: #FFF8E1; color: #B8860B; }
 
 /* Days in Pipeline Chip */
 .days-chip {
@@ -153,9 +161,9 @@ html, #root, * {
   font-size: 10px;
   font-weight: 700;
 }
-.dc-ok { background: #EAF5F0; color: #27805B; }
-.dc-warn { background: #FDF7EC; color: #C58A24; }
-.dc-danger { background: #FDF0F2; color: #C43D4B; }
+.dc-ok { background: #E6F4EC; color: #2D8659; }
+.dc-warn { background: #FFF8E1; color: #B8860B; }
+.dc-danger { background: #FDE8E8; color: #C0392B; }
 
 /* Funnel Rows */
 .funnel-row {
@@ -220,37 +228,39 @@ html, #root, * {
 }
 .input-modern:focus, .select-modern:focus, .textarea-modern:focus {
   outline: none;
-  border-color: var(--champagne);
+  border-color: var(--color-primary);
   background-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(184, 141, 66, 0.22);
+  box-shadow: 0 0 0 3px rgba(107, 31, 42, 0.15);
 }
 
 /* Modern Buttons — Primary & Accent */
 .btn-primary {
-  background-color: var(--burgundy);
+  background-color: var(--color-primary);
   color: #FFFFFF;
   font-weight: 700;
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(97, 20, 39, 0.22);
+  box-shadow: 0 2px 8px rgba(107, 31, 42, 0.30);
 }
 .btn-primary:hover {
-  background-color: var(--burgundy-light);
+  background-color: var(--color-primary-light);
+  color: #FFFFFF;
   transform: translateY(-0.5px);
-  box-shadow: 0 4px 14px rgba(97, 20, 39, 0.32);
+  box-shadow: 0 4px 14px rgba(107, 31, 42, 0.40);
 }
 .btn-gold {
-  background-color: var(--champagne);
-  color: #21181A;
+  background-color: var(--color-accent);
+  color: #FFFFFF;
   font-weight: 800;
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(184, 141, 66, 0.25);
+  box-shadow: 0 2px 8px rgba(201, 162, 39, 0.35);
 }
 .btn-gold:hover {
-  background-color: var(--champagne-dark);
+  background-color: var(--color-accent-hover);
+  color: #FFFFFF;
   transform: translateY(-0.5px);
 }
 
@@ -338,9 +348,9 @@ html, #root, * {
 }
 
 @keyframes trackingHighlight {
-  0%   { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55); background-color: #FFFBEB; }
-  60%  { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); background-color: #FEF3C7; }
-  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); background-color: #FFFBEB; }
+  0%   { box-shadow: 0 0 0 0 rgba(107, 31, 42, 0.45); background-color: #F5ECEC; }
+  60%  { box-shadow: 0 0 0 12px rgba(107, 31, 42, 0); background-color: #EDD8D8; }
+  100% { box-shadow: 0 0 0 0 rgba(107, 31, 42, 0); background-color: #F5ECEC; }
 }
 .animate-tracking-highlight {
   animation: trackingHighlight 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1 forwards;

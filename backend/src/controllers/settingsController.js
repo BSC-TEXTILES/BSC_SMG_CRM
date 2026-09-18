@@ -109,11 +109,10 @@ const getPageSettings = async (req, res) => {
     });
     return res.json(settings);
   } catch (err) {
-    // Log the actual DB error for diagnostics — NEVER silently hide it
+    // Log the actual DB error for diagnostics
     console.error('[getPageSettings ERROR] DB query failed:', err.code, err.message);
-    // Return HTTP 200 with empty object to maintain backward API compatibility
-    // Frontend (Sidebar.tsx, Settings.tsx) expect {} on failure and use hardcoded defaults
-    return res.json({});
+    // Return HTTP 500 with error - do NOT return empty object
+    return errorRes(res, 'Failed to load page settings', [err.message], 500);
   }
 };
 
@@ -300,15 +299,10 @@ const getRoles = async (req, res) => {
       } catch (e2) {}
     }
 
-    const defaultRoles = ['Super Admin', 'Admin', 'HR', 'Manager', 'Recruiter', 'Interviewer', 'Employee', 'Greeter', 'Guest'];
-    defaultRoles.forEach(r => {
-      if (!roles.includes(r)) roles.push(r);
-    });
-
     return res.json({ roles });
   } catch (err) {
     console.error('[Settings - getRoles] error:', err.message);
-    return res.json({ roles: ['Super Admin', 'Admin', 'HR', 'Manager', 'Recruiter', 'Interviewer', 'Employee', 'Greeter', 'Guest'] });
+    return errorRes(res, 'Failed to load roles', [err.message], 500);
   }
 };
 

@@ -11,7 +11,7 @@ import {
 
 function Toast({ msg, type }: { msg: string; type: string }) {
   const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-primary';
-  return <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>{msg}</div>;
+  return <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-black text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>{msg}</div>;
 }
 
 export default function MCheckHistory() {
@@ -91,7 +91,7 @@ export default function MCheckHistory() {
 
         {/* Mini bar */}
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
-          <div className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : pct >= 75 ? 'bg-primary' : pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
+          <div className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : pct >= 75 ? 'bg-primary' : pct >= 50 ? 'bg-black' : 'bg-red-400'}`}
             style={{ width: `${pct}%` }} />
         </div>
 
@@ -206,14 +206,14 @@ export default function MCheckHistory() {
                       <div>
                         <div className="text-[10px] font-black text-accent uppercase tracking-widest mb-1">DAILY REVIEW</div>
                         <div className="text-xl font-black">{dayReport.dateDisplay}</div>
-                        <div className="text-sm text-white/60 mt-1">{dayReport.kpis.total} total checkpoints</div>
+                        <div className="text-sm text-black mt-1">{dayReport.kpis.total} total checkpoints</div>
                       </div>
                       <div className="text-right">
                         <div className="text-3xl font-black text-accent">{dayReport.kpis.completionPct}%</div>
-                        <div className="text-[10px] text-white/50 uppercase">Completion</div>
+                        <div className="text-[10px] text-black/50 uppercase">Completion</div>
                       </div>
                     </div>
-                    <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div className="mt-3 h-2 bg-black/10 rounded-full overflow-hidden">
                       <div className="h-full bg-accent rounded-full" style={{ width: `${dayReport.kpis.completionPct}%` }} />
                     </div>
                     {/* KPI row */}
@@ -223,11 +223,11 @@ export default function MCheckHistory() {
                         { label: 'Not Done', val: dayReport.kpis.notDone, color: 'text-red-400' },
                         { label: 'In Prog', val: dayReport.kpis.inProgress, color: 'text-amber-400' },
                         { label: 'Postponed', val: dayReport.kpis.postponed, color: 'text-purple-400' },
-                        { label: 'Pending', val: dayReport.kpis.pending, color: 'text-white/40' },
+                        { label: 'Pending', val: dayReport.kpis.pending, color: 'text-black/40' },
                       ].map(s => (
                         <div key={s.label} className="text-center">
                           <div className={`text-lg font-black ${s.color}`}>{s.val}</div>
-                          <div className="text-[9px] text-white/40 font-semibold">{s.label}</div>
+                          <div className="text-[9px] text-black/40 font-semibold">{s.label}</div>
                         </div>
                       ))}
                     </div>
@@ -241,7 +241,7 @@ export default function MCheckHistory() {
                         <div key={i} className="flex items-center gap-3">
                           <div className="text-xs font-bold text-primary w-40 truncate flex-shrink-0">{m.module_name}</div>
                           <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${m.completion_pct === 100 ? 'bg-emerald-500' : m.completion_pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
+                            <div className={`h-full rounded-full ${m.completion_pct === 100 ? 'bg-emerald-500' : m.completion_pct >= 50 ? 'bg-black' : 'bg-red-400'}`}
                               style={{ width: `${m.completion_pct}%` }} />
                           </div>
                           <div className="text-xs font-black text-primary w-14 text-right flex-shrink-0">{m.done}/{m.total}</div>
@@ -281,7 +281,7 @@ export default function MCheckHistory() {
                       <BarChart3 className="w-3.5 h-3.5 text-accent" /> Open Dashboard
                     </button>
                     <button onClick={() => handleExport(selectedDate, 'pdf')}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-all shadow-sm">
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-600 text-black text-xs font-bold hover:bg-red-700 transition-all shadow-sm">
                       <Download className="w-3.5 h-3.5" /> PDF
                     </button>
                     <button onClick={() => handleExport(selectedDate, 'excel')}

@@ -13,7 +13,7 @@ import {
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
   DONE:        { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
   NOT_DONE:    { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200',     dot: 'bg-red-500' },
-  IN_PROGRESS: { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   dot: 'bg-amber-500' },
+  IN_PROGRESS: { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   dot: 'bg-black' },
   POSTPONED:   { bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200',  dot: 'bg-purple-500' },
   PENDING:     { bg: 'bg-gray-50',    text: 'text-gray-500',    border: 'border-gray-200',    dot: 'bg-gray-400' },
 };
@@ -22,7 +22,7 @@ const MODULE_BARS = ['bg-primary', 'bg-accent', 'bg-emerald-600', 'bg-purple-600
 
 function Toast({ msg, type }: { msg: string; type: string }) {
   const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-primary';
-  return <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>{msg}</div>;
+  return <div className={`fixed bottom-6 right-6 z-[200] px-5 py-3 rounded-xl text-black text-sm font-semibold shadow-xl animate-slide-up ${bg}`}>{msg}</div>;
 }
 
 export default function MCheckReports() {
@@ -123,7 +123,7 @@ export default function MCheckReports() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => handleExport('pdf')}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-all shadow-md cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-black text-sm font-bold hover:bg-red-700 transition-all shadow-md cursor-pointer"
                 title="Download formatted PDF report"
               >
                 <Download className="w-4 h-4" /> Download PDF
@@ -246,7 +246,7 @@ export default function MCheckReports() {
                     { label: 'Completed', value: kpi?.done ?? 0, bg: 'bg-emerald-600', icon: CheckCircle2 },
                     { label: 'Pending', value: kpi?.pending ?? 0, bg: 'bg-gray-400', icon: Circle },
                     { label: 'Not Done', value: kpi?.notDone ?? 0, bg: 'bg-red-500', icon: XCircle },
-                    { label: 'In Progress', value: kpi?.inProgress ?? 0, bg: 'bg-amber-500', icon: Clock },
+                    { label: 'In Progress', value: kpi?.inProgress ?? 0, bg: 'bg-black', icon: Clock },
                     { label: 'Postponed', value: kpi?.postponed ?? 0, bg: 'bg-purple-600', icon: AlertCircle },
                     { label: 'Overall Completion', value: `${kpi?.completionPct ?? 0}%`, bg: 'bg-accent', icon: BarChart3 },
                   ].map((item, i) => {
@@ -254,7 +254,7 @@ export default function MCheckReports() {
                     return (
                       <div key={i} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${item.bg}`}>
-                          <Icon className="w-4 h-4 text-white" />
+                          <Icon className="w-4 h-4 text-black" />
                         </div>
                         <div className="min-w-0">
                           <div className="text-xl font-black text-primary leading-tight">{item.value}</div>
@@ -336,7 +336,7 @@ export default function MCheckReports() {
                           </div>
                           <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all ${t.completion_pct >= 80 ? 'bg-emerald-500' : t.completion_pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
+                              className={`h-full rounded-full transition-all ${t.completion_pct >= 80 ? 'bg-emerald-500' : t.completion_pct >= 50 ? 'bg-black' : 'bg-red-400'}`}
                               style={{ width: `${t.completion_pct}%` }}
                             />
                           </div>
@@ -456,7 +456,7 @@ export default function MCheckReports() {
                       </div>
 
                       {expandedCheckpoint === i && (
-                        <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs animate-fade-in bg-[#FAF9F7] p-3 rounded-xl">
+                        <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs animate-fade-in bg-[#FBF8F5] p-3 rounded-xl">
                           <div><span className="font-bold text-gray-500">Compliance Status:</span> <strong className="text-primary">{cp.compliance_status || '—'}</strong></div>
                           <div><span className="font-bold text-gray-500">Accuracy:</span> <strong className="text-primary">{cp.accuracy || '—'}</strong></div>
                           <div><span className="font-bold text-gray-500">Updated By:</span> <strong className="text-primary">{cp.updated_by || cp.submitted_by || '—'}</strong></div>

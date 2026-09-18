@@ -260,7 +260,7 @@ export default function CandidateEntryPage() {
       <header className="bg-primary p-4 sm:p-5 text-white shadow-lg sticky top-0 z-30 border-b border-accent/30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md border border-white/20" />
+            <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md border border-black/20" />
             <div>
               <h1 className="font-extrabold text-base sm:text-lg leading-tight tracking-tight">BSC Candidate Registration</h1>
               <div className="text-[10px] text-accent font-bold uppercase tracking-widest mt-0.5">
@@ -269,7 +269,7 @@ export default function CandidateEntryPage() {
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-black/10 px-3 py-1.5 rounded-full border border-black/10">
             <ShieldCheck className="w-4 h-4 text-accent" />
             <span>Official Recruitment Portal</span>
           </div>
@@ -289,7 +289,7 @@ export default function CandidateEntryPage() {
                 <span className="sm:hidden">Step 1</span>
               </div>
 
-              <div className={`flex items-center gap-2 ${step === 2 ? 'text-primary' : 'text-[#64748B]'}`}>
+              <div className={`flex items-center gap-2 ${step === 2 ? 'text-primary' : 'text-[#6B5D50]'}`}>
                 <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step === 2 ? 'bg-primary text-white shadow-md ring-2 ring-accent' : 'bg-background border border-accent-soft'}`}>
                   2
                 </span>
@@ -335,7 +335,7 @@ export default function CandidateEntryPage() {
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Mobile Phone Number *</label>
                   <div className="flex">
-                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -723,11 +723,11 @@ export default function CandidateEntryPage() {
 
             <div>
               <h2 className="text-2xl font-black text-primary tracking-tight">Registration Successfully Submitted! 🎉</h2>
-              <p className="text-sm text-primary/70 font-medium mt-1">Thank you for submitting your application to BSC The Textile Mall.</p>
+              <p className="text-sm text-primary font-medium mt-1">Thank you for submitting your application to BSC The Textile Mall.</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 inline-block">
-              <span className="text-xs uppercase font-black text-primary/70 block">Application Reference Number</span>
+              <span className="text-xs uppercase font-black text-primary block">Application Reference Number</span>
               <span className="text-2xl font-mono font-black text-primary tracking-wider">{successAppNo}</span>
             </div>
 

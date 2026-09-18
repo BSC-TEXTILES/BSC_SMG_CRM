@@ -1389,12 +1389,12 @@ class WeddingController {
       let sql = `
         SELECT id, username, full_name, role, location_id
         FROM users
-        WHERE active = TRUE
+        WHERE active = TRUE AND role = 'Telecaller'
       `;
       const params = [];
 
       if (locFilter) {
-        // Branch context: own-branch staff plus global (location-less) accounts
+        // Branch context: own-branch telecallers plus global (location-less) telecaller accounts
         sql += ` AND (location_id = ? OR location_id IS NULL)`;
         params.push(locFilter);
       }

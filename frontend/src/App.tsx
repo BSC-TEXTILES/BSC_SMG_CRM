@@ -18,6 +18,7 @@ import PublicFeedback from './pages/PublicFeedback';
 import FeedbackQR from './pages/FeedbackQR';
 import FeedbackList from './pages/FeedbackList';
 import FeedbackCollection from './pages/FeedbackCollection';
+import FeedbackQRManagement from './pages/FeedbackQRManagement';
 import Divert from './pages/Divert';
 import PMView from './pages/PMView';
 import CashSettlement from './pages/CashSettlement';
@@ -31,7 +32,9 @@ import MCheckHistory from './pages/MCheckHistory';
 import WeddingCRM from './pages/WeddingCRM';
 import WeddingTracking from './pages/WeddingTracking';
 import SystemAdmin from './pages/SystemAdmin';
+import AdminApprovalDashboard from './pages/AdminApprovalDashboard';
 import QuickActionCenter from './components/ui/QuickActionCenter';
+import RouteGuard from './components/RouteGuard';
 import UserTracker from './components/UserTracker';
 import DevToolsGuard from './components/DevToolsGuard';
 import ConnectivityBanner from './components/ConnectivityBanner';
@@ -48,42 +51,44 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/wedding-crm" element={<WeddingCRM />} />
-        <Route path="/footfall" element={<Footfall />} />
+        <Route path="/dashboard" element={<RouteGuard pageKey="dashboard"><Dashboard /></RouteGuard>} />
+        <Route path="/wedding-crm" element={<RouteGuard pageKey="wedding_crm"><WeddingCRM /></RouteGuard>} />
+        <Route path="/footfall" element={<RouteGuard pageKey="footfall"><Footfall /></RouteGuard>} />
         <Route path="/feedback-public" element={<PublicFeedback />} />
         <Route path="/feedback-qr" element={<FeedbackQR />} />
-        <Route path="/feedback-list" element={<FeedbackList />} />
-        <Route path="/feedback-collection" element={<FeedbackCollection />} />
-        <Route path="/divert" element={<Divert />} />
-        <Route path="/pm-view" element={<PMView />} />
+        <Route path="/feedback-qr-management" element={<RouteGuard pageKey="feedback_qr"><FeedbackQRManagement /></RouteGuard>} />
+        <Route path="/feedback-list" element={<RouteGuard pageKey="feedback_list"><FeedbackList /></RouteGuard>} />
+        <Route path="/feedback-collection" element={<RouteGuard pageKey="feedback_collection"><FeedbackCollection /></RouteGuard>} />
+        <Route path="/divert" element={<RouteGuard pageKey="divert"><Divert /></RouteGuard>} />
+        <Route path="/pm-view" element={<RouteGuard pageKey="pm_view"><PMView /></RouteGuard>} />
         <Route path="/cash-settlement" element={<CashSettlement />} />
-        <Route path="/vm-checklist" element={<VmChecklist />} />
+        <Route path="/vm-checklist" element={<RouteGuard pageKey="vm_checklist"><VmChecklist /></RouteGuard>} />
         <Route path="/tv" element={<TVDisplay />} />
-        <Route path="/greeter" element={<Greeter />} />
-        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/greeter" element={<RouteGuard pageKey="greeter"><Greeter /></RouteGuard>} />
+        <Route path="/attendance" element={<RouteGuard pageKey="attendance"><Attendance /></RouteGuard>} />
         <Route path="/roster" element={<Navigate to="/attendance" replace />} />
-        <Route path="/daily-mcheck" element={<DailyMCheck />} />
-        <Route path="/mcheck-reports" element={<MCheckReports />} />
-        <Route path="/mcheck-history" element={<MCheckHistory />} />
-        <Route path="/candidates" element={<Candidates />} />
-        <Route path="/wedding-registration" element={<WeddingRegistration />} />
+        <Route path="/daily-mcheck" element={<RouteGuard pageKey="daily_mcheck"><DailyMCheck /></RouteGuard>} />
+        <Route path="/mcheck-reports" element={<RouteGuard pageKey="mcheck_reports"><MCheckReports /></RouteGuard>} />
+        <Route path="/mcheck-history" element={<RouteGuard pageKey="mcheck_history"><MCheckHistory /></RouteGuard>} />
+        <Route path="/candidates" element={<RouteGuard pageKey="candidates"><Candidates /></RouteGuard>} />
+        <Route path="/wedding-registration" element={<RouteGuard pageKey="wedding_registration"><WeddingRegistration /></RouteGuard>} />
         <Route path="/track" element={<WeddingTracking />} />
         <Route path="/interview-panel" element={<Navigate to="/candidates" replace />} />
         <Route path="/interview-form" element={<Navigate to="/candidates" replace />} />
-        <Route path="/offer-process" element={<OfferProcess />} />
+        <Route path="/offer-process" element={<RouteGuard pageKey="offer"><OfferProcess /></RouteGuard>} />
         {/* Disabled pages per user request: Onboarding, Exit & FnF, Interview Panel */}
         <Route path="/onboarding" element={<Navigate to="/employees" replace />} />
         <Route path="/employee-exit" element={<Navigate to="/employees" replace />} />
         <Route path="/exit" element={<Navigate to="/employees" replace />} />
-        <Route path="/employees" element={<Employees />} />
-        <Route path="/department-hiring" element={<DepartmentHiring />} />
-        <Route path="/section-allocation" element={<SectionAllocation />} />
-        <Route path="/openings" element={<Openings />} />
-        <Route path="/broadcast-center" element={<BroadcastCenter />} />
-        <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/system-admin" element={<SystemAdmin />} />
+        <Route path="/employees" element={<RouteGuard pageKey="employees"><Employees /></RouteGuard>} />
+        <Route path="/department-hiring" element={<RouteGuard pageKey="dept_hiring"><DepartmentHiring /></RouteGuard>} />
+        <Route path="/section-allocation" element={<RouteGuard pageKey="section_allocation"><SectionAllocation /></RouteGuard>} />
+        <Route path="/openings" element={<RouteGuard pageKey="openings"><Openings /></RouteGuard>} />
+        <Route path="/broadcast-center" element={<RouteGuard pageKey="broadcast"><BroadcastCenter /></RouteGuard>} />
+        <Route path="/user-management" element={<RouteGuard pageKey="user_management"><UserManagement /></RouteGuard>} />
+        <Route path="/settings" element={<RouteGuard pageKey="settings"><Settings /></RouteGuard>} />
+        <Route path="/system-admin" element={<RouteGuard pageKey="system_admin"><SystemAdmin /></RouteGuard>} />
+        <Route path="/admin-approvals" element={<RouteGuard pageKey="admin_approvals"><AdminApprovalDashboard /></RouteGuard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <QuickActionCenter />

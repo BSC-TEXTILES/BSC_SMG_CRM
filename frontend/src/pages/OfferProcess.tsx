@@ -336,9 +336,9 @@ export default function OfferProcessPage() {
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md border border-slate-200 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-5 text-white">
+            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-5 text-black">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center font-black text-lg">
+                <div className="w-11 h-11 rounded-2xl bg-black/20 flex items-center justify-center font-black text-lg">
                   {joinConfirmModal.offer.initials}
                 </div>
                 <div>

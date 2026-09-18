@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, X, Calendar, Clock, CheckCircle2, AlertTriangle, ShieldCheck, Sparkles, User, Login, LogOut } from 'lucide-react';
+import { Activity, X, Calendar, Clock, CheckCircle2, AlertTriangle, ShieldCheck, Sparkles, User, LogIn, LogOut } from 'lucide-react';
 import { API, Auth } from '../../services/api';
 
 interface ActivityPanelProps {
@@ -53,7 +53,7 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
             <Activity className="w-5 h-5 text-accent" />
             <h2 className="font-extrabold text-base tracking-tight leading-tight">Live Activity Intelligence</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-black hover:text-black hover:bg-black/10">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -64,7 +64,7 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
             <div className="grid grid-cols-3 gap-2">
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
                 <div className="text-lg font-black text-primary">{stats.totalLogins}</div>
-                <div className="text-[10px] text-primary/70 mt-0.5">Logins Today</div>
+                <div className="text-[10px] text-primary mt-0.5">Logins Today</div>
               </div>
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-center">
                 <div className="text-lg font-black text-rose-600">{stats.totalLogouts}</div>
@@ -88,7 +88,7 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
                   let colorClass = 'text-primary';
                   
                   if (act.action === 'USER_LOGIN') {
-                    Icon = Login;
+                    Icon = LogIn;
                     colorClass = 'text-emerald-600';
                   } else if (act.action === 'USER_LOGOUT') {
                     Icon = LogOut;
@@ -114,9 +114,9 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
                         <span className="flex items-center gap-1.5">
                           <Icon className={`w-4 h-4 ${colorClass}`} />
                           <span className="font-bold">{act.username || 'Unknown User'}</span>
-                          <span className="text-primary/70">- {act.action}</span>
+                          <span className="text-primary">- {act.action}</span>
                         </span>
-                        <span className="text-[10px] text-primary/70 font-mono">
+                        <span className="text-[10px] text-primary font-mono">
                           {act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
@@ -139,7 +139,7 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
                   );
                 })
               ) : (
-                <div className="text-center py-8 text-[#64748B]">No recent user activity logged.</div>
+                <div className="text-center py-8 text-[#6B5D50]">No recent user activity logged.</div>
               )}
             </div>
           </div>

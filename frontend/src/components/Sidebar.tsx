@@ -19,7 +19,8 @@ import {
   CheckSquare,
   Menu,
   Shield,
-  ShieldAlert
+  ShieldAlert,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   getSidebarCollapsed, 
@@ -27,6 +28,7 @@ import {
   subscribeSidebarCollapsed 
 } from '../utils/sidebarState';
 import { getDashboardLabelForRole } from '../utils/dashboardRouting';
+import { getRoleNavMap, resolveAllowedPages } from '../utils/rbac';
 
 interface SidebarProps {
   session: UserSession | null;
@@ -98,19 +100,8 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     return () => clearTimeout(timer);
   }, [pathname]);
 
-  const roleNavMap: Record<string, string[]> = {
-    'Super Admin': ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin'],
-    'Admin':       ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin'],
-    'HR':          ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'user_management'],
-    'Recruiter':   ['wedding_crm', 'wedding_registration', 'dashboard', 'candidates', 'broadcast'],
-    'Interviewer': ['candidates'],
-    'Manager':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'user_management'],
-    'Employee':    ['wedding_crm', 'wedding_registration', 'dashboard'],
-    'Guest':       ['wedding_registration'],
-    'Greeter':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter']
-  };
-
-  const [allowed, setAllowed] = useState<string[]>(roleNavMap[role] || roleNavMap['HR']);
+  // Single source of truth shared with RouteGuard (utils/rbac.ts)
+  const [allowed, setAllowed] = useState<string[]>(() => getRoleNavMap(role));
 
   const roleLabels: Record<string, string> = {
     'Super Admin': 'Super Administrator',
@@ -129,7 +120,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'footfall', href: '/footfall', label: 'Hourly Footfall', icon: BarChart3, section: 'Store Operations' },
     { key: 'feedback_collection', href: '/feedback-collection', label: 'Feedback Collection', icon: FileText, section: 'Store Operations' },
     { key: 'feedback_list', href: '/feedback-list', label: 'Feedback Call Queue', icon: FileText, section: 'Store Operations' },
-    { key: 'feedback_qr', href: '/feedback-qr', label: 'Feedback QR Code', icon: ClipboardList, section: 'Store Operations' },
+    { key: 'feedback_qr', href: '/feedback-qr-management', label: 'Feedback QR Code', icon: ClipboardList, section: 'Store Operations' },
     { key: 'divert', href: '/divert', label: 'Sourcing Diverts', icon: Target, section: 'Store Operations' },
     { key: 'pm_view', href: '/pm-view', label: 'Purchase Manager View', icon: Briefcase, section: 'Store Operations' },
     { key: 'vm_checklist', href: '/vm-checklist', label: 'VM Checklist', icon: ClipboardList, section: 'Store Operations' },
@@ -151,44 +142,32 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
     { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
     { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' },
-    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' }
+    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' },
+    { key: 'admin_approvals', href: '/admin-approvals', label: 'Admin Approvals', icon: ShieldCheck, section: 'Administration' }
   ];
 
   useEffect(() => {
     // 1. Check user-specific permissions first
     API.getMyPermissions().then(myPerms => {
       if (myPerms && myPerms.custom && Array.isArray(myPerms.modules) && myPerms.modules.length > 0) {
-        setAllowed(myPerms.modules);
+        setAllowed(resolveAllowedPages(role, null, myPerms.modules));
         return;
       }
 
-      // 2. Fall back to role-based page visibility settings
+      // 2. Fall back to role-based page visibility settings from database
       API.getPageSettings().then(res => {
         const settingsObj = (res && res.settings) ? res.settings : (res || {});
-        const defaultAllowed = roleNavMap[role] || roleNavMap['HR'];
-        
-        if (settingsObj && Object.keys(settingsObj).length > 0) {
-          const allKeys = navItems.map(item => item.key);
-          
-          const newAllowed = allKeys.filter(key => {
-            const dbKey = `${role}_${key}`;
-            if (settingsObj[dbKey] !== undefined) {
-              return settingsObj[dbKey] === true;
-            }
-            return defaultAllowed.includes(key);
-          });
-          
-          setAllowed(newAllowed);
-        } else {
-          setAllowed(defaultAllowed);
-        }
-      }).catch(() => {
-        setAllowed(roleNavMap[role] || roleNavMap['HR']);
+        // resolveAllowedPages intersects the role map with the DB settings —
+        // a `false` in the DB always hides the entry, even for Admin/HR/Manager.
+        setAllowed(resolveAllowedPages(role, settingsObj, null));
+      }).catch((err) => {
+        console.error('[Sidebar] Failed to load page settings:', err);
+        // On error, keep current allowed state (initialized from role map)
+        // Do NOT silently fallback to hardcoded defaults
       });
-    }).catch(() => {
-      // Graceful fallback
-      const defaultAllowed = roleNavMap[role] || roleNavMap['HR'];
-      setAllowed(defaultAllowed);
+    }).catch((err) => {
+      console.error('[Sidebar] Failed to load user permissions:', err);
+      // On error, keep current allowed state
     });
   }, [role]);
 
@@ -224,7 +203,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
             <button
               type="button"
               onClick={handleToggle}
-              className="p-1.5 rounded-xl text-accent hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs border border-accent/30"
+              className="p-1.5 rounded-xl text-accent hover:text-black hover:bg-black/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs border border-accent/30"
               title="Expand navigation menu (3 lines)"
               aria-label="Expand sidebar"
             >
@@ -248,10 +227,10 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
                 className="w-10 h-10 object-contain rounded-xl bg-white p-1 shadow-md border border-accent/30 flex-shrink-0" 
               />
               <div className="min-w-0">
-                <div className="font-extrabold text-sm text-background tracking-wide leading-tight truncate">BSC EXCLUSIVE</div>
+                <div className="font-extrabold text-sm text-white tracking-wide leading-tight truncate">BSC EXCLUSIVE</div>
                 <div className="text-[9px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1 truncate text-accent">
                   {session?.isGlobalAdmin ? (
-                    <span className="text-[#27805B] font-extrabold truncate">🌐 ALL LOCATIONS</span>
+                    <span className="text-[#2D8659] font-extrabold truncate">🌐 ALL LOCATIONS</span>
                   ) : (
                     <span className="truncate">📍 {session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
                   )}
@@ -263,7 +242,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
             <button
               type="button"
               onClick={handleToggle}
-              className="p-1.5 rounded-xl text-accent hover:text-white hover:bg-white/10 transition-colors flex-shrink-0 cursor-pointer border border-accent/30 shadow-xs"
+              className="p-1.5 rounded-xl text-accent hover:text-black hover:bg-black/10 transition-colors flex-shrink-0 cursor-pointer border border-accent/30 shadow-xs"
               title="Collapse sidebar to logo only (3 lines)"
               aria-label="Toggle sidebar collapse"
             >
@@ -284,7 +263,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
           </div>
           {!collapsed && (
             <div className="overflow-hidden flex-1">
-              <div className="font-bold text-xs text-background truncate">{session?.fullName || 'HR Manager'}</div>
+              <div className="font-bold text-xs text-white truncate">{session?.fullName || 'HR Manager'}</div>
               <div className="text-[10px] text-accent font-semibold truncate">{roleLabels[role] || role}</div>
             </div>
           )}
@@ -293,7 +272,10 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
         {/* Navigation Items */}
         <div ref={navScrollRef} className="flex-1 overflow-y-auto px-2 py-1.5 space-y-3">
           {['Store Operations', 'Core Workspace', 'Daily Operations', 'Talent Management', 'Public Portals', 'Administration'].map(section => {
-            const items = navItems.filter(item => item.section === section && (allowed.includes(item.key) || ['Super Admin', 'Admin', 'HR', 'Manager'].includes(role)));
+            // Strict RBAC rendering: only keys resolved for THIS role
+            // (role map ∩ user_permissions ∩ page_visibility). Admin roles
+            // keep their full key set via the role map itself.
+            const items = navItems.filter(item => item.section === section && allowed.includes(item.key));
             if (items.length === 0) return null;
 
             return (
@@ -301,7 +283,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
                 {collapsed ? (
                   <div className="h-px bg-accent/20 my-1.5 mx-1" />
                 ) : (
-                  <div className="text-[9px] font-black uppercase tracking-widest text-accent/60 px-2.5 mb-1">
+                  <div className="text-[9px] font-black uppercase tracking-widest text-white/80 px-2.5 mb-1">
                     <span>{section}</span>
                   </div>
                 )}
@@ -324,12 +306,12 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
                           ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5 justify-between'}
                           ${isActive 
                             ? 'bg-accent text-primary shadow-lg shadow-accent/25 font-black border-l-4 border-primary' 
-                            : 'text-background/85 hover:bg-primary-hover hover:text-white'}
+                            : 'text-white hover:bg-primary-hover hover:text-white'}
                         `}
                       >
                         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5 min-w-0'}`}>
                           <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 flex-shrink-0 ${
-                            isActive ? 'text-primary' : item.key === 'wedding_crm' ? 'text-accent animate-pulse' : 'text-accent/80 group-hover:text-accent'
+                            isActive ? 'text-primary' : item.key === 'wedding_crm' ? 'text-accent animate-pulse' : 'text-accent group-hover:text-accent'
                           }`} />
                           
                           {!collapsed && (
@@ -362,7 +344,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
           <button
             onClick={() => Auth.logout()}
             title="Sign Out Session"
-            className={`w-full flex items-center justify-center rounded-xl text-xs font-bold bg-[#C43D4B]/15 text-background border border-[#C43D4B]/40 hover:bg-[#C43D4B] hover:text-white transition-all shadow-sm ${
+            className={`w-full flex items-center justify-center rounded-xl text-xs font-bold bg-[#C0392B]/15 text-white border border-[#C0392B]/40 hover:bg-[#C0392B] hover:text-white transition-all shadow-sm ${
               collapsed ? 'py-2.5 px-0' : 'py-2.5 px-3 gap-2'
             }`}
           >
@@ -370,7 +352,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
             {!collapsed && <span>Sign Out</span>}
           </button>
           {!collapsed && (
-            <div className="text-[8.5px] text-background/40 text-center mt-2 font-medium">
+            <div className="text-[8.5px] text-white/80 text-center mt-2 font-medium">
               BSC Wedding CRM · Enterprise ATS v2.6
             </div>
           )}

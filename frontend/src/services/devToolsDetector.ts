@@ -289,7 +289,7 @@ class DevToolsDetectorService {
   private reportToServer(event: 'DEVTOOLS_DETECTED' | 'DEVTOOLS_CLOSED', details: any) {
     try {
       const session = Auth.get();
-      if (!session) return; // Only log for authenticated sessions
+      if (!session || !session.token) return; // Only log for authenticated sessions
 
       API.logSecurityEvent(event, {
         ...details,

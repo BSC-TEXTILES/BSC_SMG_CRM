@@ -42,7 +42,7 @@ export default function ConnectivityBanner() {
           <WifiOff className="w-5 h-5 text-red-400 animate-pulse" />
           <div>
             <div className="text-xs font-black tracking-wide">No Internet Connection</div>
-            <div className="text-[11px] text-white/70 font-medium">
+            <div className="text-[11px] text-black/90 font-medium">
               You are offline — data will refresh automatically once the connection returns.
             </div>
           </div>

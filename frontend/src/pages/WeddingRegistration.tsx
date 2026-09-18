@@ -6,20 +6,8 @@ import {
   ShoppingBag, Building2, CheckCircle2,
   ArrowRight, ArrowLeft, Star, Clock, DollarSign,
   CreditCard, Sparkles, Building, Home, Package,
-  Search, X, ChevronDown, Check, AlertCircle
+  Search, X, ChevronDown, Check, AlertCircle, Loader2
 } from 'lucide-react';
-
-const STORE_INFO: Record<number, { name: string; code: string; address: string; phone: string }> = {
-  1: { name: 'Belagavi', code: 'BEL', address: '1st Gate Road, Shukrawar Peth Road, Shivaji Colony, Tilakwadi, Belagavi, Karnataka – 590006', phone: '0831-246XXXX' },
-  2: { name: 'Davanagere', code: 'DAV', address: 'Medical College Road, MCC B Block, Kuvempu Nagar, Davangere, Karnataka – 577004', phone: '08192-25XXXX' },
-  3: { name: 'Shivamogga', code: 'SHI', address: 'BSC Textiles, Shivamogga, Karnataka', phone: '' }
-};
-
-const LOCATIONS = [
-  { id: 1, name: 'Belagavi', code: 'BEL' },
-  { id: 2, name: 'Davanagere', code: 'DAV' },
-  { id: 3, name: 'Shivamogga', code: 'SHI' }
-];
 
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const WEDDING_TYPES = ['Hindu Wedding', 'Muslim Wedding', 'Christian Wedding', 'Jain Wedding', 'Sikh Wedding', 'Other'];
@@ -46,7 +34,6 @@ const SHOPPING_CATEGORIES = [
   { category: 'Women', items: ['Silk Sarees', 'Wedding Sarees', 'Designer Sarees', 'Reception Sarees', 'Party Wear', 'Ladies Wear', 'Kids Wear'] },
   { category: 'Men', items: ['Suit', 'Sherwani', 'Kurta', 'Shirt', 'Trousers', "Men's Traditional Wear"] },
   { category: 'Family', items: ['Family Shopping', "Bride's Family", "Groom's Family", 'Relatives', 'Kids'] },
-  { category: 'Home / Gift', items: ['Home Furnishing', 'Towels', 'Wedding Gifts', 'Return Gifts', 'Other'] }
 ];
 const SHOPPING_TIMES = ['Morning', 'Afternoon', 'Evening', 'Flexible'];
 const CONTACT_METHODS = ['Phone Call', 'WhatsApp', 'SMS', 'Email'];
@@ -112,6 +99,24 @@ export default function WeddingRegistrationPage() {
   const [successRegId, setSuccessRegId] = useState('');
   const [successTrackId, setSuccessTrackId] = useState('');
   const [dupWarn, setDupWarn] = useState('');
+  const [locations, setLocations] = useState<Array<{id: number; location_name: string; location_code: string; address: string | null; phone: string | null; email: string | null}>>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLocations = async () => {
+      try {
+        const res = await API.getLocations();
+        if (res?.success && res.locations) {
+          setLocations(res.locations);
+        }
+      } catch (err) {
+        console.error('Failed to load locations:', err);
+      } finally {
+        setLocationsLoading(false);
+      }
+    };
+    loadLocations();
+  }, []);
 
   const validateStep = (stepNum: number): boolean => {
     const newErrors: Record<string, string> = {};
@@ -125,10 +130,6 @@ export default function WeddingRegistrationPage() {
       else if (!/^[6-9]\d{9}$/.test(form.mobile.replace(/\D/g, ''))) newErrors.mobile = 'Enter a valid 10-digit Indian mobile number';
       if (form.alternate_mobile && !/^[6-9]\d{9}$/.test(form.alternate_mobile.replace(/\D/g, ''))) newErrors.alternate_mobile = 'Enter a valid 10-digit mobile number';
       if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'Enter a valid email address';
-      if (!form.gender) newErrors.gender = 'Please select gender';
-      if (!form.city?.trim()) newErrors.city = 'City is required';
-      if (!form.address?.trim()) newErrors.address = 'Full address is required';
-      if (!form.pincode?.trim() || !/^\d{6}$/.test(form.pincode)) newErrors.pincode = 'Enter a valid 6-digit PIN code';
     }
     else if (stepNum === 3) {
       if (!form.wedding_date) newErrors.wedding_date = 'Wedding date is required';
@@ -139,23 +140,13 @@ export default function WeddingRegistrationPage() {
         if (weddingDate < today) newErrors.wedding_date = 'Wedding date cannot be in the past';
       }
       if (!form.wedding_date_flexibility) newErrors.wedding_date_flexibility = 'Please select wedding date flexibility';
-      if (!form.wedding_type) newErrors.wedding_type = 'Please select wedding type';
       if (!form.wedding_functions?.length) newErrors.wedding_functions = 'Select at least one wedding function';
-      if (!form.family_size || parseInt(form.family_size) < 1) newErrors.family_size = 'Please enter the family / shopping group size';
-      if (form.guest_count && (parseInt(form.guest_count) < 1 || parseInt(form.guest_count) > 100000)) newErrors.guest_count = 'Enter a valid guest count';
     }
     else if (stepNum === 4) {
-      if (!form.bride_name?.trim()) newErrors.bride_name = 'Bride name is required';
-      if (!form.groom_name?.trim()) newErrors.groom_name = 'Groom name is required';
-      if (form.bride_age && (parseInt(form.bride_age) < 18 || parseInt(form.bride_age) > 100)) newErrors.bride_age = 'Enter a valid age (18-100)';
-      if (form.groom_age && (parseInt(form.groom_age) < 18 || parseInt(form.groom_age) > 100)) newErrors.groom_age = 'Enter a valid age (18-100)';
-    }
-    else if (stepNum === 5) {
       const hasSelections = form.shopping_requirements && Object.values(form.shopping_requirements).some(arr => arr.length > 0);
       if (!hasSelections) newErrors.shopping_requirements = 'Select at least one shopping requirement';
-      if (!form.budget_range) newErrors.budget_range = 'Please select estimated budget range';
     }
-    else if (stepNum === 6) {
+    else if (stepNum === 5) {
       if (!form.preferred_shopping_date) newErrors.preferred_shopping_date = 'Preferred shopping date is required';
       else {
         const shopDate = new Date(form.preferred_shopping_date);
@@ -167,13 +158,13 @@ export default function WeddingRegistrationPage() {
       if (!form.preferred_contact_method) newErrors.preferred_contact_method = 'Please select preferred contact method';
       if (!form.preferred_followup_time) newErrors.preferred_followup_time = 'Please select preferred follow-up time';
       if (form.existing_customer === 'Yes') {
-        if (!form.existing_customer_id?.trim()) newErrors.existing_customer_id = 'Please enter existing customer ID';
+        if (!form.existing_customer_id?.trim()) newErrors.existing_customer_id = 'Please enter existing Emp ID';
       }
     }
-    else if (stepNum === 7) {
+    else if (stepNum === 6) {
       // Optional step
     }
-    else if (stepNum === 8) {
+    else if (stepNum === 7) {
       if (!form.consent) newErrors.consent = 'You must agree to the consent before submitting';
     }
 
@@ -239,7 +230,7 @@ export default function WeddingRegistrationPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(8)) {
+    if (!validateStep(7)) {
       showToast('Please fix the errors before submitting', 'error');
       return;
     }
@@ -268,7 +259,7 @@ export default function WeddingRegistrationPage() {
         const trackId = res.tracking_id || res.registration?.tracking_id || regId;
         setSuccessRegId(regId);
         setSuccessTrackId(trackId);
-        setStep(9); // Success screen
+        setStep(8); // Success screen
         window.scrollTo(0, 0);
         showToast('Your request was saved successfully!', 'success');
       } else {
@@ -300,18 +291,17 @@ export default function WeddingRegistrationPage() {
 
   const getSelectedStore = () => {
     if (!form.location_id) return null;
-    return STORE_INFO[parseInt(form.location_id)];
+    return locations.find(l => l.id === parseInt(form.location_id)) || null;
   };
 
   const steps = [
     { num: 1, label: 'Store Location', short: 'Location' },
     { num: 2, label: 'Customer Details', short: 'Customer' },
     { num: 3, label: 'Wedding Details', short: 'Wedding' },
-    { num: 4, label: 'Bride & Groom', short: 'Couple' },
-    { num: 5, label: 'Shopping Needs', short: 'Shopping' },
-    { num: 6, label: 'Visit & Follow-up', short: 'Follow-up' },
-    { num: 7, label: 'Additional Info', short: 'Notes' },
-    { num: 8, label: 'Review & Submit', short: 'Review' }
+    { num: 4, label: 'Shopping Needs', short: 'Shopping' },
+    { num: 5, label: 'Visit & Follow-up', short: 'Follow-up' },
+    { num: 6, label: 'Additional Info', short: 'Notes' },
+    { num: 7, label: 'Review & Submit', short: 'Review' }
   ];
 
   return (
@@ -322,7 +312,7 @@ export default function WeddingRegistrationPage() {
       <header className="bg-primary p-4 sm:p-5 text-white shadow-lg sticky top-0 z-30 border-b border-accent/30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md border border-white/20" />
+            <img src="/logo.png" alt="BSC Logo" className="w-11 h-11 object-contain rounded-xl bg-white p-1 shadow-md border border-black/20" />
             <div>
               <h1 className="font-extrabold text-base sm:text-lg leading-tight tracking-tight">BSC Wedding Registration</h1>
               <div className="text-[10px] text-accent font-bold uppercase tracking-widest mt-0.5">
@@ -330,7 +320,7 @@ export default function WeddingRegistrationPage() {
               </div>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full border border-white/10">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-black/10 px-3 py-1.5 rounded-full border border-black/10">
             <Sparkles className="w-4 h-4 text-accent" />
             <span>Official Wedding Portal</span>
           </div>
@@ -339,12 +329,12 @@ export default function WeddingRegistrationPage() {
 
       <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Progress Stepper */}
-        {step <= 8 && (
+        {step <= 7 && (
           <div className="card-glass p-4 text-xs font-extrabold space-y-2">
             <div className="flex items-center justify-between overflow-x-auto pb-2">
               {steps.map((s, idx) => (
                 <div key={s.num} className={`flex items-center gap-2 transition-all ${idx < steps.length - 1 ? 'pr-4' : ''}`}>
-                  <div className={`flex items-center gap-1.5 ${step === s.num ? 'text-primary' : step > s.num ? 'text-emerald-700' : 'text-[#64748B]'}`}>
+                  <div className={`flex items-center gap-1.5 ${step === s.num ? 'text-primary' : step > s.num ? 'text-emerald-700' : 'text-[#6B5D50]'}`}>
                     <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${step === s.num ? 'bg-primary text-white shadow-md ring-2 ring-accent' : step > s.num ? 'bg-emerald-600 text-white' : 'bg-background border border-accent-soft'}`}>
                       {step > s.num ? '✓' : s.num}
                     </span>
@@ -360,7 +350,7 @@ export default function WeddingRegistrationPage() {
             <div className="h-1.5 w-full bg-accent-soft rounded-full overflow-hidden sm:hidden">
               <div
                 className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out"
-                style={{ width: `${(step - 1) / 7 * 100}%` }}
+                style={{ width: `${(step - 1) / 6 * 100}%` }}
               />
             </div>
           </div>
@@ -375,38 +365,56 @@ export default function WeddingRegistrationPage() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-sm text-primary/70 font-medium">Choose your preferred BSC Textiles store for wedding shopping</p>
+              <p className="text-sm text-primary font-medium">Choose your preferred BSC Textiles store for wedding shopping</p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {LOCATIONS.map(loc => {
-                  const storeInfo = STORE_INFO[loc.id];
-                  const isSelected = form.location_id === String(loc.id);
-                  return (
-                    <button
-                      key={loc.id}
-                      type="button"
-                      onClick={() => handleChange('location_id', String(loc.id))}
-                      className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${isSelected
-                          ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                          : 'border-accent-soft bg-background hover:border-primary hover:bg-white'
-                        }`}
-                    >
+              {locationsLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="p-4 rounded-2xl border-2 border-accent-soft bg-background animate-pulse">
                       <div className="flex items-center gap-2 mb-2">
-                        <MapPin className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-accent'}`} />
-                        <span className="font-extrabold text-sm text-primary">{loc.name} ({loc.code})</span>
+                        <MapPin className="w-5 h-5 text-accent" />
+                        <span className="font-extrabold text-sm text-primary">Loading...</span>
                       </div>
-                      <p className="text-xs text-primary/70 line-clamp-2">{storeInfo.address}</p>
-                      {storeInfo.phone && <p className="text-[10px] text-primary/50 mt-1">📞 {storeInfo.phone}</p>}
-                      {isSelected && (
-                        <div className="mt-2 flex items-center gap-1.5 text-primary text-xs font-bold">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Selected</span>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mt-2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {locations.map(loc => {
+                    const isSelected = form.location_id === String(loc.id);
+                    return (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => handleChange('location_id', String(loc.id))}
+                        className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${isSelected
+                            ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                            : 'border-accent-soft bg-background hover:border-primary hover:bg-white'
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-accent'}`} />
+                          <span className="font-extrabold text-sm text-primary">
+                            {loc.location_name === 'Davanagere' ? 'Davanagere' : `${loc.location_name} (${loc.location_code})`}
+                          </span>
                         </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                        {loc.location_name === 'Davanagere' && (
+                          <p className="text-xs text-primary line-clamp-2">Address not available</p>
+                        )}
+                        {loc.phone && <p className="text-[10px] text-primary/50 mt-1">📞 {loc.phone}</p>}
+                        {isSelected && (
+                          <div className="mt-2 flex items-center gap-1.5 text-primary text-xs font-bold">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Selected</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {errors.location_id && (
                 <div className="p-3 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs font-bold flex items-center gap-2">
@@ -450,7 +458,7 @@ export default function WeddingRegistrationPage() {
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Mobile Number <span className="text-red-500">*</span></label>
                   <div className="flex">
-                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -470,7 +478,7 @@ export default function WeddingRegistrationPage() {
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Alternate Mobile</label>
                   <div className="flex">
-                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="p-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -495,15 +503,6 @@ export default function WeddingRegistrationPage() {
                     className={`input-modern ${errors.email ? 'border-red-400' : ''}`}
                   />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Gender <span className="text-red-500">*</span></label>
-                  <select value={form.gender} onChange={e => handleChange('gender', e.target.value)} className={`select-modern ${errors.gender ? 'border-red-400' : ''}`}>
-                    <option value="">Select Gender</option>
-                    {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
-                  {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
                 </div>
               </div>
             </div>
@@ -551,63 +550,6 @@ export default function WeddingRegistrationPage() {
                   </select>
                   {errors.wedding_date_flexibility && <p className="text-red-500 text-xs mt-1">{errors.wedding_date_flexibility}</p>}
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Wedding Type <span className="text-red-500">*</span></label>
-                  <select value={form.wedding_type} onChange={e => handleChange('wedding_type', e.target.value)} className={`select-modern ${errors.wedding_type ? 'border-red-400' : ''}`}>
-                    <option value="">Select wedding type</option>
-                    {WEDDING_TYPES.map(w => <option key={w} value={w}>{w}</option>)}
-                  </select>
-                  {errors.wedding_type && <p className="text-red-500 text-xs mt-1">{errors.wedding_type}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Wedding City</label>
-                  <input
-                    type="text"
-                    value={form.wedding_city}
-                    onChange={e => handleChange('wedding_city', e.target.value)}
-                    placeholder="City where wedding will take place"
-                    className="input-modern"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Wedding Venue</label>
-                  <input
-                    type="text"
-                    value={form.wedding_venue}
-                    onChange={e => handleChange('wedding_venue', e.target.value)}
-                    placeholder="Venue name / address"
-                    className="input-modern"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Expected Guests</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.guest_count}
-                    onChange={e => handleChange('guest_count', e.target.value)}
-                    placeholder="e.g. 200"
-                    className={`input-modern ${errors.guest_count ? 'border-red-400' : ''}`}
-                  />
-                  {errors.guest_count && <p className="text-red-500 text-xs mt-1">{errors.guest_count}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Family / Shopping Group Size <span className="text-red-500">*</span></label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={form.family_size}
-                    onChange={e => handleChange('family_size', e.target.value)}
-                    placeholder="Number of people shopping"
-                    className={`input-modern ${errors.family_size ? 'border-red-400' : ''}`}
-                  />
-                  {errors.family_size && <p className="text-red-500 text-xs mt-1">{errors.family_size}</p>}
-                </div>
               </div>
 
               <div>
@@ -635,138 +577,6 @@ export default function WeddingRegistrationPage() {
                 <span>Back</span>
               </button>
               <button type="button" onClick={handleNext} className="btn-primary flex items-center gap-2 shadow-md">
-                <span>Continue to Bride & Groom Details</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: BRIDE & GROOM DETAILS */}
-        {step === 4 && (
-          <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
-            <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
-              <User className="w-5 h-5 text-accent" />
-              <User className="w-5 h-5 text-accent" />
-              <h2 className="text-sm font-extrabold uppercase text-primary tracking-wider">Step 4: Bride & Groom Details</h2>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Bride Details */}
-              <div className="p-4 rounded-2xl border border-accent-soft bg-background/50 space-y-4">
-                <div className="flex items-center gap-2 border-b border-accent-soft pb-2">
-                  <User className="w-5 h-5 text-rose-500" />
-                  <h3 className="font-extrabold text-sm text-primary">Bride Details</h3>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1">Bride Name <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={form.bride_name}
-                      onChange={e => handleChange('bride_name', e.target.value)}
-                      placeholder="Bride's full name"
-                      className={`input-modern ${errors.bride_name ? 'border-red-400' : ''}`}
-                    />
-                    {errors.bride_name && <p className="text-red-500 text-xs mt-1">{errors.bride_name}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1">Bride Age</label>
-                    <input
-                      type="number"
-                      min={18}
-                      max={100}
-                      value={form.bride_age}
-                      onChange={e => handleChange('bride_age', e.target.value)}
-                      placeholder="e.g. 25"
-                      className={`input-modern ${errors.bride_age ? 'border-red-400' : ''}`}
-                    />
-                    {errors.bride_age && <p className="text-red-500 text-xs mt-1">{errors.bride_age}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1">Bride Contact</label>
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      value={form.bride_contact}
-                      onChange={e => handleChange('bride_contact', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="Optional mobile number"
-                      className="input-modern"
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-primary">
-                    <input
-                      type="checkbox"
-                      checked={form.bride_shopping_required}
-                      onChange={e => handleChange('bride_shopping_required', e.target.checked)}
-                      className="rounded accent-primary"
-                    />
-                    <span>Bride shopping required</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Groom Details */}
-              <div className="p-4 rounded-2xl border border-accent-soft bg-background/50 space-y-4">
-                <div className="flex items-center gap-2 border-b border-accent-soft pb-2">
-                  <User className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-extrabold text-sm text-primary">Groom Details</h3>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1">Groom Name <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={form.groom_name}
-                      onChange={e => handleChange('groom_name', e.target.value)}
-                      placeholder="Groom's full name"
-                      className={`input-modern ${errors.groom_name ? 'border-red-400' : ''}`}
-                    />
-                    {errors.groom_name && <p className="text-red-500 text-xs mt-1">{errors.groom_name}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1">Groom Age</label>
-                    <input
-                      type="number"
-                      min={18}
-                      max={100}
-                      value={form.groom_age}
-                      onChange={e => handleChange('groom_age', e.target.value)}
-                      placeholder="e.g. 28"
-                      className={`input-modern ${errors.groom_age ? 'border-red-400' : ''}`}
-                    />
-                    {errors.groom_age && <p className="text-red-500 text-xs mt-1">{errors.groom_age}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-primary mb-1">Groom Contact</label>
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      value={form.groom_contact}
-                      onChange={e => handleChange('groom_contact', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="Optional mobile number"
-                      className="input-modern"
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-primary">
-                    <input
-                      type="checkbox"
-                      checked={form.groom_shopping_required}
-                      onChange={e => handleChange('groom_shopping_required', e.target.checked)}
-                      className="rounded accent-primary"
-                    />
-                    <span>Groom shopping required</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-accent-soft">
-              <button type="button" onClick={handleBack} className="px-4 py-2 rounded-xl border border-accent-soft text-xs font-bold text-primary hover:bg-background flex items-center gap-1.5">
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button type="button" onClick={handleNext} className="btn-primary flex items-center gap-2 shadow-md">
                 <span>Continue to Shopping Requirements</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -774,8 +584,8 @@ export default function WeddingRegistrationPage() {
           </div>
         )}
 
-        {/* STEP 5: SHOPPING REQUIREMENTS */}
-        {step === 5 && (
+        {/* STEP 4: SHOPPING REQUIREMENTS */}
+        {step === 4 && (
           <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
             <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-accent" />
@@ -783,7 +593,7 @@ export default function WeddingRegistrationPage() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-sm text-primary/70">Select all categories you plan to shop for (multiple selection allowed)</p>
+              <p className="text-sm text-primary">Select all categories you plan to shop for (multiple selection allowed)</p>
 
               {SHOPPING_CATEGORIES.map(cat => (
                 <div key={cat.category} className="p-4 rounded-2xl border border-accent-soft bg-background/50">
@@ -813,15 +623,6 @@ export default function WeddingRegistrationPage() {
                   {errors.shopping_requirements}
                 </div>
               )}
-
-              <div>
-                <label className="block text-xs font-bold text-primary mb-1">Estimated Wedding Shopping Budget <span className="text-red-500">*</span></label>
-                <select value={form.budget_range} onChange={e => handleChange('budget_range', e.target.value)} className={`select-modern ${errors.budget_range ? 'border-red-400' : ''}`}>
-                  <option value="">Select budget range</option>
-                  {BUDGET_RANGES.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-                {errors.budget_range && <p className="text-red-500 text-xs mt-1">{errors.budget_range}</p>}
-              </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-accent-soft">
@@ -837,8 +638,8 @@ export default function WeddingRegistrationPage() {
           </div>
         )}
 
-        {/* STEP 6: VISIT & FOLLOW-UP PREFERENCES */}
-        {step === 6 && (
+        {/* STEP 5: VISIT & FOLLOW-UP PREFERENCES */}
+        {step === 5 && (
           <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
             <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
               <Clock className="w-5 h-5 text-accent" />
@@ -869,19 +670,7 @@ export default function WeddingRegistrationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Expected Visitors</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={form.expected_visitors}
-                    onChange={e => handleChange('expected_visitors', e.target.value)}
-                    placeholder="Number of people visiting"
-                    className="input-modern"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-primary mb-1">Are you an existing BSC customer? <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-primary mb-1">Are you an existing BSC emp? <span className="text-red-500">*</span></label>
                   <select value={form.existing_customer} onChange={e => handleChange('existing_customer', e.target.value)} className={`select-modern ${errors.existing_customer ? 'border-red-400' : ''}`}>
                     <option value="">Select</option>
                     {EXISTING_CUSTOMER.map(e => <option key={e} value={e}>{e}</option>)}
@@ -892,12 +681,12 @@ export default function WeddingRegistrationPage() {
                 {form.existing_customer === 'Yes' && (
                   <>
                     <div>
-                      <label className="block text-xs font-bold text-primary mb-1">Existing Customer ID <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-bold text-primary mb-1">Existing Emp ID <span className="text-red-500">*</span></label>
                       <input
                         type="text"
                         value={form.existing_customer_id}
                         onChange={e => handleChange('existing_customer_id', e.target.value)}
-                        placeholder="Your BSC customer ID"
+                        placeholder="Your BSC emp ID"
                         className={`input-modern ${errors.existing_customer_id ? 'border-red-400' : ''}`}
                       />
                       {errors.existing_customer_id && <p className="text-red-500 text-xs mt-1">{errors.existing_customer_id}</p>}
@@ -956,8 +745,8 @@ export default function WeddingRegistrationPage() {
           </div>
         )}
 
-        {/* STEP 7: ADDITIONAL INFORMATION */}
-        {step === 7 && (
+        {/* STEP 6: ADDITIONAL INFORMATION */}
+        {step === 6 && (
           <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
             <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
               <Package className="w-5 h-5 text-accent" />
@@ -993,7 +782,7 @@ export default function WeddingRegistrationPage() {
         )}
 
         {/* STEP 8: REVIEW & SUBMIT */}
-        {step === 8 && (
+        {step === 7 && (
           <div className="card-glass p-6 sm:p-8 space-y-6 animate-fade-in shadow-xl">
             <div className="border-b border-accent-soft pb-3 flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-accent" />
@@ -1001,7 +790,7 @@ export default function WeddingRegistrationPage() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-sm text-primary/70">Please review all details before submitting. You can edit any section by clicking the Edit button.</p>
+              <p className="text-sm text-primary">Please review all details before submitting. You can edit any section by clicking the Edit button.</p>
 
               {/* Store Info */}
               {(() => {
@@ -1012,9 +801,9 @@ export default function WeddingRegistrationPage() {
                       <Building2 className="w-4 h-4" />
                       Selected Store
                     </h4>
-                    <div className="text-xs text-primary/80 space-y-1">
-                      <p><strong>{store.name} ({store.code})</strong></p>
-                      <p>{store.address}</p>
+                    <div className="text-xs text-primary space-y-1">
+                      <p><strong>{store.location_name === 'Davanagere' ? 'Davanagere' : `${store.location_name} (${store.location_code})`}</strong></p>
+                      {store.location_name === 'Davanagere' && <p>Address not available</p>}
                       {store.phone && <p>📞 {store.phone}</p>}
                     </div>
                   </div>
@@ -1027,15 +816,10 @@ export default function WeddingRegistrationPage() {
                   <User className="w-4 h-4" />
                   Customer Details
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary/80">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary">
                   <p><strong>Name:</strong> {form.customer_name}</p>
                   <p><strong>Mobile:</strong> +91 {form.mobile}</p>
                   <p><strong>Email:</strong> {form.email || '—'}</p>
-                  <p><strong>Gender:</strong> {form.gender}</p>
-                  <p><strong>Age:</strong> {form.age || '—'}</p>
-                  <p><strong>City:</strong> {form.city}</p>
-                  <p><strong>PIN:</strong> {form.pincode}</p>
-                  <p><strong>Address:</strong> {form.address} {form.area ? `, ${form.area}` : ''}</p>
                 </div>
               </div>
 
@@ -1045,42 +829,13 @@ export default function WeddingRegistrationPage() {
                   <Heart className="w-4 h-4" />
                   Wedding Details
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary/80">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary">
                   <p><strong>Wedding Date:</strong> {form.wedding_date ? new Date(form.wedding_date).toLocaleDateString('en-IN') : '—'}</p>
                   <p><strong>Flexibility:</strong> {form.wedding_date_flexibility}</p>
-                  <p><strong>Type:</strong> {form.wedding_type}</p>
-                  <p><strong>City:</strong> {form.wedding_city || '—'}</p>
-                  <p><strong>Venue:</strong> {form.wedding_venue || '—'}</p>
-                  <p><strong>Guests:</strong> {form.guest_count || '—'}</p>
-                  <p><strong>Family Size:</strong> {form.family_size}</p>
                   <p><strong>Functions:</strong> {form.wedding_functions.map(f => WEDDING_FUNCTIONS.find(x => x.id === f)?.label).join(', ')}</p>
                 </div>
               </div>
 
-              {/* Bride & Groom */}
-              <div className="p-4 rounded-xl bg-background border border-accent-soft">
-                <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <User className="w-4 h-4" />
-                  Bride & Groom
-                </h4>
-                <div className="grid grid-cols-2 gap-2 text-xs text-primary/80">
-                  <div className="p-2 rounded bg-rose-50 border border-rose-200">
-                    <p className="font-bold text-rose-700">Bride</p>
-                    <p>Name: {form.bride_name}</p>
-                    <p>Age: {form.bride_age || '—'}</p>
-                    <p>Contact: {form.bride_contact || '—'}</p>
-                    <p>Shopping: {form.bride_shopping_required ? 'Yes' : 'No'}</p>
-                  </div>
-                  <div className="p-2 rounded bg-blue-50 border border-blue-200">
-                    <p className="font-bold text-blue-700">Groom</p>
-                    <p>Name: {form.groom_name}</p>
-                    <p>Age: {form.groom_age || '—'}</p>
-                    <p>Contact: {form.groom_contact || '—'}</p>
-                    <p>Shopping: {form.groom_shopping_required ? 'Yes' : 'No'}</p>
-                  </div>
-                </div>
-              </div>
 
               {/* Shopping */}
               <div className="p-4 rounded-xl bg-background border border-accent-soft">
@@ -1088,13 +843,12 @@ export default function WeddingRegistrationPage() {
                   <ShoppingBag className="w-4 h-4" />
                   Shopping Requirements
                 </h4>
-                <div className="text-xs text-primary/80 space-y-1">
+                <div className="text-xs text-primary space-y-1">
                   {Object.entries(form.shopping_requirements).map(([cat, items]) => (
                     items.length > 0 && (
                       <p key={cat}><strong>{cat}:</strong> {items.join(', ')}</p>
                     )
                   ))}
-                  <p><strong>Budget:</strong> {form.budget_range}</p>
                 </div>
               </div>
 
@@ -1104,13 +858,12 @@ export default function WeddingRegistrationPage() {
                   <Clock className="w-4 h-4" />
                   Visit & Follow-up
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary/80">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary">
                   <p><strong>Preferred Date:</strong> {form.preferred_shopping_date ? new Date(form.preferred_shopping_date).toLocaleDateString('en-IN') : '—'}</p>
                   <p><strong>Preferred Time:</strong> {form.preferred_shopping_time}</p>
-                  <p><strong>Visitors:</strong> {form.expected_visitors || '—'}</p>
                   <p><strong>Contact Method:</strong> {form.preferred_contact_method}</p>
                   <p><strong>Follow-up Time:</strong> {form.preferred_followup_time}</p>
-                  <p><strong>Existing Customer:</strong> {form.existing_customer}</p>
+                  <p><strong>Existing emp:</strong> {form.existing_customer}</p>
                 </div>
               </div>
 
@@ -1161,7 +914,7 @@ export default function WeddingRegistrationPage() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary/70 backdrop-blur-md animate-modal-backdrop overflow-y-auto">
             {/* Elegant confetti particles (lightweight, decorative) */}
             {(() => {
-              const colors = ['#d4af37', '#1a365d', '#e2e8f0', '#f59e0b', '#10b981', '#3b82f6'];
+              const colors = ['#D4A58A', '#3D2B1F', '#E8DDD4', '#f59e0b', '#10b981', '#3b82f6'];
               return Array.from({ length: 22 }).map((_, i) => {
                 const color = colors[i % colors.length];
                 const left = `${(i * 4.5 + 3) % 96}%`;
@@ -1192,7 +945,7 @@ export default function WeddingRegistrationPage() {
                 <h2 className="text-xl font-black text-accent tracking-tight mt-3 animate-fade-up-step" style={{ animationDelay: '0.35s' }}>
                   Your request was saved successfully!
                 </h2>
-                <p className="text-xs text-white/80 font-medium mt-1 animate-fade-up-step" style={{ animationDelay: '0.5s' }}>
+                <p className="text-xs text-black font-medium mt-1 animate-fade-up-step" style={{ animationDelay: '0.5s' }}>
                   Thank you for choosing BSC Textiles. Our team members will connect with you shortly.
                 </p>
               </div>
@@ -1200,7 +953,7 @@ export default function WeddingRegistrationPage() {
               <div className="p-6 space-y-5">
                 {/* Tracking ID */}
                 <div className="rounded-2xl border-2 border-accent/40 bg-amber-50/60 p-4 text-center animate-tracking-highlight">
-                  <span className="text-[10px] uppercase font-black text-primary/70 block">Your Tracking ID</span>
+                  <span className="text-[10px] uppercase font-black text-primary block">Your Tracking ID</span>
                   <span className="text-xl font-mono font-black text-primary tracking-wider break-all mt-1 block">
                     {successTrackId || successRegId}
                   </span>
@@ -1211,13 +964,13 @@ export default function WeddingRegistrationPage() {
 
                 {/* Customer ID */}
                 <div className="rounded-xl bg-background border border-accent-soft p-3 text-center animate-fade-up-step" style={{ animationDelay: '0.7s' }}>
-                  <span className="text-[10px] uppercase font-black text-primary/70 block">Customer ID</span>
+                  <span className="text-[10px] uppercase font-black text-primary block">Customer ID</span>
                   <span className="text-sm font-mono font-black text-primary tracking-wider break-all">{successRegId}</span>
                 </div>
 
                 {/* Summary */}
-                <div className="rounded-xl bg-background border border-accent-soft p-3.5 text-xs text-primary/80 space-y-1 animate-fade-up-step" style={{ animationDelay: '0.8s' }}>
-                  <p className="flex justify-between"><span className="text-primary/60">Store</span><strong>{getSelectedStore()?.name || '—'}</strong></p>
+                <div className="rounded-xl bg-background border border-accent-soft p-3.5 text-xs text-primary space-y-1 animate-fade-up-step" style={{ animationDelay: '0.8s' }}>
+                  <p className="flex justify-between"><span className="text-primary/60">Store</span><strong>{getSelectedStore()?.location_name || '—'}</strong></p>
                   <p className="flex justify-between"><span className="text-primary/60">Customer</span><strong>{form.customer_name}</strong></p>
                   <p className="flex justify-between"><span className="text-primary/60">Mobile</span><strong>+91 {form.mobile}</strong></p>
                   <p className="flex justify-between"><span className="text-primary/60">Wedding Date</span><strong>{form.wedding_date ? new Date(form.wedding_date).toLocaleDateString('en-IN') : '—'}</strong></p>

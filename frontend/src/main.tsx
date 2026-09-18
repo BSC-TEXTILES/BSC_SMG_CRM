@@ -3,6 +3,33 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 
+// Suppress benign third-party library errors
+if (typeof window !== 'undefined') {
+  const originalError = window.console.error;
+  window.console.error = (...args) => {
+    const message = args.join(' ');
+    if (message.includes("Cannot read properties of undefined (reading 'startTime')") ||
+        message.includes('startTime') && message.includes('reportAllChanges')) {
+      return; // Suppress this specific benign error from devtools-detector
+    }
+    originalError.apply(window.console, args);
+  };
+
+  window.addEventListener('error', (event) => {
+    if (event.message && event.message.includes("Cannot read properties of undefined (reading 'startTime')")) {
+      event.preventDefault();
+      return false;
+    }
+  }, true);
+
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && event.reason.message && event.reason.message.includes("Cannot read properties of undefined (reading 'startTime')")) {
+      event.preventDefault();
+      return false;
+    }
+  }, true);
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

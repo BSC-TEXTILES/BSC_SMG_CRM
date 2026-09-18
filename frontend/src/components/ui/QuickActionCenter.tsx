@@ -34,7 +34,7 @@ export default function QuickActionCenter() {
   const actions = isWeddingCrm
     ? [
         { label: 'Add Wedding Customer', icon: UserPlus, href: '/wedding-registration', color: 'bg-primary' },
-        { label: "Today's Follow-ups", icon: PhoneCall, href: '/wedding-crm', color: 'bg-amber-600' },
+        { label: "Today's Follow-ups", icon: PhoneCall, href: '/wedding-crm', color: 'bg-black' },
         { label: 'Follow-up Calendar', icon: Calendar, href: '/wedding-crm', color: 'bg-indigo-600' },
         { label: 'Tracking Search', icon: Search, href: '/track', target: '_blank', color: 'bg-teal-600' },
         { label: 'Feedback QR', icon: QrCode, href: '/feedback-qr', color: 'bg-purple-600' }
@@ -52,7 +52,7 @@ export default function QuickActionCenter() {
         <div className="mb-3 space-y-2 animate-fade-in">
           {isWeddingCrm && (
             <div className="text-right">
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary/70 bg-white border border-accent-soft px-2.5 py-1 rounded-full shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-white border border-accent-soft px-2.5 py-1 rounded-full shadow-sm">
                 Wedding Quick Actions
               </span>
             </div>
@@ -76,7 +76,7 @@ export default function QuickActionCenter() {
                 <span className="text-xs font-bold text-primary whitespace-nowrap group-hover:text-accent">
                   {act.label}
                 </span>
-                <div className={`p-2 rounded-lg text-white ${act.color} shadow-xs group-hover:scale-110 transition-transform`}>
+                <div className={`p-2 rounded-lg text-black ${act.color} shadow-xs group-hover:scale-110 transition-transform`}>
                   <Icon className="w-4 h-4" />
                 </div>
               </button>
@@ -89,7 +89,7 @@ export default function QuickActionCenter() {
       <button
         onClick={() => setOpen(!open)}
         className={`
-          w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-2xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95
+          w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-2xl border border-black/20 transition-all duration-200 hover:scale-105 active:scale-95
           ${open ? 'rotate-45 bg-rose-600' : 'bg-primary'}
         `}
         title="Quick Action Center"

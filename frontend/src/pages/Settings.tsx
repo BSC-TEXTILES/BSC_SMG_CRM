@@ -208,7 +208,7 @@ export default function SettingsPage() {
                 <Settings className="w-5 h-5 text-accent" />
                 <span>Enterprise Administration Hub</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">Manage user credentials, role permissions, interview evaluation rubrics &amp; company designations.</p>
+              <p className="text-xs text-primary font-medium mt-0.5">Manage user credentials, role permissions, interview evaluation rubrics &amp; company designations.</p>
             </div>
           </div>
 
@@ -224,7 +224,7 @@ export default function SettingsPage() {
                     px-4 py-2.5 rounded-xl transition-all duration-150 flex items-center gap-2 shadow-xs whitespace-nowrap
                     ${activeTab === t.key 
                       ? 'bg-primary text-white shadow-md font-extrabold' 
-                      : 'bg-white text-[#475569] border border-accent-soft hover:bg-background'}
+                      : 'bg-white text-[#5D4E42] border border-accent-soft hover:bg-background'}
                   `}
                 >
                   <Icon className="w-4 h-4" />
@@ -248,7 +248,7 @@ export default function SettingsPage() {
                       <span>Full Access Control &amp; User Management Hub</span>
                       <span className="px-2 py-0.2 rounded-full text-[9px] font-black bg-accent/20 text-accent uppercase">Production Feature</span>
                     </h4>
-                    <p className="text-[11px] text-primary/70 font-medium mt-0.5">
+                    <p className="text-[11px] text-primary font-medium mt-0.5">
                       Configure granular section-by-section permissions (View, Add, Edit, Delete, Export, Approve), manage user limits &amp; audit security events.
                     </p>
                   </div>
@@ -276,21 +276,21 @@ export default function SettingsPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-semibold">
                   <div className="p-3 bg-white rounded-xl border border-accent-soft">
-                    <div className="text-[10px] font-black text-primary/70 uppercase">System Admin</div>
+                    <div className="text-[10px] font-black text-primary uppercase">System Admin</div>
                     <div className="font-extrabold text-primary font-mono mt-0.5">admin@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
                     </div>
                   </div>
                   <div className="p-3 bg-white rounded-xl border border-accent-soft">
-                    <div className="text-[10px] font-black text-primary/70 uppercase">HR Specialist</div>
+                    <div className="text-[10px] font-black text-primary uppercase">HR Specialist</div>
                     <div className="font-extrabold text-primary font-mono mt-0.5">hr@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
                     </div>
                   </div>
                   <div className="p-3 bg-white rounded-xl border border-accent-soft">
-                    <div className="text-[10px] font-black text-primary/70 uppercase">Store Manager</div>
+                    <div className="text-[10px] font-black text-primary uppercase">Store Manager</div>
                     <div className="font-extrabold text-primary font-mono mt-0.5">manager@bsctextiles.com</div>
                     <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Password stored as bcrypt hash
@@ -307,7 +307,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-[10px] text-primary/70 font-medium">
+                <p className="text-[10px] text-primary font-medium">
                   Passwords are never displayed anywhere in the application. They are stored as one-way bcrypt hashes;
                   user accounts are created and managed from the User Management hub above.
                 </p>
@@ -324,7 +324,7 @@ export default function SettingsPage() {
                     <Shield className="w-5 h-5 text-accent" />
                     <span>Store Operational PINs &amp; Access Controls</span>
                   </h3>
-                  <p className="text-xs text-primary/70 font-medium mt-1">
+                  <p className="text-xs text-primary font-medium mt-1">
                     Manage security PIN codes for hardware kiosks, TV monitor display, entrance greeter clicker, and daily POS cash settlement desk.
                   </p>
                 </div>
@@ -334,11 +334,11 @@ export default function SettingsPage() {
                   <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
                     <div>
                       <div className="font-extrabold text-sm text-primary">Entrance Greeter Kiosk PIN</div>
-                      <div className="text-[11px] text-primary/70 font-medium mt-0.5">Used by entrance staff on `/greeter` tablet</div>
+                      <div className="text-[11px] text-primary font-medium mt-0.5">Used by entrance staff on `/greeter` tablet</div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10.5px] font-black uppercase text-primary/70">Access PIN Code</label>
+                      <label className="text-[10.5px] font-black uppercase text-primary">Access PIN Code</label>
                       <div className="relative">
                         <input
                           type={showGreeterPin ? "text" : "password"}
@@ -363,11 +363,11 @@ export default function SettingsPage() {
                   <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
                     <div>
                       <div className="font-extrabold text-sm text-primary">Live Store TV Screen PIN</div>
-                      <div className="text-[11px] text-primary/70 font-medium mt-0.5">Used for launch monitoring on `/tv` monitor</div>
+                      <div className="text-[11px] text-primary font-medium mt-0.5">Used for launch monitoring on `/tv` monitor</div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10.5px] font-black uppercase text-primary/70">Access PIN Code</label>
+                      <label className="text-[10.5px] font-black uppercase text-primary">Access PIN Code</label>
                       <div className="relative">
                         <input
                           type={showTvPin ? "text" : "password"}
@@ -392,11 +392,11 @@ export default function SettingsPage() {
                   <div className="p-5 rounded-2xl bg-background border border-accent-soft space-y-4">
                     <div>
                       <div className="font-extrabold text-sm text-primary">Cash Settlement Desk PIN</div>
-                      <div className="text-[11px] text-primary/70 font-medium mt-0.5">Used to unlock `/cash-settlement` daily audit</div>
+                      <div className="text-[11px] text-primary font-medium mt-0.5">Used to unlock `/cash-settlement` daily audit</div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10.5px] font-black uppercase text-primary/70">Access PIN Code</label>
+                      <label className="text-[10.5px] font-black uppercase text-primary">Access PIN Code</label>
                       <div className="relative">
                         <input
                           type={showCashPin ? "text" : "password"}
@@ -437,7 +437,7 @@ export default function SettingsPage() {
               <div className="flex justify-between items-center border-b border-accent-soft pb-3">
                 <div>
                   <h3 className="font-extrabold text-primary text-base">Role-Based Page Visibility Matrix</h3>
-                  <p className="text-xs text-primary/70 font-medium mt-0.5">Control module access permissions per role</p>
+                  <p className="text-xs text-primary font-medium mt-0.5">Control module access permissions per role</p>
                 </div>
                 <button onClick={handleSaveVisibility} className="btn-primary text-xs shadow-md">
                   Save Visibility Settings
@@ -501,7 +501,7 @@ export default function SettingsPage() {
                     <div key={q.id} className="p-3.5 rounded-xl border border-accent-soft bg-background flex items-center justify-between gap-3">
                       <div>
                         <div className="font-extrabold text-primary">{q.question}</div>
-                        <div className="text-[10px] text-primary/70 font-semibold">{q.designation} · {q.round} · Max Score: {q.max_score || 10}</div>
+                        <div className="text-[10px] text-primary font-semibold">{q.designation} · {q.round} · Max Score: {q.max_score || 10}</div>
                       </div>
                       <button onClick={() => handleDeleteQuestion(q.id)} className="p-1.5 rounded-lg border border-rose-200 text-rose-600 font-bold hover:bg-rose-50">
                         <Trash2 className="w-4 h-4" />

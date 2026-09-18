@@ -49,10 +49,10 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
             <MessageSquare className="w-5 h-5 text-accent" />
             <div>
               <h3 className="font-extrabold text-sm tracking-tight">Direct Text Messaging</h3>
-              <p className="text-[10px] text-white/60">Secure text-only staff communication</p>
+              <p className="text-[10px] text-black/80">Secure text-only staff communication</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10">
+          <button onClick={onClose} className="p-1 rounded-lg text-black hover:text-black hover:bg-black/10">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -80,7 +80,7 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
               const isMe = m.senderUsername === (session?.username || 'user');
               return (
                 <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                  <div className="text-[10px] text-primary/70 font-semibold mb-0.5">
+                  <div className="text-[10px] text-primary font-semibold mb-0.5">
                     {m.senderName} · <span className="font-mono">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <div
@@ -91,7 +91,7 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
                   >
                     {m.text}
                   </div>
-                  <div className="flex items-center gap-1 text-[9px] text-[#94A3B8] mt-0.5 font-mono">
+                  <div className="flex items-center gap-1 text-[9px] text-[#9A8D82] mt-0.5 font-mono">
                     <span>Delivered</span>
                     <CheckCheck className="w-3 h-3 text-emerald-600" />
                   </div>
@@ -99,7 +99,7 @@ export default function DirectMessagingModal({ isOpen, onClose, session }: Direc
               );
             })
           ) : (
-            <div className="text-center py-16 text-[#64748B]">
+            <div className="text-center py-16 text-[#6B5D50]">
               No previous messages in thread. Send a text message to start conversation.
             </div>
           )}

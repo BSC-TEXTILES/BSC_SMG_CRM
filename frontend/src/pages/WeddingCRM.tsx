@@ -176,11 +176,7 @@ export default function WeddingCRM() {
 
   // Multi-location state
   const [selectedLocation, setSelectedLocation] = useState<number | ''>('');
-  const [locations, setLocations] = useState<any[]>([
-    { id: 1, name: 'Belagavi', code: 'BEL' },
-    { id: 2, name: 'Davanagere', code: 'DAV' },
-    { id: 3, name: 'Shivamogga', code: 'SHI' }
-  ]);
+  const [locations, setLocations] = useState<any[]>([]);
 
   // Telecallers list
   const [telecallers, setTelecallers] = useState<any[]>([]);
@@ -347,14 +343,11 @@ export default function WeddingCRM() {
 
   // Fetch Locations & Telecallers
   useEffect(() => {
-    const defaultLocations = [
-      { id: 1, name: 'Belagavi', code: 'BEL' },
-      { id: 2, name: 'Davanagere', code: 'DAV' },
-      { id: 3, name: 'Shivamogga', code: 'SHI' }
-    ];
+    let mounted = true;
 
     if (typeof API.getLocations === 'function') {
       API.getLocations().then(res => {
+        if (!mounted) return;
         const list = res?.locations || res?.data?.locations;
         if (list && list.length > 0) {
           setLocations(list.map((l: any) => ({
@@ -362,12 +355,12 @@ export default function WeddingCRM() {
             name: l.location_name || l.name,
             code: l.location_code || l.code
           })));
-        } else {
-          setLocations(defaultLocations);
         }
-      }).catch(() => setLocations(defaultLocations));
-    } else {
-      setLocations(defaultLocations);
+        // If API returns empty, keep existing state - do NOT fallback to hardcoded
+      }).catch(() => {
+        // On error, keep existing state - do NOT fallback to hardcoded
+        console.warn('Failed to load locations from API');
+      });
     }
 
     API.getWeddingTelecallers(selectedLocation || undefined).then(res => {
@@ -971,7 +964,7 @@ export default function WeddingCRM() {
           .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }
           .badge-overdue { background: #FEE2E2; color: #991B1B; }
           .badge-confirmed { background: #D1FAE5; color: #065F46; }
-          .footer { margin-top: 30px; font-size: 10px; text-align: center; color: var(--color-primary); border-top: 1px solid #EEE; padding-top: 10px; }
+          .footer { margin-top: 30px; font-size: 10px; text-align: center; color: var(--color-primary); border-top: 1px solid #E8DDD4; padding-top: 10px; }
         </style>
       </head>
       <body>
@@ -1118,7 +1111,7 @@ export default function WeddingCRM() {
 
               <button
                 onClick={() => setShowAddModal(true)}
-                className="hidden sm:flex bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50 flex-shrink-0"
+                className="hidden sm:flex bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary-hover text-black px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-black items-center gap-1.5 shadow-md hover:shadow-lg transition-all transform active:scale-95 border border-accent/50 flex-shrink-0"
               >
                 <Plus className="w-4 h-4 text-accent flex-shrink-0" />
                 <span className="hidden sm:inline">Add Wedding Customer</span>
@@ -1156,12 +1149,12 @@ export default function WeddingCRM() {
               }}
               className="bg-white border border-accent-soft hover:border-primary rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between text-primary/70 mb-1">
+              <div className="flex items-center justify-between text-primary mb-1">
                 <span className="text-[10px] font-black uppercase tracking-wider">Total Customers</span>
                 <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-primary">{stats.totalCustomers}</div>
-              <div className="text-[10px] text-primary/70 font-medium mt-0.5">All registered</div>
+              <div className="text-[10px] text-primary font-medium mt-0.5">All registered</div>
             </div>
 
             {/* 2. Today's Follow-ups (Primary Pulse KPI - Click opens Calling Desk) */}
@@ -1271,7 +1264,7 @@ export default function WeddingCRM() {
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'calling_desk'
                     ? 'bg-primary text-white shadow-md'
-                    : 'text-primary/70 hover:bg-background hover:text-primary'
+                    : 'text-primary hover:bg-background hover:text-primary'
                 }`}
               >
                 <PhoneCall className={`w-4 h-4 ${activeTab === 'calling_desk' ? 'text-accent' : ''}`} />
@@ -1288,7 +1281,7 @@ export default function WeddingCRM() {
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'register'
                     ? 'bg-primary text-white shadow-md'
-                    : 'text-primary/70 hover:bg-background hover:text-primary'
+                    : 'text-primary hover:bg-background hover:text-primary'
                 }`}
               >
                 <Users className={`w-4 h-4 ${activeTab === 'register' ? 'text-accent' : ''}`} />
@@ -1303,7 +1296,7 @@ export default function WeddingCRM() {
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'calendar'
                     ? 'bg-primary text-white shadow-md'
-                    : 'text-primary/70 hover:bg-background hover:text-primary'
+                    : 'text-primary hover:bg-background hover:text-primary'
                 }`}
               >
                 <CalendarDays className={`w-4 h-4 ${activeTab === 'calendar' ? 'text-accent' : ''}`} />
@@ -1315,7 +1308,7 @@ export default function WeddingCRM() {
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'analytics'
                     ? 'bg-primary text-white shadow-md'
-                    : 'text-primary/70 hover:bg-background hover:text-primary'
+                    : 'text-primary hover:bg-background hover:text-primary'
                 }`}
               >
                 <BarChart3 className={`w-4 h-4 ${activeTab === 'analytics' ? 'text-accent' : ''}`} />
@@ -1327,7 +1320,7 @@ export default function WeddingCRM() {
                 className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all ${
                   activeTab === 'pipeline'
                     ? 'bg-primary text-white shadow-md'
-                    : 'text-primary/70 hover:bg-background hover:text-primary'
+                    : 'text-primary hover:bg-background hover:text-primary'
                 }`}
               >
                 <TrendingUp className={`w-4 h-4 ${activeTab === 'pipeline' ? 'text-accent' : ''}`} />
@@ -1347,7 +1340,7 @@ export default function WeddingCRM() {
               <button
                 onClick={() => importInputRef.current?.click()}
                 disabled={importing}
-                className="bg-[#EDF4FB] hover:bg-[#DCE9F7] text-primary border border-accent/40 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-60"
+                className="bg-[#F5F0EB] hover:bg-[#E8DDD4] text-primary border border-accent/40 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-60"
                 title="Bulk-import customers from a CSV file (invalid rows are skipped)"
               >
                 <Upload className={`w-3.5 h-3.5 text-accent ${importing ? 'animate-pulse' : ''}`} />
@@ -1389,33 +1382,33 @@ export default function WeddingCRM() {
           {activeTab === 'calling_desk' && (
             <div className="space-y-4">
               {/* Telecaller Metrics Banner */}
-              <div className="bg-gradient-to-r from-primary to-primary text-white rounded-3xl p-5 shadow-lg border border-accent/30 flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-gradient-to-r from-primary to-primary text-black rounded-3xl p-5 shadow-lg border border-accent/30 flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <div className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-accent" />
                     <span>DAILY TELECALLING WORKLOAD</span>
                   </div>
-                  <div className="text-xl sm:text-xl sm:text-2xl font-black text-background mt-0.5">
+                  <div className="text-xl sm:text-xl sm:text-2xl font-black text-white mt-0.5">
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                   </div>
                 </div>
 
                 {/* Counter Pills */}
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-white/70">Calls Pending</div>
+                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-black/90">Calls Pending</div>
                     <div className="text-lg font-black text-amber-400">{deskSummary.pendingCalls}</div>
                   </div>
-                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-white/70">Calls Completed</div>
+                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-black/90">Calls Completed</div>
                     <div className="text-lg font-black text-emerald-400">{deskSummary.completedToday}</div>
                   </div>
-                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-white/70">No Answer</div>
+                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-black/90">No Answer</div>
                     <div className="text-lg font-black text-rose-400">{deskSummary.noAnswerCount}</div>
                   </div>
-                  <div className="bg-black/30 border border-white/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-white/70">Callbacks</div>
+                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
+                    <div className="text-[10px] font-bold uppercase text-black/90">Callbacks</div>
                     <div className="text-lg font-black text-purple-300">{deskSummary.callbackCount}</div>
                   </div>
                   <div className="bg-accent text-primary rounded-2xl px-4 py-2 text-center shadow-md">
@@ -1494,7 +1487,7 @@ export default function WeddingCRM() {
 
               {/* Customer Cards in Active Queue */}
               {loadingDesk ? (
-                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary/70">
+                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary">
                   <RefreshCw className="w-6 h-6 mx-auto animate-spin text-accent mb-2" />
                   <p className="text-sm font-bold">Loading telecalling queue...</p>
                 </div>
@@ -1511,7 +1504,7 @@ export default function WeddingCRM() {
                       <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center">
                         <CheckCheck className="w-10 h-10 mx-auto text-emerald-500 mb-2" />
                         <h3 className="text-base font-black text-primary">All Clear! No Calls in this Queue</h3>
-                        <p className="text-xs text-primary/70 mt-1">Great job! All follow-ups in this bucket are completed or none are scheduled.</p>
+                        <p className="text-xs text-primary mt-1">Great job! All follow-ups in this bucket are completed or none are scheduled.</p>
                       </div>
                     );
                   }
@@ -1536,7 +1529,7 @@ export default function WeddingCRM() {
                                     {cust.customer_code}
                                   </span>
                                   {cust.location_name && (
-                                    <span className="text-[10px] text-primary/70 font-semibold">
+                                    <span className="text-[10px] text-primary font-semibold">
                                       📍 {cust.location_name}
                                     </span>
                                   )}
@@ -1571,7 +1564,7 @@ export default function WeddingCRM() {
                               {/* Dates Matrix: Crucial Distinction */}
                               <div className="bg-background p-2.5 rounded-xl space-y-1.5 text-[11px] border border-accent-soft">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-primary/70 font-semibold flex items-center gap-1">
+                                  <span className="text-primary font-semibold flex items-center gap-1">
                                     <ShoppingBag className="w-3 h-3 text-blue-600" />
                                     <span>Expected Shopping:</span>
                                   </span>
@@ -1579,14 +1572,14 @@ export default function WeddingCRM() {
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                  <span className="text-primary/70 font-semibold flex items-center gap-1">
+                                  <span className="text-primary font-semibold flex items-center gap-1">
                                     <Calendar className="w-3 h-3 text-amber-600" />
                                     <span>Next Follow-up:</span>
                                   </span>
                                   <div className="text-right">
                                     <span className="font-black text-primary">{formatDate(cust.follow_up_date)}</span>
                                     {isOverdue && (
-                                      <span className="ml-1 text-[9px] bg-red-600 text-white px-1.5 py-[2px] rounded-full font-bold">
+                                      <span className="ml-1 text-[9px] bg-red-600 text-black px-1.5 py-[2px] rounded-full font-bold">
                                         {cust.overdue_days}d overdue
                                       </span>
                                     )}
@@ -1602,7 +1595,7 @@ export default function WeddingCRM() {
                               </div>
 
                               {/* Last Call Result & Telecaller */}
-                              <div className="mt-2.5 text-[11px] text-primary/70 space-y-0.5">
+                              <div className="mt-2.5 text-[11px] text-primary space-y-0.5">
                                 <div className="flex items-center justify-between">
                                   <span>Last Call Result:</span>
                                   <span className="font-bold text-primary">{cust.last_call_outcome || 'No Calls Yet'}</span>
@@ -1661,7 +1654,7 @@ export default function WeddingCRM() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {/* Search Bar */}
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-primary/70" />
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-primary" />
                     <input
                       type="text"
                       placeholder="Search name, mobile, email, code..."
@@ -1717,7 +1710,7 @@ export default function WeddingCRM() {
                 {/* Follow-up Quick Date Filter Pills */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-accent-soft">
                   <div className="flex items-center gap-1.5 text-xs overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide w-full sm:w-auto">
-                    <span className="text-[11px] font-bold text-primary/70 mr-1">Follow-up:</span>
+                    <span className="text-[11px] font-bold text-primary mr-1">Follow-up:</span>
                     {[
                       { key: 'all', label: 'All Dates' },
                       { key: 'today', label: 'Today' },
@@ -1733,7 +1726,7 @@ export default function WeddingCRM() {
                         className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 ${
                           dateViewFilter === btn.key
                             ? 'bg-primary text-white'
-                            : 'bg-background text-primary/70 hover:bg-accent-soft'
+                            : 'bg-background text-primary hover:bg-accent-soft'
                         }`}
                       >
                         {btn.label}
@@ -1765,7 +1758,7 @@ export default function WeddingCRM() {
               <div className="bg-white rounded-2xl border border-accent-soft shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs hidden lg:table">
-                    <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
+                    <thead className="bg-primary text-white font-black uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3">Customer ID</th>
                         <th className="p-3">Customer Name & Phone</th>
@@ -1803,7 +1796,7 @@ export default function WeddingCRM() {
                               </td>
                               <td className="p-3">
                                 <div className="font-bold text-primary text-xs">{c.customer_name}</div>
-                                <div className="text-[11px] text-primary/70 flex items-center gap-1.5 mt-0.5">
+                                <div className="text-[11px] text-primary flex items-center gap-1.5 mt-0.5">
                                   <span>{c.mobile_number}</span>
                                   <button
                                     onClick={() => copyPhone(c.mobile_number)}
@@ -1814,7 +1807,7 @@ export default function WeddingCRM() {
                                   </button>
                                 </div>
                               </td>
-                              <td className="p-3 font-semibold text-primary/70">
+                              <td className="p-3 font-semibold text-primary">
                                 📍 {c.location_name || 'Davanagere'}
                               </td>
                               <td className="p-3 font-black text-blue-900">
@@ -1864,7 +1857,7 @@ export default function WeddingCRM() {
                                   {c.email && (
                                     <a
                                       href={`mailto:${c.email}?subject=${encodeURIComponent('BSC Exclusive — Wedding Collection Invitation')}&body=${encodeURIComponent(`Dear ${c.customer_name || 'Customer'},\n\nGreetings from BSC Exclusive! We would love to host you for your wedding shopping. Please reply to this email or call us to schedule your visit.\n\nWarm regards,\nBSC Exclusive Team`)}`}
-                                      className="p-1.5 bg-[#EDF4FB] hover:bg-[#DCE9F7] text-primary rounded-lg transition-all"
+                                      className="p-1.5 bg-[#F5F0EB] hover:bg-[#E8DDD4] text-primary rounded-lg transition-all"
                                       title={`Email ${c.email}`}
                                     >
                                       <Mail className="w-3.5 h-3.5" />
@@ -1926,7 +1919,7 @@ export default function WeddingCRM() {
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="font-bold text-primary text-sm">{c.customer_name}</div>
-                              <div className="text-[11px] font-mono font-bold text-primary/70">{c.customer_code}</div>
+                              <div className="text-[11px] font-mono font-bold text-primary">{c.customer_code}</div>
                             </div>
                             <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
                               {c.customer_status}
@@ -1934,7 +1927,7 @@ export default function WeddingCRM() {
                           </div>
                           
                           {/* Contact & Location */}
-                          <div className="flex flex-wrap items-center justify-between text-xs text-primary/80 gap-2">
+                          <div className="flex flex-wrap items-center justify-between text-xs text-primary gap-2">
                             <div className="flex items-center gap-1.5 bg-accent/5 px-2 py-1 rounded-md">
                               <Phone className="w-3 h-3" />
                               <span>{c.mobile_number}</span>
@@ -2001,7 +1994,7 @@ export default function WeddingCRM() {
                     <h3 className="text-lg font-black text-primary">
                       {new Date(calendarYear, calendarMonth - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
                     </h3>
-                    <p className="text-xs text-primary/70">Follow-up schedule and customer workload</p>
+                    <p className="text-xs text-primary">Follow-up schedule and customer workload</p>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -2068,7 +2061,7 @@ export default function WeddingCRM() {
                 {/* Calendar Days Grid */}
                 <div className="grid grid-cols-7 gap-2">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                    <div key={d} className="text-center font-black text-[11px] text-primary/70 uppercase py-1">
+                    <div key={d} className="text-center font-black text-[11px] text-primary uppercase py-1">
                       {d}
                     </div>
                   ))}
@@ -2149,7 +2142,7 @@ export default function WeddingCRM() {
                       <h4 className="text-sm font-black text-primary">
                         Wedding Follow-ups — {formatDate(selectedCalendarDate)}
                       </h4>
-                      <p className="text-xs text-primary/70">Click any customer card to open the complete follow-up details</p>
+                      <p className="text-xs text-primary">Click any customer card to open the complete follow-up details</p>
                     </div>
                     <button
                       onClick={() => setSelectedCalendarDate(null)}
@@ -2219,7 +2212,7 @@ export default function WeddingCRM() {
                               <div className="text-[10px] font-mono font-bold text-primary/60 mt-0.5">
                                 ID: {c.customer_code || '—'}
                               </div>
-                              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-primary/70">
+                              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-primary">
                                 <span className="inline-flex items-center gap-0.5 bg-white border border-accent-soft px-1.5 py-0.5 rounded-lg">
                                   <Clock className="w-3 h-3 text-accent" />
                                   {c.preferred_call_time || 'Any Time'}
@@ -2229,7 +2222,7 @@ export default function WeddingCRM() {
                                 </span>
                               </div>
                               {c.assigned_telecaller && (
-                                <div className="text-[10px] text-primary/70 mt-1.5">
+                                <div className="text-[10px] text-primary mt-1.5">
                                   <span className="font-bold text-accent">Assigned:</span> {c.assigned_telecaller}
                                 </div>
                               )}
@@ -2264,7 +2257,7 @@ export default function WeddingCRM() {
           {activeTab === 'analytics' && (
             <div className="space-y-5">
               {loadingAnalytics ? (
-                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary/70">
+                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary">
                   <RefreshCw className="w-6 h-6 mx-auto animate-spin text-accent mb-2" />
                   <p className="text-sm font-bold">Computing conversion funnels & performance...</p>
                 </div>
@@ -2275,7 +2268,7 @@ export default function WeddingCRM() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-base font-black text-primary">Wedding Customer Conversion Funnel</h3>
-                        <p className="text-xs text-primary/70">Step-by-step conversion tracking from initial lead to store visit and purchase</p>
+                        <p className="text-xs text-primary">Step-by-step conversion tracking from initial lead to store visit and purchase</p>
                       </div>
                       <span className="text-xs font-bold text-accent">BSC CRM Intelligence</span>
                     </div>
@@ -2283,14 +2276,14 @@ export default function WeddingCRM() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                       {[
                         { label: 'Total Customers', val: analyticsData?.funnel?.total_customers || 0, color: 'bg-primary text-white' },
-                        { label: 'Contacted', val: analyticsData?.funnel?.contacted || 0, color: 'bg-indigo-700 text-white' },
-                        { label: 'Interested', val: analyticsData?.funnel?.interested || 0, color: 'bg-purple-700 text-white' },
-                        { label: 'Shopping Confirmed', val: analyticsData?.funnel?.shopping_confirmed || 0, color: 'bg-blue-700 text-white' },
+                        { label: 'Contacted', val: analyticsData?.funnel?.contacted || 0, color: 'bg-indigo-700 text-black' },
+                        { label: 'Interested', val: analyticsData?.funnel?.interested || 0, color: 'bg-purple-700 text-black' },
+                        { label: 'Shopping Confirmed', val: analyticsData?.funnel?.shopping_confirmed || 0, color: 'bg-blue-700 text-black' },
                         { label: 'Visited Store', val: analyticsData?.funnel?.visited || 0, color: 'bg-emerald-600 text-white' },
                         { label: 'Converted', val: analyticsData?.funnel?.converted || 0, color: 'bg-teal-700 text-white' }
                       ].map((step, idx) => (
                         <div key={step.label} className="bg-background p-4 rounded-2xl border border-accent-soft flex flex-col justify-between">
-                          <div className="flex items-center justify-between text-[11px] font-bold text-primary/70">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-primary">
                             <span>Step {idx + 1}</span>
                             {idx < 5 && <ArrowRight className="w-3 h-3 text-accent" />}
                           </div>
@@ -2319,12 +2312,12 @@ export default function WeddingCRM() {
                   <div className="bg-white rounded-3xl border border-accent-soft shadow-xs overflow-hidden">
                     <div className="p-5 border-b border-accent-soft">
                       <h3 className="text-base font-black text-primary">Telecaller Workload & Performance Scorecard</h3>
-                      <p className="text-xs text-primary/70">Calls completed, conversion results, and pending follow-ups per telecaller</p>
+                      <p className="text-xs text-primary">Calls completed, conversion results, and pending follow-ups per telecaller</p>
                     </div>
 
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
+                        <thead className="bg-primary text-white font-black uppercase text-[10px] tracking-wider">
                           <tr>
                             <th className="p-3">Telecaller Name</th>
                             <th className="p-3 text-center">Assigned Customers</th>
@@ -2382,7 +2375,7 @@ export default function WeddingCRM() {
           {activeTab === 'pipeline' && (
             <div className="space-y-5">
               {loadingEnhanced ? (
-                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary/70">
+                <div className="bg-white p-12 rounded-3xl border border-accent-soft text-center text-primary">
                   <RefreshCw className="w-6 h-6 mx-auto animate-spin text-accent mb-2" />
                   <p className="text-sm font-bold">Loading pipeline & reports...</p>
                 </div>
@@ -2395,7 +2388,7 @@ export default function WeddingCRM() {
                       {(pipelineData?.pipeline || []).slice(0, 10).map((stage: any) => (
                         <div key={stage.status} className="bg-background p-3 rounded-2xl border border-accent-soft text-center">
                           <div className="text-lg font-black text-primary">{stage.count}</div>
-                          <div className="text-[10px] font-bold text-primary/70 uppercase">{stage.status}</div>
+                          <div className="text-[10px] font-bold text-primary uppercase">{stage.status}</div>
                         </div>
                       ))}
                     </div>
@@ -2432,7 +2425,7 @@ export default function WeddingCRM() {
                       <h3 className="text-base font-black text-primary mb-4">Upcoming Weddings (Next 30 Days)</h3>
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
+                          <thead className="bg-primary text-white font-black uppercase text-[10px] tracking-wider">
                             <tr>
                               <th className="p-3">Customer</th>
                               <th className="p-3">Wedding Date</th>
@@ -2469,7 +2462,7 @@ export default function WeddingCRM() {
                       <h3 className="text-base font-black text-primary mb-4">Employee Performance</h3>
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-primary text-background font-black uppercase text-[10px] tracking-wider">
+                          <thead className="bg-primary text-white font-black uppercase text-[10px] tracking-wider">
                             <tr>
                               <th className="p-3">Employee</th>
                               <th className="p-3 text-center">Assigned</th>
@@ -2506,7 +2499,7 @@ export default function WeddingCRM() {
                         {chartData.leadSources.map((src: any) => (
                           <div key={src.source} className="bg-background p-3 rounded-2xl border border-accent-soft">
                             <div className="text-lg font-black text-primary">{src.count}</div>
-                            <div className="text-[10px] font-bold text-primary/70">{src.source}</div>
+                            <div className="text-[10px] font-bold text-primary">{src.source}</div>
                           </div>
                         ))}
                       </div>
@@ -2521,7 +2514,7 @@ export default function WeddingCRM() {
                         {chartData.statusDistribution.map((st: any) => (
                           <div key={st.status} className="bg-background p-3 rounded-2xl border border-accent-soft">
                             <div className="text-lg font-black text-primary">{st.count}</div>
-                            <div className="text-[10px] font-bold text-primary/70">{st.status}</div>
+                            <div className="text-[10px] font-bold text-primary">{st.status}</div>
                           </div>
                         ))}
                       </div>
@@ -2542,15 +2535,15 @@ export default function WeddingCRM() {
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-accent/30 overflow-hidden my-6 animate-scale-in">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
+            <div className="bg-gradient-to-r from-primary to-primary text-black p-5 flex items-center justify-between border-b border-accent/30">
               <div className="flex items-center gap-2.5">
                 <Sparkles className="w-5 h-5 text-accent" />
                 <div>
-                  <h3 className="text-base font-black text-background">Add Wedding Customer</h3>
+                  <h3 className="text-base font-black text-white">Add Wedding Customer</h3>
                   <p className="text-[11px] text-accent font-semibold">Store visit walk-in record & follow-up scheduler</p>
                 </div>
               </div>
-              <button onClick={() => setShowAddModal(false)} className="text-white/70 hover:text-white p-1">
+              <button onClick={() => setShowAddModal(false)} className="text-black/90 hover:text-black p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2601,7 +2594,7 @@ export default function WeddingCRM() {
                     Mobile Number <span className="text-red-600">*</span>
                   </label>
                   <div className="flex">
-                    <span className="px-2.5 py-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="px-2.5 py-2.5 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -2804,15 +2797,15 @@ export default function WeddingCRM() {
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-accent/40 overflow-hidden my-6 animate-scale-in">
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
+            <div className="bg-gradient-to-r from-primary to-primary text-black p-5 flex items-center justify-between border-b border-accent/30">
               <div className="flex items-center gap-2.5">
                 <PhoneCall className="w-5 h-5 text-accent" />
                 <div>
-                  <h3 className="text-base font-black text-background">Log Call Outcome</h3>
+                  <h3 className="text-base font-black text-white">Log Call Outcome</h3>
                   <p className="text-[11px] text-accent font-semibold">{selectedCustomer.customer_name} ({selectedCustomer.mobile_number})</p>
                 </div>
               </div>
-              <button onClick={() => setShowLogCallModal(false)} className="text-white/70 hover:text-white p-1">
+              <button onClick={() => setShowLogCallModal(false)} className="text-black/90 hover:text-black p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2933,13 +2926,13 @@ export default function WeddingCRM() {
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-accent/40 overflow-hidden my-6 animate-scale-in">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
+            <div className="bg-gradient-to-r from-primary to-primary text-black p-5 flex items-center justify-between border-b border-accent/30">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold bg-accent text-primary px-2 py-0.5 rounded-md">
                     {selectedCustomer.customer_code}
                   </span>
-                  <h3 className="text-base font-black text-background">{selectedCustomer.customer_name}</h3>
+                  <h3 className="text-base font-black text-white">{selectedCustomer.customer_name}</h3>
                 </div>
                 <p className="text-[11px] text-accent mt-0.5">
                   📍 {selectedCustomer.location_name || 'Davanagere'} · Registered {formatDate(selectedCustomer.created_at)}
@@ -2952,7 +2945,7 @@ export default function WeddingCRM() {
                     setShowProfileModal(false);
                     openEditModal(selectedCustomer);
                   }}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center gap-1 border border-white/20"
+                  className="px-3 py-1.5 bg-black/10 hover:bg-black/20 text-black rounded-xl text-xs font-bold flex items-center gap-1 border border-black/20"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                   <span>Edit Customer</span>
@@ -2966,7 +2959,7 @@ export default function WeddingCRM() {
                   <span>Log Call</span>
                 </button>
 
-                <button onClick={() => setShowProfileModal(false)} className="text-white/70 hover:text-white p-1 ml-1">
+                <button onClick={() => setShowProfileModal(false)} className="text-black/90 hover:text-black p-1 ml-1">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -3458,9 +3451,9 @@ export default function WeddingCRM() {
       {showEditModal && selectedCustomer && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-accent/40 overflow-hidden my-6 animate-scale-in">
-            <div className="bg-gradient-to-r from-primary to-primary text-white p-5 flex items-center justify-between border-b border-accent/30">
-              <h3 className="text-base font-black text-background">Edit Wedding Customer</h3>
-              <button onClick={() => setShowEditModal(false)} className="text-white/70 hover:text-white p-1">
+            <div className="bg-gradient-to-r from-primary to-primary text-black p-5 flex items-center justify-between border-b border-accent/30">
+              <h3 className="text-base font-black text-white">Edit Wedding Customer</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-black/90 hover:text-black p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -3481,7 +3474,7 @@ export default function WeddingCRM() {
                 <div>
                   <label className="block font-bold text-primary mb-1">Mobile Number *</label>
                   <div className="flex">
-                    <span className="p-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="p-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input

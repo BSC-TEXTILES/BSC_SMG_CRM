@@ -201,7 +201,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
               {shieldEnabled ? 'Active' : 'Disabled'}
             </span>
           </h3>
-          <p className="text-xs text-primary/70 font-medium leading-relaxed">
+          <p className="text-xs text-primary font-medium leading-relaxed">
             Continuously monitors supported browser inspection signals and attached debuggers live. External environments (VS Code, CMD, PowerShell, terminals) are safely distinguished and will not trigger false alerts.
           </p>
         </div>
@@ -209,8 +209,8 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
         {/* Master ON/OFF Toggle */}
         <div className="flex items-center gap-3 bg-background/90 p-2 sm:p-2.5 rounded-2xl border border-accent/25 self-stretch sm:self-auto justify-between sm:justify-end shadow-2xs">
           <div className="text-right sm:pr-1">
-            <div className="text-[10px] font-black uppercase tracking-wider text-primary/70">Detection Engine</div>
-            <div className={`text-xs font-black ${shieldEnabled ? 'text-emerald-700' : 'text-primary/70'}`}>
+            <div className="text-[10px] font-black uppercase tracking-wider text-primary">Detection Engine</div>
+            <div className={`text-xs font-black ${shieldEnabled ? 'text-emerald-700' : 'text-primary'}`}>
               {shieldEnabled ? 'ARMED & MONITORING' : 'OFF'}
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
             aria-label="Toggle Developer Tools Detection"
             title={shieldEnabled ? 'Click to Turn OFF Detection' : 'Click to Turn ON Detection'}
             className={`relative inline-flex h-9 w-[78px] items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent flex-shrink-0 cursor-pointer ${
-              shieldEnabled ? 'bg-emerald-600' : 'bg-[#B6C2D2]'
+              shieldEnabled ? 'bg-emerald-600' : 'bg-[#C5B8AD]'
             } ${shieldBusy ? 'opacity-60 cursor-wait' : ''}`}
           >
             <span
@@ -233,7 +233,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
             />
             <span
               className={`absolute text-[10px] font-black uppercase tracking-wider select-none ${
-                shieldEnabled ? 'left-3 text-white' : 'right-2.5 text-[#475569]'
+                shieldEnabled ? 'left-3 text-black' : 'right-2.5 text-[#5D4E42]'
               }`}
             >
               {shieldEnabled ? 'ON' : 'OFF'}
@@ -326,7 +326,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
               <Laptop className="w-4 h-4 text-accent" />
               <span>Developer Tools Detection History</span>
             </h4>
-            <p className="text-[11px] text-primary/70 font-medium">
+            <p className="text-[11px] text-primary font-medium">
               Real-time audit log of inspection tools opened and closed across all client sessions.
             </p>
           </div>
@@ -427,7 +427,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
                     return (
                       <tr key={ev.id} className="hover:bg-accent/5 transition-colors">
                         {/* Timestamp */}
-                        <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary/80">
+                        <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary">
                           {ev.createdAt
                             ? new Date(ev.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
                             : '—'}
@@ -461,7 +461,7 @@ export default function DevToolsMonitoringPanel({ session, className = '' }: Dev
                         </td>
 
                         {/* Page */}
-                        <td className="py-2.5 px-3 font-mono text-[11px] text-primary/70">
+                        <td className="py-2.5 px-3 font-mono text-[11px] text-primary">
                           {page}
                         </td>
 

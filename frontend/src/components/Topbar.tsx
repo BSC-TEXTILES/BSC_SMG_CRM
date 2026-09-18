@@ -93,7 +93,7 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="w-full max-w-[130px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-xl border border-accent-soft bg-background/80 hover:bg-background text-[10px] sm:text-xs font-semibold text-primary/70 hover:text-primary hover:border-accent transition-all shadow-2xs group cursor-pointer"
+            className="w-full max-w-[130px] sm:max-w-xs md:max-w-sm lg:max-w-md flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-xl border border-accent-soft bg-background/80 hover:bg-background text-[10px] sm:text-xs font-semibold text-primary hover:text-primary hover:border-accent transition-all shadow-2xs group cursor-pointer"
             title="Search directory (Ctrl+K)"
             aria-label="Search directory (Ctrl+K)"
           >
@@ -122,7 +122,7 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
             className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-primary hover:bg-primary/5 border border-transparent hover:border-accent-soft transition-all"
             title="Live Activity Intelligence"
           >
-            <Activity className="w-4 h-4 text-[#27805B]" />
+            <Activity className="w-4 h-4 text-[#2D8659]" />
           </button>
 
           {/* DevTools Bypass Toggle (Admin roles with global scope only) */}
@@ -153,7 +153,7 @@ export default function Topbar({ title, breadcrumbs, session, onMenuClick, right
           >
             <Bell className="w-4 h-4 text-primary" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#C43D4B] text-white font-black text-[8px] sm:text-[9px] flex items-center justify-center border-2 border-white shadow-xs">
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#C0392B] text-white font-black text-[8px] sm:text-[9px] flex items-center justify-center border-2 border-white shadow-xs">
                 {unreadCount}
               </span>
             )}

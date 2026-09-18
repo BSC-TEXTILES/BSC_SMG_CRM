@@ -205,7 +205,7 @@ export default function FeedbackCollection() {
                 <MessageSquare className="w-5 h-5 text-accent" />
                 <span>Customer Feedback Repository</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">Real-time log of customer survey responses, satisfaction scores &amp; voice of customer notes.</p>
+              <p className="text-xs text-primary font-medium mt-0.5">Real-time log of customer survey responses, satisfaction scores &amp; voice of customer notes.</p>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
@@ -231,7 +231,7 @@ export default function FeedbackCollection() {
             {/* Total Feedbacks */}
             <div className="card-glass p-5 flex items-center justify-between">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Total Feedbacks</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary">Total Feedbacks</div>
                 <div className="text-2xl font-black text-primary mt-1">{stats.total || feedbacks.length}</div>
                 <div className="text-[11px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" /> All Submitted Visits
@@ -245,7 +245,7 @@ export default function FeedbackCollection() {
             {/* Satisfaction Rate / NPS */}
             <div className="card-glass p-5 flex items-center justify-between">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Satisfaction Rate</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary">Satisfaction Rate</div>
                 <div className="text-2xl font-black text-emerald-600 mt-1">{stats.npsScore || 100}%</div>
                 <div className="text-[11px] text-gray-500 font-semibold mt-0.5">CSAT Index Score</div>
               </div>
@@ -257,7 +257,7 @@ export default function FeedbackCollection() {
             {/* Positive Feedbacks */}
             <div className="card-glass p-5 flex items-center justify-between">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Positive Ratings</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary">Positive Ratings</div>
                 <div className="text-2xl font-black text-emerald-700 mt-1">{stats.positive || 0}</div>
                 <div className="text-[11px] text-emerald-600 font-bold mt-0.5">Satisfied Shoppers</div>
               </div>
@@ -269,7 +269,7 @@ export default function FeedbackCollection() {
             {/* Negative Escalations */}
             <div className="card-glass p-5 flex items-center justify-between border-l-4 border-l-rose-500">
               <div>
-                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary/70">Needs Follow-up</div>
+                <div className="text-[10.5px] font-black uppercase tracking-wider text-primary">Needs Follow-up</div>
                 <div className="text-2xl font-black text-rose-600 mt-1">{stats.negative || 0}</div>
                 <div className="text-[11px] text-rose-600 font-bold mt-0.5 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" /> Auto-Escalated to Queue
@@ -353,7 +353,7 @@ export default function FeedbackCollection() {
                 <MessageSquare className="w-4 h-4 text-accent" />
                 <span>Collected Survey Log ({feedbacks.length})</span>
               </h3>
-              <span className="text-xs text-primary/70 font-semibold">Showing real-time records</span>
+              <span className="text-xs text-primary font-semibold">Showing real-time records</span>
             </div>
 
             {loading ? (
@@ -371,7 +371,7 @@ export default function FeedbackCollection() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/80">
+                    <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary bg-background/80">
                       <th className="py-3 px-4">Date &amp; Time</th>
                       <th className="py-3 px-4">Customer Details</th>
                       <th className="py-3 px-4">Overall Experience</th>
@@ -389,7 +389,7 @@ export default function FeedbackCollection() {
 
                       return (
                         <tr key={f.id} className="hover:bg-black/5 font-medium transition-colors">
-                          <td className="py-3.5 px-4 text-[#475569]">
+                          <td className="py-3.5 px-4 text-[#5D4E42]">
                             <div className="font-bold text-primary font-mono text-[11px]">
                               {f.entryDate || 'Today'}
                             </div>
@@ -443,7 +443,7 @@ export default function FeedbackCollection() {
                               </span>
                             )}
                           </td>
-                          <td className="py-3.5 px-4 max-w-xs truncate text-[#475569] font-medium text-[11px]">
+                          <td className="py-3.5 px-4 max-w-xs truncate text-[#5D4E42] font-medium text-[11px]">
                             {f.voice || 'No extra comments'}
                           </td>
                           <td className="py-3.5 px-4 text-right">
@@ -466,7 +466,7 @@ export default function FeedbackCollection() {
           {/* Executive Customer Resolution Dashboard Modal */}
           {selectedFeedback && (
             <div className="fixed inset-0 bg-primary/70 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in">
-              <div className="card-glass max-w-5xl w-full p-6 sm:p-8 space-y-6 animate-scale-in max-h-[92vh] overflow-y-auto shadow-2xl rounded-3xl border border-white/40 bg-white/95 text-primary">
+              <div className="card-glass max-w-5xl w-full p-6 sm:p-8 space-y-6 animate-scale-in max-h-[92vh] overflow-y-auto shadow-2xl rounded-3xl border border-black/40 bg-white/95 text-primary">
                 
                 {/* 1. Header Redesign */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-accent-soft pb-5">
@@ -490,7 +490,7 @@ export default function FeedbackCollection() {
                       {selectedFeedback.customerName || 'Valued Customer'}
                     </h2>
 
-                    <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-primary/70 pt-1">
+                    <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-primary pt-1">
                       <span className="flex items-center gap-1.5 font-mono">
                         <Phone className="w-3.5 h-3.5 text-accent" />
                         {selectedFeedback.mobile || 'No Mobile Provided'}
@@ -508,7 +508,7 @@ export default function FeedbackCollection() {
 
                   <div className="flex items-center gap-3 self-start md:self-auto">
                     {selectedFeedback.isNegative ? (
-                      <span className="px-3.5 py-1.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs shadow-sm flex items-center gap-1.5">
+                      <span className="px-3.5 py-1.5 rounded-xl bg-rose-600 text-black font-extrabold text-xs shadow-sm flex items-center gap-1.5">
                         <ShieldAlert className="w-4 h-4" /> High Priority Escalation
                       </span>
                     ) : (
@@ -531,7 +531,7 @@ export default function FeedbackCollection() {
                 {selectedFeedback.isNegative && (
                   <div className="card-glass p-4 rounded-2xl border-l-4 border-l-rose-500 bg-rose-500/10 border border-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-rose-600 text-white shadow-sm shrink-0">
+                      <div className="p-2.5 rounded-xl bg-rose-600 text-black shadow-sm shrink-0">
                         <AlertTriangle className="w-5 h-5" />
                       </div>
                       <div>
@@ -552,42 +552,42 @@ export default function FeedbackCollection() {
 
                 {/* 3. Customer Satisfaction Summary (Correct Question Mapping Grid) */}
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Star className="w-3.5 h-3.5 text-accent" />
                     <span>Customer Satisfaction Summary</span>
                   </h4>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Overall CSAT</div>
+                      <div className="text-[10px] font-extrabold uppercase text-primary tracking-wider">Overall CSAT</div>
                       <div className={`text-sm font-black mt-1.5 ${selectedFeedback.isNegative ? 'text-rose-600' : 'text-emerald-600'}`}>
                         {selectedFeedback.answers?.q1 || selectedFeedback.q1 || (selectedFeedback.isNegative ? 'Dissatisfied' : 'Very satisfied')}
                       </div>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Product Found</div>
+                      <div className="text-[10px] font-extrabold uppercase text-primary tracking-wider">Product Found</div>
                       <div className="text-sm font-black text-primary mt-1.5">
                         {selectedFeedback.answers?.q2 || selectedFeedback.q2 || 'Yes, exactly'}
                       </div>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Collection Quality</div>
+                      <div className="text-[10px] font-extrabold uppercase text-primary tracking-wider">Collection Quality</div>
                       <div className="text-sm font-black text-primary mt-1.5">
                         {selectedFeedback.answers?.q3 || selectedFeedback.q3 || 'Excellent'}
                       </div>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center">
-                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Staff Courtesy</div>
+                      <div className="text-[10px] font-extrabold uppercase text-primary tracking-wider">Staff Courtesy</div>
                       <div className="text-sm font-black text-primary mt-1.5">
                         {selectedFeedback.answers?.q4 || selectedFeedback.q4 || 'Extremely helpful'}
                       </div>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-white border border-accent-soft shadow-xs text-center col-span-2 sm:col-span-1">
-                      <div className="text-[10px] font-extrabold uppercase text-primary/70 tracking-wider">Recommendation</div>
+                      <div className="text-[10px] font-extrabold uppercase text-primary tracking-wider">Recommendation</div>
                       <div className={`text-sm font-black mt-1.5 ${selectedFeedback.isNegative ? 'text-rose-600' : 'text-emerald-600'}`}>
                         {selectedFeedback.answers?.q5 || selectedFeedback.q5 || 'Definitely recommend'}
                       </div>
@@ -597,7 +597,7 @@ export default function FeedbackCollection() {
 
                 {/* 4. Mapped Questionnaire Responses Grid */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-accent" />
                     <span>Survey Questionnaire Responses</span>
                   </h4>
@@ -633,7 +633,7 @@ export default function FeedbackCollection() {
 
                 {/* 5. Voice of Customer Section (3 Accent Cards) */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <MessageSquare className="w-3.5 h-3.5 text-accent" />
                     <span>Voice of Customer Detailed Notes</span>
                   </h4>
@@ -651,12 +651,12 @@ export default function FeedbackCollection() {
                       </p>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-300/60 space-y-1.5">
-                      <div className="text-[11px] font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <div className="p-4 rounded-2xl bg-black/5 border border-black/20 space-y-1.5">
+                      <div className="text-[11px] font-black text-black uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-black" />
                         <span>Can Improve</span>
                       </div>
-                      <p className="text-xs font-semibold text-amber-950 whitespace-pre-line">
+                      <p className="text-xs font-semibold text-black whitespace-pre-line">
                         {selectedFeedback.voice?.includes('Can Improve:') 
                           ? selectedFeedback.voice.split('Can Improve:')[1]?.split('\n')[0] 
                           : 'No specific improvements noted.'}
@@ -677,7 +677,7 @@ export default function FeedbackCollection() {
 
                 {/* 6. Action Timeline */}
                 <div className="space-y-3 pt-1 border-t border-accent-soft">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-accent" />
                     <span>Customer Journey Escalation Timeline</span>
                   </h4>
@@ -718,12 +718,12 @@ export default function FeedbackCollection() {
                       <UserCheck className="w-4 h-4 text-accent" />
                       <span>Resolution Workspace & Telecaller Logging</span>
                     </h4>
-                    <span className="text-[10px] font-bold text-primary/70">BSC Operational CRM Desk</span>
+                    <span className="text-[10px] font-bold text-primary">BSC Operational CRM Desk</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-1">
+                      <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider mb-1">
                         Follow-Up Action Status
                       </label>
                       <select
@@ -738,7 +738,7 @@ export default function FeedbackCollection() {
                     </div>
 
                     <div>
-                      <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-1">
+                      <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider mb-1">
                         Assigned Executive / Priority
                       </label>
                       <input
@@ -751,7 +751,7 @@ export default function FeedbackCollection() {
                   </div>
 
                   <div>
-                    <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-wider mb-1">
+                    <label className="block text-[10.5px] font-black uppercase text-primary tracking-wider mb-1">
                       Internal Telecaller Resolution Notes
                     </label>
                     <textarea
@@ -768,7 +768,7 @@ export default function FeedbackCollection() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-accent-soft">
                   <button
                     onClick={() => setSelectedFeedback(null)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-accent-soft bg-background hover:bg-gray-100 text-[#475569] font-extrabold text-xs transition-all shadow-xs"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-accent-soft bg-background hover:bg-gray-100 text-[#5D4E42] font-extrabold text-xs transition-all shadow-xs"
                   >
                     Close Dashboard
                   </button>
@@ -777,7 +777,7 @@ export default function FeedbackCollection() {
                     <button
                       onClick={() => handleSaveModalResolution('called')}
                       disabled={savingResolution}
-                      className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all"
+                      className="px-4 py-2.5 rounded-xl bg-black hover:bg-black text-black font-extrabold text-xs shadow-md active:scale-95 transition-all"
                     >
                       Mark In Progress
                     </button>
@@ -785,7 +785,7 @@ export default function FeedbackCollection() {
                     <button
                       onClick={() => handleSaveModalResolution('escalated_manager')}
                       disabled={savingResolution}
-                      className="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1.5"
+                      className="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-black font-extrabold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1.5"
                     >
                       <ShieldAlert className="w-4 h-4" />
                       <span>Escalate to Store Manager</span>

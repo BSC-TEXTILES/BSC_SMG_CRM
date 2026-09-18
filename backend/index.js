@@ -47,6 +47,8 @@ const apiRoutes = require('./src/routes/api');
 const { errorRes } = require('./src/utils/response');
 const { authenticate, authorize } = require('./src/middleware/auth');
 const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
+const feedbackQrController = require('./src/controllers/feedbackQrController');
+const workflowProcessor = require('./src/services/workflowProcessor');
 
 // ── Express App ───────────────────────────────────────────────────────────────
 const app = express();
@@ -413,7 +415,18 @@ app.get('/api/fix-db-schema', authenticate, authorize('Admin', 'Super Admin'), a
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api', csrfProtection, apiRoutes);
+// Public Feedback QR scan tracking (no CSRF, no auth - for QR code scanning by customers)
+app.get('/api/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);
+app.post('/api/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);
+
+// Apply CSRF protection to all other API routes
+app.use('/api', function(req, res, next) {
+  console.log('[DEBUG] API request:', req.method, req.path);
+  next();
+}, csrfProtection, function(req, res, next) {
+  console.log('[DEBUG] After CSRF:', req.method, req.path);
+  next();
+}, apiRoutes);
 
 // ── Frontend SPA ──────────────────────────────────────────────────────────────
 let distDir = path.join(APP_ROOT, 'dist');
@@ -505,7 +518,11 @@ app.use((err, req, res, next) => {
 
 // ── DB Init ───────────────────────────────────────────────────────────────────
 autoInitializeDatabase(pool)
-  .then(() => console.log('[Boot] DB init complete'))
+  .then(() => {
+    console.log('[Boot] DB init complete');
+    // Start workflow timeout processor after DB is ready
+    workflowProcessor.startWorkflowProcessor();
+  })
   .catch(err => console.error('[Boot] DB init error:', err.message));
 
 // ── START SERVER ──────────────────────────────────────────────────────────────

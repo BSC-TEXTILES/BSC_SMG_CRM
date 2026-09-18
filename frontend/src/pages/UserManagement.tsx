@@ -775,7 +775,7 @@ export default function UserManagementPage() {
                 <Users className="w-5 h-5 text-accent" />
                 <span>User Accounts &amp; Granular Permission Matrix</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">
+              <p className="text-xs text-primary font-medium mt-0.5">
                 Provision new user accounts, enforce module-level access, reset passwords &amp; audit security events in real time.
               </p>
             </div>
@@ -872,7 +872,7 @@ export default function UserManagementPage() {
               {/* Role filter */}
               <div className="flex items-center gap-1.5 bg-white/80 px-2.5 py-1 rounded-xl border border-accent/20">
                 <Filter className="w-3.5 h-3.5 text-accent" />
-                <span className="text-[11px] font-bold text-primary/70">Role:</span>
+                <span className="text-[11px] font-bold text-primary">Role:</span>
                 <select
                   value={roleFilter}
                   onChange={e => setRoleFilter(e.target.value)}
@@ -887,7 +887,7 @@ export default function UserManagementPage() {
 
               {/* Status filter */}
               <div className="flex items-center gap-1.5 bg-white/80 px-2.5 py-1 rounded-xl border border-accent/20">
-                <span className="text-[11px] font-bold text-primary/70">Status:</span>
+                <span className="text-[11px] font-bold text-primary">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value as any)}
@@ -902,7 +902,7 @@ export default function UserManagementPage() {
               {/* Location filter */}
               <div className="flex items-center gap-1.5 bg-white/80 px-2.5 py-1 rounded-xl border border-accent/20">
                 <Building2 className="w-3.5 h-3.5 text-accent" />
-                <span className="text-[11px] font-bold text-primary/70">Location:</span>
+                <span className="text-[11px] font-bold text-primary">Location:</span>
                 <select
                   value={locationFilter}
                   onChange={e => setLocationFilter(e.target.value)}
@@ -1009,7 +1009,7 @@ export default function UserManagementPage() {
                                 {isAdmin && <Shield className="w-3 h-3" />}
                                 {user.role}
                               </span>
-                              <span className="text-[11px] font-semibold text-primary/70 flex items-center gap-1 relative">
+                              <span className="text-[11px] font-semibold text-primary flex items-center gap-1 relative">
                                 <Building2 className="w-3 h-3 text-accent" />
                                 {editingLocationUserId === user.id ? (
                                   <div ref={locationDropdownRef} className="relative">
@@ -1027,11 +1027,7 @@ export default function UserManagementPage() {
                                         <span>All Locations</span>
                                         {savingLocationUserId === user.id && <RefreshCw className="w-3 h-3 animate-spin ml-auto" />}
                                       </button>
-                                      {(locations.length > 0 ? locations : [
-                                        { id: 1, location_name: 'Belagavi', location_code: 'BEL' },
-                                        { id: 2, location_name: 'Davanagere', location_code: 'DAV' },
-                                        { id: 3, location_name: 'Shivamogga', location_code: 'SHI' }
-                                      ]).map((loc: any) => (
+                                      {(locations.length > 0 ? locations : []).map((loc: any) => (
                                         <button
                                           key={loc.id}
                                           type="button"
@@ -1122,7 +1118,7 @@ export default function UserManagementPage() {
                           </td>
 
                           {/* Last Login */}
-                          <td className="py-3 px-4 text-primary/70 text-[11px]">
+                          <td className="py-3 px-4 text-primary text-[11px]">
                             {user.last_login_at ? (
                               <div className="flex items-center gap-1">
                                 <Clock className="w-3 h-3 text-accent" />
@@ -1219,14 +1215,14 @@ export default function UserManagementPage() {
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Create New User</h3>
-                  <p className="text-xs text-white/70">Provision login credentials and initial role privileges</p>
+                  <h3 className="text-base font-extrabold text-black">Create New User</h3>
+                  <p className="text-xs text-black/90">Provision login credentials and initial role privileges</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setCreateModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-black/10 text-black/90 hover:text-black cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1323,7 +1319,7 @@ export default function UserManagementPage() {
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Phone Number</label>
                   <div className="flex">
-                    <span className="px-2.5 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="px-2.5 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -1521,14 +1517,14 @@ export default function UserManagementPage() {
                   <Edit className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Edit User: @{selectedUser.username}</h3>
-                  <p className="text-xs text-white/70">Update profile details, role assignments, or active status</p>
+                  <h3 className="text-base font-extrabold text-black">Edit User: @{selectedUser.username}</h3>
+                  <p className="text-xs text-black/90">Update profile details, role assignments, or active status</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setEditModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-black/10 text-black/90 hover:text-black cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1575,7 +1571,7 @@ export default function UserManagementPage() {
                 <div>
                   <label className="block text-xs font-bold text-primary mb-1">Phone</label>
                   <div className="flex">
-                    <span className="px-2.5 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#475569] flex items-center">
+                    <span className="px-2.5 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-xs text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -1644,11 +1640,7 @@ export default function UserManagementPage() {
                   </div>
                   {!editAllLocations && (
                     <div className="flex flex-wrap gap-3">
-                      {(locations.length > 0 ? locations : [
-                        { id: 1, location_name: 'Belagavi', location_code: 'BEL' },
-                        { id: 2, location_name: 'Davanagere', location_code: 'DAV' },
-                        { id: 3, location_name: 'Shivamogga', location_code: 'SHI' }
-                      ]).map((loc: any) => (
+                      {(locations.length > 0 ? locations : []).map((loc: any) => (
                         <label key={loc.id} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -1728,14 +1720,14 @@ export default function UserManagementPage() {
                   <Key className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Reset Password</h3>
-                  <p className="text-xs text-white/70">Set a new password for @{selectedUser.username}</p>
+                  <h3 className="text-base font-extrabold text-black">Reset Password</h3>
+                  <p className="text-xs text-black/90">Set a new password for @{selectedUser.username}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setResetPwdModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-black/10 text-black/90 hover:text-black cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1813,13 +1805,13 @@ export default function UserManagementPage() {
                   <SlidersHorizontal className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-black flex items-center gap-2">
                     <span>Access Control Matrix: @{selectedUser.username}</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-accent/20 text-accent uppercase">
                       {selectedUser.role}
                     </span>
                   </h3>
-                  <p className="text-xs text-white/70">
+                  <p className="text-xs text-black/90">
                     Granular permission levels per section: View, Create, Modify, Delete, Export &amp; Authorize
                   </p>
                 </div>
@@ -1827,7 +1819,7 @@ export default function UserManagementPage() {
               <button
                 type="button"
                 onClick={() => setPermModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-black/10 text-black/90 hover:text-black cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1928,7 +1920,7 @@ export default function UserManagementPage() {
                             type="button"
                             onClick={() => handleToggleCell(m.key, 'can_view')}
                             className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_view ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              perm.can_view ? 'bg-green-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle View access"
                           >
@@ -1942,7 +1934,7 @@ export default function UserManagementPage() {
                             type="button"
                             onClick={() => handleToggleCell(m.key, 'can_add')}
                             className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_add ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              perm.can_add ? 'bg-blue-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle Add access"
                           >
@@ -1956,7 +1948,7 @@ export default function UserManagementPage() {
                             type="button"
                             onClick={() => handleToggleCell(m.key, 'can_edit')}
                             className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_edit ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              perm.can_edit ? 'bg-black text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle Edit access"
                           >
@@ -1970,7 +1962,7 @@ export default function UserManagementPage() {
                             type="button"
                             onClick={() => handleToggleCell(m.key, 'can_delete')}
                             className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_delete ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              perm.can_delete ? 'bg-red-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle Delete access"
                           >
@@ -1984,7 +1976,7 @@ export default function UserManagementPage() {
                             type="button"
                             onClick={() => handleToggleCell(m.key, 'can_export')}
                             className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_export ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              perm.can_export ? 'bg-indigo-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle Export access"
                           >
@@ -1998,7 +1990,7 @@ export default function UserManagementPage() {
                             type="button"
                             onClick={() => handleToggleCell(m.key, 'can_approve')}
                             className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_approve ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              perm.can_approve ? 'bg-purple-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle Approve access"
                           >
@@ -2025,7 +2017,7 @@ export default function UserManagementPage() {
 
             {/* Modal Footer */}
             <div className="p-4 bg-primary/5 border-t border-accent/20 flex items-center justify-between shrink-0">
-              <div className="text-xs text-primary/70">
+              <div className="text-xs text-primary">
                 Changes apply instantly across current and subsequent sessions.
               </div>
               <div className="flex items-center gap-2.5">
@@ -2061,14 +2053,14 @@ export default function UserManagementPage() {
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-white">Security &amp; Action Log: @{selectedUser.username}</h3>
-                  <p className="text-xs text-white/70">Recent transactions and access events recorded in audit log</p>
+                  <h3 className="text-base font-extrabold text-black">Security &amp; Action Log: @{selectedUser.username}</h3>
+                  <p className="text-xs text-black/90">Recent transactions and access events recorded in audit log</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setActivityModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-white/70 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-black/10 text-black/90 hover:text-black cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2095,13 +2087,13 @@ export default function UserManagementPage() {
                           {log.action}
                         </span>
                         {log.module && (
-                          <span className="text-[11px] text-primary/70 font-semibold">
+                          <span className="text-[11px] text-primary font-semibold">
                             Module: {log.module}
                           </span>
                         )}
                       </div>
                       {log.details && (
-                        <p className="text-[11px] text-primary/70 font-medium mt-1">
+                        <p className="text-[11px] text-primary font-medium mt-1">
                           {typeof log.details === 'object' ? JSON.stringify(log.details) : String(log.details)}
                         </p>
                       )}
@@ -2138,18 +2130,18 @@ export default function UserManagementPage() {
       {deleteConfirmOpen && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="card-glass bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-red-300 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-5 bg-red-600 text-white flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black">
-                <AlertTriangle className="w-6 h-6 text-white" />
+            <div className="p-5 bg-red-600 text-black flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center font-black">
+                <AlertTriangle className="w-6 h-6 text-black" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-white">Delete User Account</h3>
-                <p className="text-xs text-white/80">Permanent deletion</p>
+                <h3 className="text-base font-extrabold text-black">Delete User Account</h3>
+                <p className="text-xs text-black">Permanent deletion</p>
               </div>
             </div>
 
             <div className="p-5 space-y-3">
-              <p className="text-xs text-primary/80 font-medium">
+              <p className="text-xs text-primary font-medium">
                 Are you sure you want to permanently delete user account <strong className="text-red-700">@{selectedUser.username}</strong> ({selectedUser.fullName})?
               </p>
               <p className="text-[11px] text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200">
@@ -2169,7 +2161,7 @@ export default function UserManagementPage() {
                 type="button"
                 onClick={handleDeleteUser}
                 disabled={submitting}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm"
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-black text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 <span>{submitting ? 'Deleting...' : 'Delete Permanently'}</span>

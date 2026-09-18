@@ -46,14 +46,14 @@ export default function DesktopModeWarning() {
           <button 
             type="button"
             onClick={() => setDismissed(true)}
-            className="p-1 rounded-lg hover:bg-white/20 transition-colors"
+            className="p-1 rounded-lg hover:bg-black/20 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="p-6">
-          <p className="text-sm font-bold text-primary/80 text-center leading-relaxed">
+          <p className="text-sm font-bold text-primary text-center leading-relaxed">
             Please open this website in Desktop Mode for the best experience.
           </p>
           <div className="mt-6 flex justify-center">

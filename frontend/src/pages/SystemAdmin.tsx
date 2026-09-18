@@ -328,7 +328,7 @@ export default function SystemAdminPage() {
                 <ShieldAlert className="w-5 h-5 text-accent" />
                 <span>Security &amp; System Administration</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">
+              <p className="text-xs text-primary font-medium mt-0.5">
                 Monitor developer tools, authentication activity, system logs, and security events across all connected sessions.
               </p>
             </div>
@@ -377,7 +377,7 @@ export default function SystemAdminPage() {
                     px-4 py-2.5 rounded-xl transition-all duration-150 flex items-center gap-2 shadow-xs whitespace-nowrap
                     ${activeTab === t.key
                       ? 'bg-primary text-white shadow-md font-extrabold'
-                      : 'bg-white text-[#475569] border border-accent-soft hover:bg-background'}
+                      : 'bg-white text-[#5D4E42] border border-accent-soft hover:bg-background'}
                   `}
                 >
                   <Icon className="w-4 h-4" />
@@ -404,7 +404,7 @@ export default function SystemAdminPage() {
                       <Shield className="w-4 h-4 text-accent" />
                       <span>Security Monitoring Overview</span>
                     </h3>
-                    <p className="text-[11px] text-primary/70 font-medium mt-0.5">Real-time security event monitoring across all connected sessions.</p>
+                    <p className="text-[11px] text-primary font-medium mt-0.5">Real-time security event monitoring across all connected sessions.</p>
                   </div>
                   <button onClick={loadSecurityEvents} disabled={secLoading} className="p-1.5 rounded-xl bg-white border border-accent/25 text-primary hover:bg-gray-50 transition-colors cursor-pointer">
                     <RefreshCw className={`w-3.5 h-3.5 text-accent ${secLoading ? 'animate-spin' : ''}`} />
@@ -446,7 +446,7 @@ export default function SystemAdminPage() {
                         <tr><td colSpan={5} className="py-8 text-center text-primary/60 font-bold">No security events recorded</td></tr>
                       ) : filteredSecEvents.slice(0, 50).map(ev => (
                         <tr key={ev.id} className="hover:bg-accent/5 transition-colors">
-                          <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary/80">{formatIST(ev.createdAt)}</td>
+                          <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary">{formatIST(ev.createdAt)}</td>
                           <td className="py-2.5 px-3 font-extrabold text-primary">@{ev.username || 'unknown'}</td>
                           <td className="py-2.5 px-3">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
@@ -473,7 +473,7 @@ export default function SystemAdminPage() {
               {authLoading && !authActivity ? (
                 <div className="card-glass p-12 text-center">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-accent mb-3" />
-                  <p className="font-bold text-primary/70 text-sm">Loading authentication activity...</p>
+                  <p className="font-bold text-primary text-sm">Loading authentication activity...</p>
                 </div>
               ) : authActivity ? (
                 <div className="card-glass p-5">
@@ -483,7 +483,7 @@ export default function SystemAdminPage() {
                         <LogIn className="w-4 h-4 text-accent" />
                         <span>Authentication Activity</span>
                       </h3>
-                      <p className="text-[11px] text-primary/70 font-medium mt-0.5">Sign-in / sign-out trail across all locations.</p>
+                      <p className="text-[11px] text-primary font-medium mt-0.5">Sign-in / sign-out trail across all locations.</p>
                     </div>
                     <button onClick={loadAuthActivity} disabled={authLoading} className="p-1.5 rounded-xl bg-white border border-accent/25 text-primary hover:bg-gray-50 cursor-pointer">
                       <RefreshCw className={`w-3.5 h-3.5 text-accent ${authLoading ? 'animate-spin' : ''}`} />
@@ -493,32 +493,32 @@ export default function SystemAdminPage() {
                   {/* Summary Cards */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                     <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-ins Today</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-wider">Sign-ins Today</div>
                       <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.loginsToday}</div>
                     </div>
                     <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-outs Today</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-wider">Sign-outs Today</div>
                       <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logoutsToday}</div>
                     </div>
                     <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Failed Attempts Today</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-wider">Failed Attempts Today</div>
                       <div className={`text-lg font-black mt-0.5 ${authActivity.summary.failedToday > 0 ? 'text-red-600' : 'text-primary'}`}>
                         {authActivity.summary.failedToday}
                       </div>
                     </div>
                     <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Active Users (7 days)</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-wider">Active Users (7 days)</div>
                       <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.activeUsers7d}</div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-ins (7 days)</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-wider">Sign-ins (7 days)</div>
                       <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logins7d}</div>
                     </div>
                     <div className="p-3 rounded-xl bg-background border border-accent-soft">
-                      <div className="text-[10px] font-black text-primary/70 uppercase tracking-wider">Sign-outs (7 days)</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-wider">Sign-outs (7 days)</div>
                       <div className="text-lg font-black text-primary mt-0.5">{authActivity.summary.logouts7d}</div>
                     </div>
                   </div>
@@ -536,7 +536,7 @@ export default function SystemAdminPage() {
                       </thead>
                       <tbody>
                         {authActivity.recent.length === 0 ? (
-                          <tr><td colSpan={4} className="px-3 py-6 text-center text-primary/70 font-semibold">No authentication events recorded.</td></tr>
+                          <tr><td colSpan={4} className="px-3 py-6 text-center text-primary font-semibold">No authentication events recorded.</td></tr>
                         ) : authActivity.recent.map(ev => (
                           <tr key={ev.id} className="border-t border-accent-soft bg-white">
                             <td className="px-3 py-2 font-bold text-primary whitespace-nowrap">{formatIST(ev.at)}</td>
@@ -544,13 +544,13 @@ export default function SystemAdminPage() {
                             <td className="px-3 py-2">
                               <span className={`px-2 py-[2px] rounded-full font-black text-[10px] uppercase ${
                                 ev.action === 'LOGIN_SUCCESS' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : ev.action === 'LOGOUT' ? 'bg-[#EDF4FB] text-primary border border-accent-soft'
-                                : 'bg-red-50 text-[#C43D4B] border border-red-200'
+                                : ev.action === 'LOGOUT' ? 'bg-[#F5F0EB] text-primary border border-accent-soft'
+                                : 'bg-red-50 text-[#C0392B] border border-red-200'
                               }`}>
                                 {ev.action === 'LOGIN_SUCCESS' ? 'Signed In' : ev.action === 'LOGOUT' ? 'Signed Out' : 'Failed Attempt'}
                               </span>
                             </td>
-                            <td className="px-3 py-2 font-mono text-primary/70 hidden md:table-cell">{ev.ipAddress || '—'}</td>
+                            <td className="px-3 py-2 font-mono text-primary hidden md:table-cell">{ev.ipAddress || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -576,7 +576,7 @@ export default function SystemAdminPage() {
                       <Activity className="w-4 h-4 text-accent" />
                       <span>Live Activity Feed</span>
                     </h3>
-                    <p className="text-[11px] text-primary/70 font-medium mt-0.5">Real-time system events via Socket.IO. Updates automatically.</p>
+                    <p className="text-[11px] text-primary font-medium mt-0.5">Real-time system events via Socket.IO. Updates automatically.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
@@ -606,14 +606,14 @@ export default function SystemAdminPage() {
                         <div className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
                             ev.action.includes('LOGIN') ? 'bg-emerald-500' :
-                            ev.action.includes('LOGOUT') ? 'bg-amber-500' :
+                            ev.action.includes('LOGOUT') ? 'bg-black' :
                             ev.action.includes('FAILED') ? 'bg-red-500' :
                             ev.action.includes('DEVTOOLS') ? 'bg-red-500' :
                             'bg-primary/30'
                           }`} />
                           <span className="font-extrabold text-primary text-xs">{ev.username || 'system'}</span>
                           <span className="text-primary/50 text-xs">·</span>
-                          <span className="text-[11px] text-primary/70 font-semibold">{ev.action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
+                          <span className="text-[11px] text-primary font-semibold">{ev.action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}</span>
                           {ev.module && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-primary/10 text-primary uppercase">{ev.module}</span>
                           )}
@@ -637,7 +637,7 @@ export default function SystemAdminPage() {
                       <FileText className="w-4 h-4 text-accent" />
                       <span>System Logs</span>
                     </h3>
-                    <p className="text-[11px] text-primary/70 font-medium mt-0.5">Application audit trail — all non-security module events.</p>
+                    <p className="text-[11px] text-primary font-medium mt-0.5">Application audit trail — all non-security module events.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <select
@@ -676,7 +676,7 @@ export default function SystemAdminPage() {
                         <tr><td colSpan={5} className="py-8 text-center text-primary/60 font-bold">No system logs found</td></tr>
                       ) : systemLogs.map(log => (
                         <tr key={log.id} className="hover:bg-accent/5 transition-colors">
-                          <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary/80">{formatIST(log.createdAt)}</td>
+                          <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary">{formatIST(log.createdAt)}</td>
                           <td className="py-2.5 px-3 font-extrabold text-primary">@{log.username || 'system'}</td>
                           <td className="py-2.5 px-3 font-bold text-primary">{log.action?.replace(/_/g, ' ') || '—'}</td>
                           <td className="py-2.5 px-3 hidden md:table-cell">
@@ -713,7 +713,7 @@ export default function SystemAdminPage() {
                       <Eye className="w-4 h-4 text-accent" />
                       <span>Security Events History</span>
                     </h3>
-                    <p className="text-[11px] text-primary/70 font-medium mt-0.5">Complete audit log of developer tools detection and security events.</p>
+                    <p className="text-[11px] text-primary font-medium mt-0.5">Complete audit log of developer tools detection and security events.</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="relative">
@@ -768,7 +768,7 @@ export default function SystemAdminPage() {
                         const isOpened = ev.action === 'DEVTOOLS_DETECTED';
                         return (
                           <tr key={ev.id} className="hover:bg-accent/5 transition-colors">
-                            <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary/80">{formatIST(ev.createdAt)}</td>
+                            <td className="py-2.5 px-3 whitespace-nowrap font-medium text-primary">{formatIST(ev.createdAt)}</td>
                             <td className="py-2.5 px-3 font-extrabold text-primary">@{ev.username || 'unknown'}</td>
                             <td className="py-2.5 px-3">
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
@@ -782,7 +782,7 @@ export default function SystemAdminPage() {
                               <div className="font-bold text-primary text-[11px]">{ev.details?.source || '—'}</div>
                               {isOpened && <span className="text-[9px] font-black text-accent uppercase">Confidence: {ev.details?.confidence || 'High'}</span>}
                             </td>
-                            <td className="py-2.5 px-3 font-mono text-[11px] text-primary/70 hidden lg:table-cell">{ev.details?.page || '—'}</td>
+                            <td className="py-2.5 px-3 font-mono text-[11px] text-primary hidden lg:table-cell">{ev.details?.page || '—'}</td>
                             <td className="py-2.5 px-3 text-right font-mono text-[10px] text-primary/60">{ev.ipAddress || '—'}</td>
                           </tr>
                         );

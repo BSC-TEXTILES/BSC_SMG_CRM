@@ -48,7 +48,7 @@ export default function ProfileDropdown({
             {role}
           </div>
         </div>
-        <ChevronDown className="w-3.5 h-3.5 text-primary/70" />
+        <ChevronDown className="w-3.5 h-3.5 text-primary" />
       </button>
 
       {open && (
@@ -57,7 +57,7 @@ export default function ProfileDropdown({
           <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-accent-soft z-50 p-2 text-xs font-bold animate-fade-in space-y-1">
             <div className="p-3 rounded-xl bg-background border border-accent-soft mb-1">
               <div className="font-black text-primary">{session?.fullName || 'User Session'}</div>
-              <div className="text-[10px] text-primary/70 font-mono mt-0.5">{session?.username}</div>
+              <div className="text-[10px] text-primary font-mono mt-0.5">{session?.username}</div>
             </div>
 
             <button
@@ -68,7 +68,7 @@ export default function ProfileDropdown({
                 <Bell className="w-4 h-4 text-accent" />
                 <span>Notifications</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-[#FDF0F2] text-[#C43D4B] text-[10px] font-black border border-[#F6C8CE]">
+              <span className="px-2 py-0.5 rounded-full bg-[#FDE8E8] text-[#C0392B] text-[10px] font-black border border-[#F5B7B7]">
                 {NotificationService.getUnreadCount()}
               </span>
             </button>
@@ -78,7 +78,7 @@ export default function ProfileDropdown({
               className="w-full flex items-center justify-between p-2 rounded-xl text-primary hover:bg-background"
             >
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#27805B]" />
+                <Activity className="w-4 h-4 text-[#2D8659]" />
                 <span>Live Activity</span>
               </div>
             </button>
@@ -91,7 +91,7 @@ export default function ProfileDropdown({
                 <Command className="w-4 h-4 text-primary" />
                 <span>Global Search</span>
               </div>
-              <span className="font-mono text-[9px] text-primary/70 bg-white border border-accent-soft px-1.5 py-0.5 rounded">Ctrl+K</span>
+              <span className="font-mono text-[9px] text-primary bg-white border border-accent-soft px-1.5 py-0.5 rounded">Ctrl+K</span>
             </button>
 
             <button
@@ -99,10 +99,10 @@ export default function ProfileDropdown({
               className="w-full flex items-center justify-between p-2 rounded-xl text-primary hover:bg-background"
             >
               <div className="flex items-center gap-2">
-                {soundEnabled ? <Volume2 className="w-4 h-4 text-[#27805B]" /> : <VolumeX className="w-4 h-4 text-primary/70" />}
+                {soundEnabled ? <Volume2 className="w-4 h-4 text-[#2D8659]" /> : <VolumeX className="w-4 h-4 text-primary" />}
                 <span>Audio Alerts</span>
               </div>
-              <span className="text-[10px] text-primary/70">{soundEnabled ? 'ON' : 'OFF'}</span>
+              <span className="text-[10px] text-primary">{soundEnabled ? 'ON' : 'OFF'}</span>
             </button>
 
             {session?.role === 'Admin' || session?.role === 'Super Admin' ? (
@@ -110,7 +110,7 @@ export default function ProfileDropdown({
                 onClick={() => { setOpen(false); navigate('/system-admin'); }}
                 className="w-full flex items-center gap-2 p-2 rounded-xl text-primary hover:bg-background"
               >
-                <Settings className="w-4 h-4 text-[#C58A24]" />
+                <Settings className="w-4 h-4 text-[#B8860B]" />
                 <span>System Administrator</span>
               </button>
             ) : null}
@@ -118,7 +118,7 @@ export default function ProfileDropdown({
             <div className="pt-1 border-t border-accent-soft">
               <button
                 onClick={() => Auth.logout()}
-                className="w-full flex items-center gap-2 p-2 rounded-xl text-[#C43D4B] hover:bg-[#FDF0F2] font-black"
+                className="w-full flex items-center gap-2 p-2 rounded-xl text-[#C0392B] hover:bg-[#FDE8E8] font-black"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>

@@ -390,24 +390,24 @@ export default function CandidatesPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-primary text-base">Move Candidate Status</h3>
-                  <div className="text-xs text-primary/70 font-semibold">{confirmStatusModal.candidate.name} ({confirmStatusModal.candidate.appNo})</div>
+                  <div className="text-xs text-primary font-semibold">{confirmStatusModal.candidate.name} ({confirmStatusModal.candidate.appNo})</div>
                 </div>
               </div>
-              <button onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })} className="text-[#64748B] hover:text-primary">
+              <button onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })} className="text-[#6B5D50] hover:text-primary">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="bg-background p-4 rounded-2xl border border-accent-soft space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-primary/70 uppercase text-[10px]">Current Status</span>
+                <span className="font-bold text-primary uppercase text-[10px]">Current Status</span>
                 <StatusBadge status={confirmStatusModal.candidate.status} size="sm" />
               </div>
               <div className="flex justify-center text-accent">
                 <ChevronRight className="w-5 h-5 animate-pulse" />
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-primary/70 uppercase text-[10px]">New Status</span>
+                <span className="font-bold text-primary uppercase text-[10px]">New Status</span>
                 <StatusBadge status={confirmStatusModal.newStatus} size="sm" />
               </div>
             </div>
@@ -460,7 +460,7 @@ export default function CandidatesPage() {
                   <TrendingUp className="w-5 h-5 text-accent" />
                   <span>Recruitment Analytics &amp; Pipeline</span>
                 </h3>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                <p className="text-xs text-primary font-medium mt-0.5">
                   Real-time candidate metrics, funnel conversion &amp; team performance.
                 </p>
               </div>
@@ -481,7 +481,7 @@ export default function CandidatesPage() {
                     className={`px-3 py-1.5 rounded-xl transition-all ${
                       activeRange === range.key
                         ? 'bg-primary text-white font-extrabold shadow-xs'
-                        : 'bg-background text-[#475569] border border-accent-soft hover:bg-white'
+                        : 'bg-background text-[#5D4E42] border border-accent-soft hover:bg-white'
                     }`}
                   >
                     {range.label}
@@ -492,7 +492,7 @@ export default function CandidatesPage() {
 
             {/* Custom Date Range Picker */}
             <div className="flex flex-wrap items-center gap-3 bg-background p-3 rounded-2xl border border-accent-soft text-xs font-bold text-primary">
-              <span className="text-primary/70 uppercase text-[10.5px] font-black">Custom Range:</span>
+              <span className="text-primary uppercase text-[10.5px] font-black">Custom Range:</span>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
@@ -501,7 +501,7 @@ export default function CandidatesPage() {
                   className="px-2.5 py-1.5 rounded-xl border border-accent-soft bg-white font-semibold outline-none text-xs"
                   placeholder="dd-mm-yyyy"
                 />
-                <span className="text-primary/70 font-extrabold">to</span>
+                <span className="text-primary font-extrabold">to</span>
                 <input
                   type="date"
                   value={toDate}
@@ -540,11 +540,11 @@ export default function CandidatesPage() {
                     px-3.5 py-1.5 rounded-full border whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 shadow-xs
                     ${activeStatus === p.key 
                       ? 'bg-primary text-white border-primary shadow-sm font-black' 
-                      : 'bg-white text-[#475569] border-accent-soft hover:bg-background hover:text-primary font-semibold'}
+                      : 'bg-white text-[#5D4E42] border-accent-soft hover:bg-background hover:text-primary font-semibold'}
                   `}
                 >
                   <span>{p.label}</span>
-                  <span className={`text-[10px] px-1.5 py-[2px] rounded-full ${activeStatus === p.key ? 'bg-white/20 text-white' : 'bg-black/5 text-primary/70'}`}>
+                  <span className={`text-[10px] px-1.5 py-[2px] rounded-full ${activeStatus === p.key ? 'bg-black/20 text-black' : 'bg-black/5 text-primary'}`}>
                     {count}
                   </span>
                 </button>
@@ -556,7 +556,7 @@ export default function CandidatesPage() {
           <div className="card-glass p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-3 flex-1">
               <div className="relative min-w-[240px]">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary/70" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-primary" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -605,7 +605,7 @@ export default function CandidatesPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 tracking-wider bg-background/60">
+                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary tracking-wider bg-background/60">
                     <th className="py-3 px-3 text-center w-12">SL.NO</th>
                     <th className="py-3 px-4">App No</th>
                     <th className="py-3 px-4">Candidate Name</th>
@@ -622,8 +622,8 @@ export default function CandidatesPage() {
                   {filtered.length > 0 ? (
                     (filtered || []).map((c, idx) => (
                       <tr key={c.appNo} className="hover:bg-black/5 transition-colors font-medium">
-                        <td className="py-3.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#475569] font-bold">{c.appNo}</td>
+                        <td className="py-3.5 px-3 text-center font-bold text-primary">{idx + 1}</td>
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#5D4E42] font-bold">{c.appNo}</td>
                         <td className="py-3.5 px-4">
                           <button
                             onClick={() => openDrawer(c)}
@@ -635,11 +635,11 @@ export default function CandidatesPage() {
                             <span className="font-extrabold text-primary group-hover:underline">{formatName(c.name)}</span>
                           </button>
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-[#475569]">{maskPhone(c.phone)}</td>
-                        <td className="py-3.5 px-4 text-[#475569] font-semibold">{c.gender || '—'}</td>
+                        <td className="py-3.5 px-4 font-mono text-[#5D4E42]">{maskPhone(c.phone)}</td>
+                        <td className="py-3.5 px-4 text-[#5D4E42] font-semibold">{c.gender || '—'}</td>
                         <td className="py-3.5 px-4 text-primary font-extrabold">{c.desig}</td>
-                        <td className="py-3.5 px-4 text-[#475569] font-medium">{c.source}</td>
-                        <td className="py-3.5 px-4 text-primary/70 whitespace-nowrap font-medium">{c.date}</td>
+                        <td className="py-3.5 px-4 text-[#5D4E42] font-medium">{c.source}</td>
+                        <td className="py-3.5 px-4 text-primary whitespace-nowrap font-medium">{c.date}</td>
                         <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
                           <select
                             value={c.status || 'New'}
@@ -665,7 +665,7 @@ export default function CandidatesPage() {
                             {c.status === 'New' && (
                               <button
                                 onClick={() => handleStatusChange('shortlist', c)}
-                                className="px-3 py-1.5 rounded-xl bg-accent text-white font-black hover:bg-[#b08123] transition-all text-[11px] shadow-xs flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-xl bg-accent text-white font-black hover:bg-[#996515] transition-all text-[11px] shadow-xs flex items-center gap-1"
                               >
                                 Shortlist & Wedding Operations ↗
                               </button>
@@ -700,7 +700,7 @@ export default function CandidatesPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-xs text-primary/70 font-semibold">
+                      <td colSpan={9} className="py-12 text-center text-xs text-primary font-semibold">
                         No candidates found matching criteria.
                       </td>
                     </tr>
@@ -736,7 +736,7 @@ export default function CandidatesPage() {
                   <FileCheck className="w-5 h-5 text-accent" />
                   <span>{selRejPanel} Candidates</span>
                 </h3>
-                <button onClick={() => setSelRejPanel(null)} className="text-[#64748B] hover:text-primary p-1">
+                <button onClick={() => setSelRejPanel(null)} className="text-[#6B5D50] hover:text-primary p-1">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -744,7 +744,7 @@ export default function CandidatesPage() {
               <div className="overflow-x-auto max-h-64">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-accent-soft text-[10px] font-black uppercase text-primary/70">
+                    <tr className="border-b border-accent-soft text-[10px] font-black uppercase text-primary">
                       <th className="py-2.5 px-3">App No</th>
                       <th className="py-2.5 px-3">Name</th>
                       <th className="py-2.5 px-3">Designation</th>
@@ -761,7 +761,7 @@ export default function CandidatesPage() {
                       </tr>
                     ))}
                     {selRejData.length === 0 && (
-                      <tr><td colSpan={4} className="py-6 text-center text-[#64748B]">No records found</td></tr>
+                      <tr><td colSpan={4} className="py-6 text-center text-[#6B5D50]">No records found</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -827,7 +827,7 @@ export default function CandidatesPage() {
                 <div>
                   <label className="block font-black text-primary uppercase text-[11px] mb-1 flex items-center justify-between">
                     <span>Floor Section</span>
-                    <span className="text-[10px] font-bold text-primary/70 uppercase">(Optional)</span>
+                    <span className="text-[10px] font-bold text-primary uppercase">(Optional)</span>
                   </label>
                   {getSectionsForDepartment(offerForm.department).length > 0 ? (
                     <select value={offerForm.section} onChange={(e) => setOfferForm({ ...offerForm, section: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-accent-soft font-bold text-accent outline-none focus:ring-2 focus:ring-accent/40">
@@ -855,9 +855,9 @@ export default function CandidatesPage() {
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-accent-soft">
-              <span className="text-[11px] font-bold text-primary/70">Candidate status updates to <strong className="text-primary">Shortlisted</strong></span>
+              <span className="text-[11px] font-bold text-primary">Candidate status updates to <strong className="text-primary">Shortlisted</strong></span>
               <div className="flex items-center gap-2">
-                <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#475569]">
+                <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#5D4E42]">
                   Cancel
                 </button>
                 <button onClick={handleDirectOfferSubmit} disabled={actionLoading} className="btn-gold text-xs px-5 py-2 shadow-md font-black flex items-center gap-1.5 disabled:opacity-50">

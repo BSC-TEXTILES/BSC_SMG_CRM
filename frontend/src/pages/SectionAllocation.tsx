@@ -351,7 +351,7 @@ export default function SectionAllocationPage() {
                 <Layers className="w-5 h-5 text-accent" />
                 <span>Internal Workforce Section Allocation</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">
+              <p className="text-xs text-primary font-medium mt-0.5">
                 Allocate onboarded employees directly from Employee Directory to BSC Textiles floor sections.
               </p>
             </div>
@@ -422,7 +422,7 @@ export default function SectionAllocationPage() {
                 <Filter className="w-4 h-4 text-accent" />
                 <span>Search &amp; Filter Employees</span>
               </div>
-              <span className="text-[11px] text-primary/70 font-semibold">
+              <span className="text-[11px] text-primary font-semibold">
                 Showing {filteredEmployees.length} employee records
               </span>
             </div>
@@ -430,11 +430,11 @@ export default function SectionAllocationPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
               {/* Global Search */}
               <div className="lg:col-span-2">
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">
                   Global Search (ID, App No, Name, Phone)
                 </label>
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/70" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-primary" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -447,7 +447,7 @@ export default function SectionAllocationPage() {
 
               {/* Department */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Department</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Department</label>
                 <select
                   value={selectedDept}
                   onChange={(e) => { setSelectedDept(e.target.value); setSelectedSection('All'); }}
@@ -462,7 +462,7 @@ export default function SectionAllocationPage() {
 
               {/* Section */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Section</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Section</label>
                 <select
                   value={selectedSection}
                   onChange={(e) => setSelectedSection(e.target.value)}
@@ -477,7 +477,7 @@ export default function SectionAllocationPage() {
 
               {/* Designation */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Designation</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Designation</label>
                 <select
                   value={selectedDesig}
                   onChange={(e) => setSelectedDesig(e.target.value)}
@@ -492,7 +492,7 @@ export default function SectionAllocationPage() {
 
               {/* Joining Date */}
               <div>
-                <label className="text-[10.5px] font-extrabold text-[#475569] uppercase block mb-1">Joining Date</label>
+                <label className="text-[10.5px] font-extrabold text-[#5D4E42] uppercase block mb-1">Joining Date</label>
                 <input
                   type="date"
                   value={joiningDateFilter}
@@ -508,7 +508,7 @@ export default function SectionAllocationPage() {
             <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <div>
                 <h3 className="font-extrabold text-primary text-base tracking-tight">Employee Directory &amp; Floor Section Assignment</h3>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                <p className="text-xs text-primary font-medium mt-0.5">
                   Assign employees to department-specific sections without modifying core recruitment records.
                 </p>
               </div>
@@ -522,7 +522,7 @@ export default function SectionAllocationPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 tracking-wider bg-background/60">
+                  <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary tracking-wider bg-background/60">
                     <th className="py-3.5 px-3 text-center w-12">SL.NO</th>
                     {isHR && (
                       <th className="py-3.5 px-3 text-center w-10">
@@ -530,7 +530,7 @@ export default function SectionAllocationPage() {
                           {selectedEmpIds.length === filteredEmployees.length && filteredEmployees.length > 0 ? (
                             <CheckSquare className="w-4 h-4 text-primary" />
                           ) : (
-                            <Square className="w-4 h-4 text-[#64748B]" />
+                            <Square className="w-4 h-4 text-[#6B5D50]" />
                           )}
                         </button>
                       </th>
@@ -555,21 +555,21 @@ export default function SectionAllocationPage() {
 
                       return (
                         <tr key={emp.empId} className={`hover:bg-black/5 transition-colors font-medium ${isSelected ? 'bg-accent/10' : ''}`}>
-                          <td className="py-3.5 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                          <td className="py-3.5 px-3 text-center font-bold text-primary">{idx + 1}</td>
                           {isHR && (
                             <td className="py-3.5 px-3 text-center">
                               <button onClick={() => toggleSelectEmp(emp.empId)} className="focus:outline-none">
                                 {isSelected ? (
                                   <CheckSquare className="w-4 h-4 text-primary" />
                                 ) : (
-                                  <Square className="w-4 h-4 text-[#64748B]" />
+                                  <Square className="w-4 h-4 text-[#6B5D50]" />
                                 )}
                               </button>
                             </td>
                           )}
 
-                          <td className="py-3.5 px-4 font-mono font-bold text-[#475569]">{emp.empId}</td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-primary/70">{emp.appNo}</td>
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#5D4E42]">{emp.empId}</td>
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-primary">{emp.appNo}</td>
 
                           {/* Employee Name (Clickable -> Opens Centered Overview Modal) */}
                           <td className="py-3.5 px-4">
@@ -584,12 +584,12 @@ export default function SectionAllocationPage() {
                                 <span className="font-black text-primary group-hover:text-accent group-hover:underline block transition-colors">
                                   {emp.name}
                                 </span>
-                                <span className="text-[10px] text-primary/70 font-medium">{emp.phone}</span>
+                                <span className="text-[10px] text-primary font-medium">{emp.phone}</span>
                               </div>
                             </button>
                           </td>
 
-                          <td className="py-3.5 px-4 font-bold text-[#444444]">{emp.desig}</td>
+                          <td className="py-3.5 px-4 font-bold text-[#3D2B1F]">{emp.desig}</td>
                           <td className="py-3.5 px-4 font-extrabold text-primary">{emp.department}</td>
 
                           {/* Interactive Section Dropdown */}
@@ -622,11 +622,11 @@ export default function SectionAllocationPage() {
                                 💬 {emp.remarks}
                               </span>
                             ) : (
-                              <span className="text-[#64748B] font-mono text-[11px]">—</span>
+                              <span className="text-[#6B5D50] font-mono text-[11px]">—</span>
                             )}
                           </td>
 
-                          <td className="py-3.5 px-4 text-primary/70 font-semibold whitespace-nowrap">{emp.doj}</td>
+                          <td className="py-3.5 px-4 text-primary font-semibold whitespace-nowrap">{emp.doj}</td>
                           <td className="py-3.5 px-4 font-extrabold text-primary">{emp.salary}</td>
 
                           <td className="py-3.5 px-4 text-center">
@@ -639,7 +639,7 @@ export default function SectionAllocationPage() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-xs text-primary/70 font-semibold">
+                      <td colSpan={10} className="py-12 text-center text-xs text-primary font-semibold">
                         No employees found matching the filters.
                       </td>
                     </tr>
@@ -658,11 +658,11 @@ export default function SectionAllocationPage() {
             <span className="text-accent font-black">{selectedEmpIds.length}</span> Employees Selected
           </span>
 
-          <div className="h-4 w-px bg-white/20" />
+          <div className="h-4 w-px bg-black/20" />
 
           <button
             onClick={() => setBulkModal({ open: true, action: 'assign', section: '' })}
-            className="px-3.5 py-1.5 rounded-xl bg-accent text-white font-bold text-xs hover:bg-amber-600 transition-all shadow-xs flex items-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-xl bg-accent text-white font-bold text-xs hover:bg-black transition-all shadow-xs flex items-center gap-1.5"
           >
             <Layers className="w-3.5 h-3.5" />
             <span>Bulk Assign Section</span>
@@ -670,14 +670,14 @@ export default function SectionAllocationPage() {
 
           <button
             onClick={() => setBulkModal({ open: true, action: 'remove', section: '' })}
-            className="px-3.5 py-1.5 rounded-xl bg-rose-600/30 text-rose-200 border border-rose-400/40 font-bold text-xs hover:bg-rose-600 hover:text-white transition-all shadow-xs"
+            className="px-3.5 py-1.5 rounded-xl bg-rose-600/30 text-rose-200 border border-rose-400/40 font-bold text-xs hover:bg-rose-600 hover:text-black transition-all shadow-xs"
           >
             <span>Remove Section</span>
           </button>
 
           <button
             onClick={() => setSelectedEmpIds([])}
-            className="p-1 rounded-lg text-white/60 hover:text-white"
+            className="p-1 rounded-lg text-black hover:text-black"
           >
             <X className="w-4 h-4" />
           </button>
@@ -691,7 +691,7 @@ export default function SectionAllocationPage() {
             <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <div>
                 <h3 className="font-extrabold text-primary text-base">Bulk Section Allocation</h3>
-                <p className="text-xs text-primary/70 font-medium">
+                <p className="text-xs text-primary font-medium">
                   Updating section for {selectedEmpIds.length} selected employees
                 </p>
               </div>

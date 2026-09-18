@@ -124,7 +124,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
       <div className="relative w-full max-w-4xl max-h-[92vh] bg-background rounded-3xl shadow-2xl flex flex-col z-10 overflow-hidden border-2 border-accent/50">
         
         {/* Top Header Banner */}
-        <div className="bg-gradient-to-r from-primary via-primary to-[#0B1F35] text-white p-5 sm:p-6 border-b-2 border-accent/40 relative">
+        <div className="bg-gradient-to-r from-primary via-primary to-[#3D2B1F] text-black p-5 sm:p-6 border-b-2 border-accent/40 relative">
           <div className="absolute top-4 right-4 flex items-center gap-2">
             {!isEditing ? (
               <button
@@ -138,7 +138,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
             ) : (
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-3.5 py-1.5 text-xs font-black rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all flex items-center gap-1.5"
+                className="px-3.5 py-1.5 text-xs font-black rounded-xl bg-black/20 hover:bg-black/30 text-black transition-all flex items-center gap-1.5"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Cancel Edit</span>
@@ -147,7 +147,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
 
             <button
               onClick={onClose}
-              className="p-2 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all border border-white/20 shadow-md"
+              className="p-2 rounded-2xl bg-black/10 text-black hover:bg-black/20 transition-all border border-black/20 shadow-md"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -165,7 +165,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               ) : (
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-primary to-primary-hover text-white font-black text-3xl sm:text-4xl flex items-center justify-center border-4 border-accent shadow-2xl">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-primary to-primary-hover text-black font-black text-3xl sm:text-4xl flex items-center justify-center border-4 border-accent shadow-2xl">
                   {currentCand.initials || name.slice(0, 2).toUpperCase()}
                 </div>
               )}
@@ -174,32 +174,32 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
             {/* Header Details */}
             <div className="text-center sm:text-left space-y-1.5 min-w-0 pr-24">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h2 className="font-black text-white text-xl sm:text-2xl tracking-tight">{name}</h2>
+                <h2 className="font-black text-black text-xl sm:text-2xl tracking-tight">{name}</h2>
                 <StatusBadge status={currentCand.status || currentCand.offerStatus || 'New'} size="sm" />
               </div>
 
               <div className="text-xs text-accent font-extrabold font-mono flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <span className="px-2.5 py-0.5 rounded-lg bg-white/10 border border-white/15 text-amber-300">{appNo}</span>
+                <span className="px-2.5 py-0.5 rounded-lg bg-black/10 border border-black/15 text-amber-300">{appNo}</span>
                 <span>•</span>
-                <span className="text-white font-bold">{desig}</span>
+                <span className="text-black font-bold">{desig}</span>
                 <span>•</span>
-                <span className="text-white/80 font-normal">Department: {dept}</span>
+                <span className="text-black/80 font-normal">Department: {dept}</span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1 text-xs text-white/80">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1 text-xs text-black/80">
                 {currentCand.phone && (
-                  <a href={`tel:${currentCand.phone}`} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-amber-300 font-bold border border-white/10">
+                  <a href={`tel:${currentCand.phone}`} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/10 hover:bg-black/20 transition-all text-amber-300 font-bold border border-black/10">
                     <Phone className="w-3.5 h-3.5" />
                     <span>{currentCand.phone}</span>
                   </a>
                 )}
                 {currentCand.email && (
-                  <a href={`mailto:${currentCand.email}`} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-white/90 font-semibold border border-white/10">
+                  <a href={`mailto:${currentCand.email}`} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/10 hover:bg-black/20 transition-all text-black/90 font-semibold border border-black/10">
                     <Mail className="w-3.5 h-3.5 text-accent" />
                     <span>{currentCand.email}</span>
                   </a>
                 )}
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white/10 border border-white/10 text-emerald-300 font-bold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-black/10 border border-black/10 text-emerald-300 font-bold">
                   Section: {section}
                 </span>
               </div>
@@ -225,7 +225,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               className={`px-3.5 py-2 rounded-xl whitespace-nowrap transition-all text-xs font-black ${
                 activeTab === t.id
                   ? 'bg-primary text-accent shadow-md ring-1 ring-accent/30'
-                  : 'text-[#475569] hover:bg-background hover:text-primary'
+                  : 'text-[#5D4E42] hover:bg-background hover:text-primary'
               }`}
             >
               {t.label}
@@ -244,17 +244,17 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 <div className="space-y-4 animate-fade-in">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="p-4 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-1">
-                      <span className="text-[10px] uppercase font-black text-primary/70">Pipeline Status</span>
+                      <span className="text-[10px] uppercase font-black text-primary">Pipeline Status</span>
                       <div className="text-sm font-black text-primary">
                         <StatusBadge status={currentCand.status || currentCand.offerStatus || 'New'} size="sm" />
                       </div>
                     </div>
                     <div className="p-4 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-1">
-                      <span className="text-[10px] uppercase font-black text-primary/70">Target Department</span>
+                      <span className="text-[10px] uppercase font-black text-primary">Target Department</span>
                       <div className="text-base font-extrabold text-primary">{dept}</div>
                     </div>
                     <div className="p-4 rounded-2xl bg-white border border-accent-soft shadow-xs space-y-1">
-                      <span className="text-[10px] uppercase font-black text-primary/70">Assigned Floor Section</span>
+                      <span className="text-[10px] uppercase font-black text-primary">Assigned Floor Section</span>
                       <div className="text-base font-extrabold text-accent">{section}</div>
                     </div>
                   </div>
@@ -265,17 +265,17 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                       <span>Role Placement & Placement Meta</span>
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Designation Role</span><span className="font-extrabold text-primary text-sm">{desig}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Offered / Expected Salary</span><span className="font-extrabold text-emerald-800 text-sm font-mono">{currentCand.salary || currentCand.expectedSalary ? `₹${currentCand.salary || currentCand.expectedSalary}` : '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Estimated DOJ</span><span className="font-extrabold text-primary">{currentCand.offeredDoj || currentCand.estDoj || currentCand.doj || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Store Branch</span><span className="font-extrabold text-primary">{currentCand.branch || 'BSC EXCLUSIVE DAVANAGERE'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Referrer Name</span><span className="font-bold text-primary">{currentCand.referrer ? `${currentCand.referrer} (${currentCand.referrerEmpNo || ''})` : '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Application Date</span><span className="font-bold text-primary">{currentCand.date || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Designation Role</span><span className="font-extrabold text-primary text-sm">{desig}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Offered / Expected Salary</span><span className="font-extrabold text-emerald-800 text-sm font-mono">{currentCand.salary || currentCand.expectedSalary ? `₹${currentCand.salary || currentCand.expectedSalary}` : '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Estimated DOJ</span><span className="font-extrabold text-primary">{currentCand.offeredDoj || currentCand.estDoj || currentCand.doj || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Store Branch</span><span className="font-extrabold text-primary">{currentCand.branch || 'BSC EXCLUSIVE DAVANAGERE'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Referrer Name</span><span className="font-bold text-primary">{currentCand.referrer ? `${currentCand.referrer} (${currentCand.referrerEmpNo || ''})` : '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Application Date</span><span className="font-bold text-primary">{currentCand.date || '—'}</span></div>
                     </div>
 
                     {currentCand.remarks && (
                       <div className="pt-2 border-t border-accent-soft">
-                        <span className="text-primary/70 block text-[10.5px] mb-1 font-bold uppercase">Shortlisting & Recruiter Remarks:</span>
+                        <span className="text-primary block text-[10.5px] mb-1 font-bold uppercase">Shortlisting & Recruiter Remarks:</span>
                         <div className="p-3 rounded-xl bg-background border border-accent-soft text-xs font-semibold text-primary">
                           {currentCand.remarks}
                         </div>
@@ -293,15 +293,15 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                     <span>Personal Profile Information</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div><span className="text-primary/70 block text-[10.5px]">Full Applicant Name:</span><span className="font-extrabold text-primary text-sm">{name}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Mobile Phone Number:</span><span className="font-extrabold text-primary font-mono text-sm">{currentCand.phone || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Email Address:</span><span className="font-bold text-primary">{currentCand.email || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Gender:</span><span className="font-bold text-primary">{currentCand.gender || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Date of Birth:</span><span className="font-bold text-primary">{currentCand.dob || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Blood Group:</span><span className="font-bold text-rose-700">{currentCand.bloodGroup || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Aadhaar Number (12 Digits):</span><span className="font-extrabold text-primary font-mono">{currentCand.aadhaarNumber || currentCand.aadharNumber || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Religion:</span><span className="font-bold text-primary">{currentCand.religion || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Caste / Category:</span><span className="font-bold text-primary">{currentCand.caste || currentCand.religionCaste || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Full Applicant Name:</span><span className="font-extrabold text-primary text-sm">{name}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Mobile Phone Number:</span><span className="font-extrabold text-primary font-mono text-sm">{currentCand.phone || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Email Address:</span><span className="font-bold text-primary">{currentCand.email || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Gender:</span><span className="font-bold text-primary">{currentCand.gender || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Date of Birth:</span><span className="font-bold text-primary">{currentCand.dob || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Blood Group:</span><span className="font-bold text-rose-700">{currentCand.bloodGroup || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Aadhaar Number (12 Digits):</span><span className="font-extrabold text-primary font-mono">{currentCand.aadhaarNumber || currentCand.aadharNumber || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Religion:</span><span className="font-bold text-primary">{currentCand.religion || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Caste / Category:</span><span className="font-bold text-primary">{currentCand.caste || currentCand.religionCaste || '—'}</span></div>
                   </div>
                 </div>
               )}
@@ -315,14 +315,14 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <span className="text-primary/70 block text-[10.5px] mb-1">Complete Residential Address:</span>
+                      <span className="text-primary block text-[10.5px] mb-1">Complete Residential Address:</span>
                       <div className="p-3.5 rounded-xl bg-background border border-accent-soft font-semibold text-primary leading-relaxed">
                         {currentCand.address || currentCand.cityState || '—'}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div><span className="text-primary/70 block text-[10.5px]">City / Location:</span><span className="font-bold text-primary">{currentCand.cityState || currentCand.city || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px]">State / Region:</span><span className="font-bold text-primary">{currentCand.state || 'Karnataka'}</span></div>
+                      <div><span className="text-primary block text-[10.5px]">City / Location:</span><span className="font-bold text-primary">{currentCand.cityState || currentCand.city || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px]">State / Region:</span><span className="font-bold text-primary">{currentCand.state || 'Karnataka'}</span></div>
                     </div>
                   </div>
                 </div>
@@ -337,11 +337,11 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="p-3.5 rounded-xl bg-background border border-accent-soft space-y-1">
-                      <span className="text-primary/70 text-[10.5px] font-bold block">Father's Name & Occupation</span>
+                      <span className="text-primary text-[10.5px] font-bold block">Father's Name & Occupation</span>
                       <span className="font-extrabold text-primary block">{currentCand.fatherDetails || '—'}</span>
                     </div>
                     <div className="p-3.5 rounded-xl bg-background border border-accent-soft space-y-1">
-                      <span className="text-primary/70 text-[10.5px] font-bold block">Mother's Name & Occupation</span>
+                      <span className="text-primary text-[10.5px] font-bold block">Mother's Name & Occupation</span>
                       <span className="font-extrabold text-primary block">{currentCand.motherDetails || '—'}</span>
                     </div>
                   </div>
@@ -356,8 +356,8 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                     <span>Educational Qualifications</span>
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div><span className="text-primary/70 block text-[10.5px]">Highest Qualification:</span><span className="font-extrabold text-primary text-sm">{currentCand.qualification || '—'}</span></div>
-                    <div><span className="text-primary/70 block text-[10.5px]">Total Work Experience:</span><span className="font-extrabold text-primary text-sm">{currentCand.experience || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Highest Qualification:</span><span className="font-extrabold text-primary text-sm">{currentCand.qualification || '—'}</span></div>
+                    <div><span className="text-primary block text-[10.5px]">Total Work Experience:</span><span className="font-extrabold text-primary text-sm">{currentCand.experience || '—'}</span></div>
                   </div>
                 </div>
               )}
@@ -371,12 +371,12 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                       <span>Work Experience & Salary Details</span>
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Total Experience</span><span className="font-extrabold text-primary">{currentCand.experience || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Retail Industry Experience</span><span className="font-extrabold text-primary">{currentCand.retailExperience || currentCand.retail_experience || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Previous Company</span><span className="font-extrabold text-primary">{currentCand.previousCompany || currentCand.previous_company || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Previous Designation</span><span className="font-extrabold text-primary">{currentCand.previousDesignation || currentCand.previous_designation || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Previous Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.previousSalary || currentCand.currentSalary || '—'}</span></div>
-                      <div><span className="text-primary/70 block text-[10.5px] font-bold">Expected Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.expectedSalary || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Total Experience</span><span className="font-extrabold text-primary">{currentCand.experience || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Retail Industry Experience</span><span className="font-extrabold text-primary">{currentCand.retailExperience || currentCand.retail_experience || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Previous Company</span><span className="font-extrabold text-primary">{currentCand.previousCompany || currentCand.previous_company || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Previous Designation</span><span className="font-extrabold text-primary">{currentCand.previousDesignation || currentCand.previous_designation || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Previous Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.previousSalary || currentCand.currentSalary || '—'}</span></div>
+                      <div><span className="text-primary block text-[10.5px] font-bold">Expected Monthly Salary</span><span className="font-extrabold text-emerald-800 font-mono">₹ {currentCand.expectedSalary || '—'}</span></div>
                     </div>
                   </div>
                 </div>
@@ -397,7 +397,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                         </span>
                       ))
                     ) : (
-                      <span className="text-primary/70 font-semibold italic">No languages specified</span>
+                      <span className="text-primary font-semibold italic">No languages specified</span>
                     )}
                   </div>
                 </div>
@@ -421,9 +421,9 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                         >
                           <span className="text-2xl">📷</span>
                           <span>Staff Profile Photo</span>
-                          <span className="text-[10px] text-accent group-hover:text-white underline">View Document ↗</span>
+                          <span className="text-[10px] text-accent group-hover:text-black underline">View Document ↗</span>
                         </a>
-                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-background font-bold">No Photo Uploaded</div>}
+                      ) : <div className="p-4 text-center text-[#6B5D50] border rounded-2xl bg-background font-bold">No Photo Uploaded</div>}
 
                       {fileUrl(currentCand.aadhaarUrl || currentCand.aadharUrl || currentCand.aadhaar_url || currentCand.aadhar_url) ? (
                         <a
@@ -434,9 +434,9 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                         >
                           <span className="text-2xl">📄</span>
                           <span>Aadhaar Card Document</span>
-                          <span className="text-[10px] text-accent group-hover:text-white underline">View Document ↗</span>
+                          <span className="text-[10px] text-accent group-hover:text-black underline">View Document ↗</span>
                         </a>
-                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-background font-bold">No Aadhaar Uploaded</div>}
+                      ) : <div className="p-4 text-center text-[#6B5D50] border rounded-2xl bg-background font-bold">No Aadhaar Uploaded</div>}
 
                       {fileUrl(currentCand.resumeUrl) ? (
                         <a
@@ -447,9 +447,9 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                         >
                           <span className="text-2xl">📑</span>
                           <span>Candidate Resume / CV</span>
-                          <span className="text-[10px] text-accent group-hover:text-white underline">View Document ↗</span>
+                          <span className="text-[10px] text-accent group-hover:text-black underline">View Document ↗</span>
                         </a>
-                      ) : <div className="p-4 text-center text-[#64748B] border rounded-2xl bg-background font-bold">No Resume Uploaded</div>}
+                      ) : <div className="p-4 text-center text-[#6B5D50] border rounded-2xl bg-background font-bold">No Resume Uploaded</div>}
                     </div>
                   </div>
                 </div>
@@ -495,7 +495,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 <div>
                   <label className="block text-[11px] font-black text-primary uppercase mb-1 flex items-center justify-between">
                     <span>Floor Section</span>
-                    <span className="text-[10px] text-primary/70 uppercase font-bold">(Optional)</span>
+                    <span className="text-[10px] text-primary uppercase font-bold">(Optional)</span>
                   </label>
                   {availableSections.length > 0 ? (
                     <select
@@ -552,7 +552,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                 <div>
                   <label className="block text-[11px] font-black text-primary uppercase mb-1">Mobile Phone</label>
                   <div className="flex">
-                    <span className="px-2 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-[10px] text-[#475569] flex items-center">
+                    <span className="px-2 py-2 bg-accent-soft/50 border border-r-0 border-accent-soft rounded-l-xl font-extrabold text-[10px] text-[#5D4E42] flex items-center">
                       +91
                     </span>
                     <input
@@ -591,7 +591,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
 
         {/* Modal Footer */}
         <div className="p-4 bg-background border-t border-accent-soft flex items-center justify-between">
-          <div className="text-[11px] text-primary/70 font-bold">
+          <div className="text-[11px] text-primary font-bold">
             BSC EXCLUSIVE RECRUITMENT CRM
           </div>
           
@@ -600,7 +600,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
               <>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#475569]"
+                  className="px-4 py-2 rounded-xl border border-accent-soft bg-white font-extrabold text-xs text-[#5D4E42]"
                 >
                   Cancel
                 </button>

@@ -137,7 +137,7 @@ export default function BroadcastCenterPage() {
                 <Megaphone className="w-6 h-6 text-accent" />
                 <span>Enterprise Broadcast &amp; Notification Control Desk</span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">Commercial-grade role-based messaging, real-time alerts &amp; read acknowledgements (Messaging-Only).</p>
+              <p className="text-xs text-primary font-medium mt-0.5">Commercial-grade role-based messaging, real-time alerts &amp; read acknowledgements (Messaging-Only).</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -175,13 +175,13 @@ export default function BroadcastCenterPage() {
               <div className="card-glass p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-accent-soft pb-3">
                   <h3 className="font-extrabold text-primary text-base">Active Broadcast Announcements</h3>
-                  <span className="text-xs font-bold text-primary/70 font-mono">{broadcasts.length} Broadcast Logs</span>
+                  <span className="text-xs font-bold text-primary font-mono">{broadcasts.length} Broadcast Logs</span>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-accent-soft text-primary/70 font-extrabold uppercase text-[10px] tracking-wider">
+                      <tr className="border-b border-accent-soft text-primary font-extrabold uppercase text-[10px] tracking-wider">
                         <th className="py-2.5 px-3 text-center w-12">SL.NO</th>
                         <th className="py-2.5 px-3">Priority</th>
                         <th className="py-2.5 px-3">Title &amp; Subject</th>
@@ -195,7 +195,7 @@ export default function BroadcastCenterPage() {
                     <tbody className="divide-y divide-accent-soft">
                       {broadcasts.map((b, idx) => (
                         <tr key={b.id} className="hover:bg-background transition-colors">
-                          <td className="py-3 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                          <td className="py-3 px-3 text-center font-bold text-primary">{idx + 1}</td>
                           <td className="py-3 px-3">
                             <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase ${
                               b.priority === 'critical' ? 'bg-rose-100 text-rose-800' :
@@ -206,7 +206,7 @@ export default function BroadcastCenterPage() {
                           </td>
                           <td className="py-3 px-3">
                             <div className="font-extrabold text-primary">{b.title}</div>
-                            <div className="text-[10.5px] text-primary/70">{b.subject || b.message.slice(0, 45)}</div>
+                            <div className="text-[10.5px] text-primary">{b.subject || b.message.slice(0, 45)}</div>
                           </td>
                           <td className="py-3 px-3 font-semibold text-primary">{b.category}</td>
                           <td className="py-3 px-3 font-bold text-accent">{b.targetRole || 'Everyone'}</td>
@@ -235,7 +235,7 @@ export default function BroadcastCenterPage() {
                 <Send className="w-5 h-5 text-accent" />
                 <div>
                   <h3 className="font-extrabold text-primary text-base">Create Enterprise Broadcast Notice</h3>
-                  <p className="text-xs text-primary/70">Dispatch text messages, announcements &amp; alerts (Pure messaging-only, no attachments).</p>
+                  <p className="text-xs text-primary">Dispatch text messages, announcements &amp; alerts (Pure messaging-only, no attachments).</p>
                 </div>
               </div>
 
@@ -351,7 +351,7 @@ export default function BroadcastCenterPage() {
                     placeholder="Enter message text content..."
                     className="textarea-modern font-medium"
                   />
-                  <span className="text-[10.5px] text-[#64748B] font-semibold block mt-1">Note: Pure text messaging module. File attachments and media sharing are strictly disabled.</span>
+                  <span className="text-[10.5px] text-[#6B5D50] font-semibold block mt-1">Note: Pure text messaging module. File attachments and media sharing are strictly disabled.</span>
                 </div>
 
                 {/* Options Checkboxes */}
@@ -412,10 +412,10 @@ export default function BroadcastCenterPage() {
                           {b.targetRole || 'Everyone'}
                         </span>
                       </div>
-                      <span className="text-[10.5px] text-primary/70 font-mono">{new Date(b.timestamp).toLocaleString()}</span>
+                      <span className="text-[10.5px] text-primary font-mono">{new Date(b.timestamp).toLocaleString()}</span>
                     </div>
-                    <p className="text-xs text-[#475569] font-medium leading-relaxed">{b.message}</p>
-                    <div className="flex items-center justify-between text-[10px] text-[#64748B] pt-1 border-t border-accent-soft/50 font-semibold">
+                    <p className="text-xs text-[#5D4E42] font-medium leading-relaxed">{b.message}</p>
+                    <div className="flex items-center justify-between text-[10px] text-[#6B5D50] pt-1 border-t border-accent-soft/50 font-semibold">
                       <span>Sender: <strong className="text-primary">{b.senderName || 'HR Desk'}</strong></span>
                       <span>Read Acknowledgements: <strong className="text-emerald-700 font-mono">{b.acknowledgedBy?.length || 0} Users</strong></span>
                     </div>

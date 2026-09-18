@@ -40,6 +40,7 @@ import {
   Settings
 } from 'lucide-react';
 import EmployeeProfileModal from '../components/ui/EmployeeProfileModal';
+import WorkflowPanel from '../components/WorkflowPanel';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -244,7 +245,7 @@ export default function DashboardPage() {
                     : 'Manager Dashboard — Store Floor & Service Operations'}
                 </span>
               </h2>
-              <p className="text-xs text-primary/70 font-medium mt-0.5">
+              <p className="text-xs text-primary font-medium mt-0.5">
                 {isGreeter 
                   ? 'Real-time visitor footfall counters, entrance greeter kiosk, customer feedback QR & sourcing diverts.'
                   : isAdminDashboard
@@ -261,19 +262,19 @@ export default function DashboardPage() {
                 <div className="hidden md:flex items-center gap-1 bg-white p-1 rounded-xl border border-accent-soft shadow-xs text-xs font-bold mr-2">
                   <button
                     onClick={() => navigate('/dashboard?view=admin')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isAdminDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary/70 hover:text-primary'}`}
+                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isAdminDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary hover:text-primary'}`}
                   >
                     Admin
                   </button>
                   <button
                     onClick={() => navigate('/dashboard?view=hr')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isHRDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary/70 hover:text-primary'}`}
+                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isHRDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary hover:text-primary'}`}
                   >
                     HR
                   </button>
                   <button
                     onClick={() => navigate('/dashboard?view=manager')}
-                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isManagerDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary/70 hover:text-primary'}`}
+                    className={`px-2.5 py-1.5 rounded-lg transition-all text-[11px] ${isManagerDashboard ? 'bg-primary text-white shadow-xs' : 'text-primary hover:text-primary'}`}
                   >
                     Manager
                   </button>
@@ -379,6 +380,11 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          {/* Role-Scoped Workflow & Approval Panel (Admin sees pending approvals
+              with the server-enforced 20-minute window; every other role sees
+              its own submissions and approval tasks) */}
+          {!isGreeter && <WorkflowPanel />}
 
           {/* Metric Cards Section */}
           {isGreeter ? (
@@ -503,7 +509,7 @@ export default function DashboardPage() {
                   <Sparkles className="w-5 h-5 text-accent" />
                   <span>Greeter Visitor Management Desks</span>
                 </h3>
-                <p className="text-xs text-primary/70 font-medium mt-0.5">Quick access to assigned visitor and footfall operations.</p>
+                <p className="text-xs text-primary font-medium mt-0.5">Quick access to assigned visitor and footfall operations.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -525,14 +531,14 @@ export default function DashboardPage() {
                       className="p-5 rounded-2xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all text-left group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="p-3 rounded-xl bg-white border border-accent-soft group-hover:bg-white/20 group-hover:border-white/30 text-primary group-hover:text-white">
+                        <div className="p-3 rounded-xl bg-white border border-accent-soft group-hover:bg-black/20 group-hover:border-black/30 text-primary group-hover:text-black">
                           <Icon className="w-5 h-5" />
                         </div>
-                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-transform group-hover:translate-x-1" />
+                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-black transition-transform group-hover:translate-x-1" />
                       </div>
                       <div>
-                        <div className="font-black text-sm text-primary group-hover:text-white">{item.label}</div>
-                        <div className="text-xs text-primary/70 group-hover:text-white/80 font-medium mt-1 leading-relaxed">{item.desc}</div>
+                        <div className="font-black text-sm text-primary group-hover:text-black">{item.label}</div>
+                        <div className="text-xs text-primary group-hover:text-black font-medium mt-1 leading-relaxed">{item.desc}</div>
                       </div>
                     </button>
                   );
@@ -553,7 +559,7 @@ export default function DashboardPage() {
                         {employees.length} Total Onboarded Staff
                       </span>
                     </h3>
-                    <p className="text-xs text-primary/70 font-medium mt-1">Active staff strength across Mens, Ladies, Sarees, Kids &amp; Operations.</p>
+                    <p className="text-xs text-primary font-medium mt-1">Active staff strength across Mens, Ladies, Sarees, Kids &amp; Operations.</p>
                   </div>
 
                   <div className="space-y-3.5 my-2">
@@ -595,7 +601,7 @@ export default function DashboardPage() {
                       <Sparkles className="w-4 h-4 text-accent" />
                       <span>Store Operations Quick Links</span>
                     </h3>
-                    <p className="text-xs text-primary/70 font-medium mt-0.5">Quick access to daily store floor desks</p>
+                    <p className="text-xs text-primary font-medium mt-0.5">Quick access to daily store floor desks</p>
                   </div>
 
                   <div className="space-y-2.5">
@@ -615,12 +621,12 @@ export default function DashboardPage() {
                           onClick={() => navigate(item.path)}
                           className="w-full p-3 rounded-xl border border-accent-soft bg-background hover:bg-primary hover:text-white transition-all text-left group flex items-center gap-3 shadow-xs"
                         >
-                          <div className="p-2 rounded-lg bg-white border border-accent-soft group-hover:bg-white/20 group-hover:border-white/30 text-primary group-hover:text-white">
+                          <div className="p-2 rounded-lg bg-white border border-accent-soft group-hover:bg-black/20 group-hover:border-black/30 text-primary group-hover:text-black">
                             <Icon className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-extrabold text-xs text-primary group-hover:text-white">{item.label}</div>
-                            <div className="text-[10px] text-primary/70 group-hover:text-white/80">{item.desc}</div>
+                            <div className="font-extrabold text-xs text-primary group-hover:text-black">{item.label}</div>
+                            <div className="text-[10px] text-primary group-hover:text-black">{item.desc}</div>
                           </div>
                         </button>
                       );
@@ -637,7 +643,7 @@ export default function DashboardPage() {
                       <UserCheck className="w-5 h-5 text-accent" />
                       <span>Active Store Staff Directory</span>
                     </h3>
-                    <p className="text-xs text-primary/70 font-medium mt-0.5">Showing registered employees working at BSC EXCLUSIVE DAVANAGERE.</p>
+                    <p className="text-xs text-primary font-medium mt-0.5">Showing registered employees working at BSC EXCLUSIVE DAVANAGERE.</p>
                   </div>
 
                   <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -660,7 +666,7 @@ export default function DashboardPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary/70 bg-background/60">
+                      <tr className="border-b border-accent-soft text-[10.5px] font-black uppercase text-primary bg-background/60">
                         <th className="py-3 px-4">Emp / App ID</th>
                         <th className="py-3 px-4">Employee Name</th>
                         <th className="py-3 px-4">Designation</th>
@@ -684,10 +690,10 @@ export default function DashboardPage() {
                                 <span>{emp.name || emp.fullName}</span>
                               </button>
                             </td>
-                            <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.desig || emp.designation || 'Staff'}</td>
-                            <td className="py-3.5 px-4 text-[#475569] font-semibold">{emp.department || '—'}</td>
+                            <td className="py-3.5 px-4 text-[#5D4E42] font-semibold">{emp.desig || emp.designation || 'Staff'}</td>
+                            <td className="py-3.5 px-4 text-[#5D4E42] font-semibold">{emp.department || '—'}</td>
                             <td className="py-3.5 px-4 text-accent font-extrabold">{emp.section || 'Unassigned'}</td>
-                            <td className="py-3.5 px-4 text-[#475569] font-mono">{emp.actualDoj || emp.offeredDoj || emp.date || '—'}</td>
+                            <td className="py-3.5 px-4 text-[#5D4E42] font-mono">{emp.actualDoj || emp.offeredDoj || emp.date || '—'}</td>
                             <td className="py-3.5 px-4 text-right">
                               <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
                                 Active Staff

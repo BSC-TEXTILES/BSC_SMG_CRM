@@ -31,7 +31,7 @@ export default function NotificationPreferencesModal({ isOpen, onClose }: Notifi
             <Sliders className="w-5 h-5 text-accent" />
             <h3 className="font-extrabold text-primary text-base">Notification &amp; Audio Preferences</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-[#64748B] hover:text-primary">
+          <button onClick={onClose} className="p-1 rounded-lg text-[#6B5D50] hover:text-primary">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -41,7 +41,7 @@ export default function NotificationPreferencesModal({ isOpen, onClose }: Notifi
           <div className="flex items-center justify-between p-3 rounded-2xl bg-background border border-accent-soft">
             <div>
               <span className="font-bold text-primary block">Notification Audio Alerts</span>
-              <span className="text-[11px] text-primary/70">Play audio chime when new broadcasts or alerts arrive</span>
+              <span className="text-[11px] text-primary">Play audio chime when new broadcasts or alerts arrive</span>
             </div>
             <input
               type="checkbox"
@@ -82,7 +82,7 @@ export default function NotificationPreferencesModal({ isOpen, onClose }: Notifi
           <div className="flex items-center justify-between p-3 rounded-2xl bg-background border border-accent-soft">
             <div>
               <span className="font-bold text-primary block">Desktop Toast Popups</span>
-              <span className="text-[11px] text-primary/70">Show bottom-right toast notification banners</span>
+              <span className="text-[11px] text-primary">Show bottom-right toast notification banners</span>
             </div>
             <input
               type="checkbox"
@@ -110,7 +110,7 @@ export default function NotificationPreferencesModal({ isOpen, onClose }: Notifi
           <div className="flex items-center justify-between p-3 rounded-2xl bg-background border border-accent-soft">
             <div>
               <span className="font-bold text-primary block">Show Message Preview</span>
-              <span className="text-[11px] text-primary/70">Include text snippet in notification popups</span>
+              <span className="text-[11px] text-primary">Include text snippet in notification popups</span>
             </div>
             <input
               type="checkbox"

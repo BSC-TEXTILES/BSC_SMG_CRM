@@ -124,7 +124,7 @@ export default function OpeningsPage() {
                 <Users className="w-5 h-5" />
                 Hiring Capacity &amp; Openings
               </h2>
-              <p className="text-sm text-primary/70 mt-1">Define manpower requisitions for each role and track fulfillment across the company.</p>
+              <p className="text-sm text-primary mt-1">Define manpower requisitions for each role and track fulfillment across the company.</p>
             </div>
 
             {isAdmin && (
@@ -141,7 +141,7 @@ export default function OpeningsPage() {
           <div className="card-glass p-4 overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-accent-soft text-xs font-black uppercase text-[#64748B] tracking-wider">
+                <tr className="border-b border-accent-soft text-xs font-black uppercase text-[#6B5D50] tracking-wider">
                   <th className="py-3 px-3 text-center w-12">SL.NO</th>
                   <th className="py-3 px-4">Designation Role</th>
                   <th className="py-3 px-4">Required Openings</th>
@@ -158,7 +158,7 @@ export default function OpeningsPage() {
                   
                   return (
                     <tr key={op.designation} className="hover:bg-black/5 transition-colors font-medium">
-                      <td className="py-4 px-3 text-center font-bold text-primary/70">{idx + 1}</td>
+                      <td className="py-4 px-3 text-center font-bold text-primary">{idx + 1}</td>
                       <td className="py-4 px-4 text-primary font-bold">{op.designation}</td>
                       <td className="py-4 px-4">
                         {isEditing ? (
@@ -178,7 +178,7 @@ export default function OpeningsPage() {
                         <div className="text-[10px] text-emerald-700/60 font-bold uppercase mt-0.5">Selected / Joined</div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`text-lg font-black ${stillNeeded > 0 ? 'text-amber-600' : 'text-[#64748B]'}`}>
+                        <span className={`text-lg font-black ${stillNeeded > 0 ? 'text-amber-600' : 'text-[#6B5D50]'}`}>
                           {stillNeeded}
                         </span>
                       </td>
@@ -197,7 +197,7 @@ export default function OpeningsPage() {
                                 delete newEdit[op.designation];
                                 setEditMode(newEdit);
                               }}
-                              className="px-3 py-1.5 rounded-lg border border-accent-soft text-primary/70 font-bold hover:bg-white text-xs"
+                              className="px-3 py-1.5 rounded-lg border border-accent-soft text-primary font-bold hover:bg-white text-xs"
                             >
                               Cancel
                             </button>
@@ -238,14 +238,14 @@ export default function OpeningsPage() {
                       </td>
                       <td className="py-4 px-4">
                         <span className="text-xl font-black text-primary">{totalRequired}</span>
-                        <div className="text-[10px] text-primary/70 font-bold uppercase mt-0.5">Total Openings</div>
+                        <div className="text-[10px] text-primary font-bold uppercase mt-0.5">Total Openings</div>
                       </td>
                       <td className="py-4 px-4">
                         <span className="text-xl font-black text-emerald-700">{totalHired}</span>
                         <div className="text-[10px] text-emerald-800/70 font-bold uppercase mt-0.5">Total Hired</div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`text-xl font-black ${totalStillNeeded > 0 ? 'text-amber-700' : 'text-[#64748B]'}`}>
+                        <span className={`text-xl font-black ${totalStillNeeded > 0 ? 'text-amber-700' : 'text-[#6B5D50]'}`}>
                           {totalStillNeeded}
                         </span>
                         <div className="text-[10px] text-amber-800/70 font-bold uppercase mt-0.5">Total Still Needed</div>
@@ -258,7 +258,7 @@ export default function OpeningsPage() {
                 })()}
                 {openings.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-[#64748B]">
+                    <td colSpan={5} className="py-8 text-center text-[#6B5D50]">
                       No active designations found. Click "Add New Role / Designation" to create one.
                     </td>
                   </tr>
@@ -275,14 +275,14 @@ export default function OpeningsPage() {
           <div className="w-full max-w-md bg-white rounded-2xl p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-accent-soft pb-3">
               <h3 className="font-extrabold text-primary text-base">Add New Role / Designation</h3>
-              <button onClick={() => setAddModalOpen(false)} className="text-[#64748B] hover:text-primary">
+              <button onClick={() => setAddModalOpen(false)} className="text-[#6B5D50] hover:text-primary">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">
+                <label className="block text-[10px] font-extrabold uppercase text-primary mb-1">
                   Designation / Role Title *
                 </label>
                 <input
@@ -295,7 +295,7 @@ export default function OpeningsPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-primary/70 mb-1">
+                <label className="block text-[10px] font-extrabold uppercase text-primary mb-1">
                   Required Manpower Openings *
                 </label>
                 <input

@@ -188,7 +188,7 @@ export default function Footfall() {
                 <Calendar className="w-6 h-6" />
               </div>
               <div>
-                <label className="block text-[10.5px] font-black uppercase text-primary/70 tracking-widest mb-1">
+                <label className="block text-[10.5px] font-black uppercase text-primary tracking-widest mb-1">
                   Store Log Register Date
                 </label>
                 <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +203,7 @@ export default function Footfall() {
                     className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all ${
                       isTodaySelected 
                         ? 'bg-primary text-accent shadow-md ring-1 ring-accent/30' 
-                        : 'bg-background border border-accent-soft text-[#475569] hover:bg-white'
+                        : 'bg-background border border-accent-soft text-[#5D4E42] hover:bg-white'
                     }`}
                   >
                     Today
@@ -214,7 +214,7 @@ export default function Footfall() {
                       d.setDate(d.getDate() - 1);
                       setDate(d.toISOString().split('T')[0]);
                     }}
-                    className="px-3.5 py-2 rounded-xl text-xs font-black bg-background border border-accent-soft text-[#475569] hover:bg-white transition-all"
+                    className="px-3.5 py-2 rounded-xl text-xs font-black bg-background border border-accent-soft text-[#5D4E42] hover:bg-white transition-all"
                   >
                     Yesterday
                   </button>
@@ -280,7 +280,7 @@ export default function Footfall() {
                 Store Hourly Traffic Distribution Heatmap
               </h3>
             </div>
-            <span className="text-xs font-bold text-primary/70 font-mono">
+            <span className="text-xs font-bold text-primary font-mono">
               Peak Slot: <strong className="text-accent">{peakHourSlot.hourStr} ({peakHourSlot.count} Visitors)</strong>
             </span>
           </div>
@@ -298,7 +298,7 @@ export default function Footfall() {
                 <XAxis dataKey="time" stroke="var(--color-primary)" fontSize={11} tickLine={false} />
                 <YAxis stroke="var(--color-primary)" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'var(--color-primary)', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: 'var(--color-primary)', borderRadius: '12px', border: 'none', color: '#000', fontSize: '12px', fontWeight: 'bold' }}
                   itemStyle={{ color: 'var(--color-accent)' }}
                 />
                 <Area type="monotone" dataKey="visitors" stroke="var(--color-accent)" strokeWidth={3} fillOpacity={1} fill="url(#visitorGradient)" />
@@ -321,14 +321,14 @@ export default function Footfall() {
             <BarChart3 className="w-5 h-5 text-accent" />
             <h3 className="font-extrabold text-primary text-base tracking-tight">Hourly Store Entry Slots</h3>
           </div>
-          <span className="text-xs font-bold text-primary/70 bg-white/60 px-3 py-1 rounded-full border border-accent-soft">
+          <span className="text-xs font-bold text-primary bg-white/60 px-3 py-1 rounded-full border border-accent-soft">
             12 Hourly Slots (10 AM - 10 PM)
           </span>
         </div>
 
         {/* Hourly Slot Entry Responsive Grid */}
         {loading ? (
-          <div className="card-glass p-12 text-center text-xs text-primary/70 font-bold">
+          <div className="card-glass p-12 text-center text-xs text-primary font-bold">
             Loading hourly footfall register for {date}...
           </div>
         ) : (
@@ -360,7 +360,7 @@ export default function Footfall() {
                           <Clock className={`w-4 h-4 ${isCurrentSlot ? 'text-accent animate-pulse' : 'text-primary'}`} />
                           <span>{formatHour} – {formatEndHour}</span>
                         </div>
-                        <div className="text-[10px] text-primary/70 font-bold font-mono mt-0.5">
+                        <div className="text-[10px] text-primary font-bold font-mono mt-0.5">
                           Slot {hour - 9} of 12
                         </div>
                       </div>
@@ -375,7 +375,7 @@ export default function Footfall() {
                           <Check className="w-3 h-3 text-emerald-600" /> Saved
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-full bg-background border border-accent-soft text-primary/70 text-[10px] font-bold uppercase tracking-wider">
+                        <span className="px-2.5 py-1 rounded-full bg-background border border-accent-soft text-primary text-[10px] font-bold uppercase tracking-wider">
                           Pending
                         </span>
                       )}
@@ -403,7 +403,7 @@ export default function Footfall() {
                             placeholder="0"
                             className="w-full text-base font-black font-mono pl-9 pr-3 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
                           />
-                          <Users className="w-4 h-4 text-primary/70 absolute left-3 top-3" />
+                          <Users className="w-4 h-4 text-primary absolute left-3 top-3" />
                         </div>
                       </div>
 
@@ -425,7 +425,7 @@ export default function Footfall() {
                             placeholder="e.g. Rush in Womens Sarees"
                             className="w-full text-xs font-semibold pl-8 pr-3 py-2 rounded-xl border border-accent-soft bg-white text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-2xs"
                           />
-                          <FileText className="w-3.5 h-3.5 text-primary/70 absolute left-3 top-2.5" />
+                          <FileText className="w-3.5 h-3.5 text-primary absolute left-3 top-2.5" />
                         </div>
                       </div>
                     </div>
@@ -437,7 +437,7 @@ export default function Footfall() {
                     disabled={savingSlot === hour}
                     className={`mt-4 w-full py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-xs active:scale-[0.98] disabled:opacity-50 ${
                       isCurrentSlot
-                        ? 'bg-accent text-white hover:bg-[#b07d20] shadow-md'
+                        ? 'bg-accent text-white hover:bg-[#996515] shadow-md'
                         : isSaved
                         ? 'bg-primary text-white hover:bg-primary'
                         : 'bg-primary text-white hover:bg-primary'
