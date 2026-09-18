@@ -1,8 +1,6 @@
 -- Workflow & Approval System Database Schema
 -- MySQL 8.0 - Engine: InnoDB, Charset: utf8mb4_unicode_ci
 
-USE `u101820758_bsc_smg_crm`;
-
 -- 1. Workflow Definition (Configurable workflow templates)
 CREATE TABLE IF NOT EXISTS `WorkflowDefinition` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

@@ -1,5 +1,10 @@
 const db = require('../config/db');
-const QRCode = require('qrcode');
+let QRCode = null;
+try {
+  QRCode = require('qrcode');
+} catch (e) {
+  console.warn('[FeedbackQrController] qrcode module not found. QR generation will be skipped:', e.message);
+}
 const crypto = require('crypto');
 
 // Helper to generate UUIDs
@@ -64,6 +69,9 @@ async function generateNextQrCodeId() {
 
 // Generate QR Code image (PNG data URL and SVG)
 async function generateQrCodeImages(targetUrl) {
+  if (!QRCode) {
+    return { qrCodeDataUrl: '', qrCodeSvg: '' };
+  }
   try {
     const qrCodeDataUrl = await QRCode.toDataURL(targetUrl, {
       width: 300,

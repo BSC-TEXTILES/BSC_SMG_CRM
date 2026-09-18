@@ -225,9 +225,26 @@ const globalLimiter = rateLimit({
 app.use(['/api/auth/login', '/api/auth/verify'], authLimiter);
 app.use('/api', globalLimiter);
 
-// ── Health / Diagnostics ──────────────────────────────────────────────────────
-app.get('/health', (req, res) => {
-  res.json({ status: 'UP', port: PORT, ts: new Date().toISOString() });
+// ── Health / Diagnostics (Always accessible, zero secrets leaked) ─────────────
+app.get(['/health', '/api/health'], async (req, res) => {
+  let dbStatus = 'healthy';
+  let isHealthy = true;
+  try {
+    const conn = await pool.getConnection();
+    await conn.query('SELECT 1');
+    conn.release();
+  } catch (dbErr) {
+    dbStatus = 'degraded';
+    isHealthy = false;
+    console.warn('[Health Check] Database connectivity check failed:', dbErr.message);
+  }
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'degraded',
+    server: 'operational',
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get(['/db-status', '/api/db-status'], async (req, res) => {
@@ -584,12 +601,51 @@ if (isSocketPort) {
     console.log(`  Health: http://0.0.0.0:${PORT}/health`);
     console.log(`====================================================`);
   });
+
+  // Secondary/Fallback listener: if PORT is not 3000 (e.g. 5000), also serve port 3000 for standard reverse proxies
+  if (Number(PORT) !== 3000) {
+    try {
+      const fallback3000 = http.createServer(app);
+      fallback3000.listen(3000, '0.0.0.0', () => {
+        console.log(`  [Proxy Sync] Secondary listener active on port 3000`);
+      });
+      fallback3000.on('error', (e) => {
+        // Port 3000 may already be taken or restricted; non-fatal
+        console.log(`  [Proxy Sync] Secondary port 3000 skipped (${e.code})`);
+      });
+    } catch (e) {}
+  } else if (Number(PORT) !== 5000) {
+    try {
+      const fallback5000 = http.createServer(app);
+      fallback5000.listen(5000, '0.0.0.0', () => {
+        console.log(`  [Proxy Sync] Secondary listener active on port 5000`);
+      });
+      fallback5000.on('error', (e) => {
+        // Port 5000 may already be taken; non-fatal
+        console.log(`  [Proxy Sync] Secondary port 5000 skipped (${e.code})`);
+      });
+    } catch (e) {}
+  }
 }
 
 server.on('error', (err) => {
   const msg = `[Server listen error] ${new Date().toISOString()} ${err.code} ${err.message}\n`;
   console.error(msg);
   try { fs.appendFileSync(path.join(APP_ROOT, 'crash.log'), msg); } catch(e) {}
+
+  // If primary port had EADDRINUSE on 5000, attempt automatic fallback to 3000
+  if (err.code === 'EADDRINUSE' && !isSocketPort && Number(PORT) === 5000) {
+    console.warn(`[Server Recovery] Port 5000 in use. Attempting recovery on port 3000...`);
+    try {
+      server.listen(3000, '0.0.0.0', () => {
+        console.log(`[Server Recovery] BSC HRMS recovered and running on port 3000`);
+      });
+      return;
+    } catch (recErr) {
+      console.error(`[Server Recovery] Fallback failed:`, recErr.message);
+    }
+  }
+
   process.exit(1);
 });
 

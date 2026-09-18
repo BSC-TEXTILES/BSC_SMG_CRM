@@ -400,10 +400,11 @@ export default function WeddingRegistrationPage() {
                             {loc.location_name === 'Davanagere' ? 'Davanagere' : `${loc.location_name} (${loc.location_code})`}
                           </span>
                         </div>
-                        {loc.location_name === 'Davanagere' && (
-                          <p className="text-xs text-primary line-clamp-2">Address not available</p>
+                        {loc.address && (
+                          <p className="text-xs text-primary line-clamp-2 mt-1">{loc.address}</p>
                         )}
                         {loc.phone && <p className="text-[10px] text-primary/50 mt-1">📞 {loc.phone}</p>}
+                        {loc.email && <p className="text-[10px] text-primary/50 mt-0.5">✉️ {loc.email}</p>}
                         {isSelected && (
                           <div className="mt-2 flex items-center gap-1.5 text-primary text-xs font-bold">
                             <CheckCircle2 className="w-3.5 h-3.5" />

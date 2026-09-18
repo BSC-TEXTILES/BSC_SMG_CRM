@@ -1515,6 +1515,7 @@ async function autoInitializeDatabase(pool) {
           let wfSql = fs.readFileSync(path.join(wfDir, 'workflow_schema.sql'), 'utf8');
           wfSql = wfSql.replace(/\/\*[\s\S]*?\*\//g, '');
           wfSql = wfSql.replace(/^--.*$/gm, '').replace(/^#.*$/gm, '');
+          wfSql = wfSql.replace(/CREATE DATABASE[\s\S]*?;/gi, '').replace(/USE `?[\w_]+`?;/gi, '');
 
           const wfStatements = wfSql
             .split(';')
