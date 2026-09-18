@@ -21,10 +21,10 @@ const config: Config = {
         // (var() strings made Tailwind emit `rgb(var(--x) / a)` which is invalid
         // CSS and was silently dropped, killing those styles entirely.)
         primary: {
-          DEFAULT: '#6B1F2A',
-          hover: '#551829',
-          light: '#8B2E3A',
-          soft: '#F5ECEC'
+          DEFAULT: '#F2D2BD',
+          hover: '#E8BCA0',
+          light: '#F8DFCD',
+          soft: '#FCF2EC'
         },
         accent: {
           DEFAULT: '#C9A227',
@@ -35,10 +35,10 @@ const config: Config = {
         background: '#F7F3EF',
         // Keeping legacy names mapped to new colors to avoid breaking standard tailwind classes currently used
         burgundy: {
-          DEFAULT: '#6B1F2A',
-          dark: '#551829',
-          light: '#8B2E3A',
-          hover: '#551829'
+          DEFAULT: '#F2D2BD',
+          dark: '#E8BCA0',
+          light: '#F8DFCD',
+          hover: '#E8BCA0'
         },
         champagne: {
           DEFAULT: '#C9A227',

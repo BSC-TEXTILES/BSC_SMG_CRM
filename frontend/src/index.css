@@ -7,12 +7,12 @@
 :root {
   /* BSC Brand Theme — Deep Maroon + Gold */
   
-  /* Primary Brand Color — Deep Maroon */
-  --color-primary: #6B1F2A;
-  --color-primary-hover: #551829;
-  --color-primary-light: #8B2E3A;
-  --color-primary-soft: #F5ECEC;
-  --color-primary-soft-hover: #EDD8D8;
+  /* Primary Brand Color — Bisque */
+  --color-primary: #F2D2BD;
+  --color-primary-hover: #E8BCA0;
+  --color-primary-light: #F8DFCD;
+  --color-primary-soft: #FCF2EC;
+  --color-primary-soft-hover: #FAEDE4;
   
   /* Accent Color — Golden Amber */
   --color-accent: #C9A227;
@@ -80,11 +80,11 @@ html, #root, * {
 
 /* Refined Selection Highlighting */
 ::selection {
-  background-color: rgba(107, 31, 42, 0.2);
+  background-color: rgba(242, 210, 189, 0.5);
   color: #2C1A1D;
 }
 ::-moz-selection {
-  background-color: rgba(107, 31, 42, 0.2);
+  background-color: rgba(242, 210, 189, 0.5);
   color: #2C1A1D;
 }
 
@@ -109,12 +109,12 @@ html, #root, * {
   background: #FFFFFF;
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(107, 31, 42, 0.08);
+  box-shadow: 0 4px 16px rgba(242, 210, 189, 0.3);
   border-radius: 16px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-glass-hover:hover {
-  box-shadow: 0 8px 24px rgba(107, 31, 42, 0.14);
+  box-shadow: 0 8px 24px rgba(242, 210, 189, 0.45);
   transform: translateY(-1px);
 }
 
@@ -131,15 +131,15 @@ html, #root, * {
   letter-spacing: 0.01em;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
-.b-new { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
+.b-new { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
 .b-short { background: #FBF5E1; color: #6B4C00; border: 1px solid #E8D9A0; }
-.b-int { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
+.b-int { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
 .b-sel { background: #E6F4EC; color: #2D8659; border: 1px solid #B2DFCC; }
 .b-offer { background: #FBF5E1; color: #6B4C00; border: 1px solid #E8D9A0; }
 .b-hold { background: #FFF8E1; color: #B8860B; border: 1px solid #F5E6A3; }
 .b-rej { background: #FDE8E8; color: #C0392B; border: 1px solid #F5B7B7; }
-.b-board { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
-.b-info { background: #F5ECEC; color: #6B1F2A; border: 1px solid #D4B8BC; }
+.b-board { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
+.b-info { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
 
 /* Status Chips */
 .sc-chip {
@@ -176,7 +176,7 @@ html, #root, * {
 .f-lbl {
   width: 140px;
   font-weight: 700;
-  color: var(--burgundy);
+  color: var(--text-main);
   flex-shrink: 0;
 }
 .f-bg {
@@ -228,26 +228,26 @@ html, #root, * {
 }
 .input-modern:focus, .select-modern:focus, .textarea-modern:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-hover);
   background-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(107, 31, 42, 0.15);
+  box-shadow: 0 0 0 3px rgba(242, 210, 189, 0.45);
 }
 
 /* Modern Buttons — Primary & Accent */
 .btn-primary {
   background-color: var(--color-primary);
-  color: #FFFFFF;
+  color: #2C1A1D;
   font-weight: 700;
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(107, 31, 42, 0.30);
+  box-shadow: 0 2px 8px rgba(242, 210, 189, 0.40);
 }
 .btn-primary:hover {
-  background-color: var(--color-primary-light);
-  color: #FFFFFF;
+  background-color: var(--color-primary-hover);
+  color: #2C1A1D;
   transform: translateY(-0.5px);
-  box-shadow: 0 4px 14px rgba(107, 31, 42, 0.40);
+  box-shadow: 0 4px 14px rgba(242, 210, 189, 0.60);
 }
 .btn-gold {
   background-color: var(--color-accent);
@@ -348,9 +348,9 @@ html, #root, * {
 }
 
 @keyframes trackingHighlight {
-  0%   { box-shadow: 0 0 0 0 rgba(107, 31, 42, 0.45); background-color: #F5ECEC; }
-  60%  { box-shadow: 0 0 0 12px rgba(107, 31, 42, 0); background-color: #EDD8D8; }
-  100% { box-shadow: 0 0 0 0 rgba(107, 31, 42, 0); background-color: #F5ECEC; }
+  0%   { box-shadow: 0 0 0 0 rgba(242, 210, 189, 0.8); background-color: #FCF2EC; }
+  60%  { box-shadow: 0 0 0 12px rgba(242, 210, 189, 0); background-color: #FAEDE4; }
+  100% { box-shadow: 0 0 0 0 rgba(242, 210, 189, 0); background-color: #FCF2EC; }
 }
 .animate-tracking-highlight {
   animation: trackingHighlight 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.9s 1 forwards;
@@ -390,4 +390,24 @@ html, #root, * {
     transform: none !important;
   }
 }
+
+/* --- Contrast Overrides for Bisque Theme --- */
+/* Since primary is now a light color (Bisque), any white text on it will be invisible. */
+/* We override text-white and text-white/X utilities when combined with bg-primary */
+.bg-primary.text-white,
+.bg-burgundy.text-white,
+.bg-primary-hover.text-white,
+.bg-burgundy-hover.text-white,
+.bg-primary .text-white,
+.bg-burgundy .text-white,
+.bg-primary-light.text-white,
+.bg-primary-soft.text-white {
+  color: #2C1A1D !important;
+}
+
+/* Also target elements where text-white might be applied inside a bg-primary container */
+.bg-primary *:not(.bg-emerald-600):not(.bg-teal-700):not(.bg-red-600) {
+  /* This is tricky, better to just rely on explicit .text-white classes as done above */
+}
+
 

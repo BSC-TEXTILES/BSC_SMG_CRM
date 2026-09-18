@@ -484,6 +484,8 @@ async function autoInitializeDatabase(pool) {
       "ALTER TABLE users ADD COLUMN phone VARCHAR(20) NULL",
       "ALTER TABLE users ADD COLUMN department VARCHAR(150) NULL",
       "ALTER TABLE users ADD COLUMN designation VARCHAR(150) NULL",
+      "ALTER TABLE users ADD COLUMN section VARCHAR(150) NULL",
+      "ALTER TABLE users ADD COLUMN joining_date DATE NULL",
       
       "ALTER TABLE manpower_requisitions ADD COLUMN department VARCHAR(150) NULL",
       "ALTER TABLE manpower_requisitions ADD COLUMN branch VARCHAR(150) NULL",
