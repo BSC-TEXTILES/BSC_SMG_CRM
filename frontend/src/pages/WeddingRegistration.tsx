@@ -279,9 +279,14 @@ export default function WeddingRegistrationPage() {
         const trackId = res.tracking_id || res.registration?.tracking_id || regId;
         setSuccessRegId(regId);
         setSuccessTrackId(trackId);
-        setStep(8); // Success screen
+        setStep(8); // Processing screen (shows submitting to backend/email)
         window.scrollTo(0, 0);
-        showToast('Your request was saved successfully!', 'success');
+        
+        // Simulate brief processing, then show success
+        setTimeout(() => {
+          setStep(9); // Success screen with tracking ID
+          showToast('Your request was saved successfully! Email with Tracking ID sent.', 'success');
+        }, 1500);
       } else {
         const errMsg = res?.message || res?.error || 'Failed to submit registration';
         showToast(errMsg, 'error');
@@ -982,6 +987,33 @@ export default function WeddingRegistrationPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 8: PROCESSING / SENDING EMAIL */}
+        {step === 8 && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary/70 backdrop-blur-md animate-modal-backdrop overflow-y-auto">
+            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-accent/30 overflow-hidden animate-pop-in">
+              <div className="bg-gradient-to-r from-primary to-primary px-6 py-8 text-center">
+                <div className="w-20 h-20 rounded-full bg-primary/10 border-4 border-primary/30 text-primary flex items-center justify-center mx-auto shadow-lg animate-pulse-ring">
+                  <Loader2 className="w-10 h-10 animate-spin" />
+                </div>
+                <h2 className="text-xl font-black text-accent tracking-tight mt-4 animate-fade-up-step" style={{ animationDelay: '0.2s' }}>
+                  Submitting Your Request
+                </h2>
+                <p className="text-xs text-black font-medium mt-2 animate-fade-up-step" style={{ animationDelay: '0.4s' }}>
+                  Saving to database and sending confirmation email with your Tracking ID...
+                </p>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="rounded-xl bg-background border border-accent-soft p-4 text-center animate-fade-up-step">
+                  <div className="w-full h-2 bg-accent-soft rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-primary to-accent animate-loading-bar" style={{ width: '100%' }} />
+                  </div>
+                  <p className="text-xs text-primary/60 font-medium mt-2">This usually takes a few seconds</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
