@@ -492,7 +492,7 @@ class WeddingRegistrationController {
       if (!locationId || isNaN(locationId)) locationId = 2;
 
       const [locRows] = await pool.query(
-        `SELECT id, location_code, location_name, address, phone FROM locations WHERE id = ?`,
+        `SELECT id, location_code, location_name, store_name, address, phone, email FROM locations WHERE id = ?`,
         [locationId]
       );
       if (!locRows || locRows.length === 0) {
@@ -583,7 +583,7 @@ class WeddingRegistrationController {
         trackingId,
         locationId,
         location.location_code,
-        location.location_name,
+        location.store_name || 'BSC Textiles Pvt Ltd',
         location.address || null,
         location.phone || null,
         data.customer_name?.trim(),

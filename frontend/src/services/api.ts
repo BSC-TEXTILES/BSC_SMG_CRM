@@ -599,13 +599,40 @@ export const API = {
   // ── Locations ────────────────────────────────────────────────
   // Public endpoint for landing/registration pages (no auth required)
   async getPublicLocations() {
-    const res = await apiFetch('/landing/locations');
-    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+    const extractList = (raw: any): any[] => {
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      if (Array.isArray(raw.locations)) return raw.locations;
+      if (Array.isArray(raw.data)) return raw.data;
+      return [];
+    };
+
+    try {
+      const res = await apiFetch('/landing/locations');
+      const list = extractList(res);
+      if (list.length > 0) {
+        return { success: true, locations: list, data: list };
+      }
+      // Fallback if empty
+      const fb = await apiFetch('/locations');
+      const fbList = extractList(fb);
+      return { success: true, locations: fbList, data: fbList };
+    } catch (err) {
+      console.warn('[API.getPublicLocations] /landing/locations failed, trying /locations:', err);
+      try {
+        const fb = await apiFetch('/locations');
+        const fbList = extractList(fb);
+        return { success: true, locations: fbList, data: fbList };
+      } catch (e2) {
+        throw err;
+      }
+    }
   },
   // Authenticated endpoint for admin/staff pages
   async getLocations() {
     const res = await apiFetch('/locations');
-    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+    const list = Array.isArray(res) ? res : (Array.isArray(res?.locations) ? res.locations : (Array.isArray(res?.data) ? res.data : []));
+    return { success: true, locations: list, data: list };
   },
   async getLocation(id: number | string) {
     const res = await apiFetch(`/locations/${id}`);

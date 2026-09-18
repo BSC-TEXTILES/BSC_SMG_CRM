@@ -453,6 +453,24 @@ app.use('/api/landing', landingRoutes);
 app.get('/api/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);
 app.post('/api/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);
 
+// Public Auth routes (no CSRF - login page needs to work before user has CSRF token)
+app.get('/api/auth/captcha', (req, res, next) => {
+  console.log('[DEBUG] API request:', req.method, req.path);
+  next();
+}, apiRoutes);
+app.get('/api/auth/lock-status', (req, res, next) => {
+  console.log('[DEBUG] API request:', req.method, req.path);
+  next();
+}, apiRoutes);
+app.post('/api/auth/login', (req, res, next) => {
+  console.log('[DEBUG] API request:', req.method, req.path);
+  next();
+}, apiRoutes);
+app.post('/api/auth/verify', (req, res, next) => {
+  console.log('[DEBUG] API request:', req.method, req.path);
+  next();
+}, apiRoutes);
+
 // Apply CSRF protection to all other API routes
 app.use('/api', function(req, res, next) {
   console.log('[DEBUG] API request:', req.method, req.path);

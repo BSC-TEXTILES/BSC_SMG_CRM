@@ -99,22 +99,42 @@ export default function WeddingRegistrationPage() {
   const [successRegId, setSuccessRegId] = useState('');
   const [successTrackId, setSuccessTrackId] = useState('');
   const [dupWarn, setDupWarn] = useState('');
-  const [locations, setLocations] = useState<Array<{id: number; location_name: string; location_code: string; address: string | null; phone: string | null; email: string | null}>>([]);
+  const [locations, setLocations] = useState<Array<{
+    id: number;
+    location_name: string;
+    location_code: string;
+    store_name?: string | null;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    status?: string | null;
+  }>>([]);
   const [locationsLoading, setLocationsLoading] = useState(true);
+  const [locationsError, setLocationsError] = useState('');
+
+  const loadLocations = async () => {
+    setLocationsLoading(true);
+    setLocationsError('');
+    try {
+      const res = await API.getPublicLocations();
+      const locList = Array.isArray(res?.locations)
+        ? res.locations
+        : (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+      if (locList && locList.length > 0) {
+        const active = locList.filter((l: any) => !l.status || l.status.toLowerCase() === 'active');
+        setLocations(active);
+      } else {
+        setLocations([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to load locations:', err);
+      setLocationsError('Unable to load store locations. Please try again.');
+    } finally {
+      setLocationsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const res = await API.getPublicLocations();
-        if (res?.success && res.locations) {
-          setLocations(res.locations);
-        }
-      } catch (err) {
-        console.error('Failed to load locations:', err);
-      } finally {
-        setLocationsLoading(false);
-      }
-    };
     loadLocations();
   }, []);
 
@@ -368,20 +388,30 @@ export default function WeddingRegistrationPage() {
               <p className="text-sm text-primary font-medium">Choose your preferred BSC Textiles store for wedding shopping</p>
 
               {locationsLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="p-4 rounded-2xl border-2 border-accent-soft bg-background animate-pulse">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="w-5 h-5 text-accent" />
-                        <span className="font-extrabold text-sm text-primary">Loading...</span>
-                      </div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mt-2"></div>
-                    </div>
-                  ))}
+                <div className="py-12 flex flex-col items-center justify-center gap-3 bg-background/50 rounded-2xl border border-accent-soft">
+                  <Loader2 className="w-8 h-8 text-accent animate-spin" />
+                  <p className="text-sm font-bold text-primary">Loading store locations...</p>
+                </div>
+              ) : locationsError ? (
+                <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-center space-y-3">
+                  <AlertCircle className="w-8 h-8 text-red-600 mx-auto" />
+                  <p className="text-sm font-bold text-red-900">{locationsError}</p>
+                  <button
+                    type="button"
+                    onClick={loadLocations}
+                    className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <span>Retry</span>
+                  </button>
+                </div>
+              ) : locations.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-2">
+                  <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
+                  <p className="text-sm font-bold text-amber-900">No active BSC store locations are currently available.</p>
+                  <p className="text-xs text-amber-700">Please check back later or contact customer support.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {locations.map(loc => {
                     const isSelected = form.location_id === String(loc.id);
                     return (
@@ -389,28 +419,65 @@ export default function WeddingRegistrationPage() {
                         key={loc.id}
                         type="button"
                         onClick={() => handleChange('location_id', String(loc.id))}
-                        className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${isSelected
-                            ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                            : 'border-accent-soft bg-background hover:border-primary hover:bg-white'
-                          }`}
+                        className={`p-5 rounded-2xl border-2 text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-primary bg-primary/5 ring-2 ring-primary/20 shadow-lg shadow-primary/10'
+                            : 'border-accent-soft bg-background hover:border-primary/50 hover:bg-white'
+                        }`}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-accent'}`} />
-                          <span className="font-extrabold text-sm text-primary">
-                            {loc.location_name === 'Davanagere' ? 'Davanagere' : `${loc.location_name} (${loc.location_code})`}
-                          </span>
-                        </div>
-                        {loc.address && (
-                          <p className="text-xs text-primary line-clamp-2 mt-1">{loc.address}</p>
-                        )}
-                        {loc.phone && <p className="text-[10px] text-primary/50 mt-1">📞 {loc.phone}</p>}
-                        {loc.email && <p className="text-[10px] text-primary/50 mt-0.5">✉️ {loc.email}</p>}
-                        {isSelected && (
-                          <div className="mt-2 flex items-center gap-1.5 text-primary text-xs font-bold">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Selected</span>
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-2.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className={`p-2 rounded-xl transition-colors ${isSelected ? 'bg-primary text-white' : 'bg-white text-accent border border-accent-soft'}`}>
+                                <Building2 className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h3 className="font-extrabold text-base text-primary leading-snug">
+                                  {loc.location_name}
+                                </h3>
+                                <p className="text-[10.5px] font-bold text-accent uppercase tracking-wider">
+                                  {loc.store_name || 'BSC Textiles Pvt Ltd'} {loc.location_code ? `(${loc.location_code})` : ''}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-green-100 text-green-800 border border-green-200">
+                              {loc.status || 'Active'}
+                            </span>
                           </div>
-                        )}
+
+                          {loc.address && (
+                            <div className="mt-3 flex items-start gap-1.5 text-xs text-primary/85 font-medium leading-relaxed">
+                              <MapPin className="w-3.5 h-3.5 text-accent mt-0.5 flex-shrink-0" />
+                              <p className="line-clamp-3">{loc.address}</p>
+                            </div>
+                          )}
+
+                          {loc.phone && (
+                            <p className="text-[11px] text-primary/75 font-semibold mt-2.5 flex items-center gap-1.5">
+                              <span>📞</span>
+                              <span>{loc.phone}</span>
+                            </p>
+                          )}
+                          {loc.email && (
+                            <p className="text-[11px] text-primary/65 font-medium mt-1 flex items-center gap-1.5">
+                              <span>✉️</span>
+                              <span className="truncate">{loc.email}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-accent-soft/70 flex items-center justify-between">
+                          <span className={`text-xs font-bold ${isSelected ? 'text-primary' : 'text-primary/60'}`}>
+                            {isSelected ? 'Store Selected' : 'Click to Select'}
+                          </span>
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'bg-primary border-primary text-white shadow-xs'
+                              : 'border-accent-soft bg-white text-transparent'
+                          }`}>
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        </div>
                       </button>
                     );
                   })}
@@ -418,15 +485,20 @@ export default function WeddingRegistrationPage() {
               )}
 
               {errors.location_id && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs font-bold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
-                  {errors.location_id}
+                <div className="p-3 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs font-bold flex items-center gap-2 animate-fade-in">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                  <span>{errors.location_id}</span>
                 </div>
               )}
             </div>
 
             <div className="flex justify-end pt-4 border-t border-accent-soft">
-              <button type="button" onClick={handleNext} className="btn-primary flex items-center gap-2 shadow-md">
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={locationsLoading || locations.length === 0}
+                className="btn-primary flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <span>Continue to Customer Details</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -799,13 +871,17 @@ export default function WeddingRegistrationPage() {
                 return store && (
                   <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
                     <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      Selected Store
+                      <Building2 className="w-4 h-4 text-accent" />
+                      <span>Selected Store Location</span>
                     </h4>
                     <div className="text-xs text-primary space-y-1">
-                      <p><strong>{store.location_name === 'Davanagere' ? 'Davanagere' : `${store.location_name} (${store.location_code})`}</strong></p>
-                      {store.location_name === 'Davanagere' && <p>Address not available</p>}
-                      {store.phone && <p>📞 {store.phone}</p>}
+                      <p className="font-extrabold text-sm text-primary">
+                        {store.location_name} {store.location_code ? `(${store.location_code})` : ''}
+                      </p>
+                      <p className="font-semibold text-accent">{store.store_name || 'BSC Textiles Pvt Ltd'}</p>
+                      {store.address && <p className="text-primary/80">{store.address}</p>}
+                      {store.phone && <p className="text-primary/70">📞 {store.phone}</p>}
+                      {store.email && <p className="text-primary/70">✉️ {store.email}</p>}
                     </div>
                   </div>
                 );

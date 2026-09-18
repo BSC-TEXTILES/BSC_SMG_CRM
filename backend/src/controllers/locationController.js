@@ -18,7 +18,7 @@ exports.getLocations = async (req, res) => {
        WHERE l.status = 'Active'
        ORDER BY l.sort_order ASC, l.location_name ASC`
     );
-    return res.json({ success: true, locations: rows });
+    return res.json({ success: true, locations: rows, data: rows });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }

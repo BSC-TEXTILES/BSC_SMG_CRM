@@ -58,10 +58,15 @@ class LandingController {
   async getLocations(req, res) {
     try {
       const [rows] = await pool.query(
-        `SELECT id, location_code, location_name, address, phone, email
+        `SELECT id, location_code, location_name, store_name, address, phone, email, status, sort_order
          FROM locations WHERE status = 'Active' ORDER BY sort_order ASC`
       );
-      return successRes(res, rows, 'Locations fetched');
+      return res.json({
+        success: true,
+        message: 'Locations fetched',
+        locations: rows,
+        data: rows
+      });
     } catch (err) {
       console.error('[LandingController.getLocations Error]', err.message);
       return errorRes(res, 'Failed to fetch locations', [], 500);

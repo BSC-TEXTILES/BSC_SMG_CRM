@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `locations` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `location_code` VARCHAR(10) NOT NULL UNIQUE,
   `location_name` VARCHAR(100) NOT NULL,
+  `store_name` VARCHAR(150) NOT NULL DEFAULT 'BSC Textiles Pvt Ltd',
   `address` TEXT NULL,
   `phone` VARCHAR(20) NULL,
   `email` VARCHAR(100) NULL,
@@ -18,11 +19,18 @@ CREATE TABLE IF NOT EXISTS `locations` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. Seed the three locations (idempotent)
-INSERT IGNORE INTO `locations` (`id`, `location_code`, `location_name`, `sort_order`, `status`) VALUES
-  (1, 'BEL', 'Belagavi', 1, 'Active'),
-  (2, 'DAV', 'Davanagere', 2, 'Active'),
-  (3, 'SHI', 'Shivamogga', 3, 'Active');
+-- 2. Seed the three locations (idempotent with real store addresses)
+INSERT INTO `locations` (`id`, `location_code`, `location_name`, `store_name`, `address`, `phone`, `email`, `sort_order`, `status`) VALUES
+  (1, 'BEL', 'Belagavi', 'BSC Textiles Pvt Ltd', '1st Gate Road, Shukrawar Peth Road, Shivaji Colony, Tilakwadi, Belagavi, Karnataka - 590006', '+91 831 242 1938', 'belagavi@bsctextiles.com', 1, 'Active'),
+  (2, 'DAV', 'Davanagere', 'BSC Textiles Pvt Ltd', 'Medical College Road, MCC B Block, Kuvempu Nagar, Davangere, Karnataka - 577004', '+91 8192 221938', 'exclusivedvgbsc@gmail.com', 2, 'Active'),
+  (3, 'SHI', 'Shivamogga', 'BSC Textiles Pvt Ltd', 'Parekh Vinayak Mall, Durgigudi Main Road, Durgigudi, Shivamogga, Karnataka - 577201', '+91 8182 221938', 'shivamogga@bsctextiles.com', 3, 'Active')
+ON DUPLICATE KEY UPDATE
+  `store_name` = VALUES(`store_name`),
+  `address` = VALUES(`address`),
+  `phone` = VALUES(`phone`),
+  `email` = VALUES(`email`),
+  `status` = VALUES(`status`),
+  `sort_order` = VALUES(`sort_order`);
 
 -- 3. Add location_id to users table (NULL = Global Admin)
 ALTER TABLE `users` ADD COLUMN IF NOT EXISTS `location_id` INT NULL DEFAULT 2;
