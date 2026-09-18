@@ -37,7 +37,9 @@ const csrfProtection = (req, res, next) => {
     path.startsWith('/feedback-qr/scan/') ||
     originalUrl.startsWith('/api/feedback-qr/scan/') ||
     path.includes('/wedding-registration/public/') ||
-    originalUrl.includes('/wedding-registration/public/')
+    originalUrl.includes('/wedding-registration/public/') ||
+    path.includes('/public/') ||
+    originalUrl.includes('/public/')
   ) {
     return next();
   }

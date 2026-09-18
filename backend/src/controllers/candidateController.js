@@ -262,7 +262,7 @@ class CandidateController {
       // explicit candidate_app_no match first, then latest updated_at.
       // This eliminates the GROUP BY + non-aggregated columns violation.
 
-      let rows;
+let rows;
       try {
         [rows] = await db.query(
           `SELECT 
@@ -270,20 +270,55 @@ class CandidateController {
               u.full_name as name, u.email, u.phone,
               COALESCE(c.app_no, u.employee_id, u.username) as app_no,
               c.app_no as candidate_app_no,
-              c.section, c.reporting_manager, c.offered_doj, c.updated_at as candidate_updated_at,
+              COALESCE(c.section, u.section) as section,
+              COALESCE(c.reporting_manager, u.reporting_manager) as reporting_manager,
+              COALESCE(c.offered_doj, u.offered_doj) as offered_doj,
+              COALESCE(c.updated_at, u.updated_at) as candidate_updated_at,
               u.updated_at as user_updated_at, u.last_login_at,
-              u.department, u.designation, u.role, u.active, u.created_at, u.location_id, u.location_code,
-              c.dob, c.gender, c.blood_group, c.aadhaar_number, c.father_details, c.mother_details, c.religion_caste, c.religion, c.caste, c.languages_known,
-              c.city_state, c.address, c.qualification, c.experience, c.retail_experience,
-              c.previous_company, c.previous_designation, c.salary as previous_salary, c.current_salary, c.expected_salary,
-              c.photo_url, c.aadhaar_url, c.resume_url, c.remarks, c.source, c.referrer, c.referrer_emp_no,
-              so.notice_period as offer_notice_pd, 
-              so.est_doj as offer_est_doj, 
-              so.actual_doj as offer_actual_doj,
+              COALESCE(c.department, u.department) as department,
+              COALESCE(c.designation, u.designation) as designation,
+              u.role, u.active, u.created_at, u.location_id, u.location_code,
+              COALESCE(c.dob, u.dob) as dob,
+              COALESCE(c.gender, u.gender) as gender,
+              COALESCE(c.blood_group, u.blood_group) as blood_group,
+              COALESCE(c.aadhaar_number, u.aadhaar_number) as aadhaar_number,
+              COALESCE(c.father_details, u.father_details) as father_details,
+              COALESCE(c.mother_details, u.mother_details) as mother_details,
+              COALESCE(c.religion_caste, CONCAT_WS('/', u.religion, u.caste)) as religion_caste,
+              COALESCE(c.religion, u.religion) as religion,
+              COALESCE(c.caste, u.caste) as caste,
+              COALESCE(c.languages_known, u.languages_known) as languages_known,
+              COALESCE(c.city_state, u.city_state) as city_state,
+              COALESCE(c.address, u.address) as address,
+              COALESCE(c.qualification, u.qualification) as qualification,
+              COALESCE(c.experience, u.experience) as experience,
+              COALESCE(c.retail_experience, u.retail_experience) as retail_experience,
+              COALESCE(c.previous_company, u.previous_company) as previous_company,
+              COALESCE(c.previous_designation, u.previous_designation) as previous_designation,
+              COALESCE(c.salary, u.salary, u.previous_salary) as previous_salary,
+              COALESCE(c.current_salary, u.current_salary) as current_salary,
+              COALESCE(c.expected_salary, u.expected_salary) as expected_salary,
+              COALESCE(c.photo_url, u.photo_url) as photo_url,
+              COALESCE(c.aadhaar_url, u.aadhaar_url) as aadhaar_url,
+              COALESCE(c.resume_url, u.resume_url) as resume_url,
+              COALESCE(c.remarks, u.remarks) as remarks,
+              COALESCE(c.source, u.source) as source,
+              COALESCE(c.referrer, u.referrer) as referrer,
+              COALESCE(c.referrer_emp_no, u.referrer_emp_no) as referrer_emp_no,
+              COALESCE(so.notice_period, u.notice_period) as offer_notice_pd,
+              COALESCE(so.est_doj, u.offered_doj) as offer_est_doj,
+              COALESCE(so.actual_doj, u.actual_doj) as offer_actual_doj,
               so.status as offer_status,
               so.remarks as offer_remarks,
               so.updated_at as offer_updated_at,
-              l.location_name as branch
+              COALESCE(l.location_name, u.branch) as branch,
+              u.joining_date, u.actual_doj, u.salary, u.expected_salary, u.experience,
+              u.retail_experience, u.qualification, u.previous_company, u.previous_designation,
+              u.previous_salary, u.current_salary, u.branch, u.reporting_manager,
+              u.dob, u.gender, u.blood_group, u.aadhaar_number, u.father_details,
+              u.mother_details, u.religion, u.caste, u.languages_known, u.city_state,
+              u.address, u.photo_url, u.aadhaar_url, u.resume_url, u.remarks,
+              u.source, u.referrer, u.referrer_emp_no, u.notice_period
            FROM users u
            LEFT JOIN locations l ON l.id = u.location_id
            LEFT JOIN (
@@ -301,9 +336,9 @@ class CandidateController {
                         COALESCE(updated_at, created_at) DESC,
                         id DESC
                     ) AS rn
-             FROM candidates
-             WHERE (is_deleted = 0 OR is_deleted IS NULL)
-           ) c ON c.app_no = u.candidate_app_no OR (u.candidate_app_no IS NULL AND c.phone = u.phone AND c.phone IS NOT NULL AND c.rn = 1)
+                 FROM candidates
+                 WHERE (is_deleted = 0 OR is_deleted IS NULL)
+             ) c ON c.app_no = u.candidate_app_no OR (u.candidate_app_no IS NULL AND c.phone = u.phone AND c.phone IS NOT NULL AND c.rn = 1)
            LEFT JOIN selection_offers so ON c.app_no = so.app_no
            WHERE u.active = 1
            ${locClause.replace('c.', 'u.')}
@@ -319,16 +354,24 @@ class CandidateController {
               u.full_name as name, u.email, u.phone,
               COALESCE(u.employee_id, u.username) as app_no,
               NULL as candidate_app_no,
-              NULL as section, NULL as reporting_manager, NULL as offered_doj, NULL as candidate_updated_at,
+              u.section, u.reporting_manager, u.offered_doj, u.updated_at as candidate_updated_at,
               u.updated_at as user_updated_at, u.last_login_at,
               u.department, u.designation, u.role, u.active, u.created_at, u.location_id, u.location_code,
-              NULL as dob, NULL as gender, NULL as blood_group, NULL as aadhaar_number, NULL as father_details, NULL as mother_details, NULL as religion_caste, NULL as religion, NULL as caste, NULL as languages_known,
-              NULL as city_state, NULL as address, NULL as qualification, NULL as experience, NULL as retail_experience,
-              NULL as previous_company, NULL as previous_designation, NULL as previous_salary, NULL as current_salary, NULL as expected_salary,
-              NULL as photo_url, NULL as aadhaar_url, NULL as resume_url, NULL as remarks, NULL as source, NULL as referrer, NULL as referrer_emp_no,
-              NULL as offer_notice_pd, NULL as offer_est_doj, NULL as offer_actual_doj,
-              NULL as offer_status, NULL as offer_remarks, NULL as offer_updated_at,
-              l.location_name as branch
+              u.dob, u.gender, u.blood_group, u.aadhaar_number, u.father_details, u.mother_details,
+              CONCAT_WS('/', u.religion, u.caste) as religion_caste, u.religion, u.caste, u.languages_known,
+              u.city_state, u.address, u.qualification, u.experience, u.retail_experience,
+              u.previous_company, u.previous_designation, u.previous_salary, u.current_salary, u.expected_salary,
+              u.photo_url, u.aadhaar_url, u.resume_url, u.remarks, u.source, u.referrer, u.referrer_emp_no,
+              u.notice_period as offer_notice_pd, u.offered_doj as offer_est_doj, u.actual_doj as offer_actual_doj,
+              NULL as offer_status, u.remarks as offer_remarks, u.updated_at as offer_updated_at,
+              COALESCE(l.location_name, u.branch) as branch,
+              u.joining_date, u.actual_doj, u.salary, u.expected_salary, u.experience,
+              u.retail_experience, u.qualification, u.previous_company, u.previous_designation,
+              u.previous_salary, u.current_salary, u.branch, u.reporting_manager,
+              u.dob, u.gender, u.blood_group, u.aadhaar_number, u.father_details,
+              u.mother_details, u.religion, u.caste, u.languages_known, u.city_state,
+              u.address, u.photo_url, u.aadhaar_url, u.resume_url, u.remarks,
+              u.source, u.referrer, u.referrer_emp_no, u.notice_period
            FROM users u
            LEFT JOIN locations l ON l.id = u.location_id
            WHERE u.active = 1
@@ -359,20 +402,27 @@ class CandidateController {
           : 'E';
         const colorIndex = ((r.name ? r.name.charCodeAt(0) : 0) + (r.name ? r.name.charCodeAt(1) || 0 : 0)) % colors.length;
         
-        const createdDate = new Date(r.created_at || Date.now());
+const createdDate = new Date(r.created_at || Date.now());
 
-        const joiningDateObj = r.offer_actual_doj 
-          ? new Date(r.offer_actual_doj) 
-          : (r.offered_doj ? new Date(r.offered_doj) : (r.offer_updated_at ? new Date(r.offer_updated_at) : createdDate));
+        // Use users table joining_date and actual_doj as primary, fallback to candidate/offer data
+        const joiningDateObj = r.joining_date
+          ? new Date(r.joining_date)
+          : (r.offer_actual_doj
+              ? new Date(r.offer_actual_doj)
+              : (r.offered_doj ? new Date(r.offered_doj) : (r.offer_updated_at ? new Date(r.offer_updated_at) : createdDate)));
         
+        const actualDojObj = r.actual_doj
+          ? new Date(r.actual_doj)
+          : (r.offer_actual_doj ? new Date(r.offer_actual_doj) : null);
+
         const rawDate = isNaN(joiningDateObj.getTime()) ? createdDate.getTime() : joiningDateObj.getTime();
 
-        const actualDojStr = formatLocalDate(r.offer_actual_doj || r.offered_doj || r.offer_updated_at || r.candidate_updated_at || r.user_updated_at || r.created_at);
+        const actualDojStr = formatLocalDate(r.actual_doj || r.offer_actual_doj || r.offered_doj || r.offer_updated_at || r.candidate_updated_at || r.user_updated_at || r.created_at);
         const offeredDoj = formatLocalDate(r.offered_doj || r.offer_est_doj || r.offer_actual_doj);
         const estDojStr = formatLocalDate(r.offer_est_doj || r.offered_doj);
         const dobStr = formatLocalDate(r.dob);
 
-        const salaryOffered = r.salary || r.expected_salary || '—';
+        const salaryOffered = r.salary || r.current_salary || r.expected_salary || '—';
 
         return {
           id: r.user_id,
@@ -409,6 +459,7 @@ class CandidateController {
           offeredDoj,
           actualDoj: actualDojStr,
           estDoj: estDojStr,
+          joiningDate: formatLocalDate(r.joining_date),
           noticePeriod: r.notice_period || r.offer_notice_pd || '',
           experience: r.experience || '',
           qualification: r.qualification || '',

@@ -190,7 +190,7 @@ const getUser = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { username, password, role, fullName, email, phone, department, designation,
-            employeeId, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
+            employeeId, section, joiningDate, locationId, locationIds, allLocations, maxModules, permissions } = req.body;
 
     if (!username || !password || !role) {
       return errorRes(res, 'Username, password, and role are required', [], 400);
@@ -230,8 +230,8 @@ const createUser = async (req, res) => {
       : (locationId || (isGlobalRole ? null : 2));
 
     return _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation,
-                                   employeeId: cleanEmployeeId,
-                                   resolvedLocationId, locationIds, allLocations, maxModules, permissions });
+                                     employeeId: cleanEmployeeId, section, joiningDate,
+                                     resolvedLocationId, locationIds, allLocations, maxModules, permissions });
   } catch (err) {
     return errorRes(res, 'Failed to create user', [err.message], 500);
   }
@@ -239,7 +239,8 @@ const createUser = async (req, res) => {
 
 // Shared insert used by createUser for all location-scope combinations
 async function _insertUser(req, res, { username, password, role, fullName, email, phone, department, designation,
-                                       employeeId, resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
+                                        employeeId, section, joiningDate,
+                                        resolvedLocationId, locationIds, allLocations, maxModules, permissions }) {
   try {
     // Get location_code
     let locationCode = null;
@@ -256,10 +257,11 @@ async function _insertUser(req, res, { username, password, role, fullName, email
 
     const [result] = await db.query(
       `INSERT INTO users (username, password, role, full_name, email, phone, department, designation,
-                          employee_id, active, location_id, location_code, max_modules)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)`,
+                          employee_id, section, joining_date, active, location_id, location_code, max_modules)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)`,
       [username.trim(), hashedPassword, role, fullName || role, email || null, phone || null,
        department || null, designation || null, employeeId || null,
+       section || null, joiningDate || null,
        resolvedLocationId, locationCode, maxModules || null]
     );
 
@@ -337,6 +339,7 @@ const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { fullName, email, phone, department, designation, role, employeeId,
+            section, joiningDate,
             locationId, locationIds, allLocations, maxModules, active } = req.body;
 
     // Check user exists
@@ -356,6 +359,8 @@ const updateUser = async (req, res) => {
     if (role !== undefined) { updates.push('role = ?'); params.push(role); }
     if (active !== undefined) { updates.push('active = ?'); params.push(active ? 1 : 0); }
     if (maxModules !== undefined) { updates.push('max_modules = ?'); params.push(maxModules); }
+    if (section !== undefined) { updates.push('section = ?'); params.push(section || null); }
+    if (joiningDate !== undefined) { updates.push('joining_date = ?'); params.push(joiningDate || null); }
 
     // Employee ID is unique — reject a value already owned by someone else
     if (employeeId !== undefined) {

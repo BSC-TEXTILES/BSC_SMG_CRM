@@ -78,6 +78,8 @@ interface UserData {
   employeeId?: string | null;
   candidate_app_no?: string | null;
   candidateAppNo?: string | null;
+  section?: string | null;
+  joiningDate?: string | null;
 }
 
 interface AuditLog {
@@ -146,6 +148,8 @@ export default function UserManagementPage() {
   const [formLocationIds, setFormLocationIds] = useState<string[]>(['2']);
   const [formAllLocations, setFormAllLocations] = useState<boolean>(false);
   const [formSelectedModules, setFormSelectedModules] = useState<string[]>([]);
+  const [formSection, setFormSection] = useState('');
+  const [formJoiningDate, setFormJoiningDate] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -162,6 +166,8 @@ export default function UserManagementPage() {
   const [editAllLocations, setEditAllLocations] = useState<boolean>(false);
   const [editMaxModules, setEditMaxModules] = useState<string>('');
   const [editActive, setEditActive] = useState(true);
+  const [editSection, setEditSection] = useState('');
+  const [editJoiningDate, setEditJoiningDate] = useState('');
 
   // Form state - Reset Password
   const [newPassword, setNewPassword] = useState('');
@@ -334,6 +340,8 @@ export default function UserManagementPage() {
     setFormLocationIds(['2']);
     setFormAllLocations(false);
     setFormSelectedModules([]);
+    setFormSection('');
+    setFormJoiningDate('');
     setShowPassword(false);
     setCreateModalOpen(true);
   };
@@ -362,6 +370,8 @@ export default function UserManagementPage() {
         department: formDepartment.trim() || null,
         designation: formDesignation.trim() || null,
         employeeId: formEmployeeId.trim() || null,
+        section: formSection.trim() || null,
+        joiningDate: formJoiningDate || null,
         allLocations: formAllLocations,
         locationId: formAllLocations ? null : (parseInt(formLocationId, 10) || null),
         locationIds: formAllLocations ? [] : formLocationIds.map(Number),
@@ -398,6 +408,8 @@ export default function UserManagementPage() {
     setEditAllLocations(user.assigned_locations?.length === 0 && !user.location_id);
     setEditMaxModules(user.max_modules !== null && user.max_modules !== undefined ? String(user.max_modules) : '');
     setEditActive(!!user.active);
+    setEditSection(user.section || '');
+    setEditJoiningDate(user.joiningDate || '');
     setEditModalOpen(true);
   };
 
@@ -415,6 +427,8 @@ export default function UserManagementPage() {
         department: editDepartment.trim() || null,
         designation: editDesignation.trim() || null,
         employeeId: editEmployeeId.trim() || null,
+        section: editSection.trim() || null,
+        joiningDate: editJoiningDate || null,
         role: editRole,
         allLocations: editAllLocations,
         locationId: editAllLocations ? null : (parseInt(editLocationId, 10) || null),
@@ -1398,6 +1412,28 @@ export default function UserManagementPage() {
                     <option value="Inventory Manager">Inventory Manager</option>
                     <option value="Accountant">Accountant</option>
                   </select>
+</div>
+            </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-primary mb-1">Section / Floor</label>
+                  <input
+                    type="text"
+                    value={formSection}
+                    onChange={e => setFormSection(e.target.value)}
+                    placeholder="e.g. Ground Floor Saree, Silk Section, Cash Counter"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-primary mb-1">Date of Joining</label>
+                  <input
+                    type="date"
+                    value={formJoiningDate}
+                    onChange={e => setFormJoiningDate(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium bg-white"
+                  />
                 </div>
               </div>
 
@@ -1614,6 +1650,28 @@ export default function UserManagementPage() {
                     type="text"
                     value={editDesignation}
                     onChange={e => setEditDesignation(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
+                  />
+</div>
+            </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-primary mb-1">Section / Floor</label>
+                  <input
+                    type="text"
+                    value={editSection}
+                    onChange={e => setEditSection(e.target.value)}
+                    placeholder="e.g. Ground Floor Saree, Silk Section, Cash Counter"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-primary mb-1">Date of Joining</label>
+                  <input
+                    type="date"
+                    value={editJoiningDate}
+                    onChange={e => setEditJoiningDate(e.target.value)}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/50 text-primary font-medium"
                   />
                 </div>
