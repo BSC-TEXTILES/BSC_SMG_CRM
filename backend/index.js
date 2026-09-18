@@ -54,11 +54,8 @@ const workflowProcessor = require('./src/services/workflowProcessor');
 const app = express();
 
 // Resilient PORT parsing: strictly respects deployment platform's PORT (integers or Passenger domain sockets)
+// Note: Passenger or deployment proxies often pass dynamic ports. Only fallback to 3000 if PORT is completely unset.
 let rawPort = process.env.PORT;
-if (process.env.NODE_ENV === 'production' && (rawPort === '5000' || rawPort === 5000) && !process.env.FORCE_PORT) {
-  console.log('[Boot] Detected local development PORT=5000 in production environment. Normalizing to production port 3000.');
-  rawPort = '3000';
-}
 let PORT = 3000;
 let isSocketPort = false;
 
