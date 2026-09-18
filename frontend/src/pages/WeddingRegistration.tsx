@@ -110,6 +110,7 @@ export default function WeddingRegistrationPage() {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('Submitting Registration...');
   const [successRegId, setSuccessRegId] = useState('');
+  const [successTrackId, setSuccessTrackId] = useState('');
   const [dupWarn, setDupWarn] = useState('');
 
   const validateStep = (stepNum: number): boolean => {
@@ -140,6 +141,8 @@ export default function WeddingRegistrationPage() {
       if (!form.wedding_date_flexibility) newErrors.wedding_date_flexibility = 'Please select wedding date flexibility';
       if (!form.wedding_type) newErrors.wedding_type = 'Please select wedding type';
       if (!form.wedding_functions?.length) newErrors.wedding_functions = 'Select at least one wedding function';
+      if (!form.family_size || parseInt(form.family_size) < 1) newErrors.family_size = 'Please enter the family / shopping group size';
+      if (form.guest_count && (parseInt(form.guest_count) < 1 || parseInt(form.guest_count) > 100000)) newErrors.guest_count = 'Enter a valid guest count';
     }
     else if (stepNum === 4) {
       if (!form.bride_name?.trim()) newErrors.bride_name = 'Bride name is required';
@@ -242,13 +245,9 @@ export default function WeddingRegistrationPage() {
     }
 
     setLoading(true);
-    setLoadingText('Submitting Registration...');
+    setLoadingText('Saving your request...');
 
     try {
-      // Get next registration ID
-      const idRes = await API.getNextWeddingRegId(form.location_id);
-      const registrationId = idRes?.registrationId;
-
       const payload = {
         ...form,
         mobile: `+91${form.mobile.replace(/\D/g, '')}`,
@@ -258,24 +257,32 @@ export default function WeddingRegistrationPage() {
         family_size: form.family_size ? parseInt(form.family_size, 10) : null,
         bride_age: form.bride_age ? parseInt(form.bride_age, 10) : null,
         groom_age: form.groom_age ? parseInt(form.groom_age, 10) : null,
-        expected_visitors: form.expected_visitors ? parseInt(form.expected_visitors, 10) : null,
-        registration_id: registrationId
+        expected_visitors: form.expected_visitors ? parseInt(form.expected_visitors, 10) : null
       };
 
       const res = await API.createWeddingRegistration({ data: payload });
 
       if (res && res.success) {
-        setSuccessRegId(res.registration_id || registrationId);
+        // IDs always come from the backend / database response — never generated on the frontend.
+        const regId = res.registration_id || res.customer_id || res.registration?.registration_id || '';
+        const trackId = res.tracking_id || res.registration?.tracking_id || regId;
+        setSuccessRegId(regId);
+        setSuccessTrackId(trackId);
         setStep(9); // Success screen
         window.scrollTo(0, 0);
-        showToast(`Registration Successful! ID: ${res.registration_id || registrationId}`, 'success');
+        showToast('Your request was saved successfully!', 'success');
       } else {
         const errMsg = res?.message || res?.error || 'Failed to submit registration';
         showToast(errMsg, 'error');
       }
     } catch (err: any) {
-      const errMsg = err?.message || 'Error submitting registration. Please try again.';
-      showToast(errMsg, 'error');
+      const fieldErrors = err?.errors;
+      if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+        showToast(fieldErrors[0], 'error');
+      } else {
+        const errMsg = err?.message || 'Error submitting registration. Please try again.';
+        showToast(errMsg, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -286,6 +293,7 @@ export default function WeddingRegistrationPage() {
     setErrors({});
     setStep(1);
     setSuccessRegId('');
+    setSuccessTrackId('');
     setDupWarn('');
     window.scrollTo(0, 0);
   };
@@ -583,8 +591,9 @@ export default function WeddingRegistrationPage() {
                     value={form.guest_count}
                     onChange={e => handleChange('guest_count', e.target.value)}
                     placeholder="e.g. 200"
-                    className="input-modern"
+                    className={`input-modern ${errors.guest_count ? 'border-red-400' : ''}`}
                   />
+                  {errors.guest_count && <p className="text-red-500 text-xs mt-1">{errors.guest_count}</p>}
                 </div>
 
                 <div>
@@ -1147,63 +1156,95 @@ export default function WeddingRegistrationPage() {
           </div>
         )}
 
-        {/* STEP 9: SUCCESS SCREEN */}
+        {/* STEP 9: ANIMATED SUCCESS POPUP */}
         {step === 9 && (
-          <div className="card-glass p-8 sm:p-12 text-center space-y-5 animate-fade-in shadow-2xl my-8">
-            <div className="w-20 h-20 rounded-full bg-emerald-50 border-4 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-black text-primary tracking-tight">Wedding Registration Successful! 🎉</h2>
-              <p className="text-sm text-primary/70 font-medium mt-1">Thank you for registering with BSC Textiles.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 inline-block">
-              <span className="text-xs uppercase font-black text-primary/70 block">Your Wedding Registration ID</span>
-              <span className="text-2xl font-mono font-black text-primary tracking-wider">{successRegId}</span>
-            </div>
-
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary/70 backdrop-blur-md animate-modal-backdrop overflow-y-auto">
+            {/* Elegant confetti particles (lightweight, decorative) */}
             {(() => {
-              const store = getSelectedStore();
-              return store && (
-                <div className="p-4 rounded-xl bg-background border border-accent-soft text-left max-w-md mx-auto">
-                  <h4 className="font-bold text-sm text-primary mb-2">Registration Summary</h4>
-                  <div className="text-xs text-primary/80 space-y-1">
-                    <p><strong>Store:</strong> {store.name} ({store.code})</p>
-                    <p><strong>Customer:</strong> {form.customer_name}</p>
-                    <p><strong>Mobile:</strong> +91 {form.mobile}</p>
-                    <p><strong>Wedding Date:</strong> {form.wedding_date ? new Date(form.wedding_date).toLocaleDateString('en-IN') : '—'}</p>
-                    <p><strong>Registration Date:</strong> {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                    <p><strong>Registration ID:</strong> {successRegId}</p>
-                  </div>
-                </div>
-              );
+              const colors = ['#d4af37', '#1a365d', '#e2e8f0', '#f59e0b', '#10b981', '#3b82f6'];
+              return Array.from({ length: 22 }).map((_, i) => {
+                const color = colors[i % colors.length];
+                const left = `${(i * 4.5 + 3) % 96}%`;
+                const delay = `${(i % 8) * 0.12}s`;
+                const duration = `${2.4 + (i % 5) * 0.4}s`;
+                const rotation = `${i * 17}deg`;
+                return (
+                  <span
+                    key={i}
+                    className="wedding-confetti"
+                    style={{
+                      left,
+                      background: color,
+                      animationDelay: delay,
+                      animationDuration: duration,
+                      transform: `rotate(${rotation})`
+                    }}
+                  />
+                );
+              });
             })()}
 
-            <div className="pt-4 border-t border-accent-soft flex flex-col sm:flex-row justify-center gap-3">
-              <button
-                onClick={() => window.print()}
-                className="btn-primary text-xs flex items-center gap-2 justify-center"
-              >
-                <span>Print</span>
-              </button>
-              <button
-                onClick={() => {
-                  const text = `BSC Wedding Registration\nID: ${successRegId}\nCustomer: ${form.customer_name}\nMobile: +91 ${form.mobile}\nStore: ${getSelectedStore()?.name}\nWedding Date: ${form.wedding_date}`;
-                  navigator.clipboard.writeText(text);
-                  showToast('Details copied to clipboard!', 'success');
-                }}
-                className="btn-secondary text-xs flex items-center gap-2 justify-center"
-              >
-                <span>Copy Details</span>
-              </button>
-              <button
-                onClick={resetForm}
-                className="btn-outline text-xs flex items-center gap-2 justify-center"
-              >
-                <span>Register Another Wedding</span>
-              </button>
+            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-accent/30 overflow-hidden animate-pop-in">
+              <div className="bg-gradient-to-r from-primary to-primary px-6 py-5 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 border-4 border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-lg animate-check-pop">
+                  <CheckCircle2 className="w-9 h-9" />
+                </div>
+                <h2 className="text-xl font-black text-accent tracking-tight mt-3 animate-fade-up-step" style={{ animationDelay: '0.35s' }}>
+                  Your request was saved successfully!
+                </h2>
+                <p className="text-xs text-white/80 font-medium mt-1 animate-fade-up-step" style={{ animationDelay: '0.5s' }}>
+                  Thank you for choosing BSC Textiles. Our team members will connect with you shortly.
+                </p>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Tracking ID */}
+                <div className="rounded-2xl border-2 border-accent/40 bg-amber-50/60 p-4 text-center animate-tracking-highlight">
+                  <span className="text-[10px] uppercase font-black text-primary/70 block">Your Tracking ID</span>
+                  <span className="text-xl font-mono font-black text-primary tracking-wider break-all mt-1 block">
+                    {successTrackId || successRegId}
+                  </span>
+                  <span className="text-[11px] text-primary/60 font-medium block mt-1.5">
+                    Keep this Tracking ID to check your request status.
+                  </span>
+                </div>
+
+                {/* Customer ID */}
+                <div className="rounded-xl bg-background border border-accent-soft p-3 text-center animate-fade-up-step" style={{ animationDelay: '0.7s' }}>
+                  <span className="text-[10px] uppercase font-black text-primary/70 block">Customer ID</span>
+                  <span className="text-sm font-mono font-black text-primary tracking-wider break-all">{successRegId}</span>
+                </div>
+
+                {/* Summary */}
+                <div className="rounded-xl bg-background border border-accent-soft p-3.5 text-xs text-primary/80 space-y-1 animate-fade-up-step" style={{ animationDelay: '0.8s' }}>
+                  <p className="flex justify-between"><span className="text-primary/60">Store</span><strong>{getSelectedStore()?.name || '—'}</strong></p>
+                  <p className="flex justify-between"><span className="text-primary/60">Customer</span><strong>{form.customer_name}</strong></p>
+                  <p className="flex justify-between"><span className="text-primary/60">Mobile</span><strong>+91 {form.mobile}</strong></p>
+                  <p className="flex justify-between"><span className="text-primary/60">Wedding Date</span><strong>{form.wedding_date ? new Date(form.wedding_date).toLocaleDateString('en-IN') : '—'}</strong></p>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2.5 animate-fade-up-step" style={{ animationDelay: '0.9s' }}>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(successTrackId || successRegId); showToast('Tracking ID copied to clipboard!', 'success'); }}
+                    className="flex-1 py-2.5 rounded-xl bg-primary text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-sm hover:bg-primary-hover transition-colors"
+                  >
+                    Copy Tracking ID
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="flex-1 py-2.5 rounded-xl border border-accent-soft bg-white text-primary text-xs font-black flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors"
+                  >
+                    Print
+                  </button>
+                  <button
+                    onClick={resetForm}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-black flex items-center justify-center gap-1.5 hover:bg-amber-100 transition-colors"
+                  >
+                    Register Another
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

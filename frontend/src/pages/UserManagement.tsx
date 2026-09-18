@@ -240,7 +240,7 @@ export default function UserManagementPage() {
           { key: 'feedback_qr', label: 'Feedback QR Code', section: 'Store Operations' },
           { key: 'divert', label: 'Sourcing Diverts', section: 'Store Operations' },
           { key: 'candidates', label: 'Candidate CRM', section: 'Core Workspace' },
-          { key: 'offer', label: 'Offer Desk', section: 'Core Workspace' },
+          { key: 'offer', label: 'Wedding Operations', section: 'Core Workspace' },
           { key: 'openings', label: 'Manpower Planning', section: 'Core Workspace' },
           { key: 'employees', label: 'Employee Directory', section: 'Talent Management' },
           { key: 'dept_hiring', label: 'Department Hiring Status', section: 'Talent Management' },

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Calendar, Sparkles } from 'lucide-react';
+import { Plus, Calendar, Sparkles, Search, UserPlus, PhoneCall, QrCode } from 'lucide-react';
 import { Auth } from '../../services/api';
 
 export default function QuickActionCenter() {
@@ -11,10 +11,14 @@ export default function QuickActionCenter() {
   const session = Auth.get();
   const role = session?.role || 'Guest';
 
-  // Hide quick actions floating menu entirely for Greeter role or on Greeter, Footfall, Feedback & Kiosk pages
+  // Hide quick actions floating menu entirely for the login page, Greeter role,
+  // and on public / kiosk pages.
   if (
+    location.pathname === '/login' ||
+    location.pathname === '/' ||
     role === 'Greeter' ||
     location.pathname === '/wedding-registration' ||
+    location.pathname === '/track' ||
     location.pathname === '/greeter' ||
     location.pathname === '/footfall' ||
     location.pathname === '/feedback-public' ||
@@ -24,16 +28,35 @@ export default function QuickActionCenter() {
     return null;
   }
 
-  const actions = [
-    { label: 'Wedding Registration', icon: Sparkles, href: '/wedding-registration', target: '_blank', color: 'bg-primary' },
-    { label: 'Section Allocation', icon: Calendar, href: '/section-allocation', color: 'bg-indigo-600' }
-  ];
+  // Wedding CRM gets a wedding-focused quick action menu with relevant modules
+  const isWeddingCrm = location.pathname.startsWith('/wedding-crm');
+
+  const actions = isWeddingCrm
+    ? [
+        { label: 'Add Wedding Customer', icon: UserPlus, href: '/wedding-registration', color: 'bg-primary' },
+        { label: "Today's Follow-ups", icon: PhoneCall, href: '/wedding-crm', color: 'bg-amber-600' },
+        { label: 'Follow-up Calendar', icon: Calendar, href: '/wedding-crm', color: 'bg-indigo-600' },
+        { label: 'Tracking Search', icon: Search, href: '/track', target: '_blank', color: 'bg-teal-600' },
+        { label: 'Feedback QR', icon: QrCode, href: '/feedback-qr', color: 'bg-purple-600' }
+      ]
+    : [
+        { label: 'Wedding Registration', icon: Sparkles, href: '/wedding-registration', target: '_blank', color: 'bg-primary' },
+        { label: 'Section Allocation', icon: Calendar, href: '/section-allocation', color: 'bg-indigo-600' },
+        { label: 'Feedback QR', icon: QrCode, href: '/feedback-qr', color: 'bg-purple-600' }
+      ];
 
   return (
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
       {/* Expanded Speed Dial Menu */}
       {open && (
         <div className="mb-3 space-y-2 animate-fade-in">
+          {isWeddingCrm && (
+            <div className="text-right">
+              <span className="text-[10px] font-black uppercase tracking-widest text-primary/70 bg-white border border-accent-soft px-2.5 py-1 rounded-full shadow-sm">
+                Wedding Quick Actions
+              </span>
+            </div>
+          )}
           {actions.map((act, idx) => {
             const Icon = act.icon;
             return (
@@ -44,6 +67,7 @@ export default function QuickActionCenter() {
                   if (act.target) {
                     window.open(act.href, act.target);
                   } else {
+                    // Direct navigation for all internal routes
                     navigate(act.href);
                   }
                 }}
@@ -69,6 +93,8 @@ export default function QuickActionCenter() {
           ${open ? 'rotate-45 bg-rose-600' : 'bg-primary'}
         `}
         title="Quick Action Center"
+        aria-label="Quick actions"
+        aria-expanded={open}
       >
         <Plus className="w-6 h-6 stroke-[2.5]" />
       </button>

@@ -494,6 +494,7 @@ async function autoInitializeDatabase(pool) {
 
       "ALTER TABLE candidates ADD COLUMN department VARCHAR(150) NULL",
       "ALTER TABLE candidates ADD COLUMN section VARCHAR(150) NULL",
+      "ALTER TABLE candidates ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0",
       "ALTER TABLE selection_offers ADD COLUMN section VARCHAR(150) NULL",
       "ALTER TABLE selection_offers ADD COLUMN salary VARCHAR(100) NULL",
       
@@ -610,6 +611,8 @@ async function autoInitializeDatabase(pool) {
       `CREATE TABLE IF NOT EXISTS \`wedding_registrations\` (
         \`id\` INT AUTO_INCREMENT PRIMARY KEY,
         \`registration_id\` VARCHAR(50) NOT NULL UNIQUE,
+        \`customer_id\` VARCHAR(50) NULL,
+        \`tracking_id\` VARCHAR(50) NULL,
         \`location_id\` INT NOT NULL DEFAULT 2,
         \`location_code\` VARCHAR(10) NOT NULL DEFAULT 'DAV',
         \`store_name\` VARCHAR(100) NOT NULL,
@@ -659,14 +662,27 @@ async function autoInitializeDatabase(pool) {
         \`next_followup\` DATE NULL,
         \`call_result\` VARCHAR(100) NULL,
         \`remarks\` TEXT NULL,
+        \`email_status\` VARCHAR(20) DEFAULT 'EMAIL_PENDING',
+        \`email_sent_at\` DATETIME NULL,
         \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX \`idx_wed_reg_loc\` (\`location_id\`),
         INDEX \`idx_wed_reg_mobile\` (\`mobile\`),
         INDEX \`idx_wed_reg_status\` (\`status\`),
         INDEX \`idx_wed_reg_wedding_date\` (\`wedding_date\`),
-        INDEX \`idx_wed_reg_created\` (\`created_at\`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
+        INDEX \`idx_wed_reg_created\` (\`created_at\`),
+        UNIQUE INDEX \`idx_wed_reg_customer_id\` (\`customer_id\`),
+        UNIQUE INDEX \`idx_wed_reg_tracking_id\` (\`tracking_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+
+      // Additive migration for existing wedding_registrations tables
+      `ALTER TABLE wedding_registrations ADD COLUMN customer_id VARCHAR(50) NULL AFTER registration_id`,
+      `ALTER TABLE wedding_registrations ADD COLUMN tracking_id VARCHAR(50) NULL AFTER customer_id`,
+      `ALTER TABLE wedding_registrations ADD COLUMN email_status VARCHAR(20) DEFAULT 'EMAIL_PENDING'`,
+      `ALTER TABLE wedding_registrations ADD COLUMN email_sent_at DATETIME NULL`,
+      `ALTER TABLE wedding_registrations ADD UNIQUE INDEX idx_wed_reg_customer_id (customer_id)`,
+      `ALTER TABLE wedding_registrations ADD UNIQUE INDEX idx_wed_reg_tracking_id (tracking_id)`,
+      `ALTER TABLE wedding_customers ADD COLUMN tracking_id VARCHAR(50) NULL`
     ];
 
     for (const sql of migrations) {

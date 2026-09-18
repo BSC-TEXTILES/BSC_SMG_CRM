@@ -1,5 +1,5 @@
 -- Default Data Seed Script for BSC Enterprise HRMS
-USE `hrms_db`;
+USE `u101820758_bsc_smg_crm`;
 
 -- Seed Users (Default Password: bsc@2026)
 INSERT INTO `users` (`username`, `password`, `role`, `full_name`, `active`) VALUES

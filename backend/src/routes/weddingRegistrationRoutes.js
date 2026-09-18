@@ -34,6 +34,7 @@ router.get('/wedding-registrations/:id', weddingRegistrationController.getRegist
 router.post('/wedding-registrations', weddingRegistrationController.createRegistration);
 router.put('/wedding-registrations/:id', weddingRegistrationController.updateRegistration);
 router.delete('/wedding-registrations/:id', authorize('Admin', 'Super Admin', 'HR', 'Manager'), weddingRegistrationController.deleteRegistration);
+router.post('/wedding-registrations/:id/resend-email', weddingRegistrationController.resendConfirmationEmail);
 
 // Duplicate Check
 router.post('/wedding-registrations/check-duplicate', weddingRegistrationController.checkDuplicate);

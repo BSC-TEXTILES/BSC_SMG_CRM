@@ -32,6 +32,7 @@ import WeddingCRM from './pages/WeddingCRM';
 import WeddingTracking from './pages/WeddingTracking';
 import SystemAdmin from './pages/SystemAdmin';
 import QuickActionCenter from './components/ui/QuickActionCenter';
+import UserTracker from './components/UserTracker';
 import DevToolsGuard from './components/DevToolsGuard';
 import ConnectivityBanner from './components/ConnectivityBanner';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -43,6 +44,7 @@ export default function App() {
     <ErrorBoundary>
     <Router>
       <ConnectivityBanner />
+      <UserTracker />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

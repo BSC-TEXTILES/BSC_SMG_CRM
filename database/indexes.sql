@@ -1,5 +1,5 @@
 -- Database Index Optimization Script for BSC Enterprise HRMS
-USE `hrms_db`;
+USE `u101820758_bsc_smg_crm`;
 
 -- Candidate Indexes
 CREATE INDEX IF NOT EXISTS `idx_candidate_email` ON `Candidate` (`email`);

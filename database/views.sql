@@ -1,5 +1,5 @@
 -- Database Views for Reporting and Dashboard Analytics
-USE `hrms_db`;
+USE `u101820758_bsc_smg_crm`;
 
 -- 1. View for Active Candidate Pipeline Overview
 CREATE OR REPLACE VIEW `v_CandidatePipeline` AS

@@ -1,5 +1,5 @@
 -- Role Seed Script for BSC Enterprise HRMS
-USE `hrms_db`;
+USE `u101820758_bsc_smg_crm`;
 
 INSERT INTO `Role` (`roleName`, `description`, `status`) VALUES
 ('Super Admin', 'Full system access across all companies and settings', 'Active'),

@@ -744,6 +744,15 @@ router.get('/security/audit-logs', authenticate, authorize('Admin', 'Super Admin
 router.get('/security/active-sessions', authenticate, authorize('Admin', 'Super Admin'), securityController.getActiveSessions);
 router.post('/security/unlock-account', authenticate, authorize('Admin', 'Super Admin'), securityController.unlockAccount);
 
+// ── User Tracking Routes ─────────────────────────────────────────
+const userTrackingController = require('../controllers/userTrackingController');
+router.post('/user-tracking/login', authenticate, userTrackingController.trackLogin);
+router.post('/user-tracking/logout', authenticate, userTrackingController.trackLogout);
+router.post('/user-tracking/activity', authenticate, userTrackingController.trackActivity);
+router.get('/user-tracking/active', authenticate, authorize('Admin', 'Super Admin', 'Manager'), userTrackingController.getActiveUsers);
+router.get('/user-tracking/stats', authenticate, authorize('Admin', 'Super Admin', 'Manager'), userTrackingController.getUserTrackingStats);
+router.get('/user-tracking/activity', authenticate, authorize('Admin', 'Super Admin', 'Manager'), userTrackingController.getUserActivity);
+
 // ── Kiosk PIN Routes (Admin Only) ────────────────────────────────────
 const kioskPinController = require('../controllers/kioskPinController');
 router.get('/kiosk-pins', authenticate, authorize('Admin', 'Super Admin'), kioskPinController.listPins);

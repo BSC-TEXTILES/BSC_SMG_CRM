@@ -136,7 +136,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'attendance', href: '/attendance', label: 'Attendance & Roster', icon: UserCheck, section: 'Store Operations' },
     { key: 'dashboard', href: '/dashboard', label: getDashboardLabelForRole(role), icon: BarChart3, section: 'Core Workspace' },
     { key: 'candidates', href: '/candidates', label: 'Candidate CRM', icon: Users, section: 'Core Workspace' },
-    { key: 'offer', href: '/offer-process', label: 'Offer Desk', icon: FileText, section: 'Core Workspace' },
+    { key: 'offer', href: '/offer-process', label: 'Wedding Operations', icon: FileText, section: 'Core Workspace' },
     { key: 'openings', href: '/openings', label: 'Manpower Planning', icon: Briefcase, section: 'Core Workspace' },
     { key: 'daily_mcheck', href: '/daily-mcheck', label: 'Daily MCheck', icon: CheckSquare, section: 'Daily Operations' },
     { key: 'mcheck_reports', href: '/mcheck-reports', label: 'MCheck Reports', icon: BarChart3, section: 'Daily Operations' },

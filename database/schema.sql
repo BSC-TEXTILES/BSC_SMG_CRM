@@ -2,8 +2,8 @@
 -- MySQL 8.0 - Singular Table Names (PascalCase), camelCase Columns
 -- Engine: InnoDB, Charset: utf8mb4_unicode_ci
 
-CREATE DATABASE IF NOT EXISTS `hrms_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `hrms_db`;
+CREATE DATABASE IF NOT EXISTS `u101820758_bsc_smg_crm` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `u101820758_bsc_smg_crm`;
 
 -- 1. Company
 CREATE TABLE IF NOT EXISTS `Company` (

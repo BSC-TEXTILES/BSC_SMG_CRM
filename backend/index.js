@@ -296,8 +296,13 @@ app.get('/api/fix-db-schema', authenticate, authorize('Admin', 'Super Admin'), a
        (3, 'SHI', 'Shivamogga', 3, 'Active')`,
       `ALTER TABLE users ADD COLUMN IF NOT EXISTS location_id INT NULL DEFAULT 2`,
       `ALTER TABLE users ADD COLUMN IF NOT EXISTS location_code VARCHAR(10) NULL`,
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id VARCHAR(50) NULL`,
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS candidate_app_no VARCHAR(50) NULL`,
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP NULL`,
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`,
       `ALTER TABLE candidates ADD COLUMN IF NOT EXISTS location_id INT NOT NULL DEFAULT 2`,
       `ALTER TABLE candidates ADD COLUMN IF NOT EXISTS location_code VARCHAR(10) NOT NULL DEFAULT 'DAV'`,
+      `ALTER TABLE candidates ADD COLUMN IF NOT EXISTS is_deleted TINYINT(1) NOT NULL DEFAULT 0`,
       `CREATE TABLE IF NOT EXISTS \`wedding_customers\` (
         \`id\` INT AUTO_INCREMENT PRIMARY KEY,
         \`customer_code\` VARCHAR(50) NOT NULL UNIQUE,
@@ -536,7 +541,7 @@ if (isSocketPort) {
   server.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
     console.log(`  BSC HRMS running on port ${PORT}`);
-    console.log(`  Health: http://localhost:${PORT}/health`);
+    console.log(`  Health: http://0.0.0.0:${PORT}/health`);
     console.log(`====================================================`);
   });
 }

@@ -29,6 +29,18 @@ export const Auth = {
         ...session,
         loginAt: Date.now()
       }));
+      
+      // Track login in user tracking system
+      const ipAddress = typeof window !== 'undefined' ? window.ipAddress : undefined;
+      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : undefined;
+      API.trackUserLogin(
+        session.id,
+        session.username,
+        ipAddress,
+        userAgent,
+        session.locationId,
+        session.locationName
+      ).catch(() => {}); // Don't block login on tracking failure
     } catch (e) {}
   },
 
@@ -85,6 +97,10 @@ export const Auth = {
     try {
       const session = this.get();
       if (session && session.token) {
+        // Track logout
+        API.trackUserLogout(session.id, session.username).catch(() => {});
+        
+        // Call the backend logout
         fetch('/api/auth/logout', {
           method: 'POST',
           headers: {
@@ -153,6 +169,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       const error: any = new Error(errorData.message || `HTTP ${res.status}`);
+      error.status = res.status; // Lets callers distinguish 400/404/429/500 failures
       error.errors = errorData.errors || [];
       throw error;
     }
@@ -230,6 +247,41 @@ export const API = {
   },
   async getDashboardStats() {
     return apiFetch('/security/dashboard-stats');
+  },
+
+  // User Tracking
+  async trackUserLogin(userId: string | number, username: string, ipAddress?: string, userAgent?: string, locationId?: number | null, locationName?: string | null) {
+    return apiFetch('/user-tracking/login', {
+      method: 'POST',
+      body: JSON.stringify({ userId, username, ipAddress, userAgent, locationId, locationName })
+    });
+  },
+  
+  async trackUserLogout(userId: string | number, username: string, ipAddress?: string) {
+    return apiFetch('/user-tracking/logout', {
+      method: 'POST',
+      body: JSON.stringify({ userId, username, ipAddress })
+    });
+  },
+  
+  async trackUserActivity(userId: string | number, username: string, action: string, page?: string, url?: string, metadata?: any) {
+    return apiFetch('/user-tracking/activity', {
+      method: 'POST',
+      body: JSON.stringify({ userId, username, action, page, url, metadata })
+    });
+  },
+  
+  async getActiveUsers() {
+    return apiFetch('/user-tracking/active');
+  },
+  
+  async getUserTrackingStats() {
+    return apiFetch('/user-tracking/stats');
+  },
+  
+  async getUserActivity(params?: { userId?: string | number; username?: string; action?: string; fromDate?: string; toDate?: string; limit?: number; offset?: number }) {
+    const query = new URLSearchParams(params as any).toString();
+    return apiFetch(`/user-tracking/activity${query ? `?${query}` : ''}`);
   },
 
   // Candidates
@@ -893,6 +945,12 @@ export const API = {
     const res = await apiFetch(`/wedding-registration/wedding-registrations/${id}`, {
       method: 'PUT',
       body: JSON.stringify(payload)
+    });
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async resendWeddingRegistrationEmail(id: number | string) {
+    const res = await apiFetch(`/wedding-registration/wedding-registrations/${id}/resend-email`, {
+      method: 'POST'
     });
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },

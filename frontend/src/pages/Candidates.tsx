@@ -363,7 +363,7 @@ export default function CandidatesPage() {
         remarks: offerForm.remarks
       });
 
-      showToast(`${directOfferModal.candidate.name} shortlisted & moved to Offer Desk 🎉`, 'success');
+      showToast(`${directOfferModal.candidate.name} shortlisted & moved to Wedding Operations 🎉`, 'success');
       setDirectOfferModal({ open: false, candidate: null });
       setDrawerCandidate(null);
       loadCandidates();
@@ -655,7 +655,7 @@ export default function CandidatesPage() {
                             }`}
                           >
                             <option value="New">🔵 New</option>
-                            <option value="Shortlisted">📋 Shortlisted (Move to Offer Desk)</option>
+                            <option value="Shortlisted">📋 Shortlisted (Move to Wedding Operations)</option>
                             <option value="Hold">⏸ On Hold</option>
                             <option value="Rejected">❌ Rejected</option>
                           </select>
@@ -667,7 +667,7 @@ export default function CandidatesPage() {
                                 onClick={() => handleStatusChange('shortlist', c)}
                                 className="px-3 py-1.5 rounded-xl bg-accent text-white font-black hover:bg-[#b08123] transition-all text-[11px] shadow-xs flex items-center gap-1"
                               >
-                                Shortlist & Offer Desk ↗
+                                Shortlist & Wedding Operations ↗
                               </button>
                             )}
                             {c.status === 'Shortlisted' && (
@@ -675,7 +675,7 @@ export default function CandidatesPage() {
                                 onClick={() => navigate('/offer-process')}
                                 className="px-3 py-1.5 rounded-xl bg-primary text-white font-extrabold hover:bg-primary transition-all text-[11px] shadow-xs flex items-center gap-1"
                               >
-                                📄 View on Offer Desk ↗
+                                📄 View on Wedding Operations ↗
                               </button>
                             )}
                             <button
@@ -779,14 +779,14 @@ export default function CandidatesPage() {
         onUpdated={loadCandidates}
       />
 
-      {/* Direct Shortlisting & Offer Desk Modal */}
+      {/* Direct Shortlisting & Wedding Operations Modal */}
       {directOfferModal.open && directOfferModal.candidate && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-primary/70 backdrop-blur-md transition-all animate-fade-in">
           <div className="w-full max-w-lg bg-background rounded-3xl p-6 space-y-4 shadow-2xl animate-fade-in border-2 border-accent/50">
             <div className="flex items-center justify-between border-b border-accent/30 pb-3">
               <div>
                 <span className="text-[10px] font-black text-accent uppercase tracking-wider block">Candidate Shortlisting</span>
-                <h3 className="font-black text-primary text-lg">Shortlist & Send to Offer Desk — {directOfferModal.candidate.name}</h3>
+                <h3 className="font-black text-primary text-lg">Shortlist & Send to Wedding Operations — {directOfferModal.candidate.name}</h3>
               </div>
               <button onClick={() => setDirectOfferModal({ open: false, candidate: null })} className="p-2 rounded-xl bg-white/60 text-primary hover:bg-white transition-all">
                 <X className="w-5 h-5" />
@@ -862,7 +862,7 @@ export default function CandidatesPage() {
                 </button>
                 <button onClick={handleDirectOfferSubmit} disabled={actionLoading} className="btn-gold text-xs px-5 py-2 shadow-md font-black flex items-center gap-1.5 disabled:opacity-50">
                   <CheckCircle className="w-4 h-4" />
-                  <span>{actionLoading ? 'Processing...' : 'Shortlist & Send to Offer Desk'}</span>
+                  <span>{actionLoading ? 'Processing...' : 'Shortlist & Send to Wedding Operations'}</span>
                 </button>
               </div>
             </div>

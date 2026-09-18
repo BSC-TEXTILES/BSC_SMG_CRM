@@ -386,25 +386,39 @@ exports.submitFeedback = async (req, res) => {
 
     const isNegative = evaluateFeedbackEscalation(answers || {}, compiledVoice, q0, q1, q2, q3);
 
-    try {
-      await db.query(`
-        INSERT INTO Feedback (
-          id, date, source, area, yourVoice, custName, custMobile, custDob,
-          q0, q1, q2, q3, q4, q5, q6, q7,
-          status, entryDate, entryTime, customerName, mobile, dob, sectionId, answers, voice, isNegative
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        id, dateFormatted, finalSource, finalArea, compiledVoice, finalCustName, finalMobile, finalDob,
-        q0 || null, q1 || null, q2 || null, q3 || null, q4 || null, q5 || null, q6 || null, q7 || null,
-        entryDate, entryTime, finalCustName, finalMobile, finalDob, sectionId || null, JSON.stringify(answers || {}), compiledVoice, isNegative ? 1 : 0
-      ]);
-    } catch (insertErr) {
-      console.error('[submitFeedback Primary Insert Error]:', insertErr);
-      await db.query(`
-        INSERT INTO Feedback (id, entryDate, entryTime, customerName, mobile, answers, voice, source, isNegative)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [id, entryDate, entryTime, finalCustName, finalMobile, JSON.stringify(answers || {}), compiledVoice, finalSource, isNegative ? 1 : 0]).catch(retryErr => {
-        console.error('[submitFeedback Retry Insert Error]:', retryErr);
+    // Insert with one duplicate-ID retry (two customers can submit at once
+    // and compute the same FB-xx sequence). If every attempt fails we report
+    // failure honestly below — never a fake reference number.
+    let insertOk = false;
+    for (let attempt = 0; attempt < 3 && !insertOk; attempt++) {
+      try {
+        await db.query(`
+          INSERT INTO Feedback (
+            id, date, source, area, yourVoice, custName, custMobile, custDob,
+            q0, q1, q2, q3, q4, q5, q6, q7,
+            status, entryDate, entryTime, customerName, mobile, dob, sectionId, answers, voice, isNegative
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          id, dateFormatted, finalSource, finalArea, compiledVoice, finalCustName, finalMobile, finalDob,
+          q0 || null, q1 || null, q2 || null, q3 || null, q4 || null, q5 || null, q6 || null, q7 || null,
+          entryDate, entryTime, finalCustName, finalMobile, finalDob, sectionId || null, JSON.stringify(answers || {}), compiledVoice, isNegative ? 1 : 0
+        ]);
+        insertOk = true;
+      } catch (insertErr) {
+        console.error(`[submitFeedback Insert Error attempt ${attempt + 1}]:`, insertErr);
+        // Duplicate ID from a concurrent submission → jump the sequence and retry.
+        const m = /FB-(\d+)/.exec(String(insertErr && insertErr.message ? insertErr.message : '')) || null;
+        const base = m ? parseInt(m[1], 10) : NaN;
+        const suffixNum = (!isNaN(base) ? base : Date.now() % 100000) + attempt + 1;
+        id = `FB-${String(suffixNum).padStart(2, '0')}`;
+      }
+    }
+
+    if (!insertOk) {
+      console.error('[submitFeedback] all insert attempts failed — reporting failure to customer');
+      return res.status(500).json({
+        success: false,
+        message: 'We could not save your feedback right now. Please try again.'
       });
     }
 
@@ -445,7 +459,10 @@ exports.submitFeedback = async (req, res) => {
     });
   } catch (err) {
     console.error('[submitFeedback Error]', err);
-    return res.json({ success: true, message: 'Thank you for your feedback!' });
+    return res.status(500).json({
+      success: false,
+      message: 'We could not save your feedback right now. Please try again.'
+    });
   }
 };
 

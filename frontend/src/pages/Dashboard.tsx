@@ -73,8 +73,8 @@ export default function DashboardPage() {
   const loadData = useCallback(async () => {
     try {
       const [empData, candData, ffData, divData, fbData] = await Promise.all([
-        API.getEmployees(),
-        API.getCandidates({ limit: 500 }),
+        API.getEmployees().catch(() => ({ employees: [] })),
+        API.getCandidates({ limit: 500 }).catch(() => ({ candidates: [] })),
         API.getFootfall().catch(() => ({ entries: [] })),
         API.getDiverts().catch(() => ({ diverts: [] })),
         API.getFeedbackStats().catch(() => ({
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                     className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-sm font-extrabold"
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Offer Desk</span>
+                    <span>Wedding Operations</span>
                   </button>
                   <button 
                     onClick={() => navigate('/attendance')} 

@@ -49,7 +49,7 @@ function createCaptcha() {
   const id = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
   const code = randomCode();
   store.set(id, { code, expiresAt: Date.now() + TTL_MS });
-  return { id, code, svg: renderSvg(code), expiresInSeconds: Math.round(TTL_MS / 1000) };
+  return { id, code, svg: renderSvg(code), codeLength: CODE_LENGTH, expiresInSeconds: Math.round(TTL_MS / 1000) };
 }
 
 /**
@@ -75,23 +75,23 @@ function renderSvg(code) {
 
   let chars = '';
   for (let i = 0; i < code.length; i++) {
-    const x = digitWidth * (i + 0.8) + rand(-4, 4);
-    const y = H / 2 + rand(6, 10);
-    const rot = rand(-28, 28);
-    const size = rand(24, 32); // slightly smaller font to fit well
+    const x = digitWidth * (i + 0.8) + rand(-3, 3);
+    const y = H / 2 + rand(7, 11);
+    const rot = rand(-15, 15);
+    const size = rand(32, 40); // large enough to stay legible when the SVG is scaled down
     chars += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})" `
       + `font-family="Georgia, 'Times New Roman', serif" font-size="${size.toFixed(1)}" font-weight="700" `
       + `fill="#611427" text-anchor="middle">${code[i]}</text>`;
   }
 
   let noise = '';
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 3; i++) {
     noise += `<path d="M ${rand(0, W * 0.3).toFixed(0)} ${rand(0, H).toFixed(0)} `
       + `Q ${rand(0, W).toFixed(0)} ${rand(0, H).toFixed(0)} ${rand(W * 0.7, W).toFixed(0)} ${rand(0, H).toFixed(0)}" `
-      + `stroke="#B88D42" stroke-width="${rand(0.8, 1.6).toFixed(1)}" fill="none" opacity="${rand(0.25, 0.5).toFixed(2)}"/>`;
+      + `stroke="#B88D42" stroke-width="${rand(0.8, 1.4).toFixed(1)}" fill="none" opacity="${rand(0.2, 0.4).toFixed(2)}"/>`;
   }
-  for (let i = 0; i < 40; i++) {
-    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.9).toFixed(1)}" fill="#6B5B5E" opacity="${rand(0.12, 0.3).toFixed(2)}"/>`;
+  for (let i = 0; i < 28; i++) {
+    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.7).toFixed(1)}" fill="#6B5B5E" opacity="${rand(0.1, 0.25).toFixed(2)}"/>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="complex captcha">`

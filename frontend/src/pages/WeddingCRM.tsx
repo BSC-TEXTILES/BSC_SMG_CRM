@@ -2147,9 +2147,9 @@ export default function WeddingCRM() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-black text-primary">
-                        Follow-ups Scheduled for {formatDate(selectedCalendarDate)}
+                        Wedding Follow-ups — {formatDate(selectedCalendarDate)}
                       </h4>
-                      <p className="text-xs text-primary/70">Click any customer to log call or inspect profile</p>
+                      <p className="text-xs text-primary/70">Click any customer card to open the complete follow-up details</p>
                     </div>
                     <button
                       onClick={() => setSelectedCalendarDate(null)}
@@ -2163,37 +2163,93 @@ export default function WeddingCRM() {
                     const filtered = monthCustomers.filter(c => c.follow_up_date === selectedCalendarDate);
                     if (filtered.length === 0) {
                       return (
-                        <p className="text-xs text-gray-500 py-3">No follow-ups scheduled for this date.</p>
+                        <div className="text-center py-6 space-y-3">
+                          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-400">
+                            <CalendarDays className="w-6 h-6" />
+                          </div>
+                          <p className="text-xs text-gray-500 font-semibold">No follow-ups scheduled for this date.</p>
+                          <button
+                            onClick={() => {
+                              setAddForm(prev => ({ ...prev, follow_up_date: selectedCalendarDate }));
+                              setShowAddModal(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-sm hover:bg-primary-hover transition-colors"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Schedule Follow-up
+                          </button>
+                        </div>
                       );
                     }
 
                     return (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                        {filtered.map(c => (
-                          <div key={c.id} className="p-3 bg-background rounded-2xl border border-accent-soft flex items-center justify-between">
-                            <div>
-                              <div className="font-bold text-xs text-primary">{c.customer_name}</div>
-                              <div className="text-[11px] text-primary/70">{c.mobile_number}</div>
-                              <div className="text-[10px] text-blue-800 font-bold mt-0.5">
-                                Shopping: {formatDate(c.expected_shopping_date)}
+                        {filtered.map(c => {
+                          const statusColor: Record<string, string> = {
+                            'New': 'bg-blue-100 text-blue-800',
+                            'Follow-up Pending': 'bg-amber-100 text-amber-800',
+                            'Contacted': 'bg-indigo-100 text-indigo-800',
+                            'Interested': 'bg-purple-100 text-purple-800',
+                            'Shopping Date Confirmed': 'bg-emerald-100 text-emerald-800',
+                            'Visited Store': 'bg-cyan-100 text-cyan-800',
+                            'Converted': 'bg-green-100 text-green-800',
+                            'Not Interested': 'bg-gray-100 text-gray-700',
+                            'No Response': 'bg-orange-100 text-orange-800',
+                            'Cancelled': 'bg-red-100 text-red-700',
+                            'Closed': 'bg-slate-100 text-slate-700'
+                          };
+                          const badge = statusColor[c.customer_status] || 'bg-gray-100 text-gray-700';
+                          const callBadge: Record<string, string> = {
+                            'Pending': 'bg-amber-100 text-amber-800',
+                            'Called': 'bg-indigo-100 text-indigo-800',
+                            'Completed': 'bg-emerald-100 text-emerald-800'
+                          };
+                          return (
+                            <button
+                              key={c.id}
+                              onClick={() => openProfileModal(c)}
+                              className="p-3 bg-background rounded-2xl border border-accent-soft hover:border-accent/60 hover:shadow-md transition-all text-left group"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="font-bold text-xs text-primary group-hover:text-accent">{c.customer_name}</div>
+                                <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-black whitespace-nowrap ${badge}`}>
+                                  {c.customer_status}
+                                </span>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => openCallModal(c)}
-                                className="px-2.5 py-1.5 bg-primary text-white text-xs font-bold rounded-xl"
-                              >
-                                Call
-                              </button>
-                              <button
-                                onClick={() => openProfileModal(c)}
-                                className="p-1.5 bg-white border border-accent-soft rounded-xl text-gray-600 hover:text-primary"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+                              <div className="text-[10px] font-mono font-bold text-primary/60 mt-0.5">
+                                ID: {c.customer_code || '—'}
+                              </div>
+                              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-primary/70">
+                                <span className="inline-flex items-center gap-0.5 bg-white border border-accent-soft px-1.5 py-0.5 rounded-lg">
+                                  <Clock className="w-3 h-3 text-accent" />
+                                  {c.preferred_call_time || 'Any Time'}
+                                </span>
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-lg ${callBadge[c.call_status] || 'bg-gray-100 text-gray-700'}`}>
+                                  {c.call_status || 'Pending'}
+                                </span>
+                              </div>
+                              {c.assigned_telecaller && (
+                                <div className="text-[10px] text-primary/70 mt-1.5">
+                                  <span className="font-bold text-accent">Assigned:</span> {c.assigned_telecaller}
+                                </div>
+                              )}
+                              {c.customer_notes && (
+                                <div className="text-[10px] text-primary/60 mt-1 line-clamp-1">{c.customer_notes}</div>
+                              )}
+                              <div className="mt-2 flex items-center gap-1.5">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openCallModal(c); }}
+                                  className="px-2 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary-hover"
+                                >
+                                  Log Call
+                                </button>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-accent">
+                                  View Details <ArrowRight className="w-3 h-3" />
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     );
                   })()}

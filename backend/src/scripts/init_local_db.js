@@ -11,9 +11,9 @@ if (fs.existsSync(envPath)) {
 
 const dbHost = process.env.DB_HOST || 'localhost';
 const dbPort = parseInt(process.env.DB_PORT || '3306', 10);
-const dbUser = process.env.DB_USER || 'u101820758_bsc_smg_crm';
-const dbPassword = process.env.DB_PASSWORD || 'Btpldvg@2026';
-const dbName = process.env.DB_NAME || 'u101820758_bsc_smg';
+const dbUser = process.env.DB_USER || 'root';
+const dbPassword = process.env.DB_PASSWORD || '';
+const dbName = process.env.DB_NAME || 'u101820758_bsc_smg_crm';
 
 async function main() {
   console.log(`[DB Check] Checking MySQL connection on ${dbHost}:${dbPort}...`);

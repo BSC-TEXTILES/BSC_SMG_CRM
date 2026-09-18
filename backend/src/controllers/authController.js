@@ -42,8 +42,8 @@ class AuthController {
    * never leaves the server; the client refreshes it every 30 seconds.
    */
   async captcha(req, res) {
-    const { id, svg, expiresInSeconds } = createCaptcha();
-    return res.json({ success: true, data: { captchaId: id, svg, expiresInSeconds } });
+    const { id, svg, codeLength, expiresInSeconds } = createCaptcha();
+    return res.json({ success: true, data: { captchaId: id, svg, codeLength, expiresInSeconds } });
   }
 
   async login(req, res) {

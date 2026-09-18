@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, X, Calendar, Clock, CheckCircle2, AlertTriangle, ShieldCheck, Sparkles } from 'lucide-react';
-import { API } from '../../services/api';
+import { Activity, X, Calendar, Clock, CheckCircle2, AlertTriangle, ShieldCheck, Sparkles, User, Login, LogOut } from 'lucide-react';
+import { API, Auth } from '../../services/api';
 
 interface ActivityPanelProps {
   isOpen: boolean;
@@ -9,16 +9,30 @@ interface ActivityPanelProps {
 
 export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
   const [activities, setActivities] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     
     const fetchActivity = () => {
-      API.getActivity({ limit: 10 }).then(res => {
-        if (res && res.activity) {
-          setActivities(res.activity);
+      // Try to get user tracking stats and activity
+      API.getUserTrackingStats().then(res => {
+        if (res && res.recentActivity) {
+          setActivities(res.recentActivity);
+          setStats({
+            totalLogins: res.totalLoginsToday || 0,
+            totalLogouts: res.totalLogoutsToday || 0,
+            activeUsers: res.activeUsersToday || 0
+          });
         }
-      }).catch(() => {});
+      }).catch(() => {
+        // Fallback to candidate activity if user tracking fails
+        API.getActivity({ limit: 10 }).then(res => {
+          if (res && res.activity) {
+            setActivities(res.activity);
+          }
+        }).catch(() => {});
+      });
     };
 
     fetchActivity();
@@ -45,34 +59,87 @@ export default function ActivityPanel({ isOpen, onClose }: ActivityPanelProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
-          {/* System Health */}
-          <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between font-bold text-emerald-900">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>HRMS Core Services</span>
+          {/* Stats Summary */}
+          {stats && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+                <div className="text-lg font-black text-primary">{stats.totalLogins}</div>
+                <div className="text-[10px] text-primary/70 mt-0.5">Logins Today</div>
+              </div>
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-center">
+                <div className="text-lg font-black text-rose-600">{stats.totalLogouts}</div>
+                <div className="text-[10px] text-rose-600/70 mt-0.5">Logouts Today</div>
+              </div>
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                <div className="text-lg font-black text-emerald-600">{stats.activeUsers}</div>
+                <div className="text-[10px] text-emerald-600/70 mt-0.5">Active Users</div>
+              </div>
             </div>
-            <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">Operational</span>
-          </div>
+          )}
 
           {/* Activity Feed */}
           <div>
-            <h3 className="font-black text-xs text-primary uppercase tracking-wider mb-2.5">Recent Activity Timeline</h3>
+            <h3 className="font-black text-xs text-primary uppercase tracking-wider mb-2.5">User Activity Timeline</h3>
             <div className="space-y-2.5">
               {activities.length > 0 ? (
-                activities.map((act, idx) => (
-                  <div key={idx} className="p-3 rounded-xl border border-accent-soft bg-background space-y-1">
-                    <div className="flex items-center justify-between font-bold text-primary">
-                      <span className="flex items-center gap-1.5">
-                        <span>{act.icon || '📋'}</span>
-                        <span>{act.label || act.action_type}</span>
-                      </span>
-                      <span className="text-[10px] text-primary/70 font-mono">{act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                activities.map((act, idx) => {
+                  // Determine icon based on action
+                  let Icon = Activity;
+                  let colorClass = 'text-primary';
+                  
+                  if (act.action === 'USER_LOGIN') {
+                    Icon = Login;
+                    colorClass = 'text-emerald-600';
+                  } else if (act.action === 'USER_LOGOUT') {
+                    Icon = LogOut;
+                    colorClass = 'text-rose-600';
+                  } else if (act.action && act.action.includes('USER_ACTIVITY')) {
+                    Icon = Activity;
+                    colorClass = 'text-primary';
+                  }
+
+                  // Parse details if it's JSON
+                  let details = act.details;
+                  try {
+                    if (typeof details === 'string') {
+                      details = JSON.parse(details);
+                    }
+                  } catch (e) {
+                    // Keep as string
+                  }
+
+                  return (
+                    <div key={idx} className="p-3 rounded-xl border border-accent-soft bg-background space-y-1">
+                      <div className="flex items-center justify-between font-bold text-primary">
+                        <span className="flex items-center gap-1.5">
+                          <Icon className={`w-4 h-4 ${colorClass}`} />
+                          <span className="font-bold">{act.username || 'Unknown User'}</span>
+                          <span className="text-primary/70">- {act.action}</span>
+                        </span>
+                        <span className="text-[10px] text-primary/70 font-mono">
+                          {act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
+                      </div>
+                      {act.module && (
+                        <p className="text-[10px] text-primary/60 font-medium">
+                          Module: {act.module}
+                        </p>
+                      )}
+                      {details && details.page && (
+                        <p className="text-[10px] text-primary/60 font-medium">
+                          Page: {details.page}
+                        </p>
+                      )}
+                      {act.ip_address && (
+                        <p className="text-[10px] text-primary/60 font-mono truncate max-w-full">
+                          IP: {act.ip_address}
+                        </p>
+                      )}
                     </div>
-                    {act.remarks && <p className="text-[#475569] font-medium text-[11px]">{act.remarks}</p>}
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="text-center py-8 text-[#64748B]">No recent system activity logged.</div>
+                <div className="text-center py-8 text-[#64748B]">No recent user activity logged.</div>
               )}
             </div>
           </div>

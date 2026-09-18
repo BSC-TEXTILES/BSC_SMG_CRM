@@ -4,7 +4,7 @@ import Sidebar from '../Sidebar';
 import Topbar from '../Topbar';
 import ToastContainer from '../Toast';
 import { Auth, UserSession } from "../../services/api";
-import { Plus, X, UserCheck, BarChart3, Target, PhoneCall, Zap } from 'lucide-react';
+import { Plus, X, UserCheck, BarChart3, Target, PhoneCall, Zap, QrCode } from 'lucide-react';
 
 import { getSidebarCollapsed, subscribeSidebarCollapsed } from '../../utils/sidebarState';
 import { BreadcrumbCrumb } from '../../utils/breadcrumbs';
@@ -96,6 +96,14 @@ export default function DashboardLayout({
             >
               <PhoneCall className="w-4 h-4 text-[#27805B]" />
               <span>Feedback Call Queue</span>
+            </button>
+
+            <button
+              onClick={() => { setSpeedDialOpen(false); navigate('/feedback-qr'); }}
+              className="px-4 py-2.5 rounded-2xl bg-primary text-white text-xs font-black shadow-xl border border-accent/20 flex items-center gap-2"
+            >
+              <QrCode className="w-4 h-4 text-purple-400" />
+              <span>Feedback QR Code</span>
             </button>
           </div>
         )}

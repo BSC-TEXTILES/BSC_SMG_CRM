@@ -1,5 +1,5 @@
 -- Granular Permissions Seed Script for BSC Enterprise HRMS
-USE `hrms_db`;
+USE `u101820758_bsc_smg_crm`;
 
 INSERT INTO `Permission` (`permissionName`, `module`, `action`, `description`) VALUES
 -- Candidates

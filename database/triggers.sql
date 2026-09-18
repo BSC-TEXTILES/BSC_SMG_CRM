@@ -1,5 +1,5 @@
 -- Database Triggers for Automated Audit Trails and Pipeline Day Tracking
-USE `hrms_db`;
+USE `u101820758_bsc_smg_crm`;
 
 DELIMITER $$
 

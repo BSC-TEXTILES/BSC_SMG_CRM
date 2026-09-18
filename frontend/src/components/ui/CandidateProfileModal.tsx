@@ -472,7 +472,7 @@ export default function CandidateProfileModal({ candidate, isOpen, onClose, onUp
                     className="w-full px-3 py-2 rounded-xl border border-accent-soft text-xs font-black text-primary outline-none focus:ring-2 focus:ring-accent/40"
                   >
                     <option value="New">🌱 New Candidate</option>
-                    <option value="Shortlisted">📋 Shortlisted (Moved to Offer Desk)</option>
+                    <option value="Shortlisted">📋 Shortlisted (Moved to Wedding Operations)</option>
                     <option value="Joined">🎉 Joined (Active Staff)</option>
                     <option value="Hold">⏸ On Hold</option>
                     <option value="Rejected">❌ Rejected</option>

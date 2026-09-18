@@ -237,7 +237,7 @@ export default function OfferProcessPage() {
       await API.markJoined({ appNo: o.appNo, joiningDate: joinDate });
       showToast(`${o.name} marked as Joined! 🎉 Employee Directory updated.`, 'success');
       setJoinConfirmModal({ open: false, offer: null });
-      // Stay on Offer Desk, reload to show Joined status
+      // Stay on Wedding Operations, reload to show Joined status
       loadOffers();
     } catch (e: any) {
       showToast('Error: ' + e.message, 'error');
@@ -403,7 +403,7 @@ export default function OfferProcessPage() {
       {/* Main Content Area (lg:pl-64 prevents sidebar overlap) */}
       <div className="flex-1 lg:pl-64 flex flex-col min-w-0 transition-all duration-300">
         <Topbar 
-          title="Offer Desk"
+          title="Wedding Operations"
           session={session}
           onMenuClick={() => setSidebarOpen(true)}
         />
@@ -416,10 +416,10 @@ export default function OfferProcessPage() {
               <div className="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1">
                 <span>Core Workspace</span> 
                 <ChevronRight className="w-3.5 h-3.5 text-slate-400"/> 
-                <span className="text-slate-800 font-bold">Offer Desk</span>
+                <span className="text-slate-800 font-bold">Wedding Operations</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Offer Management Desk</h1>
-              <p className="text-slate-500 text-xs sm:text-sm font-medium mt-1">Configure candidate compensation packages, track acceptances, and finalize onboarding.</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Wedding Operations Desk</h1>
+              <p className="text-slate-500 text-xs sm:text-sm font-medium mt-1">Manage wedding customer requests, follow-up pipeline and operational tasks.</p>
             </div>
           </div>
 

@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [captchaSvg, setCaptchaSvg] = useState('');
   const [captchaId, setCaptchaId] = useState('');
   const [captchaText, setCaptchaText] = useState('');
+  const [codeLength, setCodeLength] = useState(4);
   const [captchaLoading, setCaptchaLoading] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [showPassword, setShowPassword] = useState(false);
@@ -91,6 +92,9 @@ export default function LoginPage() {
       if (json?.data?.svg) {
         setCaptchaSvg('data:image/svg+xml;utf8,' + encodeURIComponent(json.data.svg));
         setCaptchaId(json.data.captchaId);
+        if (typeof json.data.codeLength === 'number' && json.data.codeLength > 0) {
+          setCodeLength(json.data.codeLength);
+        }
       }
     } catch {
       setCaptchaSvg('');
@@ -322,11 +326,15 @@ export default function LoginPage() {
                   type="text"
                   name="captcha"
                   autoComplete="off"
-                  maxLength={8}
+                  maxLength={codeLength}
                   value={captchaText}
                   disabled={isLocked && lockRemainingSeconds > 0}
-                  onChange={(e) => setCaptchaText(e.target.value)}
-                  placeholder="Enter 8 characters"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/[^0-9]/g, '').slice(0, codeLength);
+                    setCaptchaText(digits);
+                  }}
+                  placeholder={`Enter ${codeLength} digits`}
+                  inputMode="numeric"
                   className="w-full text-xs font-semibold pl-10 pr-3 py-3 rounded-xl border border-accent-soft bg-white text-primary placeholder-primary/60 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all shadow-xs tracking-widest disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
                 />
@@ -335,7 +343,7 @@ export default function LoginPage() {
                 {captchaSvg ? (
                   <img
                     src={captchaSvg}
-                    alt="Security captcha - 4 digit numeric code"
+                    alt={`Security captcha - ${codeLength} digit numeric code`}
                     className="h-[42px] w-[120px] rounded-lg border border-accent-soft bg-white shadow-xs select-none"
                     draggable={false}
                   />

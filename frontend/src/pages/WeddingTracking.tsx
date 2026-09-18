@@ -26,33 +26,46 @@ export default function WeddingTracking() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [notFound, setNotFound] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const handleTrack = async () => {
-    if (!regId.trim()) {
-      showToast('Please enter your Wedding Request ID', 'error');
+    if (loading) return; // prevent duplicate simultaneous submissions
+
+    const cleanId = regId.trim().toUpperCase().replace(/\s+/g, '');
+    const cleanMobile = mobile.replace(/\D/g, '');
+    if (!cleanId) {
+      showToast('Please enter your Wedding Request ID and registered mobile number.', 'error');
       return;
     }
-    if (!mobile.trim() || !/^[6-9]\d{9}$/.test(mobile.replace(/\D/g, ''))) {
-      showToast('Please enter a valid 10-digit mobile number', 'error');
+    if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
+      showToast('Please enter a valid 10-digit Indian mobile number', 'error');
       return;
     }
 
     setLoading(true);
     setResult(null);
     setNotFound(false);
+    setServerError(null);
 
     try {
-      const res = await API.trackWeddingRegistration(regId.trim(), mobile.trim());
+      const res = await API.trackWeddingRegistration(cleanId, cleanMobile);
       if (res && res.success !== false && res.registration_id) {
         setResult(res);
       } else {
         setNotFound(true);
       }
     } catch (err: any) {
-      if (err?.message?.includes('404') || err?.message?.includes('No registration')) {
+      // Distinguish the real failure instead of showing "Not Found" for everything.
+      if (err?.status === 404) {
         setNotFound(true);
+      } else if (err?.status === 400) {
+        showToast(err?.message || 'Please enter your Wedding Request ID and registered mobile number.', 'error');
+      } else if (err?.status === 429) {
+        showToast(err?.message || 'Too many tracking attempts. Please try again later.', 'error');
+      } else if (err?.status !== undefined && err.status >= 500) {
+        setServerError("We couldn't check your request right now. Please try again.");
       } else {
-        showToast('Unable to track your request. Please try again.', 'error');
+        setServerError('Unable to connect to the server. Please check your connection and try again.');
       }
     } finally {
       setLoading(false);
@@ -129,7 +142,7 @@ export default function WeddingTracking() {
               className="w-full py-3 bg-[#1a365d] hover:bg-[#2c5282] text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span>Tracking...</span>
+                <span>Checking your request...</span>
               ) : (
                 <>
                   <Search className="w-4 h-4" />
@@ -140,6 +153,17 @@ export default function WeddingTracking() {
           </div>
         </div>
 
+        {/* Server / network failure — distinct from "not found" */}
+        {serverError && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 border border-amber-200 text-center space-y-3">
+            <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-7 h-7" />
+            </div>
+            <h3 className="font-bold text-[#1a365d]">Something Went Wrong</h3>
+            <p className="text-sm text-[#64748b]">{serverError}</p>
+          </div>
+        )}
+
         {/* Not Found */}
         {notFound && (
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-red-200 text-center space-y-3">
@@ -147,7 +171,7 @@ export default function WeddingTracking() {
               <AlertCircle className="w-7 h-7" />
             </div>
             <h3 className="font-bold text-[#1a365d]">Registration Not Found</h3>
-            <p className="text-sm text-[#64748b]">No registration found matching the provided details. Please verify your Wedding Request ID and registered mobile number.</p>
+            <p className="text-sm text-[#64748b]">No registration was found for the Wedding Request ID and mobile number provided. Please verify both details and try again.</p>
           </div>
         )}
 
@@ -208,6 +232,14 @@ export default function WeddingTracking() {
                   <div>
                     <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Expected Shopping Date</p>
                     <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.expected_shopping_date)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-[#f8fafc]">
+                  <Phone className="w-5 h-5 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-[#94a3b8] uppercase">Next Follow-up</p>
+                    <p className="text-sm font-bold text-[#1a365d]">{formatDate(result.next_followup)}</p>
                   </div>
                 </div>
               </div>
