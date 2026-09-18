@@ -682,7 +682,13 @@ async function autoInitializeDatabase(pool) {
       `ALTER TABLE wedding_registrations ADD COLUMN email_sent_at DATETIME NULL`,
       `ALTER TABLE wedding_registrations ADD UNIQUE INDEX idx_wed_reg_customer_id (customer_id)`,
       `ALTER TABLE wedding_registrations ADD UNIQUE INDEX idx_wed_reg_tracking_id (tracking_id)`,
-      `ALTER TABLE wedding_customers ADD COLUMN tracking_id VARCHAR(50) NULL`
+      `ALTER TABLE wedding_customers ADD COLUMN tracking_id VARCHAR(50) NULL`,
+
+      // Additive migrations for locations table
+      `ALTER TABLE locations ADD COLUMN store_name VARCHAR(100) NULL AFTER location_name`,
+      `ALTER TABLE locations ADD COLUMN address TEXT NULL`,
+      `ALTER TABLE locations ADD COLUMN phone VARCHAR(50) NULL`,
+      `ALTER TABLE locations ADD COLUMN email VARCHAR(100) NULL`
     ];
 
     for (const sql of migrations) {

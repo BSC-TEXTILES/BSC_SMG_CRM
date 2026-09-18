@@ -2,16 +2,46 @@ const crypto = require('crypto');
 
 const generateCsrfToken = () => crypto.randomBytes(32).toString('hex');
 
+// Routes that don't require CSRF protection (public auth, landing, registration endpoints)
+const CSRF_EXEMPT_PATHS = new Set([
+  '/auth/captcha',
+  '/auth/lock-status',
+  '/auth/login',
+  '/auth/verify',
+  '/api/auth/captcha',
+  '/api/auth/lock-status',
+  '/api/auth/login',
+  '/api/auth/verify',
+  '/landing/locations',
+  '/landing/enquiry',
+  '/landing/event',
+  '/api/landing/locations',
+  '/api/landing/enquiry',
+  '/api/landing/event',
+  '/feedback-qr/scan',
+  '/api/feedback-qr/scan',
+]);
+
 const csrfProtection = (req, res, next) => {
   // Allow safe methods
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
   }
 
-  // Exempt auth routes if needed, but login can be protected if we fetch CSRF first.
-  // Actually, since login doesn't have a token yet typically, we should let login pass,
-  // OR require a CSRF token fetch before login.
-  
+  // Check if path is exempt from CSRF
+  const path = req.path || '';
+  const originalUrl = req.originalUrl ? req.originalUrl.split('?')[0] : '';
+  if (
+    CSRF_EXEMPT_PATHS.has(path) ||
+    CSRF_EXEMPT_PATHS.has(originalUrl) ||
+    path.startsWith('/feedback-qr/scan/') ||
+    originalUrl.startsWith('/api/feedback-qr/scan/') ||
+    path.includes('/wedding-registration/public/') ||
+    originalUrl.includes('/wedding-registration/public/')
+  ) {
+    return next();
+  }
+
   const tokenFromHeader = req.headers['x-csrf-token'];
   const tokenFromCookie = req.cookies['_csrf'];
 

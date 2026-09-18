@@ -101,6 +101,10 @@ async function ensureTables() {
     // Additive migration for databases created before these columns existed.
     // Each statement is wrapped so "duplicate column/index" errors are ignored.
     const additiveMigrations = [
+      `ALTER TABLE locations ADD COLUMN store_name VARCHAR(100) NULL AFTER location_name`,
+      `ALTER TABLE locations ADD COLUMN address TEXT NULL`,
+      `ALTER TABLE locations ADD COLUMN phone VARCHAR(50) NULL`,
+      `ALTER TABLE locations ADD COLUMN email VARCHAR(100) NULL`,
       `ALTER TABLE wedding_registrations ADD COLUMN customer_id VARCHAR(50) NULL AFTER registration_id`,
       `ALTER TABLE wedding_registrations ADD COLUMN tracking_id VARCHAR(50) NULL AFTER customer_id`,
       `ALTER TABLE wedding_registrations ADD COLUMN email_status VARCHAR(20) DEFAULT 'EMAIL_PENDING'`,
@@ -492,13 +496,22 @@ class WeddingRegistrationController {
       if (!locationId || isNaN(locationId)) locationId = 2;
 
       const [locRows] = await pool.query(
-        `SELECT id, location_code, location_name, store_name, address, phone, email FROM locations WHERE id = ?`,
+        `SELECT * FROM locations WHERE id = ?`,
         [locationId]
       );
       if (!locRows || locRows.length === 0) {
         return errorRes(res, 'Invalid location selected', [], 400);
       }
-      const location = locRows[0];
+      const rawLoc = locRows[0];
+      const location = {
+        ...rawLoc,
+        location_code: rawLoc.location_code || (locationId === 1 ? 'BEL' : locationId === 3 ? 'SHI' : 'DAV'),
+        location_name: rawLoc.location_name || 'BSC Textiles',
+        store_name: rawLoc.store_name || rawLoc.location_name || 'BSC Textiles Pvt Ltd',
+        address: rawLoc.address || null,
+        phone: rawLoc.phone || null,
+        email: rawLoc.email || null
+      };
 
       // ── 4. Duplicate submission protection (same mobile + store) ──
       const [dup] = await pool.query(`

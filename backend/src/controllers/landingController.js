@@ -58,14 +58,17 @@ class LandingController {
   async getLocations(req, res) {
     try {
       const [rows] = await pool.query(
-        `SELECT id, location_code, location_name, store_name, address, phone, email, status, sort_order
-         FROM locations WHERE status = 'Active' ORDER BY sort_order ASC`
+        `SELECT * FROM locations WHERE status = 'Active' ORDER BY sort_order ASC`
       );
+      const safeRows = rows.map(r => ({
+        ...r,
+        store_name: r.store_name || r.location_name || 'BSC Textiles Pvt Ltd'
+      }));
       return res.json({
         success: true,
         message: 'Locations fetched',
-        locations: rows,
-        data: rows
+        locations: safeRows,
+        data: safeRows
       });
     } catch (err) {
       console.error('[LandingController.getLocations Error]', err.message);
