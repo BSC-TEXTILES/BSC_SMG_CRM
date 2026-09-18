@@ -42,17 +42,26 @@ try {
   console.warn('[Boot] socket.io module not found or failed to load. Real-time updates disabled:', e.message);
 }
 
+// ── Preserve Passenger/Cloud Assigned Port ────────────────────────────────────
+// Passenger sets process.env.PORT before booting the app.
+// If .env contains PORT=5000, dotenv might override or pollute PORT if not careful.
+const passengerPort = process.env.PORT;
+
 // ── Load .env as FALLBACK only ────────────────────────────────────────────────
-// Passenger injects PORT before this script runs. dotenv NEVER overrides
-// already-set process.env values, so Passenger's PORT is always preserved.
 dotenv.config({ path: path.join(APP_ROOT, '..', '.env') });
 dotenv.config({ path: path.join(APP_ROOT, '.env') });
 dotenv.config({ path: path.join(SERVER_DIR, '.env') });
+
+// If Passenger had already set a PORT (number or unix domain socket), restore it!
+if (passengerPort) {
+  process.env.PORT = passengerPort;
+}
 
 // ── Load modules ──────────────────────────────────────────────────────────────
 const pool = require('./src/config/db');
 const { autoInitializeDatabase } = require('./src/config/dbInitializer');
 const apiRoutes = require('./src/routes/api');
+const landingRoutes = require('./src/routes/landingRoutes');
 const { errorRes } = require('./src/utils/response');
 const { authenticate, authorize } = require('./src/middleware/auth');
 const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
@@ -420,6 +429,9 @@ app.get('/api/fix-db-schema', authenticate, authorize('Admin', 'Super Admin'), a
 });
 
 // ── API Routes ────────────────────────────────────────────────────────────────
+// Public Landing routes (no CSRF, no auth - for public wedding landing page)
+app.use('/api/landing', landingRoutes);
+
 // Public Feedback QR scan tracking (no CSRF, no auth - for QR code scanning by customers)
 app.get('/api/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);
 app.post('/api/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);

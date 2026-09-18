@@ -105,7 +105,7 @@ export default function WeddingRegistrationPage() {
   useEffect(() => {
     const loadLocations = async () => {
       try {
-        const res = await API.getLocations();
+        const res = await API.getPublicLocations();
         if (res?.success && res.locations) {
           setLocations(res.locations);
         }

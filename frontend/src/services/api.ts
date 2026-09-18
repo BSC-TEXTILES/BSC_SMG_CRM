@@ -597,6 +597,12 @@ export const API = {
   },
 
   // ── Locations ────────────────────────────────────────────────
+  // Public endpoint for landing/registration pages (no auth required)
+  async getPublicLocations() {
+    const res = await apiFetch('/landing/locations');
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  // Authenticated endpoint for admin/staff pages
   async getLocations() {
     const res = await apiFetch('/locations');
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;

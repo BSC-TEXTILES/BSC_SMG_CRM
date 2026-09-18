@@ -71,7 +71,7 @@ export default function App() {
         <Route path="/mcheck-reports" element={<RouteGuard pageKey="mcheck_reports"><MCheckReports /></RouteGuard>} />
         <Route path="/mcheck-history" element={<RouteGuard pageKey="mcheck_history"><MCheckHistory /></RouteGuard>} />
         <Route path="/candidates" element={<RouteGuard pageKey="candidates"><Candidates /></RouteGuard>} />
-        <Route path="/wedding-registration" element={<RouteGuard pageKey="wedding_registration"><WeddingRegistration /></RouteGuard>} />
+        <Route path="/wedding-registration" element={<WeddingRegistration />} />
         <Route path="/track" element={<WeddingTracking />} />
         <Route path="/interview-panel" element={<Navigate to="/candidates" replace />} />
         <Route path="/interview-form" element={<Navigate to="/candidates" replace />} />
