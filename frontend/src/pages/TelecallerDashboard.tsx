@@ -222,8 +222,8 @@ export default function TelecallerDashboard() {
                 <div className="text-2xl font-extrabold text-slate-900">{deskStats.assignedCalls || 0}</div>
                 <Users className="absolute top-4 right-4 w-8 h-8 text-slate-100" />
               </div>
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-xl shadow-sm relative overflow-hidden text-white">
-                <div className="text-xs font-bold text-blue-100 mb-1 uppercase tracking-wider">Today's Follow-ups</div>
+              <div className="bg-[#4A1E2C] p-4 rounded-xl shadow-sm relative overflow-hidden text-white">
+                <div className="text-xs font-bold text-[#E8D5D8] mb-1 uppercase tracking-wider">Today's Follow-ups</div>
                 <div className="text-2xl font-extrabold">{deskStats.pendingCalls || 0}</div>
                 <Clock className="absolute top-4 right-4 w-8 h-8 text-white/20" />
               </div>
@@ -254,8 +254,8 @@ export default function TelecallerDashboard() {
                     onClick={() => setActiveTab(tab)}
                     className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
                       activeTab === tab 
-                        ? 'bg-accent/10 text-accent shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                        ? 'bg-[#4A1E2C] text-white shadow-sm' 
+                        : 'text-[#9A8F85] hover:text-[#2C1E16] hover:bg-[#FDFCFB]'
                     }`}
                   >
                     {tab}
@@ -299,13 +299,13 @@ export default function TelecallerDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-y border-slate-200">
-                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Registration</th>
-                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Customer & Contact</th>
-                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Wedding Details</th>
-                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Telecaller & Follow-up</th>
-                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                    <tr className="bg-[#4A1E2C] text-white">
+                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Registration</th>
+                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Customer & Contact</th>
+                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Wedding Details</th>
+                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Telecaller & Follow-up</th>
+                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Status</th>
+                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -342,13 +342,13 @@ export default function TelecallerDashboard() {
                           <td className="py-3 px-4 text-right space-x-2">
                             <button 
                               onClick={() => { setDetailCustomer(c); setLogCallModalOpen(true); }}
-                              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors text-xs font-bold"
+                              className="px-3 py-1.5 bg-[#4A1E2C] hover:bg-[#3A1723] text-white text-[11px] font-bold rounded-lg shadow-sm transition-all whitespace-nowrap"
                             >
-                              <PhoneCall className="w-3.5 h-3.5 mr-1" /> Log Call
+                              Log Call
                             </button>
                             <button 
                               onClick={() => setDetailCustomer(c)}
-                              className="inline-flex items-center justify-center p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                              className="inline-flex items-center justify-center p-1.5 rounded-lg bg-[#FDFCFB] border border-[#E8D5D8] text-[#2C1E16] hover:bg-[#E8D5D8]/30 transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
