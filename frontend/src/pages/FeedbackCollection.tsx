@@ -768,7 +768,7 @@ export default function FeedbackCollection() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-accent-soft">
                   <button
                     onClick={() => setSelectedFeedback(null)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-accent-soft bg-background hover:bg-gray-100 text-[#5D4E42] font-extrabold text-xs transition-all shadow-xs"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-[#EBE5E0] hover:bg-[#F3EFE9] text-[#2C1E16] font-extrabold text-xs transition-all shadow-sm"
                   >
                     Close Dashboard
                   </button>
@@ -777,7 +777,7 @@ export default function FeedbackCollection() {
                     <button
                       onClick={() => handleSaveModalResolution('called')}
                       disabled={savingResolution}
-                      className="px-4 py-2.5 rounded-xl bg-black hover:bg-black text-black font-extrabold text-xs shadow-md active:scale-95 transition-all"
+                      className="px-4 py-2.5 rounded-xl bg-white border border-[#EBE5E0] hover:bg-[#F3EFE9] text-[#2C1E16] font-extrabold text-xs shadow-sm active:scale-95 transition-all"
                     >
                       Mark In Progress
                     </button>
@@ -785,25 +785,25 @@ export default function FeedbackCollection() {
                     <button
                       onClick={() => handleSaveModalResolution('escalated_manager')}
                       disabled={savingResolution}
-                      className="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-black font-extrabold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1.5"
+                      className="px-4 py-2.5 rounded-xl bg-white border border-[#EBE5E0] hover:bg-[#F3EFE9] text-[#2C1E16] font-extrabold text-xs shadow-sm active:scale-95 transition-all flex items-center gap-1.5"
                     >
-                      <ShieldAlert className="w-4 h-4" />
+                      <ShieldAlert className="w-4 h-4 text-rose-600" />
                       <span>Escalate to Store Manager</span>
                     </button>
 
                     <button
                       onClick={() => handleSaveModalResolution('resolved')}
                       disabled={savingResolution}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1.5"
+                      className="px-4 py-2.5 rounded-xl bg-white border border-[#EBE5E0] hover:bg-[#F3EFE9] text-[#2C1E16] font-extrabold text-xs shadow-sm active:scale-95 transition-all flex items-center gap-1.5"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       <span>Mark Resolved</span>
                     </button>
 
                     <button
                       onClick={() => handleSaveModalResolution()}
                       disabled={savingResolution}
-                      className="btn-gold text-xs py-2.5 px-6 shadow-md flex items-center gap-1.5"
+                      className="px-6 py-2.5 rounded-xl bg-[#4A1E2C] hover:bg-[#3d1824] text-white font-extrabold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1.5"
                     >
                       <Send className="w-4 h-4" />
                       <span>{savingResolution ? 'Saving...' : 'Save Resolution Notes'}</span>

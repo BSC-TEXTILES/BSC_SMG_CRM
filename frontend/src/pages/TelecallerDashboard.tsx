@@ -149,10 +149,10 @@ export default function TelecallerDashboard() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(c => 
-        (c.customerName && c.customerName.toLowerCase().includes(q)) || 
-        (c.mobile && c.mobile.toLowerCase().includes(q)) || 
-        (c.registrationId && c.registrationId.toLowerCase().includes(q)) ||
-        (c.locationName && c.locationName.toLowerCase().includes(q))
+        (c.customerName && String(c.customerName).toLowerCase().includes(q)) || 
+        (c.mobile && String(c.mobile).toLowerCase().includes(q)) || 
+        (c.registrationId && String(c.registrationId).toLowerCase().includes(q)) ||
+        (c.locationName && String(c.locationName).toLowerCase().includes(q))
       );
     }
     
@@ -227,7 +227,7 @@ export default function TelecallerDashboard() {
              </button>
              <div className="flex items-center gap-2">
                <div className="w-8 h-8 rounded-full bg-[#4A1E2C] text-white flex items-center justify-center font-bold text-sm">
-                 {session?.fullName?.charAt(0) || 'U'}
+                 {String(session?.fullName || 'U').charAt(0)}
                </div>
                <div className="hidden md:block text-left leading-tight">
                  <div className="text-[11px] font-bold text-[#2C1E16]">{session?.fullName || 'User'}</div>
@@ -302,7 +302,7 @@ export default function TelecallerDashboard() {
                         <td className="py-4 px-5">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={`text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-[#EBE5E0] text-[#5B4636]`}>
-                              {c.registrationId || c.id.toString()}
+                              {c.registrationId || (c.id ? String(c.id) : '')}
                             </span>
                           </div>
                         </td>
@@ -334,7 +334,7 @@ export default function TelecallerDashboard() {
                         <td className="py-4 px-5">
                           <div className="flex items-center gap-2">
                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold bg-amber-100 text-amber-800`}>
-                              {(c.assignedTelecallerName || 'U').charAt(0).toUpperCase()}
+                              {String(c.assignedTelecallerName || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div className="text-[11px] font-bold text-[#5B4636]">{c.assignedTelecallerName || 'Unassigned'}</div>
                           </div>
