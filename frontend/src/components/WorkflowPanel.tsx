@@ -9,8 +9,6 @@ import {
   ShieldCheck,
   RefreshCw,
   ArrowRight,
-  FileText,
-  History,
   Send,
   Loader2
 } from 'lucide-react';
@@ -221,15 +219,7 @@ export default function WorkflowPanel() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          {isAdmin && (
-            <button
-              onClick={() => navigate('/admin-approvals')}
-              className="btn-primary text-xs px-3 py-2 flex items-center gap-1.5 shadow-sm font-extrabold whitespace-nowrap"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              Approval Center
-            </button>
-          )}
+          
         </div>
       </div>
 
@@ -303,13 +293,6 @@ export default function WorkflowPanel() {
                       {expired ? 'EXPIRED — auto-advancing' : `${formatCountdown(remaining)} left`}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <button
-                        onClick={() => navigate(`/admin-approvals?instance=${q.workflowInstanceId}`)}
-                        className="px-2.5 py-1.5 rounded-lg border border-accent-soft bg-white text-primary text-[10.5px] font-extrabold hover:bg-gray-50 flex items-center gap-1"
-                        title="Open full record & audit history"
-                      >
-                        <History className="w-3 h-3" /> Review
-                      </button>
                       <button
                         onClick={() => handleApprove(q)}
                         disabled={acting === q.id || expired}

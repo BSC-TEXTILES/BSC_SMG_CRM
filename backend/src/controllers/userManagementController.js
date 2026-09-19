@@ -59,7 +59,6 @@ const MODULE_REGISTRY = [
   { key: 'tv', label: 'Live TV Kiosk', section: 'Public Portals' },
   { key: 'feedback_public', label: 'Customer Feedback QR', section: 'Public Portals' },
   { key: 'system_admin', label: 'System Administrator', section: 'Administration' },
-  { key: 'admin_approvals', label: 'Admin Approvals', section: 'Administration' },
   { key: 'wedding_registration', label: 'Applicant Registration', section: 'Public Portals' }
 ];
 

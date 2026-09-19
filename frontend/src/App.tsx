@@ -34,7 +34,6 @@ import WeddingCRM from './pages/WeddingCRM';
 import TelecallerDashboard from './pages/TelecallerDashboard';
 import WeddingTracking from './pages/WeddingTracking';
 import SystemAdmin from './pages/SystemAdmin';
-import AdminApprovalDashboard from './pages/AdminApprovalDashboard';
 import QuickActionCenter from './components/ui/QuickActionCenter';
 import RouteGuard from './components/RouteGuard';
 import UserTracker from './components/UserTracker';
@@ -92,7 +91,6 @@ export default function App() {
         <Route path="/user-management" element={<RouteGuard pageKey="user_management"><UserManagement /></RouteGuard>} />
         <Route path="/settings" element={<RouteGuard pageKey="settings"><Settings /></RouteGuard>} />
         <Route path="/system-admin" element={<RouteGuard pageKey="system_admin"><SystemAdmin /></RouteGuard>} />
-        <Route path="/admin-approvals" element={<RouteGuard pageKey="admin_approvals"><AdminApprovalDashboard /></RouteGuard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <QuickActionCenter />

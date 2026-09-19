@@ -20,7 +20,6 @@ import {
   Menu,
   Shield,
   ShieldAlert,
-  ShieldCheck,
   PhoneCall
 } from 'lucide-react';
 import { 
@@ -147,8 +146,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
     { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
     { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' },
-    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' },
-    { key: 'admin_approvals', href: '/admin-approvals', label: 'Admin Approvals', icon: ShieldCheck, section: 'Administration' }
+    { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' }
   ];
 
   useEffect(() => {
