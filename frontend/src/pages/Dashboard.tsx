@@ -40,7 +40,7 @@ import {
   Settings
 } from 'lucide-react';
 import EmployeeProfileModal from '../components/ui/EmployeeProfileModal';
-import WorkflowPanel from '../components/WorkflowPanel';
+
 
 export default function DashboardPage() {
   const navigate = useNavigate();

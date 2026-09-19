@@ -284,9 +284,9 @@ let rows;
               COALESCE(c.aadhaar_number, u.aadhaar_number) as aadhaar_number,
               COALESCE(c.father_details, u.father_details) as father_details,
               COALESCE(c.mother_details, u.mother_details) as mother_details,
-              COALESCE(c.religion_caste, CONCAT_WS('/', u.religion, u.caste)) as religion_caste,
-              COALESCE(c.religion, u.religion) as religion,
-              COALESCE(c.caste, u.caste) as caste,
+              COALESCE(c.religion_caste, CONCAT_WS('/', NULL as religion, NULL as caste)) as religion_caste,
+              COALESCE(c.religion, NULL as religion) as religion,
+              COALESCE(c.caste, NULL as caste) as caste,
               COALESCE(c.languages_known, u.languages_known) as languages_known,
               COALESCE(c.city_state, u.city_state) as city_state,
               COALESCE(c.address, u.address) as address,
@@ -316,7 +316,7 @@ let rows;
               u.retail_experience, u.qualification, u.previous_company, u.previous_designation,
               u.previous_salary, u.current_salary, u.branch, u.reporting_manager,
               u.dob, u.gender, u.blood_group, u.aadhaar_number, u.father_details,
-              u.mother_details, u.religion, u.caste, u.languages_known, u.city_state,
+              u.mother_details, NULL as religion, NULL as caste, u.languages_known, u.city_state,
               u.address, u.photo_url, u.aadhaar_url, u.resume_url, u.remarks,
               u.source, u.referrer, u.referrer_emp_no, u.notice_period
            FROM users u
@@ -358,7 +358,7 @@ let rows;
               u.updated_at as user_updated_at, u.last_login_at,
               u.department, u.designation, u.role, u.active, u.created_at, u.location_id, u.location_code,
               u.dob, u.gender, u.blood_group, u.aadhaar_number, u.father_details, u.mother_details,
-              CONCAT_WS('/', u.religion, u.caste) as religion_caste, u.religion, u.caste, u.languages_known,
+              CONCAT_WS('/', NULL as religion, NULL as caste) as religion_caste, NULL as religion, NULL as caste, u.languages_known,
               u.city_state, u.address, u.qualification, u.experience, u.retail_experience,
               u.previous_company, u.previous_designation, u.previous_salary, u.current_salary, u.expected_salary,
               u.photo_url, u.aadhaar_url, u.resume_url, u.remarks, u.source, u.referrer, u.referrer_emp_no,
@@ -369,7 +369,7 @@ let rows;
               u.retail_experience, u.qualification, u.previous_company, u.previous_designation,
               u.previous_salary, u.current_salary, u.branch, u.reporting_manager,
               u.dob, u.gender, u.blood_group, u.aadhaar_number, u.father_details,
-              u.mother_details, u.religion, u.caste, u.languages_known, u.city_state,
+              u.mother_details, NULL as religion, NULL as caste, u.languages_known, u.city_state,
               u.address, u.photo_url, u.aadhaar_url, u.resume_url, u.remarks,
               u.source, u.referrer, u.referrer_emp_no, u.notice_period
            FROM users u

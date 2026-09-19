@@ -249,7 +249,7 @@ export default function SettingsPage() {
                       <span className="px-2 py-0.2 rounded-full text-[9px] font-black bg-accent/20 text-accent uppercase">Production Feature</span>
                     </h4>
                     <p className="text-[11px] text-primary font-medium mt-0.5">
-                      Configure granular section-by-section permissions (View, Add, Edit, Delete, Export, Approve), manage user limits &amp; audit security events.
+                      Configure granular section-by-section permissions (View, Add, Edit, Delete, Export), manage user limits &amp; audit security events.
                     </p>
                   </div>
                 </div>

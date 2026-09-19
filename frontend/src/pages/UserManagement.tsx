@@ -555,7 +555,7 @@ export default function UserManagementPage() {
             can_edit: !!found.can_edit,
             can_delete: !!found.can_delete,
             can_export: !!found.can_export,
-            can_approve: !!found.can_approve
+            
           };
         } else {
           permMap[m.key] = {
@@ -565,7 +565,7 @@ export default function UserManagementPage() {
             can_edit: false,
             can_delete: false,
             can_export: false,
-            can_approve: false
+            
           };
         }
       });
@@ -586,7 +586,7 @@ export default function UserManagementPage() {
         can_edit: false,
         can_delete: false,
         can_export: false,
-        can_approve: false
+        
       };
 
       const updated = { ...current, [action]: !current[action] };
@@ -634,7 +634,7 @@ export default function UserManagementPage() {
     setUserPermissions(prev => {
       const updated: Record<string, UserPermission> = {};
       modules.forEach(m => {
-        const cur = prev[m.key] || { module: m.key, can_view: false, can_add: false, can_edit: false, can_delete: false, can_export: false, can_approve: false };
+        const cur = prev[m.key] || { module: m.key, can_view: false, can_add: false, can_edit: false, can_delete: false, can_export: false,  };
         updated[m.key] = { ...cur, can_view: true };
       });
       return updated;
@@ -653,7 +653,7 @@ export default function UserManagementPage() {
           can_edit: true,
           can_delete: true,
           can_export: true,
-          can_approve: true
+          
         };
       });
       return updated;
@@ -672,7 +672,7 @@ export default function UserManagementPage() {
           can_edit: false,
           can_delete: false,
           can_export: false,
-          can_approve: false
+          
         };
       });
       return updated;
@@ -1949,7 +1949,7 @@ export default function UserManagementPage() {
                     <th className="py-2.5 px-2 text-center">Edit</th>
                     <th className="py-2.5 px-2 text-center">Delete</th>
                     <th className="py-2.5 px-2 text-center">Export</th>
-                    <th className="py-2.5 px-2 text-center">Approve</th>
+                    
                     <th className="py-2.5 px-2 text-center">Row Action</th>
                   </tr>
                 </thead>
@@ -1962,10 +1962,10 @@ export default function UserManagementPage() {
                       can_edit: false,
                       can_delete: false,
                       can_export: false,
-                      can_approve: false
+                      
                     };
 
-                    const isAllChecked = perm.can_view && perm.can_add && perm.can_edit && perm.can_delete && perm.can_export && perm.can_approve;
+                    const isAllChecked = perm.can_view && perm.can_add && perm.can_edit && perm.can_delete && perm.can_export ;
 
                     return (
                       <tr key={m.key} className={`hover:bg-accent/5 transition-colors ${perm.can_view ? 'bg-primary/2' : ''}`}>
