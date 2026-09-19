@@ -381,9 +381,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Role-Scoped Workflow & Approval Panel (Admin sees pending approvals
-              with the server-enforced 20-minute window; every other role sees
-              its own submissions and approval tasks) */}
+          
           {!isGreeter && <WorkflowPanel />}
 
           {/* Metric Cards Section */}

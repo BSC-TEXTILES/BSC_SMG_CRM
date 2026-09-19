@@ -603,7 +603,7 @@ export default function Divert() {
           </div>
         )}
 
-        {/* Centered Details Popup Modal Card with Approval Timeline */}
+        {/* Centered Details Popup Modal Card */}
         {selectedDivert && (
           <div className="fixed inset-0 bg-primary/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-accent/40 animate-scale-in flex flex-col max-h-[90vh]">

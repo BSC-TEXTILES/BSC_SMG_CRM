@@ -409,26 +409,7 @@ export default function MainCrmDashboard() {
                   </div>
                 </div>
 
-                {/* Right Column: Swatch Approval */}
-                <div className="col-span-1 space-y-4">
-                   <div className="bg-white rounded-xl border border-[#EBE5E0] p-4 shadow-sm h-full flex flex-col">
-                     <div className="flex justify-between items-center mb-3">
-                       <h3 className="text-xs font-extrabold text-[#2C1E16] uppercase tracking-wide">Bridal Swatch Approval</h3>
-                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                     </div>
-                     <div className="relative rounded-lg overflow-hidden h-28 mb-3 bg-rose-900 border border-rose-100 shadow-inner group cursor-pointer">
-                        <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Silk Swatch" className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded">Roll Ref: #DVG-K2-099</div>
-                     </div>
-                     <div className="text-sm font-extrabold text-[#2C1E16] mb-1">Royal Mayil Chakra Korvai</div>
-                     <div className="text-[10px] text-[#5B4636] leading-relaxed flex-1">
-                       Crimson body with royal vermillion pallu. Color fastness certificate approved by Davanagere Textile Lab.
-                     </div>
-                     <button className="w-full mt-3 py-2 border border-[#EBE5E0] rounded-lg text-[10px] font-bold text-[#5B4636] hover:bg-[#F3EFE9] transition-colors">
-                       Inspect Swatch (4K)
-                     </button>
-                   </div>
-                </div>
+                
               </div>
 
               {/* Bottom Row */}

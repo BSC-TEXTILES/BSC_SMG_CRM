@@ -66,7 +66,6 @@ const { errorRes } = require('./src/utils/response');
 const { authenticate, authorize } = require('./src/middleware/auth');
 const { setCsrfCookie, csrfProtection } = require('./src/middleware/csrf');
 const feedbackQrController = require('./src/controllers/feedbackQrController');
-const workflowProcessor = require('./src/services/workflowProcessor');
 
 // ── Express App ───────────────────────────────────────────────────────────────
 const app = express();
@@ -555,7 +554,6 @@ autoInitializeDatabase(pool)
   .then(() => {
     console.log('[Boot] DB init complete');
     // Start workflow timeout processor after DB is ready
-    workflowProcessor.startWorkflowProcessor();
   })
   .catch(err => console.error('[Boot] DB init error:', err.message));
 

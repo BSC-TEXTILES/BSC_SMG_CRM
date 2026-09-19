@@ -3,7 +3,6 @@ const { successRes, errorRes } = require('../utils/response');
 const { getLocationFilter, injectLocationId } = require('../middleware/auth');
 const { encryptField, decryptRows, decryptRow } = require('../utils/crypto');
 const { sendWeddingRegistrationConfirmation } = require('../config/email');
-const workflowService = require('../services/workflowService');
 const {
   isValidMobile,
   normalizeMobile,
@@ -682,7 +681,6 @@ class WeddingRegistrationController {
       // backend processor, not by any browser timer.
       let workflowStarted = false;
       try {
-        const wfResult = await workflowService.createWorkflowInstance(
           req,
           'wedding_registration',
           String(newId),
