@@ -455,7 +455,7 @@ export default function FeedbackQRManagement() {
       };
       const [qrRes, statsRes, locRes, secRes, formRes] = await Promise.all([
         API.getQrCodes(params),
-        API.getQrCodeStats(),
+        API.getQrCodeStats({ status: statusFilter !== 'all' ? statusFilter : undefined, locationId: locationFilter || undefined }),
         API.getLocationsForQr(),
         API.getSectionsForQr(locationFilter || undefined),
         API.getFeedbackForms()
@@ -465,7 +465,7 @@ export default function FeedbackQRManagement() {
         setTotalItems(qrRes.pagination?.total || 0);
         setTotalPages(qrRes.pagination?.totalPages || 1);
       }
-      if (statsRes?.success) setStats(statsRes.stats);
+      if (statsRes?.success) setStats({ ...(statsRes.stats || {}), charts: statsRes.charts || { scansByDay: [], feedbackByDay: [] } });
       if (locRes?.success) setLocations(locRes.data || []);
       if (secRes?.success) setSections(secRes.data || []);
       if (formRes?.success) setFeedbackForms(formRes.data || []);
@@ -757,6 +757,39 @@ export default function FeedbackQRManagement() {
       }
     >
       <div className="space-y-6">
+        {/* Status & Location Filters — TOP of page */}
+        <div className="card-glass p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-black text-primary uppercase tracking-wider">
+              <Filter className="w-4 h-4 text-accent" />
+              <span>Filters</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10.5px] font-bold text-primary/60 hidden sm:inline">Status:</span>
+                <select value={statusFilter} onChange={(e) => handleFilterChange('status', e.target.value)} className="select-modern text-xs font-bold py-2 min-w-[130px]">
+                  <option value="all">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10.5px] font-bold text-primary/60 hidden sm:inline">Location:</span>
+                <select value={locationFilter} onChange={(e) => handleFilterChange('location', e.target.value)} className="select-modern text-xs font-bold py-2 min-w-[160px]">
+                  <option value="">All Locations</option>
+                  {locations.map(loc => (
+                    <option key={loc.id} value={String(loc.id)}>{loc.locationName} ({loc.locationCode})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5 ml-auto">
+                <ActionButton onClick={loadData} icon={<RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />} title="Refresh all data" variant="secondary" size="sm">Refresh</ActionButton>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Dashboard */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total QR Codes" value={stats?.totalQrCodes || 0} icon={QrCode} color="primary" />
@@ -772,40 +805,54 @@ export default function FeedbackQRManagement() {
               <Activity className="w-4 h-4 text-accent" />
               Scans (Last 7 Days)
             </h3>
-            <div className="h-48 flex items-end justify-center gap-2">
-              {stats?.charts?.scansByDay?.map((day, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-0">
-                  <div 
-                    className="w-full bg-accent rounded-t transition-all hover:bg-amber-400" 
-                    style={{ height: `${Math.max(4, (day.scans / Math.max(1, ...stats.charts.scansByDay.map(d => d.scans))) * 100)}%` }}
-                    title={`${day.date}: ${day.scans} scans`}
-                  />
-                  <span className="text-[9px] text-primary/60 font-medium mt-1">{day.date.split('-').slice(1).join('-')}</span>
-                </div>
-              ))}
-            </div>
+            {stats?.charts?.scansByDay && stats.charts.scansByDay.some(d => d.scans > 0) ? (
+              <div className="h-48 flex items-end justify-center gap-2">
+                {stats.charts.scansByDay.map((day, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-0">
+                    <div 
+                      className="w-full bg-accent rounded-t transition-all hover:bg-amber-400" 
+                      style={{ height: `${Math.max(4, (day.scans / Math.max(1, ...stats.charts.scansByDay.map(d => d.scans))) * 100)}%` }}
+                      title={`${day.date}: ${day.scans} scans`}
+                    />
+                    <span className="text-[9px] text-primary/60 font-medium mt-1">{day.date.split('-').slice(1).join('-')}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+                <ScanLine className="w-8 h-8 mb-2 opacity-40" />
+                <p className="text-xs font-semibold">No scan data for the last 7 days</p>
+              </div>
+            )}
           </div>
           <div className="card-glass p-5">
             <h3 className="font-extrabold text-sm text-primary uppercase tracking-wider flex items-center gap-2 mb-4">
               <MessageSquare className="w-4 h-4 text-accent" />
               Feedback Received (Last 7 Days)
             </h3>
-            <div className="h-48 flex items-end justify-center gap-2">
-              {stats?.charts?.feedbackByDay?.map((day, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-0">
-                  <div 
-                    className="w-full bg-emerald-500 rounded-t transition-all hover:bg-emerald-400" 
-                    style={{ height: `${Math.max(4, (day.feedback / Math.max(1, ...stats.charts.feedbackByDay.map(d => d.feedback))) * 100)}%` }}
-                    title={`${day.date}: ${day.feedback} feedback`}
-                  />
-                  <span className="text-[9px] text-primary/60 font-medium mt-1">{day.date.split('-').slice(1).join('-')}</span>
-                </div>
-              ))}
-            </div>
+            {stats?.charts?.feedbackByDay && stats.charts.feedbackByDay.some(d => d.feedback > 0) ? (
+              <div className="h-48 flex items-end justify-center gap-2">
+                {stats.charts.feedbackByDay.map((day, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-0">
+                    <div 
+                      className="w-full bg-emerald-500 rounded-t transition-all hover:bg-emerald-400" 
+                      style={{ height: `${Math.max(4, (day.feedback / Math.max(1, ...stats.charts.feedbackByDay.map(d => d.feedback))) * 100)}%` }}
+                      title={`${day.date}: ${day.feedback} feedback`}
+                    />
+                    <span className="text-[9px] text-primary/60 font-medium mt-1">{day.date.split('-').slice(1).join('-')}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-48 flex flex-col items-center justify-center text-gray-400">
+                <MessageSquare className="w-8 h-8 mb-2 opacity-40" />
+                <p className="text-xs font-semibold">No feedback data for the last 7 days</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Filter Toolbar */}
+        {/* Search Toolbar */}
         <div className="card-glass p-4 flex flex-col sm:flex-row items-center gap-3">
           <div className="relative flex-1 w-full max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -818,43 +865,25 @@ export default function FeedbackQRManagement() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <Filter className="w-3.5 h-3.5 text-accent hidden sm:block" />
-            
-            <select value={statusFilter} onChange={(e) => handleFilterChange('status', e.target.value)} className="select-modern text-xs font-bold py-2 min-w-[140px]">
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="archived">Archived</option>
-            </select>
-
-            <select value={locationFilter} onChange={(e) => handleFilterChange('location', e.target.value)} className="select-modern text-xs font-bold py-2 min-w-[160px]">
-              <option value="">All Locations</option>
-              {locations.map(loc => (
-                <option key={loc.id} value={String(loc.id)}>{loc.locationName} ({loc.locationCode})</option>
-              ))}
-            </select>
-
-            <div className="flex items-center gap-1.5 ml-auto">
-              <ActionButton 
-                variant="ghost" 
-                size="xs" 
-                onClick={() => setViewMode('grid')} 
-                title="Grid View"
-                className={viewMode === 'grid' ? 'bg-primary text-accent' : ''}
-              >
-                <Grid className="w-3.5 h-3.5" />
-              </ActionButton>
-              <ActionButton 
-                variant="ghost" 
-                size="xs" 
-                onClick={() => setViewMode('list')} 
-                title="List View"
-                className={viewMode === 'list' ? 'bg-primary text-accent' : ''}
-              >
-                <List className="w-3.5 h-3.5" />
-              </ActionButton>
-            </div>
+          <div className="flex items-center gap-1.5 ml-auto">
+            <ActionButton 
+              variant="ghost" 
+              size="xs" 
+              onClick={() => setViewMode('grid')} 
+              title="Grid View"
+              className={viewMode === 'grid' ? 'bg-primary text-accent' : ''}
+            >
+              <Grid className="w-3.5 h-3.5" />
+            </ActionButton>
+            <ActionButton 
+              variant="ghost" 
+              size="xs" 
+              onClick={() => setViewMode('list')} 
+              title="List View"
+              className={viewMode === 'list' ? 'bg-primary text-accent' : ''}
+            >
+              <List className="w-3.5 h-3.5" />
+            </ActionButton>
           </div>
         </div>
 
@@ -867,7 +896,6 @@ export default function FeedbackQRManagement() {
                   <QrCode className="w-4 h-4 text-accent" />
                   <span>QR Codes ({totalItems})</span>
                 </h3>
-                <ActionButton onClick={loadData} icon={<RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />} title="Refresh" variant="ghost" size="xs">Refresh</ActionButton>
               </div>
 
               {loading ? (

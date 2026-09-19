@@ -229,6 +229,10 @@ router.get('/mcheck/export/excel', mcheckController.exportExcel);
 const weddingRoutes = require('./weddingRoutes');
 router.use('/wedding-crm', weddingRoutes);
 
+// ── Telecaller Dashboard ─────────────────────────────────────
+const telecallerDashboardRoutes = require('./telecallerDashboardRoutes');
+router.use('/telecaller-dashboard', telecallerDashboardRoutes);
+
 // ── Wedding Registration ──────────────────────────────────────
 const workflowRoutes = require('./workflowRoutes');
 console.log('[DEBUG] Loading workflow routes...');

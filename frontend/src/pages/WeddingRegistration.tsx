@@ -38,7 +38,7 @@ const SHOPPING_CATEGORIES = [
 const SHOPPING_TIMES = ['Morning', 'Afternoon', 'Evening', 'Flexible'];
 const CONTACT_METHODS = ['Phone Call', 'WhatsApp', 'SMS', 'Email'];
 const FOLLOWUP_TIMES = ['9 AM – 12 PM', '12 PM – 3 PM', '3 PM – 6 PM', '6 PM – 9 PM', 'Any Time'];
-const EXISTING_CUSTOMER = ['Yes', 'No', 'Not Sure'];
+const EXISTING_CUSTOMER = ['Yes', 'No'];
 
 const initialForm = {
   // Step 1: Store Location
@@ -250,6 +250,7 @@ export default function WeddingRegistrationPage() {
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
     if (!validateStep(7)) {
       showToast('Please fix the errors before submitting', 'error');
       return;
@@ -274,26 +275,27 @@ export default function WeddingRegistrationPage() {
       const res = await API.createWeddingRegistration({ data: payload });
 
       if (res && res.success) {
-        // IDs always come from the backend / database response — never generated on the frontend.
         const regId = res.registration_id || res.customer_id || res.registration?.registration_id || '';
         const trackId = res.tracking_id || res.registration?.tracking_id || regId;
         setSuccessRegId(regId);
         setSuccessTrackId(trackId);
-        setStep(8); // Processing screen (shows submitting to backend/email)
+        setStep(8);
         window.scrollTo(0, 0);
-        
-        // Simulate brief processing, then show success
+
         setTimeout(() => {
-          setStep(9); // Success screen with tracking ID
-          showToast('Your request was saved successfully! Email with Tracking ID sent.', 'success');
+          setStep(9);
+          showToast('Your request was saved successfully! Confirmation email sent.', 'success');
         }, 1500);
       } else {
         const errMsg = res?.message || res?.error || 'Failed to submit registration';
         showToast(errMsg, 'error');
       }
     } catch (err: any) {
+      const status = err?.status || err?.statusCode;
       const fieldErrors = err?.errors;
-      if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+      if (status === 409) {
+        showToast(err?.message || 'A registration with this mobile number already exists at this store. Please contact the store directly.', 'error');
+      } else if (status === 400 && Array.isArray(fieldErrors) && fieldErrors.length > 0) {
         showToast(fieldErrors[0], 'error');
       } else {
         const errMsg = err?.message || 'Error submitting registration. Please try again.';
@@ -898,10 +900,16 @@ export default function WeddingRegistrationPage() {
                   <User className="w-4 h-4" />
                   Customer Details
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-primary">
                   <p><strong>Name:</strong> {form.customer_name}</p>
                   <p><strong>Mobile:</strong> +91 {form.mobile}</p>
+                  {form.alternate_mobile && <p><strong>Alt Mobile:</strong> +91 {form.alternate_mobile}</p>}
                   <p><strong>Email:</strong> {form.email || '—'}</p>
+                  {form.gender && <p><strong>Gender:</strong> {form.gender}</p>}
+                  {form.age && <p><strong>Age:</strong> {form.age}</p>}
+                  {(form.address || form.area || form.city) && (
+                    <p className="col-span-2 sm:col-span-3"><strong>Address:</strong> {[form.address, form.area, form.city, form.pincode].filter(Boolean).join(', ')}</p>
+                  )}
                 </div>
               </div>
 
@@ -911,15 +919,39 @@ export default function WeddingRegistrationPage() {
                   <Heart className="w-4 h-4" />
                   Wedding Details
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-primary">
                   <p><strong>Wedding Date:</strong> {form.wedding_date ? new Date(form.wedding_date).toLocaleDateString('en-IN') : '—'}</p>
-                  <p><strong>Flexibility:</strong> {form.wedding_date_flexibility}</p>
-                  <p><strong>Functions:</strong> {form.wedding_functions.map(f => WEDDING_FUNCTIONS.find(x => x.id === f)?.label).join(', ')}</p>
+                  <p><strong>Flexibility:</strong> {form.wedding_date_flexibility || '—'}</p>
+                  {form.wedding_type && <p><strong>Type:</strong> {form.wedding_type}</p>}
+                  {form.wedding_venue && <p><strong>Venue:</strong> {form.wedding_venue}</p>}
+                  {form.wedding_city && <p><strong>Wedding City:</strong> {form.wedding_city}</p>}
+                  {form.guest_count && <p><strong>Guests:</strong> {form.guest_count}</p>}
+                  {form.family_size && <p><strong>Family Size:</strong> {form.family_size}</p>}
+                  {form.wedding_functions.length > 0 && (
+                    <p className="col-span-2 sm:col-span-3"><strong>Functions:</strong> {form.wedding_functions.map(f => WEDDING_FUNCTIONS.find(x => x.id === f)?.label).filter(Boolean).join(', ')}</p>
+                  )}
                 </div>
               </div>
 
+              {/* Bride & Groom Details */}
+              {(form.bride_name || form.groom_name) && (
+                <div className="p-4 rounded-xl bg-background border border-accent-soft">
+                  <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
+                    <Heart className="w-4 h-4" />
+                    Bride & Groom Details
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-primary">
+                    {form.bride_name && <p><strong>Bride:</strong> {form.bride_name}{form.bride_age ? ` (${form.bride_age} yrs)` : ''}</p>}
+                    {form.bride_contact && <p><strong>Bride Contact:</strong> {form.bride_contact}</p>}
+                    {form.bride_name && <p><strong>Bride Shopping:</strong> {form.bride_shopping_required ? 'Yes' : 'No'}</p>}
+                    {form.groom_name && <p><strong>Groom:</strong> {form.groom_name}{form.groom_age ? ` (${form.groom_age} yrs)` : ''}</p>}
+                    {form.groom_contact && <p><strong>Groom Contact:</strong> {form.groom_contact}</p>}
+                    {form.groom_name && <p><strong>Groom Shopping:</strong> {form.groom_shopping_required ? 'Yes' : 'No'}</p>}
+                  </div>
+                </div>
+              )}
 
-              {/* Shopping */}
+              {/* Shopping Requirements */}
               <div className="p-4 rounded-xl bg-background border border-accent-soft">
                 <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
                   <ShoppingBag className="w-4 h-4" />
@@ -931,23 +963,40 @@ export default function WeddingRegistrationPage() {
                       <p key={cat}><strong>{cat}:</strong> {items.join(', ')}</p>
                     )
                   ))}
+                  {Object.values(form.shopping_requirements).every(items => items.length === 0) && (
+                    <p className="text-primary/50 italic">No specific items selected</p>
+                  )}
+                  {form.budget_range && <p className="mt-1"><strong>Budget:</strong> {form.budget_range}</p>}
                 </div>
               </div>
 
-              {/* Follow-up */}
+              {/* Visit & Follow-up */}
               <div className="p-4 rounded-xl bg-background border border-accent-soft">
                 <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Visit & Follow-up
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-primary">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-primary">
                   <p><strong>Preferred Date:</strong> {form.preferred_shopping_date ? new Date(form.preferred_shopping_date).toLocaleDateString('en-IN') : '—'}</p>
-                  <p><strong>Preferred Time:</strong> {form.preferred_shopping_time}</p>
-                  <p><strong>Contact Method:</strong> {form.preferred_contact_method}</p>
-                  <p><strong>Follow-up Time:</strong> {form.preferred_followup_time}</p>
-                  <p><strong>Existing emp:</strong> {form.existing_customer}</p>
+                  <p><strong>Preferred Time:</strong> {form.preferred_shopping_time || '—'}</p>
+                  <p><strong>Contact Method:</strong> {form.preferred_contact_method || '—'}</p>
+                  <p><strong>Follow-up Time:</strong> {form.preferred_followup_time || '—'}</p>
+                  {form.expected_visitors && <p><strong>Expected Visitors:</strong> {form.expected_visitors}</p>}
+                  {form.existing_customer && <p><strong>Existing Customer:</strong> {form.existing_customer}</p>}
+                  {form.previous_store && <p><strong>Previous Store:</strong> {form.previous_store}</p>}
                 </div>
               </div>
+
+              {/* Additional Notes */}
+              {form.additional_notes && (
+                <div className="p-4 rounded-xl bg-background border border-accent-soft">
+                  <h4 className="font-bold text-sm text-primary mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Additional Notes
+                  </h4>
+                  <p className="text-xs text-primary whitespace-pre-wrap">{form.additional_notes}</p>
+                </div>
+              )}
 
               {/* Consent */}
               <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-2">
@@ -976,10 +1025,13 @@ export default function WeddingRegistrationPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="btn-gold flex items-center gap-2 shadow-lg disabled:opacity-50"
+                className="btn-gold flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <span>{loadingText}</span>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{loadingText}</span>
+                  </>
                 ) : (
                   <>
                     <span>Submit Wedding Registration</span>

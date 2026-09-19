@@ -31,6 +31,7 @@ import DailyMCheck from './pages/DailyMCheck';
 import MCheckReports from './pages/MCheckReports';
 import MCheckHistory from './pages/MCheckHistory';
 import WeddingCRM from './pages/WeddingCRM';
+import TelecallerDashboard from './pages/TelecallerDashboard';
 import WeddingTracking from './pages/WeddingTracking';
 import SystemAdmin from './pages/SystemAdmin';
 import AdminApprovalDashboard from './pages/AdminApprovalDashboard';
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<RouteGuard pageKey="dashboard"><Dashboard /></RouteGuard>} />
         <Route path="/wedding-crm" element={<RouteGuard pageKey="wedding_crm"><WeddingCRM /></RouteGuard>} />
+        <Route path="/telecaller-dashboard" element={<RouteGuard pageKey="telecaller_dashboard"><TelecallerDashboard /></RouteGuard>} />
         <Route path="/footfall" element={<RouteGuard pageKey="footfall"><Footfall /></RouteGuard>} />
         <Route path="/feedback-public" element={<PublicFeedback />} />
         <Route path="/feedback-qr" element={<FeedbackQR />} />

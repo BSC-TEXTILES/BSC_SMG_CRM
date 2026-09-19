@@ -20,7 +20,8 @@ import {
   Menu,
   Shield,
   ShieldAlert,
-  ShieldCheck
+  ShieldCheck,
+  PhoneCall
 } from 'lucide-react';
 import { 
   getSidebarCollapsed, 
@@ -112,10 +113,12 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     'Manager':     'Store Manager',
     'Employee':    'Employee',
     'Guest':       'Guest',
-    'Greeter':     'Greeter Desk'
+    'Greeter':     'Greeter Desk',
+    'Telecaller':  'Telecaller'
   };
 
   const navItems = [
+    { key: 'telecaller_dashboard', href: '/telecaller-dashboard', label: 'Telecaller Dashboard', icon: PhoneCall, section: 'Telecaller', isNew: true },
     { key: 'wedding_crm', href: '/wedding-crm', label: 'Wedding CRM', icon: Sparkles, section: 'Store Operations', isNew: true },
     { key: 'footfall', href: '/footfall', label: 'Hourly Footfall', icon: BarChart3, section: 'Store Operations' },
     { key: 'feedback_collection', href: '/feedback-collection', label: 'Feedback Collection', icon: FileText, section: 'Store Operations' },

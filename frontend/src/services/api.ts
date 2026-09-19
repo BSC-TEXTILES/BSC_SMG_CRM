@@ -3,8 +3,6 @@
  */
 
 const getApiBase = () => {
-  // @ts-ignore - suppress vite env errors in standard TS compiler
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
   return '/api';
 };
 
@@ -965,6 +963,37 @@ export const API = {
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
 
+  // ── Telecaller Dashboard ─────────────────────────────────────
+  async getTelecallerDashboardStats(locationId?: number | string) {
+    const q = locationId ? `?location_id=${locationId}` : '';
+    const res = await apiFetch(`/telecaller-dashboard/stats${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getTelecallerFollowUpPipeline(locationId?: number | string) {
+    const q = locationId ? `?location_id=${locationId}` : '';
+    const res = await apiFetch(`/telecaller-dashboard/pipeline${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getTelecallerCallHistory(params?: { limit?: number; offset?: number; date?: string; location_id?: number | string }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/telecaller-dashboard/call-history${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getTelecallerPerformance(params?: { period?: string; location_id?: number | string }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/telecaller-dashboard/performance${q ? `?${q}` : ''}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getTelecallerCustomerDetail(customerId: number | string) {
+    const res = await apiFetch(`/telecaller-dashboard/customers/${customerId}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+  async getTelecallerRecentCustomers(limit?: number) {
+    const q = limit ? `?limit=${limit}` : '';
+    const res = await apiFetch(`/telecaller-dashboard/recent-customers${q}`);
+    return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
+  },
+
   // ── Wedding CRM: Extended Calendar ───────────────────────────
   async getWeddingExtendedCalendar(year: number, month: number, locationId?: number | string) {
     const params: Record<string, string> = { year: String(year), month: String(month) };
@@ -1063,8 +1092,9 @@ export const API = {
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
 
-  async getQrCodeStats() {
-    const res = await apiFetch('/feedback-qr/stats');
+  async getQrCodeStats(params?: { status?: string; locationId?: string }) {
+    const q = params ? new URLSearchParams(cleanQueryParams(params)).toString() : '';
+    const res = await apiFetch(`/feedback-qr/stats${q ? `?${q}` : ''}`);
     return (res && res.data !== undefined) ? { ...res, ...res.data } : res;
   },
 

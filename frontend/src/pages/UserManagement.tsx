@@ -101,7 +101,8 @@ const DEFAULT_SYSTEM_ROLES = [
   'Interviewer',
   'Employee',
   'Greeter',
-  'Guest'
+  'Guest',
+  'Telecaller'
 ];
 
 export default function UserManagementPage() {

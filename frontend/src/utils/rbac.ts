@@ -18,15 +18,16 @@ export interface SessionLike {
 // backend; the DB (page_visibility / user_permissions) can narrow these but a
 // key absent for a role here is hidden for that role.
 export const ROLE_NAV_MAP: Record<string, string[]> = {
-  'Super Admin': ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin', 'admin_approvals'],
-  'Admin':       ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin', 'admin_approvals'],
+  'Super Admin': ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin', 'admin_approvals', 'telecaller_dashboard'],
+  'Admin':       ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin', 'admin_approvals', 'telecaller_dashboard'],
   'HR':          ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'user_management', 'admin_approvals'],
   'Recruiter':   ['wedding_crm', 'wedding_registration', 'dashboard', 'candidates', 'broadcast'],
   'Interviewer': ['candidates'],
   'Manager':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'user_management'],
   'Employee':    ['wedding_crm', 'wedding_registration', 'dashboard'],
   'Guest':       ['wedding_registration'],
-  'Greeter':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter']
+  'Greeter':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter'],
+  'Telecaller':  ['telecaller_dashboard']
 };
 
 export function getRoleNavMap(role?: string): string[] {

@@ -5,23 +5,23 @@
 @tailwind utilities;
 
 :root {
-  /* BSC Brand Theme — Deep Maroon + Gold */
+  /* BSC Brand Theme — Deep Maroon + Blush + Gold */
   
-  /* Primary Brand Color — Bisque */
-  --color-primary: #F2D2BD;
-  --color-primary-hover: #E8BCA0;
-  --color-primary-light: #F8DFCD;
-  --color-primary-soft: #FCF2EC;
-  --color-primary-soft-hover: #FAEDE4;
+  /* Primary Brand Color — Blue Gray */
+  --color-primary: #7393B3;
+  --color-primary-hover: #5A7A9A;
+  --color-primary-light: #93B3D3;
+  --color-primary-soft: #E3EBF3;
+  --color-primary-soft-hover: #D0DEEB;
   
-  /* Accent Color — Golden Amber */
-  --color-accent: #C9A227;
-  --color-accent-hover: #A8881F;
-  --color-accent-soft: #FBF5E1;
-  --color-accent-soft-hover: #F5EBCC;
+  /* Accent Color — Warm Cream/Gold */
+  --color-accent: #F5D58A;
+  --color-accent-hover: #E4C47A;
+  --color-accent-soft: #FEF8F8;
+  --color-accent-soft-hover: #FDF0F0;
 
-  /* Neutral Background */
-  --color-background: #F7F3EF;
+  /* Neutral Background — Soft Blush/Pink */
+  --color-background: #FEF8F8;
   
   /* Standardized Status Indicators */
   --green: #2D8659;
@@ -40,13 +40,13 @@
   --surface: #FFFFFF;
   --text-main: #2C1A1D;
   --text-muted: #5A493C;
-  --border: #E0D4CE;
-  --border-warm: #CEC0B8;
+  --border: #E8D5D8;
+  --border-warm: #D8C0C5;
 
   /* Readability system tokens */
   --text-soft: #4A3A30;                 /* secondary body text — AA on ivory & white */
   --color-accent-text: #8A6D1A;         /* dark gold for text/icons on light surfaces */
-  --color-accent-bright: #E9CE6B;       /* bright gold for text/icons on maroon/dark surfaces */
+  --color-accent-bright: #F5D58A;       /* bright gold for text/icons on maroon/dark surfaces */
 
   --navy: var(--color-primary);
   --navy-dark: var(--color-primary-hover);
@@ -70,6 +70,16 @@ body {
   user-select: text;
 }
 
+/* Sidebar color classes */
+.sidebar-bg { background-color: var(--color-primary); }
+.sidebar-border { border-color: rgba(255,255,255,0.15); }
+.sidebar-text { color: #FFFFFF; }
+.sidebar-text-muted { color: rgba(255,255,255,0.8); }
+.sidebar-accent { color: var(--color-accent); }
+.sidebar-hover-bg { background-color: var(--color-primary-hover); }
+.sidebar-active-bg { background-color: var(--color-accent); }
+.sidebar-active-text { color: var(--color-primary); }
+
 /* Enable full project text selection & copying everywhere */
 html, #root, * {
   -webkit-user-select: text;
@@ -80,11 +90,11 @@ html, #root, * {
 
 /* Refined Selection Highlighting */
 ::selection {
-  background-color: rgba(242, 210, 189, 0.5);
+  background-color: rgba(63, 14, 29, 0.2);
   color: #2C1A1D;
 }
 ::-moz-selection {
-  background-color: rgba(242, 210, 189, 0.5);
+  background-color: rgba(63, 14, 29, 0.2);
   color: #2C1A1D;
 }
 
@@ -109,12 +119,12 @@ html, #root, * {
   background: #FFFFFF;
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(242, 210, 189, 0.3);
+  box-shadow: 0 4px 16px rgba(63, 14, 29, 0.08);
   border-radius: 16px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-glass-hover:hover {
-  box-shadow: 0 8px 24px rgba(242, 210, 189, 0.45);
+  box-shadow: 0 8px 24px rgba(63, 14, 29, 0.12);
   transform: translateY(-1px);
 }
 
@@ -131,15 +141,15 @@ html, #root, * {
   letter-spacing: 0.01em;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
-.b-new { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
-.b-short { background: #FBF5E1; color: #6B4C00; border: 1px solid #E8D9A0; }
-.b-int { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
+.b-new { background: var(--color-primary-soft); color: var(--color-primary); border: 1px solid var(--border); }
+.b-short { background: var(--color-accent-soft); color: var(--color-accent-text); border: 1px solid var(--color-accent-soft-hover); }
+.b-int { background: var(--color-primary-soft); color: var(--color-primary); border: 1px solid var(--border); }
 .b-sel { background: #E6F4EC; color: #2D8659; border: 1px solid #B2DFCC; }
-.b-offer { background: #FBF5E1; color: #6B4C00; border: 1px solid #E8D9A0; }
+.b-offer { background: var(--color-accent-soft); color: var(--color-accent-text); border: 1px solid var(--color-accent-soft-hover); }
 .b-hold { background: #FFF8E1; color: #B8860B; border: 1px solid #F5E6A3; }
 .b-rej { background: #FDE8E8; color: #C0392B; border: 1px solid #F5B7B7; }
-.b-board { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
-.b-info { background: #FCF2EC; color: #2C1A1D; border: 1px solid #E8BCA0; }
+.b-board { background: var(--color-primary-soft); color: var(--color-primary); border: 1px solid var(--border); }
+.b-info { background: var(--color-primary-soft); color: var(--color-primary); border: 1px solid var(--border); }
 
 /* Status Chips */
 .sc-chip {
@@ -228,39 +238,39 @@ html, #root, * {
 }
 .input-modern:focus, .select-modern:focus, .textarea-modern:focus {
   outline: none;
-  border-color: var(--color-primary-hover);
+  border-color: var(--color-primary);
   background-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(242, 210, 189, 0.45);
+  box-shadow: 0 0 0 3px rgba(63, 14, 29, 0.15);
 }
 
 /* Modern Buttons — Primary & Accent */
 .btn-primary {
   background-color: var(--color-primary);
-  color: #2C1A1D;
+  color: #FFFFFF;
   font-weight: 700;
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(242, 210, 189, 0.40);
+  box-shadow: 0 2px 8px rgba(63, 14, 29, 0.3);
 }
 .btn-primary:hover {
   background-color: var(--color-primary-hover);
-  color: #2C1A1D;
+  color: #FFFFFF;
   transform: translateY(-0.5px);
-  box-shadow: 0 4px 14px rgba(242, 210, 189, 0.60);
+  box-shadow: 0 4px 14px rgba(63, 14, 29, 0.4);
 }
 .btn-gold {
   background-color: var(--color-accent);
-  color: #FFFFFF;
+  color: #2C1A1D;
   font-weight: 800;
   padding: 9px 18px;
   border-radius: 10px;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(201, 162, 39, 0.35);
+  box-shadow: 0 2px 8px rgba(245, 213, 138, 0.4);
 }
 .btn-gold:hover {
   background-color: var(--color-accent-hover);
-  color: #FFFFFF;
+  color: #2C1A1D;
   transform: translateY(-0.5px);
 }
 
@@ -412,23 +422,23 @@ html, #root, * {
   }
 }
 
-/* --- Contrast Overrides for Bisque Theme --- */
-/* Since primary is now a light color (Bisque), any white text on it will be invisible. */
-/* We override text-white and text-white/X utilities when combined with bg-primary */
-.bg-primary.text-white,
-.bg-burgundy.text-white,
-.bg-primary-hover.text-white,
-.bg-burgundy-hover.text-white,
-.bg-primary .text-white,
-.bg-burgundy .text-white,
-.bg-primary-light.text-white,
-.bg-primary-soft.text-white {
-  color: #2C1A1D !important;
+/* --- Contrast Overrides for Maroon Theme --- */
+/* Since primary is now a dark color (Maroon), any dark text on it will be invisible. */
+/* We override text-primary and text-primary/X utilities when combined with bg-primary */
+.bg-primary.text-primary,
+.bg-burgundy.text-primary,
+.bg-primary-hover.text-primary,
+.bg-burgundy-hover.text-primary,
+.bg-primary .text-primary,
+.bg-burgundy .text-primary,
+.bg-primary-light.text-primary,
+.bg-primary-soft.text-primary {
+  color: #FFFFFF !important;
 }
 
-/* Also target elements where text-white might be applied inside a bg-primary container */
-.bg-primary *:not(.bg-emerald-600):not(.bg-teal-700):not(.bg-red-600) {
-  /* This is tricky, better to just rely on explicit .text-white classes as done above */
+/* Ensure white text on primary backgrounds */
+.bg-primary *:not(.bg-emerald-600):not(.bg-teal-700):not(.bg-red-600):not(.bg-green-600):not(.bg-amber-600) {
+  color: inherit;
 }
 
 

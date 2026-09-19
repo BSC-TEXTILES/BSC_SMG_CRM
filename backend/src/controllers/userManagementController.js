@@ -34,6 +34,7 @@ function _parseLocationPairs(pairs, row = {}) {
 const MODULE_REGISTRY = [
   { key: 'dashboard', label: 'Dashboard', section: 'Core Workspace' },
   { key: 'wedding_crm', label: 'Wedding Follow-up CRM', section: 'Store Operations' },
+  { key: 'telecaller_dashboard', label: 'Telecaller Dashboard', section: 'Telecaller' },
   { key: 'footfall', label: 'Hourly Footfall', section: 'Store Operations' },
   { key: 'feedback_collection', label: 'Feedback Collection', section: 'Store Operations' },
   { key: 'feedback_list', label: 'Feedback Call Queue', section: 'Store Operations' },
@@ -50,7 +51,16 @@ const MODULE_REGISTRY = [
   { key: 'daily_mcheck', label: 'Daily MCheck', section: 'Daily Operations' },
   { key: 'mcheck_reports', label: 'MCheck Reports', section: 'Daily Operations' },
   { key: 'mcheck_history', label: 'MCheck History', section: 'Daily Operations' },
-  { key: 'user_management', label: 'User Management', section: 'Administration' }
+  { key: 'user_management', label: 'User Management', section: 'Administration' },
+  { key: 'attendance', label: 'Attendance & Roster', section: 'Store Operations' },
+  { key: 'pm_view', label: 'Purchase Manager View', section: 'Store Operations' },
+  { key: 'vm_checklist', label: 'VM Checklist', section: 'Store Operations' },
+  { key: 'greeter', label: 'Greeter Kiosk', section: 'Public Portals' },
+  { key: 'tv', label: 'Live TV Kiosk', section: 'Public Portals' },
+  { key: 'feedback_public', label: 'Customer Feedback QR', section: 'Public Portals' },
+  { key: 'system_admin', label: 'System Administrator', section: 'Administration' },
+  { key: 'admin_approvals', label: 'Admin Approvals', section: 'Administration' },
+  { key: 'wedding_registration', label: 'Applicant Registration', section: 'Public Portals' }
 ];
 
 // ── List all users with their permission counts ───────────────────

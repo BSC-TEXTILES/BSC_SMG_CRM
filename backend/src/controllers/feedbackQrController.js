@@ -562,34 +562,49 @@ exports.getQrCodeStats = async (req, res) => {
     const isGlobalAdmin = session && (session.role === 'Super Admin' || session.isGlobalAdmin);
     const userLocationId = session?.locationId;
 
+    // Accept optional filter params from the frontend
+    const { status, locationId } = req.query;
+
     let locationFilter = '';
     const params = [];
 
+    // Location scoping: non-global admins always locked to their location
     if (!isGlobalAdmin && userLocationId) {
       locationFilter = ' AND locationId = ?';
       params.push(userLocationId);
+    } else if (locationId) {
+      // Global admin can filter by a specific location
+      locationFilter = ' AND locationId = ?';
+      params.push(locationId);
+    }
+
+    // Status filter
+    let statusFilter = '';
+    if (status && status !== 'all') {
+      statusFilter = ' AND status = ?';
+      params.push(status);
     }
 
     // Total QR Codes
     const [totalRows] = await db.query(`
-      SELECT COUNT(*) as total FROM FeedbackQrCode WHERE deletedAt IS NULL ${locationFilter}
+      SELECT COUNT(*) as total FROM FeedbackQrCode WHERE deletedAt IS NULL ${locationFilter} ${statusFilter}
     `, params);
 
     // Active QR Codes
     const [activeRows] = await db.query(`
-      SELECT COUNT(*) as total FROM FeedbackQrCode WHERE deletedAt IS NULL AND status = 'active' ${locationFilter}
+      SELECT COUNT(*) as total FROM FeedbackQrCode WHERE deletedAt IS NULL AND status = 'active' ${locationFilter} ${statusFilter}
     `, params);
 
     // Inactive QR Codes
     const [inactiveRows] = await db.query(`
-      SELECT COUNT(*) as total FROM FeedbackQrCode WHERE deletedAt IS NULL AND status = 'inactive' ${locationFilter}
+      SELECT COUNT(*) as total FROM FeedbackQrCode WHERE deletedAt IS NULL AND status = 'inactive' ${locationFilter} ${statusFilter}
     `, params);
 
     // Total Scans
     let scanSql = `
       SELECT COUNT(*) as total FROM FeedbackQrScan fqs
       JOIN FeedbackQrCode fqc ON fqs.qrCodeRefId = fqc.qrCodeId
-      WHERE fqc.deletedAt IS NULL ${locationFilter}
+      WHERE fqc.deletedAt IS NULL ${locationFilter} ${statusFilter}
     `;
     const [scanRows] = await db.query(scanSql, params);
 
@@ -597,7 +612,7 @@ exports.getQrCodeStats = async (req, res) => {
     let feedbackSql = `
       SELECT COUNT(*) as total FROM Feedback f
       JOIN FeedbackQrCode fqc ON f.qrCodeId = fqc.qrCodeId
-      WHERE fqc.deletedAt IS NULL ${locationFilter}
+      WHERE fqc.deletedAt IS NULL ${locationFilter} ${statusFilter}
     `;
     const [feedbackRows] = await db.query(feedbackSql, params);
 
@@ -606,7 +621,7 @@ exports.getQrCodeStats = async (req, res) => {
     let todaySql = `
       SELECT COUNT(*) as total FROM Feedback f
       JOIN FeedbackQrCode fqc ON f.qrCodeId = fqc.qrCodeId
-      WHERE fqc.deletedAt IS NULL ${locationFilter}
+      WHERE fqc.deletedAt IS NULL ${locationFilter} ${statusFilter}
       AND f.entryDate = ?
     `;
     const todayParams = [...params, today];
@@ -625,7 +640,7 @@ exports.getQrCodeStats = async (req, res) => {
         END) as avgRating
       FROM Feedback f
       JOIN FeedbackQrCode fqc ON f.qrCodeId = fqc.qrCodeId
-      WHERE fqc.deletedAt IS NULL ${locationFilter}
+      WHERE fqc.deletedAt IS NULL ${locationFilter} ${statusFilter}
       AND f.answers IS NOT NULL AND f.answers != ''
     `;
     const [ratingRows] = await db.query(ratingSql, params);
@@ -640,7 +655,7 @@ exports.getQrCodeStats = async (req, res) => {
       const [dayScanRows] = await db.query(`
         SELECT COUNT(*) as total FROM FeedbackQrScan fqs
         JOIN FeedbackQrCode fqc ON fqs.qrCodeRefId = fqc.qrCodeId
-        WHERE fqc.deletedAt IS NULL ${locationFilter}
+        WHERE fqc.deletedAt IS NULL ${locationFilter} ${statusFilter}
         AND DATE(fqs.scannedAt) = ?
       `, [...params, dateStr]);
       
@@ -657,7 +672,7 @@ exports.getQrCodeStats = async (req, res) => {
       const [dayFeedbackRows] = await db.query(`
         SELECT COUNT(*) as total FROM Feedback f
         JOIN FeedbackQrCode fqc ON f.qrCodeId = fqc.qrCodeId
-        WHERE fqc.deletedAt IS NULL ${locationFilter}
+        WHERE fqc.deletedAt IS NULL ${locationFilter} ${statusFilter}
         AND f.entryDate = ?
       `, [...params, dateStr]);
       

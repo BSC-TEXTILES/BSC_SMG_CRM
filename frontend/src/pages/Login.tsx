@@ -93,9 +93,9 @@ export default function LoginPage() {
     try {
       const res = await API.getCaptcha();
       if (res?.data?.svg) {
-        // Use base64 encoding for reliable SVG rendering in <img>
-        const base64Svg = btoa(res.data.svg);
-        setCaptchaSvg('data:image/svg+xml;base64,' + base64Svg);
+        // Use URI-encoded SVG for reliable rendering in <img>
+        // btoa can fail with certain characters; encodeURIComponent is more reliable
+        setCaptchaSvg('data:image/svg+xml,' + encodeURIComponent(res.data.svg));
         setCaptchaId(res.data.captchaId);
         if (typeof res.data.codeLength === 'number' && res.data.codeLength > 0) {
           setCodeLength(res.data.codeLength);

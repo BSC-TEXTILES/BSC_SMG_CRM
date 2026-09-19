@@ -32,8 +32,13 @@ function prune() {
 
 function randomCode() {
   let code = '';
+  // crypto.randomInt requires Node 15.0.0+, fallback for Node 14 compatibility
+  const randomDigit = crypto.randomInt
+    ? () => crypto.randomInt(0, 10)
+    : () => crypto.randomBytes(1).readUInt8() % 10;
+  
   for (let i = 0; i < CODE_LENGTH; i++) {
-    code += String(crypto.randomInt(0, 10));
+    code += String(randomDigit());
   }
   return code;
 }
@@ -75,26 +80,28 @@ function renderSvg(code) {
 
   let chars = '';
   for (let i = 0; i < code.length; i++) {
-    const x = digitWidth * (i + 0.8) + rand(-3, 3);
-    const y = H / 2 + rand(7, 11);
-    const rot = rand(-15, 15);
-    const size = rand(32, 40); // large enough to stay legible when the SVG is scaled down
+    const x = digitWidth * (i + 0.8) + rand(-2, 2);
+    const size = rand(36, 42);
+    // Adjust y to properly center text vertically accounting for font baseline
+    // Using dominant-baseline: central to vertically center the text
+    const y = H / 2 + rand(4, 6);
+    const rot = rand(-12, 12);
     chars += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" transform="rotate(${rot.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})" `
       + `font-family="Georgia, 'Times New Roman', serif" font-size="${size.toFixed(1)}" font-weight="700" `
-      + `fill="#611427" text-anchor="middle">${code[i]}</text>`;
+      + `fill="#611427" text-anchor="middle" dominant-baseline="central">${code[i]}</text>`;
   }
 
   let noise = '';
   for (let i = 0; i < 3; i++) {
     noise += `<path d="M ${rand(0, W * 0.3).toFixed(0)} ${rand(0, H).toFixed(0)} `
       + `Q ${rand(0, W).toFixed(0)} ${rand(0, H).toFixed(0)} ${rand(W * 0.7, W).toFixed(0)} ${rand(0, H).toFixed(0)}" `
-      + `stroke="#B88D42" stroke-width="${rand(0.8, 1.4).toFixed(1)}" fill="none" opacity="${rand(0.2, 0.4).toFixed(2)}"/>`;
+      + `stroke="#B88D42" stroke-width="${rand(0.6, 1.0).toFixed(1)}" fill="none" opacity="${rand(0.15, 0.25).toFixed(2)}"/>`;
   }
-  for (let i = 0; i < 28; i++) {
-    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.8, 1.7).toFixed(1)}" fill="#6B5B5E" opacity="${rand(0.1, 0.25).toFixed(2)}"/>`;
+  for (let i = 0; i < 20; i++) {
+    noise += `<circle cx="${rand(0, W).toFixed(0)}" cy="${rand(0, H).toFixed(0)}" r="${rand(0.6, 1.2).toFixed(1)}" fill="#6B5B5E" opacity="${rand(0.08, 0.15).toFixed(2)}"/>`;
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="complex captcha">`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="4 digit security code">`
     + `<rect width="${W}" height="${H}" fill="#F9F6F0"/>${noise}${chars}</svg>`;
 }
 
