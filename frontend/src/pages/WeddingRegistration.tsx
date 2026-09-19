@@ -1107,7 +1107,7 @@ export default function WeddingRegistrationPage() {
                   Your request was saved successfully!
                 </h2>
                 <p className="text-xs text-black font-medium mt-1 animate-fade-up-step" style={{ animationDelay: '0.5s' }}>
-                  Thank you for choosing BSC Textiles. Our team members will connect with you shortly.
+                  Thank you for choosing BSC Textiles. Our team will contact you shortly. An email has been sent with your reference number.
                 </p>
               </div>
 
