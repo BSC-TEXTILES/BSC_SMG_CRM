@@ -107,6 +107,9 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
   const roleLabels: Record<string, string> = {
     'Super Admin': 'Super Administrator',
     'Admin':       'Administrator',
+    'Wedding Collection Manager': 'Wedding Collection Head',
+    'Team Lead':   'Team Lead / Calling Desk',
+    'Telecaller':  'Telecaller Workspace',
     'HR':          'HR Specialist',
     'Recruiter':   'Recruiter',
     'Interviewer': 'Interviewer Panel',

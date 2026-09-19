@@ -12,6 +12,8 @@ export interface UserSession {
   role: 'HR' | 'Manager' | 'Admin' | 'Super Admin' | string;
   fullName: string;
   displayName: string;
+  name?: string;
+  employeeId?: string | number;
   token?: string;
   // ── Multi-Location Fields ──
   locationId?: number | null;     // null = Global Admin (all locations)

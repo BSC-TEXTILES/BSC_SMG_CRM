@@ -20,6 +20,9 @@ export interface SessionLike {
 export const ROLE_NAV_MAP: Record<string, string[]> = {
   'Super Admin': ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin', 'admin_approvals', 'telecaller_dashboard'],
   'Admin':       ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'feedback_public', 'tv', 'greeter', 'broadcast', 'user_management', 'settings', 'system_admin', 'admin_approvals', 'telecaller_dashboard'],
+  'Wedding Collection Manager': ['wedding_crm', 'dashboard', 'wedding_registration', 'footfall', 'divert', 'broadcast'],
+  'Team Lead':   ['wedding_crm', 'dashboard', 'wedding_registration', 'employees', 'section_allocation', 'broadcast'],
+  'Telecaller':  ['wedding_crm', 'dashboard', 'wedding_registration', 'telecaller_dashboard'],
   'HR':          ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'user_management', 'admin_approvals'],
   'Recruiter':   ['wedding_crm', 'wedding_registration', 'dashboard', 'candidates', 'broadcast'],
   'Interviewer': ['candidates'],

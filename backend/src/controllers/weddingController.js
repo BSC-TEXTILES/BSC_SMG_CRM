@@ -310,8 +310,32 @@ async function ensureTables() {
       ADD COLUMN IF NOT EXISTS preferred_contact_method VARCHAR(50) NULL,
       ADD COLUMN IF NOT EXISTS preferred_followup_time VARCHAR(50) NULL,
       ADD COLUMN IF NOT EXISTS additional_notes TEXT NULL,
-      ADD COLUMN IF NOT EXISTS consent BOOLEAN DEFAULT FALSE
+      ADD COLUMN IF NOT EXISTS consent BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS priority VARCHAR(50) DEFAULT 'Medium',
+      ADD COLUMN IF NOT EXISTS budget VARCHAR(100) NULL,
+      ADD COLUMN IF NOT EXISTS lead_source VARCHAR(100) DEFAULT 'Wedding Registration'
     `);
+
+    // Ensure call log columns for duration and customer response
+    try {
+      await pool.query(`
+        ALTER TABLE \`wedding_call_logs\`
+        ADD COLUMN IF NOT EXISTS call_duration VARCHAR(50) NULL,
+        ADD COLUMN IF NOT EXISTS customer_response TEXT NULL
+      `);
+    } catch (e) {}
+
+    // Ensure roles table has the wedding crm & telecaller roles
+    try {
+      await pool.query(`
+        INSERT IGNORE INTO \`Role\` (\`roleName\`, \`description\`, \`status\`) VALUES
+        ('Super Admin', 'Full system access across all companies and settings', 'Active'),
+        ('Admin', 'Administrator access with user and settings management', 'Active'),
+        ('Wedding Collection Manager', 'Wedding Collection operational dashboard, pipeline & customer management', 'Active'),
+        ('Team Lead', 'Team-level calling, performance and allocation management', 'Active'),
+        ('Telecaller', 'Daily calling desk, customer follow-up and appointment workspace', 'Active')
+      `);
+    } catch (e) {}
 
     // Seed default customer sources
     await pool.query(`
@@ -357,33 +381,98 @@ class WeddingController {
   async getDashboardStats(req, res) {
     try {
       await ensureTables();
-      const { clause, params } = resolveLocFilter(req, 'w');
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+      let clause = locClause;
+      let params = [...locParams];
+
+      // Scoping for Telecaller role: only their assigned customers
+      if (req.user && req.user.role === 'Telecaller') {
+        clause += ` AND (w.assigned_telecaller_id = ? OR w.assigned_telecaller = ?)`;
+        params.push(req.user.id, req.user.fullName || req.user.username || '');
+      }
 
       const [rows] = await pool.query(`
         SELECT
           COUNT(*) AS totalCustomers,
+          SUM(CASE WHEN DATE(w.created_at) = CURDATE() THEN 1 ELSE 0 END) AS todayNewCustomers,
+          SUM(CASE WHEN w.customer_status = 'New' THEN 1 ELSE 0 END) AS newRequests,
+          SUM(CASE WHEN w.customer_status IN ('New', 'Contacted', 'Interested', 'Follow-up Pending', 'Shopping Date Confirmed') THEN 1 ELSE 0 END) AS activeLeads,
+          SUM(CASE WHEN w.customer_status = 'Interested' THEN 1 ELSE 0 END) AS interestedCustomers,
           SUM(CASE WHEN w.follow_up_date = CURDATE() AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed') THEN 1 ELSE 0 END) AS todayFollowUps,
           SUM(CASE WHEN w.follow_up_date < CURDATE() AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed') THEN 1 ELSE 0 END) AS overdueFollowUps,
           SUM(CASE WHEN w.call_status IN ('Pending', 'Call Back Requested', 'No Answer', 'Busy') THEN 1 ELSE 0 END) AS callsPending,
           SUM(CASE WHEN w.call_status = 'Completed' THEN 1 ELSE 0 END) AS callsCompleted,
+          SUM(CASE WHEN w.call_status = 'Connected' THEN 1 ELSE 0 END) AS connectedCalls,
+          SUM(CASE WHEN w.call_status IN ('No Answer', 'Busy', 'Switched Off') THEN 1 ELSE 0 END) AS missedCalls,
+          SUM(CASE WHEN w.call_status = 'Call Back Requested' THEN 1 ELSE 0 END) AS callbackRequests,
           SUM(CASE WHEN w.customer_status = 'Shopping Date Confirmed' THEN 1 ELSE 0 END) AS shoppingConfirmed,
           SUM(CASE WHEN w.customer_status IN ('Visited Store', 'Converted') THEN 1 ELSE 0 END) AS visitedConverted,
+          SUM(CASE WHEN w.customer_status = 'Converted' THEN 1 ELSE 0 END) AS convertedCustomers,
+          SUM(CASE WHEN w.customer_status IN ('Not Interested', 'Cancelled', 'Closed') THEN 1 ELSE 0 END) AS lostCustomers,
           SUM(CASE WHEN w.customer_status = 'Not Interested' THEN 1 ELSE 0 END) AS notInterested
         FROM wedding_customers w
         WHERE w.is_deleted = 0 ${clause}
       `, params);
 
+      // Appointments counts
+      let apptParams = [];
+      let apptWhere = '';
+      if (req.user && req.user.locationId) {
+        apptWhere += ' AND a.location_id = ?';
+        apptParams.push(req.user.locationId);
+      }
+      const [apptRows] = await pool.query(`
+        SELECT
+          SUM(CASE WHEN a.appointment_date = CURDATE() THEN 1 ELSE 0 END) AS todayAppointments,
+          SUM(CASE WHEN a.appointment_date > CURDATE() THEN 1 ELSE 0 END) AS upcomingAppointments,
+          SUM(CASE WHEN a.appointment_status = 'Completed' THEN 1 ELSE 0 END) AS completedAppointments,
+          SUM(CASE WHEN a.appointment_status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelledAppointments
+        FROM wedding_appointments a
+        WHERE 1=1 ${apptWhere}
+      `, apptParams);
+
+      const rawAppts = apptRows[0] || {};
       const raw = rows[0] || {};
+
+      // Calls logged today count
+      let callLogWhere = 'WHERE cl.call_date = CURDATE()';
+      let callLogParams = [];
+      if (req.user && req.user.locationId) {
+        callLogWhere += ' AND cl.location_id = ?';
+        callLogParams.push(req.user.locationId);
+      }
+      if (req.user && req.user.role === 'Telecaller') {
+        callLogWhere += ' AND (cl.telecaller_id = ? OR cl.telecaller_name = ?)';
+        callLogParams.push(req.user.id, req.user.fullName || req.user.username || '');
+      }
+      const [callTodayRows] = await pool.query(`
+        SELECT COUNT(*) as callsToday FROM wedding_call_logs cl ${callLogWhere}
+      `, callLogParams);
+
       const stats = {
         totalCustomers: Number(raw.totalCustomers) || 0,
+        todayNewCustomers: Number(raw.todayNewCustomers) || 0,
+        newRequests: Number(raw.newRequests) || 0,
+        activeLeads: Number(raw.activeLeads) || 0,
+        interestedCustomers: Number(raw.interestedCustomers) || 0,
+        convertedCustomers: Number(raw.convertedCustomers) || 0,
+        lostCustomers: Number(raw.lostCustomers) || 0,
         todayFollowUps: Number(raw.todayFollowUps) || 0,
         overdueFollowUps: Number(raw.overdueFollowUps) || 0,
         callsPending: Number(raw.callsPending) || 0,
         callsCompleted: Number(raw.callsCompleted) || 0,
+        callsToday: Number(callTodayRows[0]?.callsToday) || 0,
+        connectedCalls: Number(raw.connectedCalls) || 0,
+        missedCalls: Number(raw.missedCalls) || 0,
+        callbackRequests: Number(raw.callbackRequests) || 0,
         shoppingConfirmed: Number(raw.shoppingConfirmed) || 0,
         visitedConverted: Number(raw.visitedConverted) || 0,
         notInterested: Number(raw.notInterested) || 0,
-        // Aliases for compatibility
+        todayAppointments: Number(rawAppts.todayAppointments) || 0,
+        upcomingAppointments: Number(rawAppts.upcomingAppointments) || 0,
+        completedAppointments: Number(rawAppts.completedAppointments) || 0,
+        cancelledAppointments: Number(rawAppts.cancelledAppointments) || 0,
+        // Compatibility Aliases
         total_customers: Number(raw.totalCustomers) || 0,
         due_today: Number(raw.todayFollowUps) || 0,
         overdue: Number(raw.overdueFollowUps) || 0,
@@ -441,6 +530,12 @@ class WeddingController {
 
       const { clause: locClause, params: queryParams } = resolveLocFilter(req, 'w');
       let whereClauses = [`w.is_deleted = 0`, `1=1 ${locClause}`];
+
+      // Enforce Telecaller ownership scoping: Telecallers only see their assigned customers
+      if (req.user && req.user.role === 'Telecaller') {
+        whereClauses.push(`(w.assigned_telecaller_id = ? OR w.assigned_telecaller = ?)`);
+        queryParams.push(req.user.id, req.user.fullName || req.user.username || '');
+      }
 
       // Date Quick-view Filter
       if (dateView === 'today') {
@@ -780,6 +875,16 @@ class WeddingController {
       }
 
       const customer = rows[0];
+
+      // IDOR protection: Telecallers may only inspect their assigned customers
+      if (req.user && req.user.role === 'Telecaller') {
+        const isAssigned = (customer.assigned_telecaller_id === req.user.id) ||
+                           (customer.assigned_telecaller && customer.assigned_telecaller.toLowerCase() === (req.user.fullName || req.user.username || '').toLowerCase());
+        if (!isAssigned) {
+          return errorRes(res, 'Access denied: Customer is not assigned to your calling queue', [], 403);
+        }
+      }
+
       decryptRow(customer, ENCRYPTED_FIELDS);
 
       // Call logs timeline
@@ -968,6 +1073,8 @@ class WeddingController {
       const rawNextFollowUpDate = req.body.nextFollowUpDate || req.body.next_follow_up_date;
       const nextFollowUpTime = req.body.nextFollowUpTime || req.body.next_follow_up_time;
       const rawExpectedShoppingDate = req.body.expectedShoppingDate || req.body.expected_shopping_date;
+      const callDuration = req.body.callDuration || req.body.call_duration || req.body.duration || null;
+      const customerResponse = req.body.customerResponse || req.body.customer_response || null;
 
       if (!customerId) {
         return errorRes(res, 'Customer ID is required', [], 400);
@@ -1025,8 +1132,10 @@ class WeddingController {
           remarks,
           next_follow_up_date,
           next_follow_up_time,
-          expected_shopping_date_updated
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          expected_shopping_date_updated,
+          call_duration,
+          customer_response
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         cust.id,
         cust.location_id,
@@ -1039,7 +1148,9 @@ class WeddingController {
         encryptField(remarks || null),
         nextFollowUpDate || null,
         nextFollowUpTime || null,
-        expectedShoppingDate || null
+        expectedShoppingDate || null,
+        callDuration,
+        customerResponse
       ]);
 
       // 2. Determine automated status transitions
@@ -1074,6 +1185,25 @@ class WeddingController {
           break;
         case 'Busy':
           newCallStatus = 'Busy';
+          break;
+        case 'Switched Off':
+          newCallStatus = 'Switched Off';
+          break;
+        case 'Wrong Number':
+          newCallStatus = 'Wrong Number';
+          newCustomerStatus = 'Cancelled';
+          break;
+        case 'Follow-Up Required':
+          newCustomerStatus = 'Follow-up Pending';
+          newCallStatus = 'Completed';
+          break;
+        case 'Appointment Requested':
+          newCustomerStatus = 'Appointment';
+          newCallStatus = 'Completed';
+          break;
+        case 'Converted':
+          newCustomerStatus = 'Converted';
+          newCallStatus = 'Completed';
           break;
         default:
           newCallStatus = 'Completed';
@@ -1146,18 +1276,28 @@ class WeddingController {
   async getCallingDesk(req, res) {
     try {
       await ensureTables();
-      const { clause: locClause, params } = resolveLocFilter(req, 'w');
+      const { clause: locClause, params: locParams } = resolveLocFilter(req, 'w');
+      let clause = locClause;
+      let params = [...locParams];
+
+      // Telecaller scoping: telecallers only access their assigned queue
+      if (req.user && req.user.role === 'Telecaller') {
+        clause += ` AND (w.assigned_telecaller_id = ? OR w.assigned_telecaller = ?)`;
+        params.push(req.user.id, req.user.fullName || req.user.username || '');
+      }
 
       // Overall desk counters
       const [counterRows] = await pool.query(`
         SELECT 
+          COUNT(*) AS assignedCalls,
           SUM(CASE WHEN w.follow_up_date = CURDATE() AND w.call_status IN ('Pending', 'Call Back Requested', 'No Answer', 'Busy') THEN 1 ELSE 0 END) AS pendingCalls,
           SUM(CASE WHEN w.last_call_date >= CURDATE() THEN 1 ELSE 0 END) AS completedToday,
+          SUM(CASE WHEN w.call_status = 'Connected' THEN 1 ELSE 0 END) AS connectedCalls,
           SUM(CASE WHEN w.call_status = 'No Answer' AND w.follow_up_date <= CURDATE() THEN 1 ELSE 0 END) AS noAnswerCount,
           SUM(CASE WHEN w.call_status = 'Call Back Requested' THEN 1 ELSE 0 END) AS callbackCount,
           SUM(CASE WHEN w.follow_up_date <= CURDATE() AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed') THEN 1 ELSE 0 END) AS remainingCalls
         FROM wedding_customers w
-        WHERE w.is_deleted = 0 ${locClause}
+        WHERE w.is_deleted = 0 ${clause}
       `, params);
 
       const baseSelect = `
@@ -1171,7 +1311,7 @@ class WeddingController {
           END AS overdue_days
         FROM wedding_customers w
         LEFT JOIN locations l ON l.id = w.location_id
-        WHERE w.is_deleted = 0 ${locClause}
+        WHERE w.is_deleted = 0 ${clause}
       `;
 
       // 1. Overdue (< CURDATE() and open)
@@ -1212,17 +1352,52 @@ class WeddingController {
         LIMIT 60
       `, params);
 
+      // 5. Priority Calls (High/Urgent)
+      const [priorityCalls] = await pool.query(`
+        ${baseSelect}
+        AND (w.priority IN ('Urgent', 'High') OR w.customer_status = 'Shopping Date Confirmed')
+        AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed')
+        ORDER BY w.follow_up_date ASC, w.id ASC
+        LIMIT 40
+      `, params);
+
+      // 6. New Customers
+      const [newCustomers] = await pool.query(`
+        ${baseSelect}
+        AND w.customer_status = 'New'
+        ORDER BY w.created_at DESC, w.id DESC
+        LIMIT 40
+      `, params);
+
+      // 7. Today's Appointments
+      let apptWhere = '';
+      let apptParams = [];
+      if (req.user && req.user.locationId) {
+        apptWhere += ' AND a.location_id = ?';
+        apptParams.push(req.user.locationId);
+      }
+      const [todayAppointments] = await pool.query(`
+        SELECT a.*, w.customer_name, w.mobile_number, w.customer_code
+        FROM wedding_appointments a
+        LEFT JOIN wedding_customers w ON w.id = a.customer_id
+        WHERE a.appointment_date = CURDATE() ${apptWhere}
+        ORDER BY a.appointment_time ASC
+        LIMIT 30
+      `, apptParams);
+
       const sum = counterRows[0] || {};
 
       // Restore conversation history for the queues before returning (see ENCRYPTED_FIELDS)
-      for (const q of [overdue, dueToday, callbackRequests, upcoming]) {
+      for (const q of [overdue, dueToday, callbackRequests, upcoming, priorityCalls, newCustomers]) {
         decryptRows(q, ENCRYPTED_FIELDS);
       }
 
       return successRes(res, {
         summary: {
+          assignedCalls: Number(sum.assignedCalls) || 0,
           pendingCalls: Number(sum.pendingCalls) || 0,
           completedToday: Number(sum.completedToday) || 0,
+          connectedCalls: Number(sum.connectedCalls) || 0,
           noAnswerCount: Number(sum.noAnswerCount) || 0,
           callbackCount: Number(sum.callbackCount) || 0,
           remainingCalls: Number(sum.remainingCalls) || 0
@@ -1234,6 +1409,12 @@ class WeddingController {
           callbacks: callbackRequests.length,
           callbackRequests: callbackRequests.length,
           upcoming: upcoming.length,
+          priority: priorityCalls.length,
+          priorityCalls: priorityCalls.length,
+          new_customers: newCustomers.length,
+          newCustomers: newCustomers.length,
+          appointments: todayAppointments.length,
+          todayAppointments: todayAppointments.length,
           pending: Number(sum.pendingCalls) || 0,
           completed: Number(sum.completedToday) || 0,
           no_answer: Number(sum.noAnswerCount) || 0,
@@ -1245,7 +1426,11 @@ class WeddingController {
           due_today: dueToday || [],
           callbackRequests: callbackRequests || [],
           callbacks: callbackRequests || [],
-          upcoming: upcoming || []
+          upcoming: upcoming || [],
+          priorityCalls: priorityCalls || [],
+          priority: priorityCalls || [],
+          newCustomers: newCustomers || [],
+          todayAppointments: todayAppointments || []
         }
       }, 'Calling desk queue loaded successfully');
     } catch (err) {

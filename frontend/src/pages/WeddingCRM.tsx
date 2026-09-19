@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
@@ -14,6 +15,7 @@ import {
   Clock,
   User,
   Users,
+  UserCheck,
   CheckCircle2,
   AlertCircle,
   XCircle,
@@ -71,6 +73,9 @@ interface WeddingCustomer {
   customer_notes?: string;
   customer_status: string;
   call_status: string;
+  priority?: 'Low' | 'Medium' | 'High' | 'Urgent';
+  budget?: string;
+  lead_source?: string;
   total_calls_count?: number;
   last_call_date?: string;
   last_call_outcome?: string;
@@ -80,13 +85,26 @@ interface WeddingCustomer {
 
 interface WeddingStats {
   totalCustomers: number;
+  todayNewCustomers?: number;
+  newRequests?: number;
+  activeLeads?: number;
+  interestedCustomers?: number;
   todayFollowUps: number;
   overdueFollowUps: number;
   callsPending: number;
   callsCompleted: number;
+  callsToday?: number;
+  connectedCalls?: number;
+  missedCalls?: number;
+  callbackRequests?: number;
   shoppingConfirmed: number;
   visitedConverted: number;
+  convertedCustomers?: number;
+  lostCustomers?: number;
   notInterested: number;
+  todayAppointments?: number;
+  upcomingAppointments?: number;
+  completedAppointments?: number;
 }
 
 interface CallLog {
@@ -141,10 +159,14 @@ const CALL_OUTCOMES = [
   'Connected',
   'No Answer',
   'Busy',
+  'Switched Off',
+  'Wrong Number',
   'Call Back Requested',
   'Interested',
   'Not Interested',
-  'Shopping Confirmed',
+  'Follow-Up Required',
+  'Appointment Requested',
+  'Converted',
   'Other'
 ];
 
@@ -169,10 +191,27 @@ const CALL_TIME_OPTIONS = [
 ];
 
 export default function WeddingCRM() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<UserSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
-  const [activeTab, setActiveTab] = useState<'calling_desk' | 'register' | 'calendar' | 'analytics' | 'pipeline'>('calling_desk');
+
+  const initialTab = (searchParams.get('tab') as any) || 'calling_desk';
+  const [activeTab, setActiveTab] = useState<'calling_desk' | 'register' | 'calendar' | 'analytics' | 'pipeline'>(
+    ['calling_desk', 'register', 'calendar', 'analytics', 'pipeline'].includes(initialTab) ? initialTab : 'calling_desk'
+  );
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['calling_desk', 'register', 'calendar', 'analytics', 'pipeline'].includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
+
+  const switchTab = (tab: 'calling_desk' | 'register' | 'calendar' | 'analytics' | 'pipeline') => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   // Multi-location state
   const [selectedLocation, setSelectedLocation] = useState<number | ''>('');
@@ -181,7 +220,7 @@ export default function WeddingCRM() {
   // Telecallers list
   const [telecallers, setTelecallers] = useState<any[]>([]);
 
-  // 8 Dashboard KPI Stats
+  // Dashboard KPI Stats
   const [stats, setStats] = useState<WeddingStats>({
     totalCustomers: 0,
     todayFollowUps: 0,
@@ -194,10 +233,12 @@ export default function WeddingCRM() {
   });
 
   // Calling Desk State
-  const [deskQueueType, setDeskQueueType] = useState<'overdue' | 'dueToday' | 'callbacks' | 'upcoming'>('dueToday');
+  const [deskQueueType, setDeskQueueType] = useState<'overdue' | 'dueToday' | 'callbacks' | 'upcoming' | 'priority' | 'newCustomers'>('dueToday');
   const [deskSummary, setDeskSummary] = useState({
+    assignedCalls: 0,
     pendingCalls: 0,
     completedToday: 0,
+    connectedCalls: 0,
     noAnswerCount: 0,
     callbackCount: 0,
     remainingCalls: 0
@@ -207,11 +248,17 @@ export default function WeddingCRM() {
     dueToday: WeddingCustomer[];
     callbackRequests: WeddingCustomer[];
     upcoming: WeddingCustomer[];
+    priorityCalls?: WeddingCustomer[];
+    newCustomers?: WeddingCustomer[];
+    todayAppointments?: any[];
   }>({
     overdue: [],
     dueToday: [],
     callbackRequests: [],
-    upcoming: []
+    upcoming: [],
+    priorityCalls: [],
+    newCustomers: [],
+    todayAppointments: []
   });
   const [loadingDesk, setLoadingDesk] = useState(false);
 
@@ -293,6 +340,8 @@ export default function WeddingCRM() {
     call_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     call_status: 'Completed',
     call_outcome: 'Connected',
+    call_duration: '2 mins',
+    customer_response: '',
     remarks: '',
     next_follow_up_date: '',
     next_follow_up_time: 'Morning (10 AM - 1 PM)',
@@ -644,6 +693,8 @@ export default function WeddingCRM() {
       call_time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       call_status: 'Completed',
       call_outcome: 'Connected',
+      call_duration: '2 mins',
+      customer_response: '',
       remarks: '',
       next_follow_up_date: toYMD(cust.follow_up_date),
       next_follow_up_time: cust.preferred_call_time || 'Morning (10 AM - 1 PM)',
@@ -666,6 +717,10 @@ export default function WeddingCRM() {
         callTime: logForm.call_time,
         callStatus: logForm.call_status,
         callOutcome: logForm.call_outcome,
+        callDuration: logForm.call_duration || null,
+        call_duration: logForm.call_duration || null,
+        customerResponse: logForm.customer_response || null,
+        customer_response: logForm.customer_response || null,
         remarks: logForm.remarks,
         nextFollowUpDate: logForm.call_outcome !== 'Not Interested' ? cleanDate(logForm.next_follow_up_date) : null,
         nextFollowUpTime: logForm.call_outcome !== 'Not Interested' ? (logForm.next_follow_up_time || null) : null,
@@ -1381,50 +1436,53 @@ export default function WeddingCRM() {
              ════════════════════════════════════════════════════════════ */}
           {activeTab === 'calling_desk' && (
             <div className="space-y-4">
-              {/* Telecaller Metrics Banner */}
-              <div className="bg-gradient-to-r from-primary to-primary text-black rounded-3xl p-5 shadow-lg border border-accent/30 flex flex-wrap items-center justify-between gap-4">
-                <div>
+              {/* Telecaller Metrics Banner & Target Tracking */}
+              <div className="bg-gradient-to-r from-primary via-primary-hover to-primary text-white rounded-3xl p-5 sm:p-6 shadow-xl border border-accent/40 flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-1">
                   <div className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-accent" />
-                    <span>DAILY TELECALLING WORKLOAD</span>
+                    <span>DAILY TELECALLING WORKSPACE & TARGET TRACKING</span>
                   </div>
-                  <div className="text-xl sm:text-xl sm:text-2xl font-black text-white mt-0.5">
+                  <div className="text-xl sm:text-2xl font-black text-white">
+                    {session?.fullName || session?.displayName || session?.name || 'Telecaller'} {session?.employeeId ? `(#${session.employeeId})` : ''}
+                  </div>
+                  <div className="text-xs text-white/80 font-medium">
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                   </div>
                 </div>
 
-                {/* Counter Pills */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-black/90">Calls Pending</div>
-                    <div className="text-lg font-black text-amber-400">{deskSummary.pendingCalls}</div>
+                {/* Target Progress & Counter Pills */}
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  <div className="bg-black/30 backdrop-blur-xs border border-white/10 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Daily Target</div>
+                    <div className="text-lg font-black text-white">50</div>
                   </div>
-                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-black/90">Calls Completed</div>
-                    <div className="text-lg font-black text-emerald-400">{deskSummary.completedToday}</div>
+                  <div className="bg-black/30 backdrop-blur-xs border border-white/10 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Calls Done</div>
+                    <div className="text-lg font-black text-emerald-300">{deskSummary.completedToday}</div>
                   </div>
-                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-black/90">No Answer</div>
-                    <div className="text-lg font-black text-rose-400">{deskSummary.noAnswerCount}</div>
+                  <div className="bg-black/30 backdrop-blur-xs border border-white/10 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Connected</div>
+                    <div className="text-lg font-black text-blue-300">{deskSummary.connectedCalls || 0}</div>
                   </div>
-                  <div className="bg-black/30 border border-black/10 rounded-2xl px-3.5 py-2 text-center">
-                    <div className="text-[10px] font-bold uppercase text-black/90">Callbacks</div>
+                  <div className="bg-black/30 backdrop-blur-xs border border-white/10 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
+                    <div className="text-[10px] font-bold uppercase text-white/70">Callbacks</div>
                     <div className="text-lg font-black text-purple-300">{deskSummary.callbackCount}</div>
                   </div>
-                  <div className="bg-accent text-primary rounded-2xl px-4 py-2 text-center shadow-md">
-                    <div className="text-[10px] font-black uppercase">Remaining Calls</div>
-                    <div className="text-lg font-black">{deskSummary.remainingCalls}</div>
+                  <div className="bg-accent text-primary rounded-2xl px-4 py-2 text-center shadow-lg border border-white/20 min-w-[85px]">
+                    <div className="text-[10px] font-black uppercase tracking-wider">Remaining</div>
+                    <div className="text-lg font-black">{Math.max(0, 50 - deskSummary.completedToday)}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Prioritized Queues Selector */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {/* 6 Prioritized Work Queues Selector */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
                 <button
                   onClick={() => setDeskQueueType('overdue')}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'overdue'
-                      ? 'bg-red-50 border-red-400 ring-2 ring-red-400 shadow-sm'
+                      ? 'bg-red-50 border-red-500 ring-2 ring-red-400 shadow-sm'
                       : 'bg-white border-accent-soft hover:border-red-300'
                   }`}
                 >
@@ -1440,7 +1498,7 @@ export default function WeddingCRM() {
                   onClick={() => setDeskQueueType('dueToday')}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'dueToday'
-                      ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400 shadow-sm'
+                      ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-400 shadow-sm'
                       : 'bg-white border-accent-soft hover:border-amber-300'
                   }`}
                 >
@@ -1456,28 +1514,60 @@ export default function WeddingCRM() {
                   onClick={() => setDeskQueueType('callbacks')}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'callbacks'
-                      ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-400 shadow-sm'
+                      ? 'bg-purple-50 border-purple-500 ring-2 ring-purple-400 shadow-sm'
                       : 'bg-white border-accent-soft hover:border-purple-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-purple-700">
-                    <span className="text-xs font-black uppercase">3. Callback Requests</span>
+                    <span className="text-xs font-black uppercase">3. Callbacks</span>
                     <PhoneForwarded className="w-4 h-4" />
                   </div>
                   <div className="text-xl font-black text-purple-900 mt-1">{deskQueues.callbackRequests.length}</div>
-                  <div className="text-[10px] text-purple-700 font-medium">Customer requested call</div>
+                  <div className="text-[10px] text-purple-700 font-medium">Requested callback</div>
+                </button>
+
+                <button
+                  onClick={() => setDeskQueueType('priority')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    deskQueueType === 'priority'
+                      ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-400 shadow-sm'
+                      : 'bg-white border-accent-soft hover:border-rose-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-rose-700">
+                    <span className="text-xs font-black uppercase">4. Priority / VIP</span>
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl font-black text-rose-900 mt-1">{deskQueues.priorityCalls?.length || 0}</div>
+                  <div className="text-[10px] text-rose-700 font-medium">High / Urgent budget</div>
+                </button>
+
+                <button
+                  onClick={() => setDeskQueueType('newCustomers')}
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    deskQueueType === 'newCustomers'
+                      ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-400 shadow-sm'
+                      : 'bg-white border-accent-soft hover:border-emerald-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-emerald-700">
+                    <span className="text-xs font-black uppercase">5. New Leads</span>
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl font-black text-emerald-900 mt-1">{deskQueues.newCustomers?.length || 0}</div>
+                  <div className="text-[10px] text-emerald-700 font-medium">Never contacted</div>
                 </button>
 
                 <button
                   onClick={() => setDeskQueueType('upcoming')}
                   className={`p-3 rounded-2xl border text-left transition-all ${
                     deskQueueType === 'upcoming'
-                      ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-400 shadow-sm'
+                      ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-400 shadow-sm'
                       : 'bg-white border-accent-soft hover:border-blue-300'
                   }`}
                 >
                   <div className="flex items-center justify-between text-blue-700">
-                    <span className="text-xs font-black uppercase">4. Upcoming (Next 7d)</span>
+                    <span className="text-xs font-black uppercase">6. Upcoming (7d)</span>
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div className="text-xl font-black text-blue-900 mt-1">{deskQueues.upcoming.length}</div>
@@ -1497,6 +1587,8 @@ export default function WeddingCRM() {
                     deskQueueType === 'overdue' ? deskQueues.overdue :
                     deskQueueType === 'dueToday' ? deskQueues.dueToday :
                     deskQueueType === 'callbacks' ? deskQueues.callbackRequests :
+                    deskQueueType === 'priority' ? (deskQueues.priorityCalls || []) :
+                    deskQueueType === 'newCustomers' ? (deskQueues.newCustomers || []) :
                     deskQueues.upcoming;
 
                   if (currentQueue.length === 0) {
@@ -1534,9 +1626,21 @@ export default function WeddingCRM() {
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                                  {cust.customer_status}
-                                </span>
+                                <div className="flex items-center gap-1">
+                                  {cust.priority && (
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${
+                                      cust.priority === 'Urgent' ? 'bg-red-600 text-white animate-pulse' :
+                                      cust.priority === 'High' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                                      cust.priority === 'Medium' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                                      'bg-slate-100 text-slate-700'
+                                    }`}>
+                                      {cust.priority}
+                                    </span>
+                                  )}
+                                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                                    {cust.customer_status}
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Customer Name & Mobile */}
@@ -2381,16 +2485,57 @@ export default function WeddingCRM() {
                 </div>
               ) : (
                 <>
-                  {/* Status Pipeline */}
+                  {/* Interactive 12-Stage Wedding CRM Pipeline */}
                   <div className="bg-white p-6 rounded-3xl border border-accent-soft shadow-xs">
-                    <h3 className="text-base font-black text-primary mb-4">Wedding CRM Pipeline</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                      {(pipelineData?.pipeline || []).slice(0, 10).map((stage: any) => (
-                        <div key={stage.status} className="bg-background p-3 rounded-2xl border border-accent-soft text-center">
-                          <div className="text-lg font-black text-primary">{stage.count}</div>
-                          <div className="text-[10px] font-bold text-primary uppercase">{stage.status}</div>
-                        </div>
-                      ))}
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                      <div>
+                        <h3 className="text-base font-black text-primary">12-Stage Wedding Collection Pipeline</h3>
+                        <p className="text-xs text-primary/70">Click any stage to filter the customer register</p>
+                      </div>
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-xl">
+                        Total In Pipeline: {stats.totalCustomers}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      {[
+                        { stage: 'New Customer', label: '1. New Lead', color: 'border-blue-300 bg-blue-50/40 text-blue-900', badge: 'bg-blue-100 text-blue-800' },
+                        { stage: 'Contact Pending', label: '2. Contact Pending', color: 'border-amber-300 bg-amber-50/40 text-amber-900', badge: 'bg-amber-100 text-amber-800' },
+                        { stage: 'Call Scheduled', label: '3. Call Scheduled', color: 'border-sky-300 bg-sky-50/40 text-sky-900', badge: 'bg-sky-100 text-sky-800' },
+                        { stage: 'Call Completed', label: '4. Contacted', color: 'border-indigo-300 bg-indigo-50/40 text-indigo-900', badge: 'bg-indigo-100 text-indigo-800' },
+                        { stage: 'Follow-up Needed', label: '5. Follow-Up Needed', color: 'border-orange-300 bg-orange-50/40 text-orange-900', badge: 'bg-orange-100 text-orange-800' },
+                        { stage: 'Callback Requested', label: '6. Callback Req.', color: 'border-purple-300 bg-purple-50/40 text-purple-900', badge: 'bg-purple-100 text-purple-800' },
+                        { stage: 'Shopping Date Confirmed', label: '7. Shopping Confirmed', color: 'border-cyan-300 bg-cyan-50/40 text-cyan-900', badge: 'bg-cyan-100 text-cyan-800' },
+                        { stage: 'Appointment Booked', label: '8. Appointment', color: 'border-teal-300 bg-teal-50/40 text-teal-900', badge: 'bg-teal-100 text-teal-800' },
+                        { stage: 'Visited Store', label: '9. Store Visit', color: 'border-emerald-300 bg-emerald-50/40 text-emerald-900', badge: 'bg-emerald-100 text-emerald-800' },
+                        { stage: 'Converted', label: '10. Converted / Won', color: 'border-green-400 bg-green-50/50 text-green-900', badge: 'bg-green-200 text-green-900' },
+                        { stage: 'Lost', label: '11. Lost', color: 'border-rose-300 bg-rose-50/40 text-rose-900', badge: 'bg-rose-100 text-rose-800' },
+                        { stage: 'Not Interested', label: '12. Not Interested', color: 'border-slate-300 bg-slate-50/60 text-slate-800', badge: 'bg-slate-200 text-slate-700' },
+                      ].map((item) => {
+                        const count = (pipelineData?.pipeline || []).find((p: any) => p.status?.toLowerCase() === item.stage.toLowerCase())?.count || 0;
+                        return (
+                          <div
+                            key={item.stage}
+                            onClick={() => {
+                              setActiveTab('register');
+                              setStatusFilter(item.stage);
+                            }}
+                            className={`p-3.5 rounded-2xl border ${item.color} text-center hover:scale-[1.02] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between`}
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-[10px] font-black uppercase tracking-wider">{item.label}</span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${item.badge}`}>
+                                {count > 0 ? `${count}` : '0'}
+                              </span>
+                            </div>
+                            <div className="text-2xl font-black">{count}</div>
+                            <div className="text-[9px] text-primary/70 font-semibold mt-1 flex items-center justify-center gap-1">
+                              <span>View Leads</span>
+                              <ChevronRight className="w-2.5 h-2.5" />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -2884,6 +3029,30 @@ export default function WeddingCRM() {
                   </div>
                 </div>
               )}
+
+              {/* Call Duration & Customer Response */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-black text-primary mb-1">Call Duration</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2 mins, 45 sec"
+                    value={logForm.call_duration}
+                    onChange={e => setLogForm({ ...logForm, call_duration: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-primary mb-1">Customer Response</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Interested in bridal wear"
+                    value={logForm.customer_response}
+                    onChange={e => setLogForm({ ...logForm, customer_response: e.target.value })}
+                    className="w-full text-xs font-semibold p-2.5 border border-accent-soft rounded-xl bg-white"
+                  />
+                </div>
+              </div>
 
               {/* Remarks */}
               <div>

@@ -6,10 +6,19 @@
  * 3. Manager Dashboard (Manager, Store Manager, Operations)
  */
 
-export type DashboardType = 'admin' | 'hr' | 'manager';
+export type DashboardType = 'admin' | 'hr' | 'manager' | 'wedding_collection' | 'telecaller' | 'team_lead';
 
 export function getDashboardTypeForRole(role?: string): DashboardType {
   const r = (role || '').trim().toLowerCase();
+  if (r === 'telecaller') {
+    return 'telecaller';
+  }
+  if (r === 'wedding collection manager') {
+    return 'wedding_collection';
+  }
+  if (r === 'team lead') {
+    return 'team_lead';
+  }
   if (r === 'super admin' || r === 'admin') {
     return 'admin';
   }
@@ -23,6 +32,12 @@ export function getDashboardTypeForRole(role?: string): DashboardType {
 export function getDashboardLabelForRole(role?: string): string {
   const type = getDashboardTypeForRole(role);
   switch (type) {
+    case 'telecaller':
+      return 'Telecaller Workspace';
+    case 'wedding_collection':
+      return 'Wedding Collection Dashboard';
+    case 'team_lead':
+      return 'Team Lead Dashboard';
     case 'admin':
       return 'Admin Dashboard';
     case 'hr':
@@ -34,5 +49,11 @@ export function getDashboardLabelForRole(role?: string): string {
 
 export function getDashboardRouteForRole(role?: string): string {
   const type = getDashboardTypeForRole(role);
+  if (type === 'telecaller') {
+    return '/wedding-crm?tab=calling_desk';
+  }
+  if (type === 'wedding_collection') {
+    return '/wedding-crm?tab=pipeline';
+  }
   return `/dashboard?view=${type}`;
 }

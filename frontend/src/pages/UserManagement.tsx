@@ -95,6 +95,9 @@ interface AuditLog {
 const DEFAULT_SYSTEM_ROLES = [
   'Super Admin',
   'Admin',
+  'Wedding Collection Manager',
+  'Team Lead',
+  'Telecaller',
   'HR',
   'Manager',
   'Recruiter',
