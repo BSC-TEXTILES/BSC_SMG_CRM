@@ -116,8 +116,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     'Manager':     'Store Manager',
     'Employee':    'Employee',
     'Guest':       'Guest',
-    'Greeter':     'Greeter Desk',
-    'Telecaller':  'Telecaller'
+    'Greeter':     'Greeter Desk'
   };
 
   const navItems = [

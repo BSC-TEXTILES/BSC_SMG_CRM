@@ -29,8 +29,7 @@ export const ROLE_NAV_MAP: Record<string, string[]> = {
   'Manager':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'pm_view', 'vm_checklist', 'attendance', 'dashboard', 'candidates', 'offer', 'openings', 'daily_mcheck', 'mcheck_reports', 'mcheck_history', 'employees', 'dept_hiring', 'section_allocation', 'broadcast', 'user_management'],
   'Employee':    ['wedding_crm', 'wedding_registration', 'dashboard'],
   'Guest':       ['wedding_registration'],
-  'Greeter':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter'],
-  'Telecaller':  ['telecaller_dashboard']
+  'Greeter':     ['wedding_crm', 'wedding_registration', 'footfall', 'feedback_collection', 'feedback_list', 'feedback_qr', 'divert', 'vm_checklist', 'feedback_public', 'tv', 'greeter']
 };
 
 export function getRoleNavMap(role?: string): string[] {

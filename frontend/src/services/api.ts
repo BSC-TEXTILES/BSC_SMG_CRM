@@ -205,7 +205,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     console.warn(`[API Fetch Error: ${endpoint}]`, err.message);
     // If the error is a network error (not an API response error), provide a user-friendly message
     if (!err.status) {
-      const networkError = new Error('Network error. Please check your internet connection and try again.');
+      const networkError: any = new Error('Network error. Please check your internet connection and try again.');
       networkError.status = 0;
       networkError.errors = [];
       throw networkError;

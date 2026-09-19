@@ -265,6 +265,10 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {isAdminUser && (
-                <div className="hidden md:flex items-center gap-1 bg-white p-1 rounded-xl border border-bronze-soft shadow-xs text-xs font-bold mr-2">
-                  <button
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
