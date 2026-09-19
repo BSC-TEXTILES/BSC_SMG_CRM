@@ -39,14 +39,14 @@ class AuthService {
       [rows] = await pool.query(
         `SELECT
            u.id, u.username, u.password, u.full_name AS fullName, u.role, 
-           (u.active = TRUE OR u.active = 1 OR u.status = 'Active') AS status,
+           (u.active = TRUE OR u.active = 1) AS status,
            u.location_id AS locationId,
            COALESCE(u.location_code, l.location_code) AS locationCode,
            l.location_name AS locationName
          FROM users u
          LEFT JOIN locations l ON l.id = u.location_id
          WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)) 
-           AND (u.active = TRUE OR u.active = 1 OR u.status = 'Active')`,
+           AND (u.active = TRUE OR u.active = 1)`,
         [cleanUsername, cleanUsername]
       );
     } catch (queryErr) {
@@ -61,11 +61,10 @@ class AuthService {
           `SELECT
              u.id, u.username, u.password, u.fullName AS fullName, u.role,
              (u.status = 'Active') AS status,
-             u.location_id AS locationId,
-             COALESCE(u.location_code, l.location_code) AS locationCode,
-             l.location_name AS locationName
+             NULL AS locationId,
+             NULL AS locationCode,
+             NULL AS locationName
            FROM User u
-           LEFT JOIN locations l ON l.id = u.location_id
            WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?))
              AND u.status = 'Active'`,
           [cleanUsername, cleanUsername]
@@ -81,7 +80,7 @@ class AuthService {
       try {
         const [uRows] = await pool.query(
           `SELECT id, username, password, full_name AS fullName, role, 
-                  (active = TRUE OR active = 1 OR status = 'Active') AS status
+                  (active = TRUE OR active = 1) AS status
            FROM users 
            WHERE (LOWER(username) = ? OR (email IS NOT NULL AND LOWER(email) = ?))`,
           [cleanUsername, cleanUsername]
