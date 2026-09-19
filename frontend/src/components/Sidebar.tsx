@@ -287,7 +287,13 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
             // Strict RBAC rendering: only keys resolved for THIS role
             // (role map ∩ user_permissions ∩ page_visibility). Admin roles
             // keep their full key set via the role map itself.
-            const items = navItems.filter(item => item.section === section && allowed.includes(item.key));
+            let items = navItems.filter(item => item.section === section && allowed.includes(item.key));
+            
+            // Deduplicate: If an Admin, hide items from other sections if they already exist in Enterprise Suite
+            const isAdmin = role === 'Admin' || role === 'Super Admin';
+            if (isAdmin && section !== 'Enterprise Suite') {
+              items = items.filter(item => !navItems.some(x => x.section === 'Enterprise Suite' && x.key === item.key));
+            }
             if (items.length === 0) return null;
 
             return (
