@@ -25,13 +25,11 @@ export default function LoginPage() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockRemainingSeconds, setLockRemainingSeconds] = useState(0);
 
-  // Validate password utility
+  // Validate password utility - basic client-side check
+  // Server-side validation is the primary security check
   const validatePassword = (pwd: string) => {
-    const hasLength = pwd.length >= 8;
-    const hasLetter = /[a-zA-Z]/.test(pwd);
-    const hasNumber = /[0-9]/.test(pwd);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
-    return hasLength && hasLetter && hasNumber && hasSpecial;
+    const hasLength = pwd.length >= 4; // Minimum 4 characters
+    return hasLength;
   };
 
   // Check lock status with the backend (persists across page refresh, multi-tab, etc.)
@@ -93,18 +91,18 @@ export default function LoginPage() {
     }
     setCaptchaLoading(true);
     try {
-      const res = await fetch('/api/auth/captcha');
-      const json = await res.json();
-      if (json?.data?.svg) {
+      const res = await API.getCaptcha();
+      if (res?.data?.svg) {
         // Use base64 encoding for reliable SVG rendering in <img>
-        const base64Svg = btoa(json.data.svg);
+        const base64Svg = btoa(res.data.svg);
         setCaptchaSvg('data:image/svg+xml;base64,' + base64Svg);
-        setCaptchaId(json.data.captchaId);
-        if (typeof json.data.codeLength === 'number' && json.data.codeLength > 0) {
-          setCodeLength(json.data.codeLength);
+        setCaptchaId(res.data.captchaId);
+        if (typeof res.data.codeLength === 'number' && res.data.codeLength > 0) {
+          setCodeLength(res.data.codeLength);
         }
       }
-    } catch {
+    } catch (err: any) {
+      console.warn('[LoadCaptcha Error]', err.message);
       setCaptchaSvg('');
     } finally {
       setCaptchaLoading(false);
@@ -368,7 +366,7 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <button
               type="button"
-              onClick={() => showToast('Please contact your System Administrator to reset your password', 'info')}
+              onClick={() => navigate('/forgot-password')}
               className="text-xs text-accent font-bold hover:underline"
             >
               Forgot password?

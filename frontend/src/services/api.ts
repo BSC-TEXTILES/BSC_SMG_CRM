@@ -168,7 +168,34 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      const error: any = new Error(errorData.message || `HTTP ${res.status}`);
+      // Provide user-friendly error messages based on status code
+      let errorMessage = errorData.message;
+      if (!errorMessage) {
+        switch (res.status) {
+          case 401:
+            errorMessage = 'Authentication failed. Please check your credentials.';
+            break;
+          case 403:
+            errorMessage = 'Access denied. You do not have permission to perform this action.';
+            break;
+          case 404:
+            errorMessage = 'The requested resource was not found. Please contact your administrator.';
+            break;
+          case 423:
+            errorMessage = 'Account temporarily locked due to too many failed attempts. Please try again later.';
+            break;
+          case 429:
+            errorMessage = 'Too many requests. Please wait and try again.';
+            break;
+          case 500:
+          case 503:
+            errorMessage = 'Server error. Please try again or contact your administrator.';
+            break;
+          default:
+            errorMessage = `Request failed. Please try again. (Error: ${res.status})`;
+        }
+      }
+      const error: any = new Error(errorMessage);
       error.status = res.status; // Lets callers distinguish 400/404/429/500 failures
       error.errors = errorData.errors || [];
       throw error;
@@ -176,6 +203,13 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     return await res.json();
   } catch (err: any) {
     console.warn(`[API Fetch Error: ${endpoint}]`, err.message);
+    // If the error is a network error (not an API response error), provide a user-friendly message
+    if (!err.status) {
+      const networkError = new Error('Network error. Please check your internet connection and try again.');
+      networkError.status = 0;
+      networkError.errors = [];
+      throw networkError;
+    }
     throw err;
   }
 };
@@ -212,6 +246,25 @@ export const API = {
   // Numeric captcha for the sign-in screen (server-generated SVG + opaque id)
   async getCaptcha() {
     return apiFetch('/auth/captcha');
+  },
+
+  // Password reset
+  async requestPasswordReset(email: string) {
+    return apiFetch('/auth/request-password-reset', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  },
+
+  async verifyPasswordResetToken(token: string) {
+    return apiFetch(`/auth/verify-password-reset-token?token=${encodeURIComponent(token)}`);
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    return apiFetch('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword })
+    });
   },
 
   // Developer Tools Detection Security Shield

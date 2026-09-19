@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 import Home from './pages/Home';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import WeddingRegistration from './pages/WeddingRegistration';
 import Candidates from './pages/Candidates';
@@ -51,6 +52,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<RouteGuard pageKey="dashboard"><Dashboard /></RouteGuard>} />
         <Route path="/wedding-crm" element={<RouteGuard pageKey="wedding_crm"><WeddingCRM /></RouteGuard>} />
         <Route path="/footfall" element={<RouteGuard pageKey="footfall"><Footfall /></RouteGuard>} />

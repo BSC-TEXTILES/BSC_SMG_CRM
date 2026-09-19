@@ -31,58 +31,86 @@ class AuthService {
 
     // ── Real DB Login ──────────────────────────────────────────────────
     // Fetch user with location info via LEFT JOIN (matching both username and email)
+    // Try both 'users' and 'User' table names as different deployments may use either
     let rows;
+    
+    // First, try the 'users' table with location info
     try {
       [rows] = await pool.query(
         `SELECT
-           u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
+           u.id, u.username, u.password, u.full_name AS fullName, u.role, 
+           (u.active = TRUE OR u.active = 1 OR u.status = 'Active') AS status,
            u.location_id AS locationId,
            COALESCE(u.location_code, l.location_code) AS locationCode,
            l.location_name AS locationName
          FROM users u
          LEFT JOIN locations l ON l.id = u.location_id
-         WHERE LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)`,
+         WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)) 
+           AND (u.active = TRUE OR u.active = 1 OR u.status = 'Active')`,
         [cleanUsername, cleanUsername]
       );
     } catch (queryErr) {
-      if (queryErr.message.includes('locations') || queryErr.message.includes('location_id')) {
-        console.warn('[AuthService] locations query failed, falling back to users table:', queryErr.message);
-        try {
-          [rows] = await pool.query(
-            `SELECT
-               u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
-               NULL AS locationId,
-               NULL AS locationCode,
-               NULL AS locationName
-             FROM users u
-             WHERE LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)`,
-            [cleanUsername, cleanUsername]
-          );
-        } catch (e) {
-          rows = [];
-        }
-      } else {
+      console.warn('[AuthService] users table query failed, trying fallback:', queryErr.message);
+      rows = [];
+    }
+
+    // If no rows from 'users' table, try 'User' table (capital U)
+    if (!rows || rows.length === 0) {
+      try {
+        [rows] = await pool.query(
+          `SELECT
+             u.id, u.username, u.password, u.fullName AS fullName, u.role,
+             (u.status = 'Active') AS status,
+             u.location_id AS locationId,
+             COALESCE(u.location_code, l.location_code) AS locationCode,
+             l.location_name AS locationName
+           FROM User u
+           LEFT JOIN locations l ON l.id = u.location_id
+           WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?))
+             AND u.status = 'Active'`,
+          [cleanUsername, cleanUsername]
+        );
+      } catch (e) {
+        console.warn('[AuthService] User table query failed:', e.message);
         rows = [];
       }
     }
 
+    // Final fallback: try without location info
     if (!rows || rows.length === 0) {
       try {
         const [uRows] = await pool.query(
-          `SELECT
-             u.id, u.username, u.password, u.fullName AS fullName, u.role,
-             (u.status = 'Active') AS status,
-             NULL AS locationId,
-             NULL AS locationCode,
-             NULL AS locationName
-           FROM User u
-           WHERE LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)`,
+          `SELECT id, username, password, full_name AS fullName, role, 
+                  (active = TRUE OR active = 1 OR status = 'Active') AS status
+           FROM users 
+           WHERE (LOWER(username) = ? OR (email IS NOT NULL AND LOWER(email) = ?))`,
           [cleanUsername, cleanUsername]
         );
         if (uRows && uRows.length > 0) {
           rows = uRows;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[AuthService] Final users fallback failed:', e.message);
+      }
+    }
+
+    // Last fallback: try User table without location info
+    if (!rows || rows.length === 0) {
+      try {
+        const [uRows] = await pool.query(
+          `SELECT id, username, password, fullName AS fullName, role, 
+                  (status = 'Active') AS status
+           FROM User 
+           WHERE (LOWER(username) = ? OR (email IS NOT NULL AND LOWER(email) = ?))
+             AND status = 'Active'`,
+          [cleanUsername, cleanUsername]
+        );
+        if (uRows && uRows.length > 0) {
+          rows = uRows;
+        }
+      } catch (e) {
+        console.warn('[AuthService] Final User fallback failed:', e.message);
+      }
     }
 
     if (!rows || rows.length === 0) {
@@ -167,36 +195,44 @@ class AuthService {
     const cleanPassword = password.trim();
 
     let rows;
+    
+    // Try 'users' table with location info
     try {
       [rows] = await pool.query(
         `SELECT
-           u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
+           u.id, u.username, u.password, u.full_name AS fullName, u.role, 
+           (u.active = TRUE OR u.active = 1 OR u.status = 'Active') AS status,
            u.location_id AS locationId,
            COALESCE(u.location_code, l.location_code) AS locationCode,
            l.location_name AS locationName
          FROM users u
          LEFT JOIN locations l ON l.id = u.location_id
-         WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)) AND u.active = TRUE`,
+         WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?))`,
         [cleanUsername, cleanUsername]
       );
     } catch (queryErr) {
-      if (queryErr.message.includes('locations') || queryErr.message.includes('location_id')) {
-        try {
-          [rows] = await pool.query(
-            `SELECT
-               u.id, u.username, u.password, u.full_name AS fullName, u.role, u.active AS status,
-               NULL AS locationId,
-               NULL AS locationCode,
-               NULL AS locationName
-             FROM users u
-             WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?)) AND u.active = TRUE`,
-            [cleanUsername, cleanUsername]
-          );
-        } catch (e) {
-          rows = [];
-        }
-      } else {
-        throw queryErr;
+      console.warn('[verifyUser] users table query failed:', queryErr.message);
+      rows = [];
+    }
+
+    // If no rows, try 'User' table
+    if (!rows || rows.length === 0) {
+      try {
+        [rows] = await pool.query(
+          `SELECT
+             u.id, u.username, u.password, u.fullName AS fullName, u.role,
+             (u.status = 'Active') AS status,
+             u.location_id AS locationId,
+             COALESCE(u.location_code, l.location_code) AS locationCode,
+             l.location_name AS locationName
+           FROM User u
+           LEFT JOIN locations l ON l.id = u.location_id
+           WHERE (LOWER(u.username) = ? OR (u.email IS NOT NULL AND LOWER(u.email) = ?))`,
+          [cleanUsername, cleanUsername]
+        );
+      } catch (e) {
+        console.warn('[verifyUser] User table query failed:', e.message);
+        rows = [];
       }
     }
 

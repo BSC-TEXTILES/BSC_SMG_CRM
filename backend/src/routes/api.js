@@ -41,6 +41,11 @@ router.post('/auth/verify', authController.verifyUser);
 router.post('/auth/logout', authenticate, authController.logout);
 router.get('/auth/me', authenticate, authController.getMe);
 
+// Password reset routes (public)
+router.post('/auth/request-password-reset', authController.requestPasswordReset);
+router.get('/auth/verify-password-reset-token', authController.verifyPasswordResetToken);
+router.post('/auth/reset-password', authController.resetPassword);
+
 // ── Location Routes ───────────────────────────────────────────
 router.get('/locations', locationController.getLocations);
 router.get('/locations/:id', locationController.getLocation);
