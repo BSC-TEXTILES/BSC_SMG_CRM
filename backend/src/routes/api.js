@@ -256,6 +256,7 @@ router.put('/feedback-qr/:id', authenticate, authorize('Admin', 'Super Admin', '
 router.delete('/feedback-qr/:id', authenticate, authorize('Admin', 'Super Admin'), feedbackQrController.deleteQrCode);
 router.post('/feedback-qr/:id/toggle-status', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), feedbackQrController.toggleQrCodeStatus);
 router.post('/feedback-qr/:id/regenerate', authenticate, authorize('Admin', 'Super Admin', 'HR', 'Manager'), feedbackQrController.regenerateQrCode);
+router.post('/feedback-qr/scan/:qrCodeId', feedbackQrController.trackQrScan);
 
 // ── Security Center (DevTools shield, GPS trail, login activity) ────────────
 // Developer Tools Detection is OFF by default. An Admin enables it from
