@@ -252,7 +252,7 @@ export default function TelecallerDashboard() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`whitespace-nowrap px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                    className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
                       activeTab === tab 
                         ? 'bg-accent/10 text-accent shadow-sm' 
                         : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'

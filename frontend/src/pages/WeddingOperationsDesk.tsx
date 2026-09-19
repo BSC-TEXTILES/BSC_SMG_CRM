@@ -247,7 +247,7 @@ export default function WeddingOperationsDesk() {
                   <button
                     key={tab}
                     onClick={() => setActiveFilter(tab)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    className={`shrink-0 whitespace-nowrap px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                       activeFilter === tab 
                         ? 'bg-accent/10 text-accent shadow-sm' 
                         : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'

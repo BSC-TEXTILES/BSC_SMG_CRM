@@ -21,10 +21,10 @@ const config: Config = {
         // (var() strings made Tailwind emit `rgb(var(--x) / a)` which is invalid
         // CSS and was silently dropped, killing those styles entirely.)
         primary: {
-          DEFAULT: '#7393B3',
-          hover: '#5A7A9A',
-          light: '#93B3D3',
-          soft: '#E3EBF3'
+          DEFAULT: '#A45A52',
+          hover: '#8C4B44',
+          light: '#CD857E',
+          soft: '#F4E3E1'
         },
         accent: {
           DEFAULT: '#C9A227',

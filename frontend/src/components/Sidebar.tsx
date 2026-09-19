@@ -135,17 +135,15 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'employees', href: '/employees', label: 'Employee & Store Dir', icon: UserCheck, section: 'Enterprise Suite' },
     { key: 'greyhr', href: '/greyhr', label: 'greyHR / Master HR', icon: Briefcase, section: 'Enterprise Suite' },
     { key: 'batch_plan', href: '/batch-plan', label: 'Batch Plan & Weaving', icon: Settings, section: 'Enterprise Suite' },
-    { key: 'mcheck_audit', href: '/daily-mcheck', label: 'MCheck Store Audit', icon: CheckSquare, section: 'Enterprise Suite' },
+    { key: 'daily_mcheck', href: '/daily-mcheck', label: 'MCheck Store Audit', icon: CheckSquare, section: 'Enterprise Suite' },
     { key: 'main_crm', href: '/main-crm', label: 'Wedding Customer CRM', icon: Sparkles, section: 'Enterprise Suite' },
     { key: 'regional_analytics', href: '/regional-analytics', label: 'Regional Analytics', icon: BarChart3, section: 'Enterprise Suite' },
     { key: 'settings', href: '/settings', label: 'Settings & Roles', icon: Settings, section: 'Enterprise Suite' },
     { key: 'candidates', href: '/candidates', label: 'Candidate CRM', icon: Users, section: 'Core Workspace' },
     { key: 'offer', href: '/offer-process', label: 'Wedding Operations', icon: FileText, section: 'Core Workspace' },
     { key: 'openings', href: '/openings', label: 'Manpower Planning', icon: Briefcase, section: 'Core Workspace' },
-    { key: 'daily_mcheck', href: '/daily-mcheck', label: 'Daily MCheck', icon: CheckSquare, section: 'Daily Operations' },
     { key: 'mcheck_reports', href: '/mcheck-reports', label: 'MCheck Reports', icon: BarChart3, section: 'Daily Operations' },
     { key: 'mcheck_history', href: '/mcheck-history', label: 'MCheck History', icon: ClipboardList, section: 'Daily Operations' },
-    { key: 'employees', href: '/employees', label: 'Employee Directory', icon: UserCheck, section: 'Talent Management' },
     { key: 'dept_hiring', href: '/department-hiring', label: 'Department Hiring Status', icon: Briefcase, section: 'Talent Management' },
     { key: 'section_allocation', href: '/section-allocation', label: 'Section Allocation', icon: UserCheck, section: 'Talent Management' },
     { key: 'wedding_registration', href: '/wedding-registration', label: 'Applicant Registration', icon: Sparkles, section: 'Public Portals' },
@@ -154,7 +152,6 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'greeter', href: '/greeter', label: 'Greeter Kiosk', icon: UserCheck, section: 'Public Portals' },
     { key: 'broadcast', href: '/broadcast-center', label: 'Broadcast Center', icon: Megaphone, section: 'Administration' },
     { key: 'user_management', href: '/user-management', label: 'User Management', icon: Shield, section: 'Administration' },
-    { key: 'settings', href: '/settings', label: 'System Settings', icon: Settings, section: 'Administration' },
     { key: 'system_admin', href: '/system-admin', label: 'System Administrator', icon: ShieldAlert, section: 'Administration' }
   ];
 
@@ -287,13 +284,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
             // Strict RBAC rendering: only keys resolved for THIS role
             // (role map ∩ user_permissions ∩ page_visibility). Admin roles
             // keep their full key set via the role map itself.
-            let items = navItems.filter(item => item.section === section && allowed.includes(item.key));
-            
-            // Deduplicate: If an Admin, hide items from other sections if they already exist in Enterprise Suite
-            const isAdmin = role === 'Admin' || role === 'Super Admin';
-            if (isAdmin && section !== 'Enterprise Suite') {
-              items = items.filter(item => !navItems.some(x => x.section === 'Enterprise Suite' && x.key === item.key));
-            }
+            const items = navItems.filter(item => item.section === section && allowed.includes(item.key));
             if (items.length === 0) return null;
 
             return (

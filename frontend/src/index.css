@@ -7,12 +7,12 @@
 :root {
   /* BSC Brand Theme — Deep Maroon + Blush + Gold */
   
-  /* Primary Brand Color — Blue Gray */
-  --color-primary: #7393B3;
-  --color-primary-hover: #5A7A9A;
-  --color-primary-light: #93B3D3;
-  --color-primary-soft: #E3EBF3;
-  --color-primary-soft-hover: #D0DEEB;
+  /* Primary Brand Color — Dusty Rose */
+  --color-primary: #A45A52;
+  --color-primary-hover: #8C4B44;
+  --color-primary-light: #CD857E;
+  --color-primary-soft: #F4E3E1;
+  --color-primary-soft-hover: #E8D0CD;
   
   /* Accent Color — Warm Cream/Gold */
   --color-accent: #F5D58A;
