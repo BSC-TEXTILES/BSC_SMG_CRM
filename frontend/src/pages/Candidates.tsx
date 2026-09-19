@@ -9,8 +9,8 @@ import { getBusinessDate } from '../utils/dateUtils';
 import { formatName } from '../utils/formatName';
 import PageHeader from '../components/ui/PageHeader';
 import EmptyState from '../components/ui/EmptyState';
-import { 
-  Users, Search, Filter, Phone, Mail, Calendar, MapPin, Briefcase, 
+import {
+  Users, Search, Filter, Phone, Mail, Calendar, MapPin, Briefcase,
   FileText, CheckCircle, XCircle, Plus, Clock, ExternalLink, MessageSquare, ChevronRight, X, Trash2, Edit3, ShieldAlert, FileCheck, Image as ImageIcon, UserCheck, DollarSign, TrendingUp
 } from 'lucide-react';
 import ShortlistModal from '../components/ui/ShortlistModal';
@@ -39,13 +39,13 @@ export default function CandidatesPage() {
   // Modals
   const [remarkModal, setRemarkModal] = useState<{ open: boolean; action: string; candidate: any | null }>({ open: false, action: '', candidate: null });
   const [remarksText, setRemarksText] = useState('');
-  
+
   const [directOfferModal, setDirectOfferModal] = useState<{ open: boolean; candidate: any | null }>({ open: false, candidate: null });
   const [confirmStatusModal, setConfirmStatusModal] = useState<{ open: boolean; candidate: any | null; newStatus: string }>({ open: false, candidate: null, newStatus: '' });
   const [highlightAppNo, setHighlightAppNo] = useState<string | null>(null);
   const [offerForm, setOfferForm] = useState({ salary: "", incentive: "", doj: "", desig: "", department: "", section: "", remarks: "" });
   const [designations, setDesignations] = useState<string[]>([]);
-  
+
   const [callModal, setCallModal] = useState<{ open: boolean; candidate: any | null; step: number; callStatus: any }>({ open: false, candidate: null, step: 1, callStatus: null });
   const [callDate, setCallDate] = useState(new Date().toISOString().slice(0, 10));
   const [callRemarks, setCallRemarks] = useState('');
@@ -81,7 +81,7 @@ export default function CandidatesPage() {
     loadCandidates();
     API.getDesignations().then(res => {
       if (res && res.designations) setDesignations(res.designations);
-    }).catch(() => {});
+    }).catch(() => { });
   }, [navigate, loadCandidates]);
 
   // Filtering
@@ -211,7 +211,7 @@ export default function CandidatesPage() {
     try {
       const d = await API.getActivityFull(c.appNo);
       if (d && d.activity) setActivityLog(d.activity);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleStatusSelect = async (candidate: any, targetStatus: string) => {
@@ -286,7 +286,7 @@ export default function CandidatesPage() {
 
   const handleStatusChange = async (action: string, candidate: any) => {
     if (!candidate || actionLoading) return;
-    
+
     if (action === 'shortlist') {
       setDirectOfferModal({ open: true, candidate });
       setOfferForm({
@@ -300,7 +300,7 @@ export default function CandidatesPage() {
       });
       return;
     }
-    
+
     setActionLoading(true);
     try {
       if (action === 'reject') {
@@ -378,7 +378,7 @@ export default function CandidatesPage() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      
+
       {/* Professional Status Change Confirmation Modal */}
       {confirmStatusModal.open && confirmStatusModal.candidate && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-primary/60 backdrop-blur-xs animate-fade-in">
@@ -413,15 +413,15 @@ export default function CandidatesPage() {
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-accent-soft">
-              <button 
-                onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })} 
+              <button
+                onClick={() => setConfirmStatusModal({ open: false, candidate: null, newStatus: '' })}
                 className="px-4 py-2 rounded-xl border border-accent-soft font-bold text-xs text-primary hover:bg-background transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                onClick={executeStatusChange} 
-                disabled={actionLoading} 
+              <button
+                onClick={executeStatusChange}
+                disabled={actionLoading}
                 className="btn-primary text-xs shadow-md disabled:opacity-50"
               >
                 {actionLoading ? 'Updating...' : 'Confirm Status Change'}
@@ -478,11 +478,10 @@ export default function CandidatesPage() {
                   <button
                     key={range.key}
                     onClick={() => { setActiveRange(range.key as any); setFromDate(''); setToDate(''); }}
-                    className={`px-3 py-1.5 rounded-xl transition-all ${
-                      activeRange === range.key
+                    className={`px-3 py-1.5 rounded-xl transition-all ${activeRange === range.key
                         ? 'bg-primary text-white font-extrabold shadow-xs'
                         : 'bg-background text-[#5D4E42] border border-accent-soft hover:bg-white'
-                    }`}
+                      }`}
                   >
                     {range.label}
                   </button>
@@ -492,7 +491,7 @@ export default function CandidatesPage() {
 
             {/* Custom Date Range Picker */}
             <div className="flex flex-wrap items-center gap-3 bg-background p-3 rounded-2xl border border-accent-soft text-xs font-bold text-primary">
-              <span className="text-primary uppercase text-[10.5px] font-black">Custom Range:</span>
+              <span className="text-primary uppercase text-[10.5px] font-black">Custom date:</span>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
@@ -538,8 +537,8 @@ export default function CandidatesPage() {
                   onClick={() => setActiveStatus(p.key)}
                   className={`
                     px-3.5 py-1.5 rounded-full border whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 shadow-xs
-                    ${activeStatus === p.key 
-                      ? 'bg-primary text-white border-primary shadow-sm font-black' 
+                    ${activeStatus === p.key
+                      ? 'bg-primary text-white border-primary shadow-sm font-black'
                       : 'bg-white text-[#5D4E42] border-accent-soft hover:bg-background hover:text-primary font-semibold'}
                   `}
                 >
@@ -645,14 +644,13 @@ export default function CandidatesPage() {
                             value={c.status || 'New'}
                             disabled={actionLoading}
                             onChange={(e) => handleStatusSelect(c, e.target.value)}
-                            className={`text-[11px] font-extrabold rounded-xl border-2 px-2.5 py-1.5 cursor-pointer outline-none transition-all shadow-xs ${
-                              c.status === 'New' ? 'bg-slate-100 text-slate-800 border-slate-300' :
-                              c.status === 'Shortlisted' ? 'bg-blue-50 text-blue-800 border-blue-300' :
-                              c.status === 'Joined' ? 'bg-teal-50 text-teal-800 border-teal-300 font-black' :
-                              c.status === 'Hold' ? 'bg-orange-50 text-orange-800 border-orange-300' :
-                              c.status === 'Rejected' || c.status === 'Offer Rejected' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                              'bg-slate-100 text-slate-800 border-slate-300'
-                            }`}
+                            className={`text-[11px] font-extrabold rounded-xl border-2 px-2.5 py-1.5 cursor-pointer outline-none transition-all shadow-xs ${c.status === 'New' ? 'bg-slate-100 text-slate-800 border-slate-300' :
+                                c.status === 'Shortlisted' ? 'bg-blue-50 text-blue-800 border-blue-300' :
+                                  c.status === 'Joined' ? 'bg-teal-50 text-teal-800 border-teal-300 font-black' :
+                                    c.status === 'Hold' ? 'bg-orange-50 text-orange-800 border-orange-300' :
+                                      c.status === 'Rejected' || c.status === 'Offer Rejected' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                                        'bg-slate-100 text-slate-800 border-slate-300'
+                              }`}
                           >
                             <option value="New">🔵 New</option>
                             <option value="Shortlisted">📋 Shortlisted (Move to Wedding Operations)</option>

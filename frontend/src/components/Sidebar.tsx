@@ -129,7 +129,16 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
     { key: 'pm_view', href: '/pm-view', label: 'Purchase Manager View', icon: Briefcase, section: 'Store Operations' },
     { key: 'vm_checklist', href: '/vm-checklist', label: 'VM Checklist', icon: ClipboardList, section: 'Store Operations' },
     { key: 'attendance', href: '/attendance', label: 'Attendance & Roster', icon: UserCheck, section: 'Store Operations' },
-    { key: 'dashboard', href: '/dashboard', label: getDashboardLabelForRole(role), icon: BarChart3, section: 'Core Workspace' },
+    { key: 'dashboard', href: '/dashboard', label: 'Main CRM Dashboard', icon: BarChart3, section: 'Enterprise Suite' },
+    { key: 'joining_desk', href: '/joining-desk', label: 'Joining Call Desk', icon: PhoneCall, section: 'Enterprise Suite' },
+    { key: 'doj_desk', href: '/doj-desk', label: 'DOJ & Not Joined Desk', icon: Users, section: 'Enterprise Suite' },
+    { key: 'employees', href: '/employees', label: 'Employee & Store Dir', icon: UserCheck, section: 'Enterprise Suite' },
+    { key: 'greyhr', href: '/greyhr', label: 'greyHR / Master HR', icon: Briefcase, section: 'Enterprise Suite' },
+    { key: 'batch_plan', href: '/batch-plan', label: 'Batch Plan & Weaving', icon: Settings, section: 'Enterprise Suite' },
+    { key: 'mcheck_audit', href: '/daily-mcheck', label: 'MCheck Store Audit', icon: CheckSquare, section: 'Enterprise Suite' },
+    { key: 'main_crm', href: '/main-crm', label: 'Wedding Customer CRM', icon: Sparkles, section: 'Enterprise Suite' },
+    { key: 'regional_analytics', href: '/regional-analytics', label: 'Regional Analytics', icon: BarChart3, section: 'Enterprise Suite' },
+    { key: 'settings', href: '/settings', label: 'Settings & Roles', icon: Settings, section: 'Enterprise Suite' },
     { key: 'candidates', href: '/candidates', label: 'Candidate CRM', icon: Users, section: 'Core Workspace' },
     { key: 'offer', href: '/offer-process', label: 'Wedding Operations', icon: FileText, section: 'Core Workspace' },
     { key: 'openings', href: '/openings', label: 'Manpower Planning', icon: Briefcase, section: 'Core Workspace' },
@@ -274,7 +283,7 @@ export default function Sidebar({ session, isOpen, onClose }: SidebarProps) {
 
         {/* Navigation Items */}
         <div ref={navScrollRef} className="flex-1 overflow-y-auto px-2 py-1.5 space-y-3">
-          {['Store Operations', 'Core Workspace', 'Daily Operations', 'Talent Management', 'Public Portals', 'Administration'].map(section => {
+          {['Enterprise Suite', 'Store Operations', 'Core Workspace', 'Daily Operations', 'Talent Management', 'Public Portals', 'Administration'].map(section => {
             // Strict RBAC rendering: only keys resolved for THIS role
             // (role map ∩ user_permissions ∩ page_visibility). Admin roles
             // keep their full key set via the role map itself.

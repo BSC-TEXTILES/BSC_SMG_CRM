@@ -1,1271 +1,537 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
+import ToastContainer, { showToast } from '../components/Toast';
 import { API, Auth, UserSession } from '../services/api';
-import { getSidebarCollapsed, subscribeSidebarCollapsed } from '../utils/sidebarState';
+import { isDateInRange } from '../utils/dateUtils';
 import {
-  Phone,
-  PhoneCall,
-  PhoneOff,
-  Clock,
-  Calendar,
-  Users,
-  TrendingUp,
-  BarChart3,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Search,
-  Filter,
-  Eye,
-  ChevronRight,
-  ChevronLeft,
-  RefreshCw,
-  MessageCircle,
-  History,
-  Star,
-  MapPin,
-  Edit2,
-  X
+  Phone, PhoneCall, Clock, Calendar, Users, Heart, CheckCircle, 
+  MapPin, Edit3, Eye, Search, Filter, MessageCircle, X, Save,
+  AlertCircle, PhoneOff, BookOpen, Star, RefreshCw, ChevronRight, User
 } from 'lucide-react';
 
 interface WeddingCustomer {
   id: number;
-  customer_code: string;
-  location_id: number;
-  location_name?: string;
-  location_code?: string;
-  customer_name: string;
-  mobile_number: string;
-  phone?: string;
+  registrationId?: string;
+  customerName: string;
+  mobile: string;
   email?: string;
-  wedding_date?: string;
-  expected_shopping_date: string;
-  preferred_shopping_category?: string;
-  estimated_family_size?: number;
-  assigned_telecaller?: string;
-  assigned_telecaller_id?: number;
-  follow_up_date: string;
-  preferred_call_time?: string;
-  customer_notes?: string;
-  customer_status: string;
-  call_status: string;
-  total_calls_count?: number;
-  last_call_date?: string;
-  last_call_outcome?: string;
-  overdue_days?: number;
-  created_at?: string;
-}
-
-interface CallLog {
-  id: number;
-  customer_id: number;
-  customer_name?: string;
-  customer_code?: string;
-  mobile_number?: string;
-  call_date: string;
-  call_time: string;
-  telecaller_name: string;
-  telecaller_id?: number;
-  call_status: string;
-  call_outcome: string;
+  locationId?: number;
+  locationName?: string;
+  weddingDate?: string;
+  dateFlexibility?: string;
+  functions?: string;
+  shoppingCategory?: string;
+  preferredShoppingDate?: string;
+  preferredTime?: string;
+  contactMethod?: string;
+  status: string;
+  callStatus?: string;
+  visitStatus?: string;
+  shoppingStatus?: string;
+  nextFollowUp?: string;
+  assignedTelecallerName?: string;
+  assignedTelecallerId?: number;
+  registrationDate?: string;
   remarks?: string;
-  next_follow_up_date?: string;
-  next_follow_up_time?: string;
-  expected_shopping_date_updated?: string;
-  created_at: string;
 }
-
-interface DashboardStats {
-  totalCustomers: number;
-  todayFollowUps: number;
-  overdueFollowUps: number;
-  upcomingFollowUps: number;
-  callsCompletedToday: number;
-  totalCalls: number;
-  noAnswerToday: number;
-  convertedCount: number;
-  followUpCompletionRate: number;
-  statusBreakdown: Record<string, number>;
-}
-
-interface PerformanceMetrics {
-  totalAssigned: number;
-  totalCalls: number;
-  contactedCount: number;
-  connectedCount: number;
-  noAnswerCount: number;
-  convertedCount: number;
-  convertedThisPeriod: number;
-  connectionRate: number;
-  contactRate: number;
-}
-
-const CALL_STATUSES = [
-  'Pending',
-  'Called',
-  'No Answer',
-  'Busy',
-  'Call Back Requested',
-  'Connected',
-  'Completed'
-];
-
-const CALL_OUTCOMES = [
-  'Connected',
-  'No Answer',
-  'Busy',
-  'Call Back Requested',
-  'Interested',
-  'Not Interested',
-  'Shopping Confirmed',
-  'Other'
-];
-
-const CALL_TIME_OPTIONS = [
-  'Morning (10 AM - 1 PM)',
-  'Afternoon (1 PM - 4 PM)',
-  'Evening (4 PM - 7 PM)',
-  'Night (7 PM - 9 PM)',
-  'Any Time'
-];
-
-const getStatusBadge = (status: string): string => {
-  const map: Record<string, string> = {
-    'New': 'bg-blue-50 text-blue-700 border border-blue-200',
-    'Follow-up Pending': 'bg-amber-50 text-amber-700 border border-amber-200',
-    'Contacted': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-    'Interested': 'bg-green-50 text-green-700 border border-green-200',
-    'Shopping Date Confirmed': 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    'Converted': 'bg-green-100 text-green-800 border border-green-300',
-    'Visited Store': 'bg-teal-50 text-teal-700 border border-teal-200',
-    'Not Interested': 'bg-red-50 text-red-700 border border-red-200',
-    'No Response': 'bg-gray-50 text-gray-600 border border-gray-200',
-    'Cancelled': 'bg-red-100 text-red-800 border border-red-300',
-    'Closed': 'bg-gray-100 text-gray-700 border border-gray-300'
-  };
-  return map[status] || 'bg-gray-50 text-gray-600 border border-gray-200';
-};
 
 export default function TelecallerDashboard() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [session, setSession] = useState<UserSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState<boolean>(getSidebarCollapsed());
 
-  const [selectedLocation, setSelectedLocation] = useState<number | ''>('');
-  const [locations, setLocations] = useState<any[]>([]);
-
-  const [stats, setStats] = useState<DashboardStats>({
-    totalCustomers: 0,
-    todayFollowUps: 0,
-    overdueFollowUps: 0,
-    upcomingFollowUps: 0,
-    callsCompletedToday: 0,
-    totalCalls: 0,
-    noAnswerToday: 0,
-    convertedCount: 0,
-    followUpCompletionRate: 0,
-    statusBreakdown: {}
-  });
-
-  const [followUpPipeline, setFollowUpPipeline] = useState<{
-    today: WeddingCustomer[];
-    overdue: WeddingCustomer[];
-    upcoming: WeddingCustomer[];
-    callbacks: WeddingCustomer[];
-  }>({
-    today: [],
-    overdue: [],
-    upcoming: [],
-    callbacks: []
-  });
-
-  const [callHistory, setCallHistory] = useState<CallLog[]>([]);
-  const [callHistoryTotal, setCallHistoryTotal] = useState(0);
-  const [callHistoryPage, setCallHistoryPage] = useState(0);
-  const [callHistoryDateFilter, setCallHistoryDateFilter] = useState('');
-
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics>({
-    totalAssigned: 0,
-    totalCalls: 0,
-    contactedCount: 0,
-    connectedCount: 0,
-    noAnswerCount: 0,
-    convertedCount: 0,
-    convertedThisPeriod: 0,
-    connectionRate: 0,
-    contactRate: 0
-  });
-
-  const [recentCustomers, setRecentCustomers] = useState<WeddingCustomer[]>([]);
-  const [customerDetail, setCustomerDetail] = useState<any>(null);
-
+  const [deskStats, setDeskStats] = useState<any>({});
+  const [customers, setCustomers] = useState<WeddingCustomer[]>([]);
+  const [filtered, setFiltered] = useState<WeddingCustomer[]>([]);
+  
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'My Queue');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<WeddingCustomer | null>(null);
-  const [showCustomerDetail, setShowCustomerDetail] = useState(false);
-  const [showLogCallModal, setShowLogCallModal] = useState(false);
-  const [customerDetailTab, setCustomerDetailTab] = useState<'overview' | 'calls' | 'notes'>('overview');
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'pipeline' | 'calls' | 'performance' | 'customers'>('pipeline');
+  // Date Range Filter
+  const [activeRange, setActiveRange] = useState<'all' | 'today' | 'yesterday' | 'week' | 'month' | 'custom'>('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
-  const [loadingStats, setLoadingStats] = useState(false);
-  const [loadingPipeline, setLoadingPipeline] = useState(false);
-  const [loadingCalls, setLoadingCalls] = useState(false);
-  const [loadingPerformance, setLoadingPerformance] = useState(false);
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
-  const [performancePeriod, setPerformancePeriod] = useState('today');
-
-  const [logForm, setLogForm] = useState({
-    call_status: 'Completed',
-    call_outcome: 'Connected',
+  // Modals
+  const [detailCustomer, setDetailCustomer] = useState<WeddingCustomer | null>(null);
+  const [logCallModalOpen, setLogCallModalOpen] = useState(false);
+  
+  // Call Log State
+  const [callLogForm, setCallLogForm] = useState({
+    callResult: 'Connected',
+    nextFollowUpDate: '',
+    nextFollowUpTime: '',
+    customerResponse: '',
     remarks: '',
-    next_follow_up_date: '',
-    next_follow_up_time: 'Morning (10 AM - 1 PM)'
+    newStatus: ''
   });
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  useEffect(() => {
-    const unsub = subscribeSidebarCollapsed((c) => setCollapsed(c));
-    return unsub;
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [deskRes, custRes] = await Promise.all([
+        API.getWeddingCallingDesk(),
+        API.getWeddingCustomers({ limit: 5000 })
+      ]);
+      
+      if (deskRes?.data) setDeskStats(deskRes.data);
+      if (custRes?.customers) setCustomers(custRes.customers);
+    } catch (err: any) {
+      showToast('Error loading telecaller data: ' + err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    const s = Auth.get();
-    if (!s) {
-      window.location.href = '/login';
+    if (!Auth.check()) {
+      navigate('/login', { replace: true });
       return;
     }
-    setSession(s);
-    if (!s.isGlobalAdmin && s.locationId) {
-      setSelectedLocation(s.locationId);
-    }
-  }, []);
+    const currentSession = Auth.get();
+    setSession(currentSession);
+    loadData();
+  }, [navigate, loadData]);
 
   useEffect(() => {
-    if (!session) return;
-    let mounted = true;
-    API.getLocations().then(res => {
-      if (!mounted) return;
-      const list = res?.locations || res?.data?.locations;
-      if (list && list.length > 0) {
-        setLocations(list.map((l: any) => ({
-          id: l.id,
-          name: l.location_name || l.name,
-          code: l.location_code || l.code
-        })));
-      }
-    }).catch(() => {
-      console.warn('Failed to load locations from API');
-    });
-    return () => { mounted = false; };
-  }, [session]);
+    let list = [...customers];
 
-  const loadStats = useCallback(async () => {
-    setLoadingStats(true);
-    try {
-      const res = await API.getTelecallerDashboardStats(selectedLocation || undefined);
-      const s = res?.stats || res;
-      if (s) {
-        setStats({
-          totalCustomers: Number(s.totalCustomers ?? s.total_customers ?? s.total_assigned) || 0,
-          todayFollowUps: Number(s.todayFollowUps ?? s.today_follow_ups ?? s.due_today) || 0,
-          overdueFollowUps: Number(s.overdueFollowUps ?? s.overdue_follow_ups ?? s.overdue) || 0,
-          upcomingFollowUps: Number(s.upcomingFollowUps ?? s.upcoming_follow_ups) || 0,
-          callsCompletedToday: Number(s.callsCompletedToday ?? s.calls_completed_today ?? s.calls_completed) || 0,
-          totalCalls: Number(s.totalCalls ?? s.total_calls) || 0,
-          noAnswerToday: Number(s.noAnswerToday ?? s.no_answer_today ?? s.no_answer) || 0,
-          convertedCount: Number(s.convertedCount ?? s.converted_count ?? s.visited_converted) || 0,
-          followUpCompletionRate: Number(s.followUpCompletionRate ?? s.follow_up_completion_rate) || 0,
-          statusBreakdown: s.statusBreakdown || s.status_breakdown || {}
-        });
-      }
-    } catch (err) {
-      console.error('Failed to load stats:', err);
-    } finally {
-      setLoadingStats(false);
+    // Restrict to my assigned queue unless Admin
+    if (session?.role !== 'Admin' && session?.role !== 'Super Admin') {
+      list = list.filter(c => c.assignedTelecallerId === session?.id || c.assignedTelecallerName === session?.fullName);
     }
-  }, [selectedLocation]);
 
-  const loadPipeline = useCallback(async () => {
-    setLoadingPipeline(true);
-    try {
-      const res = await API.getTelecallerFollowUpPipeline(selectedLocation || undefined);
-      const pipeline = res?.pipeline || res;
-      if (pipeline) {
-        setFollowUpPipeline({
-          today: pipeline.today || pipeline.dueToday || pipeline.due_today || [],
-          overdue: pipeline.overdue || [],
-          upcoming: pipeline.upcoming || [],
-          callbacks: pipeline.callbacks || pipeline.callbackRequests || pipeline.callback_requests || []
-        });
-      }
-    } catch (err) {
-      console.error('Failed to load pipeline:', err);
-    } finally {
-      setLoadingPipeline(false);
+    // Pipeline / Tab Filtering
+    if (activeTab === 'New Requests') list = list.filter(c => c.status?.toLowerCase().includes('new'));
+    if (activeTab === 'Today Follow-ups') {
+      const today = new Date().toISOString().split('T')[0];
+      list = list.filter(c => c.nextFollowUp && c.nextFollowUp.startsWith(today));
     }
-  }, [selectedLocation]);
+    if (activeTab === 'Overdue') {
+      const today = new Date().toISOString().split('T')[0];
+      list = list.filter(c => c.nextFollowUp && c.nextFollowUp < today && !['Completed', 'Not Interested'].includes(c.status));
+    }
+    if (activeTab === 'Contacted') list = list.filter(c => c.status === 'Contacted');
+    if (activeTab === 'Visit Planned') list = list.filter(c => c.status === 'Visit Planned');
+    if (activeTab === 'Shopping Confirmed') list = list.filter(c => c.status === 'Shopping Confirmed');
+    if (activeTab === 'Completed') list = list.filter(c => c.status === 'Completed');
 
-  const loadCallHistory = useCallback(async () => {
-    setLoadingCalls(true);
-    try {
-      const res = await API.getTelecallerCallHistory({
-        limit: 20,
-        offset: callHistoryPage * 20,
-        date: callHistoryDateFilter || undefined,
-        location_id: selectedLocation || undefined
+    // Date Range filtering
+    if (activeRange !== 'all') {
+      list = list.filter(c => {
+        const d = c.nextFollowUp || c.registrationDate || new Date().toISOString();
+        return isDateInRange(new Date(d), activeRange, fromDate, toDate);
       });
-      const calls = res?.calls || res?.callHistory || res?.call_history || [];
-      const total = res?.total || calls.length;
-      setCallHistory(calls);
-      setCallHistoryTotal(total);
-    } catch (err) {
-      console.error('Failed to load call history:', err);
-    } finally {
-      setLoadingCalls(false);
     }
-  }, [selectedLocation, callHistoryPage, callHistoryDateFilter]);
 
-  const loadPerformance = useCallback(async () => {
-    setLoadingPerformance(true);
-    try {
-      const res = await API.getTelecallerPerformance({
-        period: performancePeriod,
-        location_id: selectedLocation || undefined
-      });
-      const perf = res?.performance || res?.metrics || res;
-      if (perf) {
-        setPerformanceMetrics({
-          totalAssigned: Number(perf.totalAssigned ?? perf.total_assigned) || 0,
-          totalCalls: Number(perf.totalCalls ?? perf.total_calls) || 0,
-          contactedCount: Number(perf.contactedCount ?? perf.contacted_count) || 0,
-          connectedCount: Number(perf.connectedCount ?? perf.connected_count) || 0,
-          noAnswerCount: Number(perf.noAnswerCount ?? perf.no_answer_count) || 0,
-          convertedCount: Number(perf.convertedCount ?? perf.converted_count) || 0,
-          convertedThisPeriod: Number(perf.convertedThisPeriod ?? perf.converted_this_period) || 0,
-          connectionRate: Number(perf.connectionRate ?? perf.connection_rate) || 0,
-          contactRate: Number(perf.contactRate ?? perf.contact_rate) || 0
-        });
-      }
-    } catch (err) {
-      console.error('Failed to load performance:', err);
-    } finally {
-      setLoadingPerformance(false);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(c => 
+        (c.customerName && c.customerName.toLowerCase().includes(q)) || 
+        (c.mobile && c.mobile.toLowerCase().includes(q)) || 
+        (c.registrationId && c.registrationId.toLowerCase().includes(q)) ||
+        (c.locationName && c.locationName.toLowerCase().includes(q))
+      );
     }
-  }, [selectedLocation, performancePeriod]);
+    
+    setFiltered(list);
+  }, [customers, activeTab, searchQuery, activeRange, fromDate, toDate, session]);
 
-  const loadRecentCustomers = useCallback(async () => {
-    setLoadingCustomers(true);
+  const handleLogCall = async () => {
+    if (!detailCustomer || saving) return;
+    setSaving(true);
     try {
-      const res = await API.getTelecallerRecentCustomers(50);
-      const custs = res?.customers || res?.recentCustomers || res?.recent_customers || [];
-      setRecentCustomers(custs);
-    } catch (err) {
-      console.error('Failed to load recent customers:', err);
-    } finally {
-      setLoadingCustomers(false);
-    }
-  }, []);
-
-  const loadCustomerDetail = useCallback(async (customerId: number | string) => {
-    setLoadingDetail(true);
-    try {
-      const res = await API.getTelecallerCustomerDetail(customerId);
-      if (res) {
-        setCustomerDetail(res);
-        if (res.customer) setSelectedCustomer(res.customer);
-      }
-    } catch (err) {
-      console.error('Failed to load customer detail:', err);
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!session) return;
-    loadStats();
-  }, [session, loadStats]);
-
-  useEffect(() => {
-    if (!session) return;
-    if (activeTab === 'pipeline') loadPipeline();
-    else if (activeTab === 'calls') loadCallHistory();
-    else if (activeTab === 'performance') loadPerformance();
-    else if (activeTab === 'customers') loadRecentCustomers();
-  }, [activeTab, session, loadPipeline, loadCallHistory, loadPerformance, loadRecentCustomers]);
-
-  const handleRefresh = () => {
-    loadStats();
-    if (activeTab === 'pipeline') loadPipeline();
-    else if (activeTab === 'calls') loadCallHistory();
-    else if (activeTab === 'performance') loadPerformance();
-    else if (activeTab === 'customers') loadRecentCustomers();
-  };
-
-  const openCustomerDetail = (cust: WeddingCustomer) => {
-    setSelectedCustomer(cust);
-    setShowCustomerDetail(true);
-    setCustomerDetailTab('overview');
-    loadCustomerDetail(cust.id);
-  };
-
-  const openLogCallModal = (cust: WeddingCustomer) => {
-    setSelectedCustomer(cust);
-    setLogForm({
-      call_status: 'Completed',
-      call_outcome: 'Connected',
-      remarks: '',
-      next_follow_up_date: cust.follow_up_date ? String(cust.follow_up_date).slice(0, 10) : '',
-      next_follow_up_time: cust.preferred_call_time || 'Morning (10 AM - 1 PM)'
-    });
-    setShowLogCallModal(true);
-  };
-
-  const handleSaveCallLog = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCustomer) return;
-    try {
-      const cleanDate = (d?: string | null) => (d && d.trim() ? d.trim().slice(0, 10) : null);
       const payload = {
-        customerId: selectedCustomer.id,
-        customer_id: selectedCustomer.id,
-        callDate: new Date().toISOString().slice(0, 10),
-        callTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        callStatus: logForm.call_status,
-        callOutcome: logForm.call_outcome,
-        remarks: logForm.remarks,
-        nextFollowUpDate: logForm.call_outcome !== 'Not Interested' ? cleanDate(logForm.next_follow_up_date) : null,
-        nextFollowUpTime: logForm.call_outcome !== 'Not Interested' ? (logForm.next_follow_up_time || null) : null
+        customerId: detailCustomer.id,
+        callStatus: callLogForm.callResult,
+        remarks: callLogForm.remarks,
+        response: callLogForm.customerResponse,
+        nextFollowUpDate: callLogForm.nextFollowUpDate,
+        nextFollowUpTime: callLogForm.nextFollowUpTime,
+        status: callLogForm.newStatus || detailCustomer.status
       };
-
-      const res = await API.logWeddingCall(payload);
-      if (res && res.success) {
-        showToast(`Call outcome [${logForm.call_outcome}] logged for ${selectedCustomer.customer_name}!`);
-        setShowLogCallModal(false);
-        loadStats();
-        if (activeTab === 'pipeline') loadPipeline();
-        else if (activeTab === 'calls') loadCallHistory();
-      } else {
-        alert(res?.message || 'Failed to log call');
+      
+      await API.logWeddingCall(payload);
+      
+      // If status changed, update customer
+      if (callLogForm.newStatus && callLogForm.newStatus !== detailCustomer.status) {
+         await API.updateWeddingCustomer(detailCustomer.id, { status: callLogForm.newStatus });
       }
-    } catch (err: any) {
-      alert(err.message || 'Error saving call log');
+      
+      showToast('Call logged successfully', 'success');
+      setLogCallModalOpen(false);
+      setCallLogForm({ callResult: 'Connected', nextFollowUpDate: '', nextFollowUpTime: '', customerResponse: '', remarks: '', newStatus: '' });
+      loadData();
+    } catch (e: any) {
+      showToast('Error: ' + e.message, 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const filteredCustomers = useMemo(() => {
-    if (!searchQuery.trim()) return recentCustomers;
-    const q = searchQuery.toLowerCase();
-    return recentCustomers.filter(c =>
-      (c.customer_name || '').toLowerCase().includes(q) ||
-      (c.customer_code || '').toLowerCase().includes(q) ||
-      (c.mobile_number || '').includes(q)
-    );
-  }, [recentCustomers, searchQuery]);
-
-  const breadcrumbTrail = useMemo(() => {
-    if (showCustomerDetail && selectedCustomer) {
-      return [{ label: selectedCustomer.customer_name || 'Customer Details' }];
-    }
-    return null;
-  }, [showCustomerDetail, selectedCustomer]);
-
-  const isLoading = loadingStats || loadingPipeline || loadingCalls || loadingPerformance || loadingCustomers;
+  const renderStatus = (status?: string) => {
+    if (!status) return <span className="text-slate-400">-</span>;
+    const s = status.toLowerCase();
+    let cls = 'bg-slate-100 text-slate-700';
+    if (s.includes('new') || s.includes('pending')) cls = 'bg-blue-50 text-blue-700 border-blue-200';
+    if (s.includes('contacted') || s.includes('scheduled')) cls = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    if (s.includes('visit') || s.includes('progress')) cls = 'bg-amber-50 text-amber-700 border-amber-200';
+    if (s.includes('confirm') || s.includes('completed')) cls = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (s.includes('not interested') || s.includes('cancel')) cls = 'bg-rose-50 text-rose-700 border-rose-200';
+    return <span className={`inline-flex px-2 py-1 rounded-full text-[11px] font-bold border ${cls}`}>{status}</span>;
+  };
 
   return (
-    <div className="h-screen w-full bg-background text-gray-800 flex overflow-hidden relative selection:bg-accent/30">
+    <div className="flex h-screen bg-slate-50 font-sans">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className={`flex-1 flex flex-col h-screen min-w-0 overflow-hidden transition-all duration-300 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
-        <Topbar
-          title="Telecaller Dashboard"
-          breadcrumbs={breadcrumbTrail}
-          session={session}
-          onMenuClick={() => setSidebarOpen(true)}
-          rightElement={
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {session?.isGlobalAdmin ? (
-                <div className="flex items-center bg-primary/10 rounded-xl p-0.5 sm:p-1 border border-accent/40">
-                  <span className="hidden lg:inline text-[11px] font-bold text-primary px-1.5 uppercase tracking-wide">Location:</span>
-                  <select
-                    value={selectedLocation}
-                    onChange={e => setSelectedLocation(e.target.value ? parseInt(e.target.value, 10) : '')}
-                    className="bg-white text-xs font-bold text-primary py-1 px-1.5 sm:px-2 rounded-lg border-0 focus:ring-2 focus:ring-accent shadow-xs cursor-pointer max-w-[95px] xs:max-w-[130px] sm:max-w-[180px]"
-                  >
-                    <option value="">All</option>
-                    {locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>
-                        {loc.name} ({loc.code})
-                      </option>
-                    ))}
-                  </select>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Topbar title="Telecaller Dashboard" session={session} onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          <ToastContainer />
+          
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Header Info */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent">
+                  <PhoneCall className="w-6 h-6" />
                 </div>
-              ) : (
-                <div className="bg-primary text-white px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm border border-accent/30 flex-shrink-0">
-                  <MapPin className="w-3.5 h-3.5 text-accent flex-shrink-0" />
-                  <span className="hidden sm:inline">{session?.locationName?.toUpperCase() || 'DAVANAGERE'}</span>
-                  <span className="sm:hidden">{session?.locationCode || 'DAV'}</span>
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900">BSC EXCLUSIVE • Telecaller Dashboard</h1>
+                  <p className="text-sm text-slate-500 font-medium mt-0.5">
+                    Logged in as <strong className="text-slate-800">{session?.fullName || session?.username}</strong> ({session?.role})
+                    {session?.locationId && ` • Assigned Location: ${session.locationId}`}
+                  </p>
                 </div>
-              )}
-
-              <button
-                onClick={handleRefresh}
-                className="bg-white border border-accent-soft hover:border-primary text-primary px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs hover:shadow-md transition-all flex-shrink-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Refresh</span>
+              </div>
+              <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition-colors">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
               </button>
             </div>
-          }
-        />
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 lg:p-6 w-full space-y-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-
-            {toastMessage && (
-              <div className="fixed bottom-6 right-6 z-[200] bg-primary border-2 border-accent text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up">
-                <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0" />
-                <span className="text-sm font-bold tracking-wide">{toastMessage}</span>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Total Assigned</div>
+                <div className="text-2xl font-extrabold text-slate-900">{deskStats.assignedCalls || 0}</div>
+                <Users className="absolute top-4 right-4 w-8 h-8 text-slate-100" />
               </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h1 className="text-2xl font-black text-primary tracking-tight">Telecaller Dashboard</h1>
-                <p className="text-xs text-gray-500 font-medium mt-1">
-                  {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-xl shadow-sm relative overflow-hidden text-white">
+                <div className="text-xs font-bold text-blue-100 mb-1 uppercase tracking-wider">Today's Follow-ups</div>
+                <div className="text-2xl font-extrabold">{deskStats.pendingCalls || 0}</div>
+                <Clock className="absolute top-4 right-4 w-8 h-8 text-white/20" />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(63,14,29,0.08)' }}>
-                    <Users className="w-5 h-5" style={{ color: '#3F0E1D' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Total Assigned</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.totalCustomers}</p>
-                  </div>
-                </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="text-xs font-bold text-rose-500 mb-1 uppercase tracking-wider">Overdue</div>
+                <div className="text-2xl font-extrabold text-slate-900">{deskStats.noAnswerCount || 0}</div>
+                <AlertCircle className="absolute top-4 right-4 w-8 h-8 text-rose-50" />
               </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(63,14,29,0.08)' }}>
-                    <Calendar className="w-5 h-5" style={{ color: '#3F0E1D' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Today's Follow-ups</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.todayFollowUps}</p>
-                  </div>
-                </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="text-xs font-bold text-teal-600 mb-1 uppercase tracking-wider">Completed Today</div>
+                <div className="text-2xl font-extrabold text-slate-900">{deskStats.completedToday || 0}</div>
+                <CheckCircle className="absolute top-4 right-4 w-8 h-8 text-teal-50" />
               </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: stats.overdueFollowUps > 0 ? 'rgba(220,38,38,0.08)' : 'rgba(63,14,29,0.08)' }}>
-                    <AlertCircle className="w-5 h-5" style={{ color: stats.overdueFollowUps > 0 ? '#DC2626' : '#3F0E1D' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Overdue</p>
-                    <p className="text-xl font-bold" style={{ color: stats.overdueFollowUps > 0 ? '#DC2626' : '#111827' }}>{stats.overdueFollowUps}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(63,14,29,0.08)' }}>
-                    <Phone className="w-5 h-5" style={{ color: '#3F0E1D' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Calls Today</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.totalCalls}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.08)' }}>
-                    <CheckCircle2 className="w-5 h-5" style={{ color: '#22C55E' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Connected</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.callsCompletedToday}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.08)' }}>
-                    <PhoneOff className="w-5 h-5" style={{ color: '#EF4444' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">No Answer</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.noAnswerToday}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.08)' }}>
-                    <TrendingUp className="w-5 h-5" style={{ color: '#22C55E' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Converted</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.convertedCount}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(63,14,29,0.08)' }}>
-                    <Clock className="w-5 h-5" style={{ color: '#3F0E1D' }} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Upcoming</p>
-                    <p className="text-xl font-bold text-gray-900">{stats.upcomingFollowUps}</p>
-                  </div>
-                </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden hidden lg:block">
+                <div className="text-xs font-bold text-emerald-600 mb-1 uppercase tracking-wider">Visits Scheduled</div>
+                <div className="text-2xl font-extrabold text-slate-900">{deskStats.connectedCalls || 0}</div>
+                <MapPin className="absolute top-4 right-4 w-8 h-8 text-emerald-50" />
               </div>
             </div>
 
-            <div className="flex items-center gap-1 bg-white rounded-xl p-1 border border-gray-100 shadow-xs overflow-x-auto">
-              {([
-                { key: 'pipeline' as const, label: 'Follow-up Pipeline', icon: Calendar },
-                { key: 'calls' as const, label: 'Call History', icon: History },
-                { key: 'performance' as const, label: 'Performance', icon: BarChart3 },
-                { key: 'customers' as const, label: 'My Customers', icon: Users }
-              ]).map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-                    activeTab === tab.key
-                      ? 'bg-primary text-white shadow-md'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                  }`}
-                >
-                  <tab.icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {activeTab === 'pipeline' && (
-              <div className="space-y-4">
-                {loadingPipeline ? (
-                  <div className="flex items-center justify-center py-20">
-                    <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-                    <span className="ml-2 text-sm text-gray-500 font-medium">Loading pipeline...</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-                      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        <h3 className="text-sm font-bold text-gray-900">Today's Follow-ups</h3>
-                        <span className="ml-auto bg-blue-50 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">{followUpPipeline.today.length}</span>
-                      </div>
-                      <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
-                        {followUpPipeline.today.length === 0 ? (
-                          <div className="p-6 text-center text-gray-400 text-sm">No follow-ups due today</div>
-                        ) : (
-                          followUpPipeline.today.map(c => (
-                            <div key={c.id} className="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 truncate">{c.customer_name}</p>
-                                <p className="text-xs text-gray-500">{c.mobile_number} {c.wedding_date ? `\u00B7 ${c.wedding_date}` : ''}</p>
-                              </div>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getStatusBadge(c.customer_status)}`}>
-                                {c.customer_status}
-                              </span>
-                              <button onClick={() => openLogCallModal(c)} className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors" title="Log Call">
-                                <PhoneCall className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => openCustomerDetail(c)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="View">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl border border-red-200 shadow-sm">
-                      <div className="px-4 py-3 border-b border-red-100 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-red-500" />
-                        <h3 className="text-sm font-bold text-red-700">Overdue Follow-ups</h3>
-                        <span className="ml-auto bg-red-50 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">{followUpPipeline.overdue.length}</span>
-                      </div>
-                      <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
-                        {followUpPipeline.overdue.length === 0 ? (
-                          <div className="p-6 text-center text-gray-400 text-sm">No overdue follow-ups</div>
-                        ) : (
-                          followUpPipeline.overdue.map(c => (
-                            <div key={c.id} className="px-4 py-3 flex items-center gap-3 hover:bg-red-50/50 transition-colors">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 truncate">{c.customer_name}</p>
-                                <p className="text-xs text-gray-500">{c.mobile_number}</p>
-                              </div>
-                              {c.overdue_days && c.overdue_days > 0 && (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200">
-                                  {c.overdue_days}d overdue
-                                </span>
-                              )}
-                              <button onClick={() => openLogCallModal(c)} className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors" title="Log Call">
-                                <PhoneCall className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => openCustomerDetail(c)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="View">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-                      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" />
-                        <h3 className="text-sm font-bold text-gray-900">Upcoming (Next 7 Days)</h3>
-                        <span className="ml-auto bg-amber-50 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{followUpPipeline.upcoming.length}</span>
-                      </div>
-                      <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
-                        {followUpPipeline.upcoming.length === 0 ? (
-                          <div className="p-6 text-center text-gray-400 text-sm">No upcoming follow-ups</div>
-                        ) : (
-                          followUpPipeline.upcoming.map(c => (
-                            <div key={c.id} className="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 truncate">{c.customer_name}</p>
-                                <p className="text-xs text-gray-500">{c.mobile_number}</p>
-                              </div>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                                {c.follow_up_date ? String(c.follow_up_date).slice(0, 10) : 'TBD'}
-                              </span>
-                              <button onClick={() => openLogCallModal(c)} className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors" title="Log Call">
-                                <PhoneCall className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => openCustomerDetail(c)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="View">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-                      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500" />
-                        <h3 className="text-sm font-bold text-gray-900">Callback Requests</h3>
-                        <span className="ml-auto bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">{followUpPipeline.callbacks.length}</span>
-                      </div>
-                      <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
-                        {followUpPipeline.callbacks.length === 0 ? (
-                          <div className="p-6 text-center text-gray-400 text-sm">No callback requests</div>
-                        ) : (
-                          followUpPipeline.callbacks.map(c => (
-                            <div key={c.id} className="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 truncate">{c.customer_name}</p>
-                                <p className="text-xs text-gray-500">{c.mobile_number} {c.preferred_call_time ? `\u00B7 Prefers: ${c.preferred_call_time}` : ''}</p>
-                              </div>
-                              <MessageCircle className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                              <button onClick={() => openLogCallModal(c)} className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors" title="Log Call">
-                                <PhoneCall className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => openCustomerDetail(c)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors" title="View">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
+            {/* Main Content Area */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+              {/* Pipeline Tabs */}
+              <div className="flex overflow-x-auto hide-scrollbar border-b border-slate-200 p-2">
+                {['My Queue', 'New Requests', 'Today Follow-ups', 'Overdue', 'Contacted', 'Visit Planned', 'Shopping Confirmed', 'Completed'].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`whitespace-nowrap px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                      activeTab === tab 
+                        ? 'bg-accent/10 text-accent shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
-            )}
 
-            {activeTab === 'calls' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center bg-white rounded-xl border border-gray-100 shadow-xs p-1">
-                    <input
-                      type="date"
-                      value={callHistoryDateFilter}
-                      onChange={e => { setCallHistoryDateFilter(e.target.value); setCallHistoryPage(0); }}
-                      className="text-xs font-bold text-primary px-3 py-1.5 rounded-lg border-0 focus:ring-2 focus:ring-accent bg-transparent"
-                    />
-                    {callHistoryDateFilter && (
-                      <button onClick={() => { setCallHistoryDateFilter(''); setCallHistoryPage(0); }} className="text-gray-400 hover:text-red-500 px-2">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
+              {/* Filters & Search */}
+              <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50/50">
+                <div className="relative max-w-sm w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search Registration ID, Name, Phone..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+                  />
                 </div>
-
-                {loadingCalls ? (
-                  <div className="flex items-center justify-center py-20">
-                    <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-                    <span className="ml-2 text-sm text-gray-500 font-medium">Loading call history...</span>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-gray-50 border-b border-gray-100">
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Time</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Phone</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Outcome</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Remarks</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {callHistory.length === 0 ? (
-                            <tr>
-                              <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">No call records found</td>
-                            </tr>
-                          ) : (
-                            callHistory.map(call => (
-                              <tr key={call.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 text-gray-900 font-medium whitespace-nowrap">{call.call_date ? String(call.call_date).slice(0, 10) : '-'}</td>
-                                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{call.call_time || '-'}</td>
-                                <td className="px-4 py-3 font-bold text-gray-900">{call.customer_name || `Customer #${call.customer_id}`}</td>
-                                <td className="px-4 py-3 text-gray-500">{call.mobile_number || '-'}</td>
-                                <td className="px-4 py-3">
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getStatusBadge(call.call_status)}`}>
-                                    {call.call_status}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                    call.call_outcome === 'Connected' ? 'bg-green-50 text-green-700 border border-green-200' :
-                                    call.call_outcome === 'No Answer' ? 'bg-red-50 text-red-700 border border-red-200' :
-                                    call.call_outcome === 'Interested' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                                    'bg-gray-50 text-gray-600 border border-gray-200'
-                                  }`}>
-                                    {call.call_outcome}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{call.remarks || '-'}</td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                    {callHistoryTotal > 20 && (
-                      <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          Showing {callHistoryPage * 20 + 1}-{Math.min((callHistoryPage + 1) * 20, callHistoryTotal)} of {callHistoryTotal}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setCallHistoryPage(p => Math.max(0, p - 1))}
-                            disabled={callHistoryPage === 0}
-                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setCallHistoryPage(p => p + 1)}
-                            disabled={(callHistoryPage + 1) * 20 >= callHistoryTotal}
-                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'performance' && (
-              <div className="space-y-4">
+                
                 <div className="flex items-center gap-2">
-                  {['today', 'week', 'month'].map(period => (
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  {(['all', 'today', 'yesterday', 'week', 'month'] as const).map(range => (
                     <button
-                      key={period}
-                      onClick={() => setPerformancePeriod(period)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        performancePeriod === period
-                          ? 'bg-primary text-white shadow-md'
-                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                      key={range}
+                      onClick={() => setActiveRange(range)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        activeRange === range ? 'bg-slate-800 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {period === 'today' ? 'Today' : period === 'week' ? 'This Week' : 'This Month'}
+                      {range === 'all' ? 'All Time' :
+                       range === 'today' ? 'Today' :
+                       range === 'yesterday' ? 'Yesterday' :
+                       range === 'week' ? 'This Week' : 'This Month'}
                     </button>
                   ))}
                 </div>
-
-                {loadingPerformance ? (
-                  <div className="flex items-center justify-center py-20">
-                    <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-                    <span className="ml-2 text-sm text-gray-500 font-medium">Loading performance data...</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Total Assigned</p>
-                      <p className="text-3xl font-black text-primary">{performanceMetrics.totalAssigned}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full" style={{ width: '100%' }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Total Calls Made</p>
-                      <p className="text-3xl font-black text-primary">{performanceMetrics.totalCalls}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${performanceMetrics.totalAssigned > 0 ? Math.min(100, (performanceMetrics.totalCalls / performanceMetrics.totalAssigned) * 100) : 0}%`, background: '#3F0E1D' }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Contacted</p>
-                      <p className="text-3xl font-black text-primary">{performanceMetrics.contactedCount}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-indigo-500" style={{ width: `${performanceMetrics.totalAssigned > 0 ? Math.min(100, (performanceMetrics.contactedCount / performanceMetrics.totalAssigned) * 100) : 0}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Connected</p>
-                      <p className="text-3xl font-black text-primary">{performanceMetrics.connectedCount}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-green-500" style={{ width: `${performanceMetrics.totalAssigned > 0 ? Math.min(100, (performanceMetrics.connectedCount / performanceMetrics.totalAssigned) * 100) : 0}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">No Answer</p>
-                      <p className="text-3xl font-black text-red-600">{performanceMetrics.noAnswerCount}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-red-400" style={{ width: `${performanceMetrics.totalAssigned > 0 ? Math.min(100, (performanceMetrics.noAnswerCount / performanceMetrics.totalAssigned) * 100) : 0}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Converted</p>
-                      <p className="text-3xl font-black text-green-600">{performanceMetrics.convertedCount}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-green-600" style={{ width: `${performanceMetrics.totalAssigned > 0 ? Math.min(100, (performanceMetrics.convertedCount / performanceMetrics.totalAssigned) * 100) : 0}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Connection Rate</p>
-                      <p className="text-3xl font-black text-primary">{performanceMetrics.connectionRate.toFixed(1)}%</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, performanceMetrics.connectionRate)}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Contact Rate</p>
-                      <p className="text-3xl font-black text-primary">{performanceMetrics.contactRate.toFixed(1)}%</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-indigo-500" style={{ width: `${Math.min(100, performanceMetrics.contactRate)}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                      <p className="text-xs text-gray-500 font-medium mb-1">Converted This Period</p>
-                      <p className="text-3xl font-black text-green-600">{performanceMetrics.convertedThisPeriod}</p>
-                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-green-600" style={{ width: `${performanceMetrics.totalAssigned > 0 ? Math.min(100, (performanceMetrics.convertedThisPeriod / performanceMetrics.totalAssigned) * 100) : 0}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
-            )}
 
-            {activeTab === 'customers' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search by name, code, or phone..."
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    />
-                  </div>
-                </div>
-
-                {loadingCustomers ? (
-                  <div className="flex items-center justify-center py-20">
-                    <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-                    <span className="ml-2 text-sm text-gray-500 font-medium">Loading customers...</span>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="max-h-[600px] overflow-y-auto divide-y divide-gray-50">
-                      {filteredCustomers.length === 0 ? (
-                        <div className="p-6 text-center text-gray-400 text-sm">No customers found</div>
-                      ) : (
-                        filteredCustomers.map(c => (
-                          <div key={c.id} className="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => openCustomerDetail(c)}>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-bold text-gray-900 truncate">{c.customer_name}</p>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{c.customer_code}</span>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-0.5">{c.mobile_number} {c.wedding_date ? `\u00B7 Wedding: ${c.wedding_date}` : ''}</p>
+              {/* Operations Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-y border-slate-200">
+                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Registration</th>
+                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Customer & Contact</th>
+                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Wedding Details</th>
+                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Telecaller & Follow-up</th>
+                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                      <th className="py-3 px-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loading ? (
+                      <tr><td colSpan={6} className="py-12 text-center text-slate-500"><RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-accent" />Loading Queue...</td></tr>
+                    ) : filtered.length === 0 ? (
+                      <tr><td colSpan={6} className="py-12 text-center text-slate-500 font-medium">No customers found in this queue.</td></tr>
+                    ) : (
+                      filtered.map(c => (
+                        <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-bold text-slate-900 font-mono">{c.registrationId || `CUST-${c.id}`}</div>
+                            <div className="text-xs text-slate-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3"/>{c.locationName || 'N/A'}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-bold text-slate-900 group-hover:text-accent cursor-pointer transition-colors" onClick={() => setDetailCustomer(c)}>
+                              {c.customerName}
                             </div>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${getStatusBadge(c.customer_status)}`}>
-                              {c.customer_status}
-                            </span>
-                            <button onClick={e => { e.stopPropagation(); openLogCallModal(c); }} className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors flex-shrink-0" title="Log Call">
-                              <PhoneCall className="w-4 h-4" />
+                            <div className="text-xs text-slate-600 font-medium flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3 text-slate-400"/> {c.mobile}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-bold text-slate-700">{c.weddingDate ? new Date(c.weddingDate).toLocaleDateString() : 'TBD'}</div>
+                            <div className="text-xs text-slate-500 mt-0.5">{c.shoppingCategory || 'Unspecified'}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm font-bold text-slate-700">{c.assignedTelecallerName || 'Unassigned'}</div>
+                            <div className="text-xs text-rose-500 font-bold mt-0.5 flex items-center gap-1">
+                              <Clock className="w-3 h-3"/> {c.nextFollowUp ? new Date(c.nextFollowUp).toLocaleDateString() : 'No follow-up'}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            {renderStatus(c.status)}
+                          </td>
+                          <td className="py-3 px-4 text-right space-x-2">
+                            <button 
+                              onClick={() => { setDetailCustomer(c); setLogCallModalOpen(true); }}
+                              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent hover:text-white transition-colors text-xs font-bold"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5 mr-1" /> Log Call
                             </button>
-                            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
+                            <button 
+                              onClick={() => setDetailCustomer(c)}
+                              className="inline-flex items-center justify-center p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-            )}
-
+            </div>
           </div>
         </main>
       </div>
 
-      {showCustomerDetail && selectedCustomer && (
-        <div className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4" onClick={() => { setShowCustomerDetail(false); setCustomerDetail(null); }}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
+      {/* Customer Detail Drawer / Modal */}
+      {detailCustomer && !logCallModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-900/50 backdrop-blur-sm p-0 md:p-4">
+          <div className="bg-white shadow-2xl w-full md:w-[600px] md:rounded-2xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div>
-                <h2 className="text-lg font-black text-primary">{selectedCustomer.customer_name}</h2>
-                <p className="text-xs text-gray-500 font-medium">{selectedCustomer.customer_code}</p>
+                <h2 className="text-lg font-bold text-slate-900">{detailCustomer.customerName}</h2>
+                <div className="text-xs text-slate-500 font-mono mt-0.5">{detailCustomer.registrationId || `CUST-${detailCustomer.id}`} • {detailCustomer.locationName}</div>
               </div>
-              <button onClick={() => { setShowCustomerDetail(false); setCustomerDetail(null); }} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+              <button onClick={() => setDetailCustomer(null)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full"><X className="w-5 h-5" /></button>
             </div>
-
-            <div className="flex items-center gap-1 px-6 py-2 border-b border-gray-100">
-              {([
-                { key: 'overview' as const, label: 'Overview' },
-                { key: 'calls' as const, label: 'Call History' },
-                { key: 'notes' as const, label: 'Notes' }
-              ]).map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setCustomerDetailTab(tab.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    customerDetailTab === tab.key
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  {tab.label}
+            
+            <div className="flex-1 overflow-auto p-6 space-y-6 bg-slate-50/30">
+              
+              {/* Quick Actions */}
+              <div className="flex gap-3">
+                <button onClick={() => setLogCallModalOpen(true)} className="flex-1 py-2.5 bg-accent text-white rounded-xl text-sm font-bold shadow-sm hover:bg-accent/90 transition-colors flex items-center justify-center gap-2">
+                  <PhoneCall className="w-4 h-4" /> Log Call / Follow-up
                 </button>
-              ))}
-            </div>
+                <button className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                  <MapPin className="w-4 h-4" /> Schedule Visit
+                </button>
+              </div>
 
-            <div className="p-6">
-              {loadingDetail ? (
-                <div className="flex items-center justify-center py-10">
-                  <RefreshCw className="w-5 h-5 text-primary animate-spin" />
-                  <span className="ml-2 text-sm text-gray-500">Loading details...</span>
+              {/* Status & Priority */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Current Status</div>
+                  {renderStatus(detailCustomer.status)}
                 </div>
-              ) : (
-                <>
-                  {customerDetailTab === 'overview' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { label: 'Name', value: selectedCustomer.customer_name },
-                        { label: 'Phone', value: selectedCustomer.mobile_number },
-                        { label: 'Email', value: selectedCustomer.email || '-' },
-                        { label: 'Wedding Date', value: selectedCustomer.wedding_date || '-' },
-                        { label: 'Shopping Date', value: selectedCustomer.expected_shopping_date || '-' },
-                        { label: 'Category', value: selectedCustomer.preferred_shopping_category || '-' },
-                        { label: 'Family Size', value: selectedCustomer.estimated_family_size || '-' },
-                        { label: 'Assigned To', value: selectedCustomer.assigned_telecaller || '-' },
-                        { label: 'Status', value: selectedCustomer.customer_status },
-                        { label: 'Call Status', value: selectedCustomer.call_status || '-' },
-                        { label: 'Follow-up Date', value: selectedCustomer.follow_up_date ? String(selectedCustomer.follow_up_date).slice(0, 10) : '-' },
-                        { label: 'Preferred Time', value: selectedCustomer.preferred_call_time || '-' },
-                        { label: 'Notes', value: selectedCustomer.customer_notes || '-' }
-                      ].map(item => (
-                        <div key={item.label} className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{item.label}</p>
-                          <p className="text-sm font-bold text-gray-900 mt-0.5">{item.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Next Follow-up</div>
+                  <div className="text-sm font-bold text-rose-600 flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" />
+                    {detailCustomer.nextFollowUp ? new Date(detailCustomer.nextFollowUp).toLocaleDateString() : 'Not Scheduled'}
+                  </div>
+                </div>
+              </div>
 
-                  {customerDetailTab === 'calls' && (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {customerDetail?.callLogs && customerDetail.callLogs.length > 0 ? (
-                        customerDetail.callLogs.map((log: CallLog) => (
-                          <div key={log.id} className="bg-gray-50 rounded-lg p-3 flex items-start gap-3">
-                            <PhoneCall className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-gray-900">{log.call_date ? String(log.call_date).slice(0, 10) : ''}</span>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">{log.call_outcome}</span>
-                              </div>
-                              {log.remarks && <p className="text-xs text-gray-500 mt-1">{log.remarks}</p>}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-400 text-center py-6">No call history available</p>
-                      )}
-                    </div>
-                  )}
+              {/* Wedding & Shopping Info */}
+              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-accent" /> Wedding & Shopping Details
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Wedding Date</span><span className="font-bold text-slate-800">{detailCustomer.weddingDate ? new Date(detailCustomer.weddingDate).toLocaleDateString() : 'TBD'}</span></div>
+                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Shopping Category</span><span className="font-bold text-slate-800">{detailCustomer.shoppingCategory || 'N/A'}</span></div>
+                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Functions</span><span className="font-medium text-slate-800">{detailCustomer.functions || 'N/A'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500 font-medium">Preferred Shopping Date</span><span className="font-medium text-slate-800">{detailCustomer.preferredShoppingDate ? new Date(detailCustomer.preferredShoppingDate).toLocaleDateString() : 'N/A'}</span></div>
+                </div>
+              </div>
 
-                  {customerDetailTab === 'notes' && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedCustomer.customer_notes || 'No notes available'}</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex items-center gap-3 rounded-b-xl">
-              <a
-                href={`tel:${selectedCustomer.mobile_number}`}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                Call
-              </a>
-              <button
-                onClick={() => { setShowCustomerDetail(false); setCustomerDetail(null); openLogCallModal(selectedCustomer); }}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
-              >
-                <PhoneCall className="w-4 h-4" />
-                Log Call
-              </button>
-              <button
-                onClick={() => { setShowCustomerDetail(false); setCustomerDetail(null); }}
-                className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-              >
-                Close
-              </button>
+              {/* Contact Info */}
+              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-500" /> Contact Information
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Mobile Number</span><span className="font-bold text-slate-800">{detailCustomer.mobile}</span></div>
+                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Email Address</span><span className="font-medium text-slate-800">{detailCustomer.email || 'N/A'}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500 font-medium">Contact Method</span><span className="font-medium text-slate-800">{detailCustomer.contactMethod || 'N/A'}</span></div>
+                </div>
+              </div>
+              
+              {/* Activity Timeline Placeholder */}
+              <div className="bg-slate-100 border border-slate-200 rounded-xl p-5 text-center shadow-inner">
+                <MessageCircle className="w-6 h-6 text-slate-400 mx-auto mb-2" />
+                <p className="text-sm text-slate-600 font-medium">Consultation & Call Logs are available in the Full Profile view.</p>
+                <button className="mt-3 text-xs font-bold text-accent hover:underline">View Full Timeline</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {showLogCallModal && selectedCustomer && (
-        <div className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowLogCallModal(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-black text-primary">Log Call</h2>
-                <p className="text-xs text-gray-500 font-medium">{selectedCustomer.customer_name}</p>
+      {/* Log Call Modal / Follow-up Scheduler */}
+      {logCallModalOpen && detailCustomer && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <PhoneCall className="w-5 h-5 text-accent" /> Log Call & Follow-up
+              </h2>
+              <button onClick={() => setLogCallModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="p-6 space-y-5 bg-white">
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100 text-sm font-medium text-blue-900">
+                <User className="w-5 h-5 text-blue-500" /> Calling: {detailCustomer.customerName} ({detailCustomer.mobile})
               </div>
-              <button onClick={() => setShowLogCallModal(false)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+              
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Call Result <span className="text-rose-500">*</span></label>
+                <select 
+                  value={callLogForm.callResult} 
+                  onChange={e => setCallLogForm({...callLogForm, callResult: e.target.value})}
+                  className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
+                >
+                  <option value="Connected">Connected</option>
+                  <option value="No Answer">No Answer</option>
+                  <option value="Busy">Busy</option>
+                  <option value="Call Back Requested">Call Back Requested</option>
+                  <option value="Not Reachable">Not Reachable</option>
+                  <option value="Number Invalid">Number Invalid</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Customer Response / Remarks <span className="text-rose-500">*</span></label>
+                <textarea 
+                  rows={3}
+                  value={callLogForm.remarks}
+                  onChange={e => setCallLogForm({...callLogForm, remarks: e.target.value})}
+                  className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border resize-none"
+                  placeholder="Enter detailed notes about the conversation..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Next Follow-up Date</label>
+                  <input 
+                    type="date"
+                    value={callLogForm.nextFollowUpDate}
+                    onChange={e => setCallLogForm({...callLogForm, nextFollowUpDate: e.target.value})}
+                    className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Time</label>
+                  <input 
+                    type="time"
+                    value={callLogForm.nextFollowUpTime}
+                    onChange={e => setCallLogForm({...callLogForm, nextFollowUpTime: e.target.value})}
+                    className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Update Pipeline Status (Optional)</label>
+                <select 
+                  value={callLogForm.newStatus} 
+                  onChange={e => setCallLogForm({...callLogForm, newStatus: e.target.value})}
+                  className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
+                >
+                  <option value="">-- Keep current status: {detailCustomer.status} --</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Follow-up Scheduled">Follow-up Scheduled</option>
+                  <option value="Visit Planned">Visit Planned</option>
+                  <option value="Shopping Confirmed">Shopping Confirmed</option>
+                  <option value="Not Interested">Not Interested</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
             </div>
 
-            <form onSubmit={handleSaveCallLog} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">Call Status</label>
-                <select
-                  value={logForm.call_status}
-                  onChange={e => setLogForm(p => ({ ...p, call_status: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                >
-                  {CALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">Call Outcome</label>
-                <select
-                  value={logForm.call_outcome}
-                  onChange={e => setLogForm(p => ({ ...p, call_outcome: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                >
-                  {CALL_OUTCOMES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">Remarks</label>
-                <textarea
-                  value={logForm.remarks}
-                  onChange={e => setLogForm(p => ({ ...p, remarks: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
-                  placeholder="Enter call remarks..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">Next Follow-up Date</label>
-                <input
-                  type="date"
-                  value={logForm.next_follow_up_date}
-                  onChange={e => setLogForm(p => ({ ...p, next_follow_up_date: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">Preferred Time</label>
-                <select
-                  value={logForm.next_follow_up_time}
-                  onChange={e => setLogForm(p => ({ ...p, next_follow_up_time: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                >
-                  {CALL_TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowLogCallModal(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
-                >
-                  Save Call Log
-                </button>
-              </div>
-            </form>
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+              <button onClick={() => setLogCallModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-300 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">Cancel</button>
+              <button 
+                onClick={handleLogCall} 
+                disabled={saving || !callLogForm.remarks.trim()} 
+                className="px-5 py-2.5 text-sm font-bold text-white bg-accent rounded-xl shadow-sm hover:bg-accent/90 transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                Save Log & Follow-up
+              </button>
+            </div>
           </div>
         </div>
       )}

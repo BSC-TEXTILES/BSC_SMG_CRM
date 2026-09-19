@@ -10,7 +10,8 @@ import {
   RefreshCw,
   ArrowRight,
   Send,
-  Loader2
+  Loader2,
+  History
 } from 'lucide-react';
 
 /**

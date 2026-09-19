@@ -29,6 +29,7 @@ import Greeter from './pages/Greeter';
 import Attendance from './pages/Attendance';
 import DailyMCheck from './pages/DailyMCheck';
 import MCheckReports from './pages/MCheckReports';
+import MainCrmDashboard from './pages/MainCrmDashboard';
 import MCheckHistory from './pages/MCheckHistory';
 import WeddingCRM from './pages/WeddingCRM';
 import TelecallerDashboard from './pages/TelecallerDashboard';
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<RouteGuard pageKey="dashboard"><Dashboard /></RouteGuard>} />
+        <Route path="/main-crm" element={<RouteGuard pageKey="main_crm"><MainCrmDashboard /></RouteGuard>} />
         <Route path="/wedding-crm" element={<RouteGuard pageKey="wedding_crm"><WeddingCRM /></RouteGuard>} />
         <Route path="/telecaller-dashboard" element={<RouteGuard pageKey="telecaller_dashboard"><TelecallerDashboard /></RouteGuard>} />
         <Route path="/footfall" element={<RouteGuard pageKey="footfall"><Footfall /></RouteGuard>} />
