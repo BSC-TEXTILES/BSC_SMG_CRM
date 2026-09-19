@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import Topbar from '../components/Topbar';
-import ToastContainer, { showToast } from '../components/Toast';
+import { showToast } from '../components/Toast';
 import { API, Auth, UserSession } from '../services/api';
 import { isDateInRange } from '../utils/dateUtils';
-import {
+import { 
   Phone, PhoneCall, Clock, Calendar, Users, Heart, CheckCircle, 
   MapPin, Edit3, Eye, Search, Filter, MessageCircle, X, Save,
-  AlertCircle, PhoneOff, BookOpen, Star, RefreshCw, ChevronRight, User
+  AlertCircle, PhoneOff, BookOpen, Star, RefreshCw, ChevronRight, User,
+  Plus, Bell, ChevronDown, FileText, Sparkles, Target, Check, CheckCircle2, Activity
 } from 'lucide-react';
 
 interface WeddingCustomer {
@@ -28,6 +28,10 @@ interface WeddingCustomer {
   contactMethod?: string;
   status: string;
   callStatus?: string;
+  totalCalls?: number;
+  lastCallDate?: string;
+  lastCallResult?: string;
+  familySize?: string;
   visitStatus?: string;
   shoppingStatus?: string;
   nextFollowUp?: string;
@@ -81,7 +85,36 @@ export default function TelecallerDashboard() {
       ]);
       
       if (deskRes?.data) setDeskStats(deskRes.data);
-      if (custRes?.customers) setCustomers(custRes.customers);
+      if (custRes?.customers) {
+        const mapped = custRes.customers.map((c: any) => ({
+          id: c.id,
+          registrationId: c.customer_code,
+          customerName: c.customer_name,
+          mobile: c.mobile_number,
+          email: c.email,
+          locationId: c.location_id,
+          locationName: c.location_name,
+          weddingDate: c.wedding_date,
+          dateFlexibility: c.date_flexibility,
+          functions: c.functions,
+          shoppingCategory: c.preferred_shopping_category,
+          preferredShoppingDate: c.expected_shopping_date,
+          preferredTime: c.preferred_call_time,
+          contactMethod: c.contact_method,
+          status: c.customer_status,
+          callStatus: c.call_status,
+          totalCalls: c.total_calls_count,
+          lastCallDate: c.last_call_date,
+          lastCallResult: c.last_call_outcome,
+          familySize: c.estimated_family_size,
+          nextFollowUp: c.follow_up_date,
+          assignedTelecallerName: c.assigned_telecaller,
+          assignedTelecallerId: c.assigned_telecaller_id,
+          registrationDate: c.created_at,
+          remarks: c.customer_notes,
+        }));
+        setCustomers(mapped);
+      }
     } catch (err: any) {
       showToast('Error loading telecaller data: ' + err.message, 'error');
     } finally {
@@ -102,27 +135,10 @@ export default function TelecallerDashboard() {
   useEffect(() => {
     let list = [...customers];
 
-    // Restrict to my assigned queue unless Admin
     if (session?.role !== 'Admin' && session?.role !== 'Super Admin') {
       list = list.filter(c => c.assignedTelecallerId === session?.id || c.assignedTelecallerName === session?.fullName);
     }
 
-    // Pipeline / Tab Filtering
-    if (activeTab === 'New Requests') list = list.filter(c => c.status?.toLowerCase().includes('new'));
-    if (activeTab === 'Today Follow-ups') {
-      const today = new Date().toISOString().split('T')[0];
-      list = list.filter(c => c.nextFollowUp && c.nextFollowUp.startsWith(today));
-    }
-    if (activeTab === 'Overdue') {
-      const today = new Date().toISOString().split('T')[0];
-      list = list.filter(c => c.nextFollowUp && c.nextFollowUp < today && !['Completed', 'Not Interested'].includes(c.status));
-    }
-    if (activeTab === 'Contacted') list = list.filter(c => c.status === 'Contacted');
-    if (activeTab === 'Visit Planned') list = list.filter(c => c.status === 'Visit Planned');
-    if (activeTab === 'Shopping Confirmed') list = list.filter(c => c.status === 'Shopping Confirmed');
-    if (activeTab === 'Completed') list = list.filter(c => c.status === 'Completed');
-
-    // Date Range filtering
     if (activeRange !== 'all') {
       list = list.filter(c => {
         const d = c.nextFollowUp || c.registrationDate || new Date().toISOString();
@@ -159,287 +175,308 @@ export default function TelecallerDashboard() {
       
       await API.logWeddingCall(payload);
       
-      // If status changed, update customer
       if (callLogForm.newStatus && callLogForm.newStatus !== detailCustomer.status) {
          await API.updateWeddingCustomer(detailCustomer.id, { status: callLogForm.newStatus });
       }
       
       showToast('Call logged successfully', 'success');
       setLogCallModalOpen(false);
-      setCallLogForm({ callResult: 'Connected', nextFollowUpDate: '', nextFollowUpTime: '', customerResponse: '', remarks: '', newStatus: '' });
+      setCallLogForm({
+        callResult: 'Connected',
+        nextFollowUpDate: '',
+        nextFollowUpTime: '',
+        customerResponse: '',
+        remarks: '',
+        newStatus: ''
+      });
       loadData();
-    } catch (e: any) {
-      showToast('Error: ' + e.message, 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Error logging call', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const renderStatus = (status?: string) => {
-    if (!status) return <span className="text-slate-400">-</span>;
-    const s = status.toLowerCase();
-    let cls = 'bg-slate-100 text-slate-700';
-    if (s.includes('new') || s.includes('pending')) cls = 'bg-blue-50 text-blue-700 border-blue-200';
-    if (s.includes('contacted') || s.includes('scheduled')) cls = 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    if (s.includes('visit') || s.includes('progress')) cls = 'bg-amber-50 text-amber-700 border-amber-200';
-    if (s.includes('confirm') || s.includes('completed')) cls = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    if (s.includes('not interested') || s.includes('cancel')) cls = 'bg-rose-50 text-rose-700 border-rose-200';
-    return <span className={`inline-flex px-2 py-1 rounded-full text-[11px] font-bold border ${cls}`}>{status}</span>;
-  };
-
   return (
-    <div className="flex h-screen bg-slate-50 font-sans">
+    <div className="flex h-screen bg-[#FFF9F9] font-sans">
       <Sidebar session={session} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar title="Telecaller Dashboard" session={session} onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-          <ToastContainer />
-          
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header Info */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent">
-                  <PhoneCall className="w-6 h-6" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-slate-900">BSC EXCLUSIVE • Telecaller Dashboard</h1>
-                  <p className="text-sm text-slate-500 font-medium mt-0.5">
-                    Logged in as <strong className="text-slate-800">{session?.fullName || session?.username}</strong> ({session?.role})
-                    {session?.locationId && ` • Assigned Location: ${session.locationId}`}
-                  </p>
-                </div>
-              </div>
-              <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition-colors">
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
-              </button>
+        <header className="h-16 bg-[#FFF9F9] flex items-center justify-between px-6 shrink-0 border-b border-[#EBE5E0]">
+          <div className="flex items-center gap-3">
+             <div className="flex items-center gap-2 bg-[#F3EFE9] rounded-lg p-1 text-xs font-bold text-[#5B4636]">
+               <button className="px-3 py-1.5 bg-[#FDECC8] rounded-md shadow-sm">Telecaller Queue</button>
+             </div>
+             <div className="relative">
+               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8F85]" />
+               <input 
+                 type="text" 
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 placeholder="Search customers..." 
+                 className="pl-9 pr-4 py-2 bg-[#F3EFE9] border-none rounded-lg text-xs font-bold w-64 focus:ring-0 focus:outline-none text-[#5B4636]" 
+               />
+             </div>
+          </div>
+          <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2 text-xs font-bold text-[#5B4636] bg-[#F3EFE9] px-4 py-2 rounded-lg">
+               <Calendar className="w-3.5 h-3.5" /> {new Date().toLocaleDateString()}
+             </div>
+             <button onClick={() => loadData()} className="p-2 relative text-[#5B4636] hover:bg-[#F3EFE9] rounded-full transition-colors">
+               <RefreshCw className="w-5 h-5" />
+             </button>
+             <div className="flex items-center gap-2">
+               <div className="w-8 h-8 rounded-full bg-[#4A1E2C] text-white flex items-center justify-center font-bold text-sm">
+                 {session?.fullName?.charAt(0) || 'U'}
+               </div>
+               <div className="hidden md:block text-left leading-tight">
+                 <div className="text-[11px] font-bold text-[#2C1E16]">{session?.fullName || 'User'}</div>
+                 <div className="text-[10px] text-[#9A8F85] font-semibold">{session?.role}</div>
+               </div>
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6 scroll-smooth bg-[#FFF9F9]">
+          <div className="max-w-[1400px] mx-auto space-y-6 pb-20">
+            
+            <div className="bg-white p-3 border border-[#EBE5E0] rounded-xl flex items-center gap-4 shadow-sm">
+               <div className="flex-1 grid grid-cols-4 gap-4">
+                 <div>
+                   <label className="block text-[9px] uppercase font-bold text-[#9A8F85] mb-1">Showroom Location</label>
+                   <button className="w-full text-left text-xs font-bold text-[#2C1E16] border-b border-[#EBE5E0] pb-1 flex justify-between items-center">
+                     All Locations <ChevronDown className="w-3.5 h-3.5" />
+                   </button>
+                 </div>
+                 <div>
+                   <label className="block text-[9px] uppercase font-bold text-[#9A8F85] mb-1">Follow-up Window</label>
+                   <button className="w-full text-left text-xs font-bold text-[#2C1E16] border-b border-[#EBE5E0] pb-1 flex justify-between items-center">
+                     <Calendar className="w-3 h-3 text-[#4A1E2C] mr-1 inline-block" /> All Upcoming <ChevronDown className="w-3.5 h-3.5" />
+                   </button>
+                 </div>
+                 <div>
+                   <label className="block text-[9px] uppercase font-bold text-[#9A8F85] mb-1">Call Priority</label>
+                   <button className="w-full text-left text-xs font-bold text-[#2C1E16] border-b border-[#EBE5E0] pb-1 flex justify-between items-center">
+                     All Priorities <ChevronDown className="w-3.5 h-3.5" />
+                   </button>
+                 </div>
+                 <div>
+                   <label className="block text-[9px] uppercase font-bold text-[#9A8F85] mb-1">Assigned Telecaller</label>
+                   <button className="w-full text-left text-xs font-bold text-[#2C1E16] border-b border-[#EBE5E0] pb-1 flex justify-between items-center">
+                     My Queue <ChevronDown className="w-3.5 h-3.5" />
+                   </button>
+                 </div>
+               </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
-                <div className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Total Assigned</div>
-                <div className="text-2xl font-extrabold text-slate-900">{deskStats.assignedCalls || 0}</div>
-                <Users className="absolute top-4 right-4 w-8 h-8 text-slate-100" />
-              </div>
-              <div className="bg-[#4A1E2C] p-4 rounded-xl shadow-sm relative overflow-hidden text-white">
-                <div className="text-xs font-bold text-[#E8D5D8] mb-1 uppercase tracking-wider">Today's Follow-ups</div>
-                <div className="text-2xl font-extrabold">{deskStats.pendingCalls || 0}</div>
-                <Clock className="absolute top-4 right-4 w-8 h-8 text-white/20" />
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
-                <div className="text-xs font-bold text-rose-500 mb-1 uppercase tracking-wider">Overdue</div>
-                <div className="text-2xl font-extrabold text-slate-900">{deskStats.noAnswerCount || 0}</div>
-                <AlertCircle className="absolute top-4 right-4 w-8 h-8 text-rose-50" />
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
-                <div className="text-xs font-bold text-teal-600 mb-1 uppercase tracking-wider">Completed Today</div>
-                <div className="text-2xl font-extrabold text-slate-900">{deskStats.completedToday || 0}</div>
-                <CheckCircle className="absolute top-4 right-4 w-8 h-8 text-teal-50" />
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden hidden lg:block">
-                <div className="text-xs font-bold text-emerald-600 mb-1 uppercase tracking-wider">Visits Scheduled</div>
-                <div className="text-2xl font-extrabold text-slate-900">{deskStats.connectedCalls || 0}</div>
-                <MapPin className="absolute top-4 right-4 w-8 h-8 text-emerald-50" />
-              </div>
+            <div className="flex justify-between items-center bg-white px-5 py-3 border border-[#EBE5E0] rounded-xl shadow-sm">
+               <div className="flex items-center gap-2 text-xs font-bold text-[#2C1E16]">
+                 Showing {filtered.length} high-value wedding parties
+               </div>
+               <button className="flex items-center gap-1.5 text-[10px] font-bold text-[#5B4636] hover:bg-[#F3EFE9] px-3 py-1.5 rounded transition-colors">
+                 <FileText className="w-3.5 h-3.5" /> Export CSV
+               </button>
             </div>
 
-            {/* Main Content Area */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-              {/* Pipeline Tabs */}
-              <div className="flex overflow-x-auto hide-scrollbar border-b border-slate-200 p-2">
-                {['My Queue', 'New Requests', 'Today Follow-ups', 'Overdue', 'Contacted', 'Visit Planned', 'Shopping Confirmed', 'Completed'].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                      activeTab === tab 
-                        ? 'bg-[#4A1E2C] text-white shadow-sm' 
-                        : 'text-[#9A8F85] hover:text-[#2C1E16] hover:bg-[#FDFCFB]'
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-
-              {/* Filters & Search */}
-              <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50/50">
-                <div className="relative max-w-sm w-full">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Search Registration ID, Name, Phone..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-                  />
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  {(['all', 'today', 'yesterday', 'week', 'month'] as const).map(range => (
-                    <button
-                      key={range}
-                      onClick={() => setActiveRange(range)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                        activeRange === range ? 'bg-slate-800 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {range === 'all' ? 'All Time' :
-                       range === 'today' ? 'Today' :
-                       range === 'yesterday' ? 'Yesterday' :
-                       range === 'week' ? 'This Week' : 'This Month'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Operations Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[#4A1E2C] text-white">
-                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Registration</th>
-                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Customer & Contact</th>
-                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Wedding Details</th>
-                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Telecaller & Follow-up</th>
-                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider">Status</th>
-                      <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {loading ? (
-                      <tr><td colSpan={6} className="py-12 text-center text-slate-500"><RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-accent" />Loading Queue...</td></tr>
-                    ) : filtered.length === 0 ? (
-                      <tr><td colSpan={6} className="py-12 text-center text-slate-500 font-medium">No customers found in this queue.</td></tr>
-                    ) : (
-                      filtered.map(c => (
-                        <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
-                          <td className="py-3 px-4">
-                            <div className="text-sm font-bold text-slate-900 font-mono">{c.registrationId || `CUST-${c.id}`}</div>
-                            <div className="text-xs text-slate-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3"/>{c.locationName || 'N/A'}</div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="text-sm font-bold text-slate-900 group-hover:text-accent cursor-pointer transition-colors" onClick={() => setDetailCustomer(c)}>
-                              {c.customerName}
+            <div className="bg-white rounded-2xl shadow-sm border border-[#EBE5E0] overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#4A1E2C] text-white text-[9px] font-black tracking-widest uppercase">
+                    <th className="py-3 px-5 w-24">Registration ID</th>
+                    <th className="py-3 px-5">Customer Family</th>
+                    <th className="py-3 px-5">Contact Details</th>
+                    <th className="py-3 px-5">Wedding Date</th>
+                    <th className="py-3 px-5">Preferred Collection</th>
+                    <th className="py-3 px-5">Call Activity</th>
+                    <th className="py-3 px-5">Dedicated Telecaller</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE5E0]">
+                  {loading ? (
+                    <tr><td colSpan={7} className="py-12 text-center text-[#9A8F85]"><RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#4A1E2C]" />Loading Queue...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={7} className="py-12 text-center text-[#9A8F85] font-bold">No customers found in this queue.</td></tr>
+                  ) : (
+                    filtered.map(c => (
+                      <tr key={c.id} className="hover:bg-[#FFF9F9] transition-colors group">
+                        <td className="py-4 px-5">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className={`text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-[#EBE5E0] text-[#5B4636]`}>
+                              {c.registrationId || c.id.toString()}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="text-sm font-extrabold text-[#2C1E16] group-hover:text-amber-700 transition-colors cursor-pointer" onClick={() => setDetailCustomer(c)}>
+                            {c.customerName}
+                          </div>
+                          <div className="text-[10px] text-[#9A8F85] font-semibold mt-0.5">{c.familySize ? c.familySize + ' members' : 'Family Details N/A'}</div>
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="text-[11px] font-bold text-[#2C1E16]">{c.mobile}</div>
+                          <div className="text-[10px] text-[#9A8F85] font-semibold mt-0.5">{c.locationName || 'N/A'}</div>
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="text-[11px] font-bold text-[#2C1E16] flex items-center gap-1.5">
+                            <Heart className="w-3.5 h-3.5 text-rose-500" /> {(c.weddingDate ? new Date(c.weddingDate).toLocaleDateString() : 'TBD')}
+                          </div>
+                          <div className="text-[10px] text-[#9A8F85] font-bold mt-0.5 ml-5">{c.preferredTime || 'Anytime'}</div>
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-100 px-2 py-1.5 rounded-md inline-block max-w-[130px] leading-tight">
+                            {c.shoppingCategory || 'Unspecified'}
+                          </div>
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="text-xs font-black text-[#2C1E16]">{c.totalCalls || 0} Calls</div>
+                          <div className="text-[10px] font-medium text-[#9A8F85] mt-0.5">{c.callStatus || 'Pending'}</div>
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold bg-amber-100 text-amber-800`}>
+                              {(c.assignedTelecallerName || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <div className="text-xs text-slate-600 font-medium flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3 text-slate-400"/> {c.mobile}</div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="text-sm font-bold text-slate-700">{c.weddingDate ? new Date(c.weddingDate).toLocaleDateString() : 'TBD'}</div>
-                            <div className="text-xs text-slate-500 mt-0.5">{c.shoppingCategory || 'Unspecified'}</div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="text-sm font-bold text-slate-700">{c.assignedTelecallerName || 'Unassigned'}</div>
-                            <div className="text-xs text-rose-500 font-bold mt-0.5 flex items-center gap-1">
-                              <Clock className="w-3 h-3"/> {c.nextFollowUp ? new Date(c.nextFollowUp).toLocaleDateString() : 'No follow-up'}
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            {renderStatus(c.status)}
-                          </td>
-                          <td className="py-3 px-4 text-right space-x-2">
-                            <button 
-                              onClick={() => { setDetailCustomer(c); setLogCallModalOpen(true); }}
-                              className="px-3 py-1.5 bg-[#4A1E2C] hover:bg-[#3A1723] text-white text-[11px] font-bold rounded-lg shadow-sm transition-all whitespace-nowrap"
-                            >
-                              Log Call
-                            </button>
-                            <button 
-                              onClick={() => setDetailCustomer(c)}
-                              className="inline-flex items-center justify-center p-1.5 rounded-lg bg-[#FDFCFB] border border-[#E8D5D8] text-[#2C1E16] hover:bg-[#E8D5D8]/30 transition-colors"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                            <div className="text-[11px] font-bold text-[#5B4636]">{c.assignedTelecallerName || 'Unassigned'}</div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </main>
       </div>
 
-      {/* Customer Detail Drawer / Modal */}
       {detailCustomer && !logCallModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-900/50 backdrop-blur-sm p-0 md:p-4">
-          <div className="bg-white shadow-2xl w-full md:w-[600px] md:rounded-2xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">{detailCustomer.customerName}</h2>
-                <div className="text-xs text-slate-500 font-mono mt-0.5">{detailCustomer.registrationId || `CUST-${detailCustomer.id}`} • {detailCustomer.locationName}</div>
-              </div>
-              <button onClick={() => setDetailCustomer(null)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full"><X className="w-5 h-5" /></button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2C1E16]/80 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[850px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             
-            <div className="flex-1 overflow-auto p-6 space-y-6 bg-slate-50/30">
+            <div className="px-6 py-4 bg-[#4A1E2C] flex items-center justify-between text-white">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-amber-400 rounded flex items-center justify-center text-amber-900">
+                  <PhoneCall className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold tracking-widest text-amber-200 uppercase">{detailCustomer.registrationId || detailCustomer.id}</span>
+                  </div>
+                  <h2 className="text-xl font-extrabold">{detailCustomer.customerName}</h2>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setLogCallModalOpen(true)} className="flex items-center gap-2 bg-[#3d1824] border border-white/20 text-white px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-[#2C1E16] transition-colors">
+                  <Plus className="w-3.5 h-3.5" /> Log Interaction
+                </button>
+                <button onClick={() => setDetailCustomer(null)} className="p-2 text-white/50 hover:bg-white/10 hover:text-white rounded-full transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+            </div>
+
+            <div className="p-6 bg-[#FFF9F9] overflow-auto max-h-[85vh] space-y-6">
               
-              {/* Quick Actions */}
-              <div className="flex gap-3">
-                <button onClick={() => setLogCallModalOpen(true)} className="flex-1 py-2.5 bg-accent text-white rounded-xl text-sm font-bold shadow-sm hover:bg-accent/90 transition-colors flex items-center justify-center gap-2">
-                  <PhoneCall className="w-4 h-4" /> Log Call / Follow-up
-                </button>
-                <button className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                  <MapPin className="w-4 h-4" /> Schedule Visit
-                </button>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-wider text-[#9A8F85] mb-1">Customer Location</div>
+                  <div className="text-sm font-extrabold text-[#2C1E16]">{detailCustomer.locationName || 'N/A'}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-wider text-[#9A8F85] mb-1">Wedding Date</div>
+                  <div className="text-sm font-extrabold text-[#2C1E16]">{detailCustomer.weddingDate ? new Date(detailCustomer.weddingDate).toLocaleDateString() : 'TBD'}</div>
+                  <div className="text-[10px] font-semibold text-[#5B4636] mt-0.5">{detailCustomer.preferredTime || 'Anytime'}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-wider text-[#9A8F85] mb-1">Total Calls</div>
+                  <div className="text-sm font-extrabold text-[#2C1E16]">{detailCustomer.totalCalls || 0}</div>
+                  <div className="text-[10px] font-semibold text-[#5B4636] mt-0.5">Status: {detailCustomer.callStatus || 'Pending'}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-wider text-[#9A8F85] mb-1">Preferred Ensemble</div>
+                  <div className="text-sm font-extrabold text-[#2C1E16]">{detailCustomer.shoppingCategory || 'Unspecified'}</div>
+                </div>
               </div>
 
-              {/* Status & Priority */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                  <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Current Status</div>
-                  {renderStatus(detailCustomer.status)}
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                  <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Next Follow-up</div>
-                  <div className="text-sm font-bold text-rose-600 flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {detailCustomer.nextFollowUp ? new Date(detailCustomer.nextFollowUp).toLocaleDateString() : 'Not Scheduled'}
+              <div className="grid grid-cols-3 gap-6">
+                
+                <div className="col-span-2 space-y-6">
+                  <div className="bg-white rounded-xl border border-[#EBE5E0] p-5 shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-6">
+                       <h3 className="text-sm font-extrabold text-[#2C1E16] flex items-center gap-2">
+                         <User className="w-4 h-4 text-accent" /> Complete Customer Profile
+                       </h3>
+                       <span className="bg-[#F3EFE9] text-[#5B4636] text-[10px] font-black px-2 py-0.5 rounded">Registered: {detailCustomer.registrationDate ? new Date(detailCustomer.registrationDate).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-[10px] font-bold text-[#9A8F85] uppercase mb-1">Mobile Number</div>
+                        <div className="text-sm font-bold text-[#2C1E16]">{detailCustomer.mobile}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-[#9A8F85] uppercase mb-1">Email Address</div>
+                        <div className="text-sm font-bold text-[#2C1E16]">{detailCustomer.email || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-[#9A8F85] uppercase mb-1">Family Size</div>
+                        <div className="text-sm font-bold text-[#2C1E16]">{detailCustomer.familySize || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-[#9A8F85] uppercase mb-1">Preferred Shopping Date</div>
+                        <div className="text-sm font-bold text-[#2C1E16]">{detailCustomer.preferredShoppingDate ? new Date(detailCustomer.preferredShoppingDate).toLocaleDateString() : 'N/A'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-rose-50/50 rounded-xl border border-rose-100 p-4">
+                     <div className="flex justify-between items-center mb-3 text-[10px] font-bold uppercase tracking-wide text-[#9A8F85]">
+                       <span>Wedding Requirements & Remarks</span>
+                     </div>
+                     <p className="text-xs text-[#5B4636] leading-relaxed mb-4 font-medium">
+                       {detailCustomer.remarks || 'No specific remarks or requirements provided.'}
+                     </p>
+                     <div className="flex gap-4 border-t border-rose-100 pt-3 text-[10px] font-bold text-[#4A1E2C]">
+                       <span className="bg-white px-2 py-1 rounded border border-rose-100">Status: {detailCustomer.status}</span>
+                       <span className="bg-white px-2 py-1 rounded border border-rose-100">Functions: {detailCustomer.functions || 'N/A'}</span>
+                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Wedding & Shopping Info */}
-              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-accent" /> Wedding & Shopping Details
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Wedding Date</span><span className="font-bold text-slate-800">{detailCustomer.weddingDate ? new Date(detailCustomer.weddingDate).toLocaleDateString() : 'TBD'}</span></div>
-                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Shopping Category</span><span className="font-bold text-slate-800">{detailCustomer.shoppingCategory || 'N/A'}</span></div>
-                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Functions</span><span className="font-medium text-slate-800">{detailCustomer.functions || 'N/A'}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500 font-medium">Preferred Shopping Date</span><span className="font-medium text-slate-800">{detailCustomer.preferredShoppingDate ? new Date(detailCustomer.preferredShoppingDate).toLocaleDateString() : 'N/A'}</span></div>
+                <div className="col-span-1 space-y-4">
+                   <div className="bg-white rounded-xl border border-[#EBE5E0] p-4 shadow-sm h-full flex flex-col">
+                     <div className="flex justify-between items-center mb-3">
+                       <h3 className="text-xs font-extrabold text-[#2C1E16] uppercase tracking-wide">Call History</h3>
+                     </div>
+                     <div className="space-y-3 mb-4 flex-1">
+                        <div className="flex justify-between border-b border-[#EBE5E0] pb-2">
+                          <span className="text-[10px] font-bold text-[#9A8F85]">Assigned To</span>
+                          <span className="text-xs font-bold text-[#2C1E16]">{detailCustomer.assignedTelecallerName || 'Unassigned'}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[#EBE5E0] pb-2">
+                          <span className="text-[10px] font-bold text-[#9A8F85]">Last Call</span>
+                          <span className="text-xs font-bold text-[#2C1E16]">{detailCustomer.lastCallDate ? new Date(detailCustomer.lastCallDate).toLocaleDateString() : 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-[#EBE5E0] pb-2">
+                          <span className="text-[10px] font-bold text-[#9A8F85]">Last Result</span>
+                          <span className="text-xs font-bold text-[#2C1E16]">{detailCustomer.lastCallResult || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[10px] font-bold text-[#9A8F85]">Next Follow-up</span>
+                          <span className="text-xs font-bold text-rose-600">{detailCustomer.nextFollowUp ? new Date(detailCustomer.nextFollowUp).toLocaleDateString() : 'None'}</span>
+                        </div>
+                     </div>
+                     <button onClick={() => setLogCallModalOpen(true)} className="w-full py-3 bg-[#4A1E2C] rounded-lg text-xs font-bold text-white hover:bg-[#3d1824] transition-colors flex justify-center items-center gap-2">
+                       <Plus className="w-4 h-4" /> Add Call Log
+                     </button>
+                   </div>
                 </div>
               </div>
 
-              {/* Contact Info */}
-              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
-                  <User className="w-4 h-4 text-blue-500" /> Contact Information
-                </h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Mobile Number</span><span className="font-bold text-slate-800">{detailCustomer.mobile}</span></div>
-                  <div className="flex justify-between border-b border-slate-50 pb-2"><span className="text-slate-500 font-medium">Email Address</span><span className="font-medium text-slate-800">{detailCustomer.email || 'N/A'}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500 font-medium">Contact Method</span><span className="font-medium text-slate-800">{detailCustomer.contactMethod || 'N/A'}</span></div>
-                </div>
-              </div>
-              
-              {/* Activity Timeline Placeholder */}
-              <div className="bg-slate-100 border border-slate-200 rounded-xl p-5 text-center shadow-inner">
-                <MessageCircle className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm text-slate-600 font-medium">Consultation & Call Logs are available in the Full Profile view.</p>
-                <button className="mt-3 text-xs font-bold text-accent hover:underline">View Full Timeline</button>
-              </div>
             </div>
+            
           </div>
         </div>
       )}
 
-      {/* Log Call Modal / Follow-up Scheduler */}
       {logCallModalOpen && detailCustomer && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
@@ -470,71 +507,77 @@ export default function TelecallerDashboard() {
                   <option value="Number Invalid">Number Invalid</option>
                 </select>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Customer Response / Remarks <span className="text-rose-500">*</span></label>
-                <textarea 
-                  rows={3}
-                  value={callLogForm.remarks}
-                  onChange={e => setCallLogForm({...callLogForm, remarks: e.target.value})}
-                  className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border resize-none"
-                  placeholder="Enter detailed notes about the conversation..."
-                />
-              </div>
-
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Next Follow-up Date</label>
                   <input 
-                    type="date"
+                    type="date" 
                     value={callLogForm.nextFollowUpDate}
                     onChange={e => setCallLogForm({...callLogForm, nextFollowUpDate: e.target.value})}
-                    className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
+                    className="w-full text-sm border-slate-300 rounded-xl shadow-sm py-2.5 px-3 border"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Time</label>
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Next Follow-up Time</label>
                   <input 
-                    type="time"
+                    type="time" 
                     value={callLogForm.nextFollowUpTime}
                     onChange={e => setCallLogForm({...callLogForm, nextFollowUpTime: e.target.value})}
-                    className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
+                    className="w-full text-sm border-slate-300 rounded-xl shadow-sm py-2.5 px-3 border"
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Update Pipeline Status (Optional)</label>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Customer Feedback / Remarks <span className="text-rose-500">*</span></label>
+                <textarea 
+                  rows={3}
+                  value={callLogForm.remarks}
+                  onChange={e => setCallLogForm({...callLogForm, remarks: e.target.value})}
+                  placeholder="Enter detailed notes from the conversation..."
+                  className="w-full text-sm border-slate-300 rounded-xl shadow-sm py-2.5 px-3 border resize-none"
+                ></textarea>
+              </div>
+
+              <div className="space-y-1.5 pt-3 border-t border-slate-100">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Update Customer Status (Optional)</label>
                 <select 
                   value={callLogForm.newStatus} 
                   onChange={e => setCallLogForm({...callLogForm, newStatus: e.target.value})}
                   className="w-full text-sm border-slate-300 rounded-xl shadow-sm focus:ring-accent focus:border-accent py-2.5 px-3 border"
                 >
-                  <option value="">-- Keep current status: {detailCustomer.status} --</option>
+                  <option value="">-- Keep Current Status ({detailCustomer.status}) --</option>
                   <option value="Contacted">Contacted</option>
-                  <option value="Follow-up Scheduled">Follow-up Scheduled</option>
                   <option value="Visit Planned">Visit Planned</option>
                   <option value="Shopping Confirmed">Shopping Confirmed</option>
-                  <option value="Not Interested">Not Interested</option>
                   <option value="Completed">Completed</option>
+                  <option value="Not Interested">Not Interested</option>
                 </select>
               </div>
             </div>
-
+            
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setLogCallModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-300 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">Cancel</button>
               <button 
-                onClick={handleLogCall} 
-                disabled={saving || !callLogForm.remarks.trim()} 
-                className="px-5 py-2.5 text-sm font-bold text-white bg-accent rounded-xl shadow-sm hover:bg-accent/90 transition-all disabled:opacity-50 flex items-center gap-2"
+                onClick={() => setLogCallModalOpen(false)}
+                className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors"
+                disabled={saving}
               >
-                {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-                Save Log & Follow-up
+                Cancel
+              </button>
+              <button 
+                onClick={handleLogCall}
+                disabled={saving || !callLogForm.remarks}
+                className="px-5 py-2.5 text-sm font-bold text-white bg-accent hover:bg-accent/90 rounded-xl shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saving ? 'Saving...' : 'Save Call Log'}
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
