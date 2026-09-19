@@ -22,7 +22,6 @@ const locationController = require('../controllers/locationController');
 const userMgmtController = require('../controllers/userManagementController');
 const userValidator = require('../validators/userValidator');
 const feedbackQrController = require('../controllers/feedbackQrController');
-const workflowController = require('../controllers/workflowController');
 
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
@@ -234,11 +233,9 @@ const telecallerDashboardRoutes = require('./telecallerDashboardRoutes');
 router.use('/telecaller-dashboard', telecallerDashboardRoutes);
 
 // ── Wedding Registration ──────────────────────────────────────
-const workflowRoutes = require('./workflowRoutes');
 console.log('[DEBUG] Loading workflow routes...');
 const weddingRegistrationRoutes = require('./weddingRegistrationRoutes');
 router.use('/wedding-registration', weddingRegistrationRoutes);
-router.use('/workflow', workflowRoutes);
 console.log('[DEBUG] Workflow routes mounted at /workflow');
 
 // ── Feedback QR Code Module ─────────────────────────────────────
@@ -799,4 +796,3 @@ router.post('/designations', authenticate, authorize('Admin', 'Super Admin'), se
 router.delete('/designations', authenticate, authorize('Admin', 'Super Admin'), settingsController.deleteDesignation);
 
 module.exports = router;
-
