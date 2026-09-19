@@ -1621,13 +1621,17 @@ async function autoInitializeDatabase(pool) {
             await connection.query(stmt);
           } catch (e) {
             // Silently ignore duplicate column, table exists, or index exists errors
-            if (
-              !e.message.includes('Duplicate') &&
-              !e.message.includes('already exists') &&
-              !e.message.includes("doesn't exist") &&
-              !e.message.includes('ER_DUP_FIELDNAME')
-            ) {
-              logDebug(`[Location Migration Warning]:`, e.message.slice(0, 120));
+            const msg = e.message || '';
+            const code = e.code || '';
+            const isSafe =
+              msg.includes('Duplicate') ||
+              msg.includes('already exists') ||
+              msg.includes("doesn't exist") ||
+              msg.includes('ER_DUP_FIELDNAME') ||
+              code === 'ER_DUP_FIELDNAME' ||
+              code === 'ER_DUP_KEYNAME';
+            if (!isSafe) {
+              logDebug(`[Location Migration Warning]:`, msg.slice(0, 120));
             }
           }
         }
