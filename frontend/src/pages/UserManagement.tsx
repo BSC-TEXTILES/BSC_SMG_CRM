@@ -50,7 +50,7 @@ interface UserPermission {
   can_edit: boolean;
   can_delete: boolean;
   can_export: boolean;
-  can_approve: boolean;
+  
   granted_by?: string;
   granted_at?: string;
 }
@@ -601,7 +601,6 @@ export default function UserManagementPage() {
         updated.can_edit = false;
         updated.can_delete = false;
         updated.can_export = false;
-        updated.can_approve = false;
       }
 
       return { ...prev, [moduleKey]: updated };
@@ -612,7 +611,7 @@ export default function UserManagementPage() {
   const handleToggleRow = (moduleKey: string) => {
     setUserPermissions(prev => {
       const current = prev[moduleKey];
-      const allActive = current?.can_view && current?.can_add && current?.can_edit && current?.can_delete && current?.can_export && current?.can_approve;
+      const allActive = current?.can_view && current?.can_add && current?.can_edit && current?.can_delete && current?.can_export;
       const nextVal = !allActive;
       return {
         ...prev,
@@ -622,8 +621,7 @@ export default function UserManagementPage() {
           can_add: nextVal,
           can_edit: nextVal,
           can_delete: nextVal,
-          can_export: nextVal,
-          can_approve: nextVal
+          can_export: nextVal
         }
       };
     });
@@ -652,8 +650,7 @@ export default function UserManagementPage() {
           can_add: true,
           can_edit: true,
           can_delete: true,
-          can_export: true,
-          
+          can_export: true
         };
       });
       return updated;
@@ -671,8 +668,7 @@ export default function UserManagementPage() {
           can_add: false,
           can_edit: false,
           can_delete: false,
-          can_export: false,
-          
+          can_export: false
         };
       });
       return updated;
@@ -2041,20 +2037,6 @@ export default function UserManagementPage() {
                               perm.can_export ? 'bg-indigo-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                             title="Toggle Export access"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-
-                        {/* Approve */}
-                        <td className="py-2 px-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleCell(m.key, 'can_approve')}
-                            className={`w-6 h-6 rounded-md flex items-center justify-center mx-auto transition-colors cursor-pointer ${
-                              perm.can_approve ? 'bg-purple-600 text-black' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                            }`}
-                            title="Toggle Approve access"
                           >
                             <Check className="w-3.5 h-3.5" />
                           </button>

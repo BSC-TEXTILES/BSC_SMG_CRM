@@ -216,6 +216,10 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
 // Legacy Apps Script API Action Dispatcher Wrapper for 100% compatibility
 export const API = {
+  fileUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `http://localhost:5000${url.startsWith('/') ? '' : '/'}${url}`;
+  },
   async call(action: string, params: any = {}) {
     try {
       const res = await apiFetch('/legacy', {

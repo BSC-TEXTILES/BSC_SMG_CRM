@@ -281,48 +281,49 @@ async function ensureTables() {
     `);
 
     // Add source_id to wedding_customers if not exists
-    await pool.query(`
-      ALTER TABLE wedding_customers ADD COLUMN IF NOT EXISTS source_id INT NULL,
-      ADD COLUMN IF NOT EXISTS alternate_mobile VARCHAR(20) NULL,
-      ADD COLUMN IF NOT EXISTS bride_name VARCHAR(150) NULL,
-      ADD COLUMN IF NOT EXISTS bride_age INT NULL,
-      ADD COLUMN IF NOT EXISTS bride_contact VARCHAR(20) NULL,
-      ADD COLUMN IF NOT EXISTS bride_shopping_required BOOLEAN DEFAULT TRUE,
-      ADD COLUMN IF NOT EXISTS groom_name VARCHAR(150) NULL,
-      ADD COLUMN IF NOT EXISTS groom_age INT NULL,
-      ADD COLUMN IF NOT EXISTS groom_contact VARCHAR(20) NULL,
-      ADD COLUMN IF NOT EXISTS groom_shopping_required BOOLEAN DEFAULT TRUE,
-      ADD COLUMN IF NOT EXISTS wedding_date_flexibility VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS wedding_venue VARCHAR(255) NULL,
-      ADD COLUMN IF NOT EXISTS wedding_city VARCHAR(100) NULL,
-      ADD COLUMN IF NOT EXISTS wedding_type VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS wedding_functions JSON NULL,
-      ADD COLUMN IF NOT EXISTS guest_count INT NULL,
-      ADD COLUMN IF NOT EXISTS family_size INT NULL,
-      ADD COLUMN IF NOT EXISTS shopping_requirements JSON NULL,
-      ADD COLUMN IF NOT EXISTS budget_range VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS preferred_shopping_date DATE NULL,
-      ADD COLUMN IF NOT EXISTS preferred_shopping_time VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS expected_visitors INT NULL,
-      ADD COLUMN IF NOT EXISTS existing_customer VARCHAR(20) NULL,
-      ADD COLUMN IF NOT EXISTS existing_customer_id VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS previous_store VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS preferred_contact_method VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS preferred_followup_time VARCHAR(50) NULL,
-      ADD COLUMN IF NOT EXISTS additional_notes TEXT NULL,
-      ADD COLUMN IF NOT EXISTS consent BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS priority VARCHAR(50) DEFAULT 'Medium',
-      ADD COLUMN IF NOT EXISTS budget VARCHAR(100) NULL,
-      ADD COLUMN IF NOT EXISTS lead_source VARCHAR(100) DEFAULT 'Wedding Registration'
-    `);
+    // Add columns one by one for MySQL 5.x compatibility
+    const weddingCols = [
+      "ALTER TABLE wedding_customers ADD COLUMN source_id INT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN alternate_mobile VARCHAR(20) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN bride_name VARCHAR(150) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN bride_age INT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN bride_contact VARCHAR(20) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN bride_shopping_required BOOLEAN DEFAULT TRUE",
+      "ALTER TABLE wedding_customers ADD COLUMN groom_name VARCHAR(150) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN groom_age INT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN groom_contact VARCHAR(20) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN groom_shopping_required BOOLEAN DEFAULT TRUE",
+      "ALTER TABLE wedding_customers ADD COLUMN wedding_date_flexibility VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN wedding_venue VARCHAR(255) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN wedding_city VARCHAR(100) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN wedding_type VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN wedding_functions JSON NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN guest_count INT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN family_size INT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN shopping_requirements JSON NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN budget_range VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN preferred_shopping_date DATE NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN preferred_shopping_time VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN expected_visitors INT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN existing_customer VARCHAR(20) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN existing_customer_id VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN previous_store VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN preferred_contact_method VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN preferred_followup_time VARCHAR(50) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN additional_notes TEXT NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN consent BOOLEAN DEFAULT FALSE",
+      "ALTER TABLE wedding_customers ADD COLUMN priority VARCHAR(50) DEFAULT 'Medium'",
+      "ALTER TABLE wedding_customers ADD COLUMN budget VARCHAR(100) NULL",
+      "ALTER TABLE wedding_customers ADD COLUMN lead_source VARCHAR(100) DEFAULT 'Wedding Registration'"
+    ];
+    for (const sql of weddingCols) {
+      try { await pool.query(sql); } catch(e) { /* column already exists */ }
+    }
 
     // Ensure call log columns for duration and customer response
     try {
-      await pool.query(`
-        ALTER TABLE \`wedding_call_logs\`
-        ADD COLUMN IF NOT EXISTS call_duration VARCHAR(50) NULL,
-        ADD COLUMN IF NOT EXISTS customer_response TEXT NULL
-      `);
+      try { await pool.query("ALTER TABLE `wedding_call_logs` ADD COLUMN call_duration VARCHAR(50) NULL"); } catch(e) {}
+      try { await pool.query("ALTER TABLE `wedding_call_logs` ADD COLUMN customer_response TEXT NULL"); } catch(e) {}
     } catch (e) {}
 
     // Ensure roles table has the wedding crm & telecaller roles
@@ -1355,7 +1356,7 @@ class WeddingController {
       // 5. Priority Calls (High/Urgent)
       const [priorityCalls] = await pool.query(`
         ${baseSelect}
-        AND (w.priority IN ('Urgent', 'High') OR w.customer_status = 'Shopping Date Confirmed')
+        AND w.customer_status = 'Shopping Date Confirmed'
         AND w.customer_status NOT IN ('Converted', 'Visited Store', 'Not Interested', 'Cancelled', 'Closed')
         ORDER BY w.follow_up_date ASC, w.id ASC
         LIMIT 40

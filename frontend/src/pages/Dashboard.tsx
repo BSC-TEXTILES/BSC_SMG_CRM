@@ -382,7 +382,7 @@ export default function DashboardPage() {
           </div>
 
           
-          {!isGreeter && <WorkflowPanel />}
+          
 
           {/* Metric Cards Section */}
           {isGreeter ? (
